@@ -12,7 +12,7 @@ export async function GET(request: Request) {
 
     switch (filter) {
       case 'never-enrolled':
-        students = await sql`SELECT full_name, email FROM profiles WHERE role='student' AND id NOT IN (SELECT user_id FROM enrollments)`;
+        students = await sql`SELECT full_name, email FROM profiles WHERE role='student' AND firebase_uid NOT IN (SELECT user_uid FROM enrollments)`;
         break;
       case 'one-course':
         students = await sql`

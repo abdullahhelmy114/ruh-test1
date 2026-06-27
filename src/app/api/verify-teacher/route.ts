@@ -12,13 +12,13 @@ export async function POST(req: NextRequest) {
 
     // البحث عن المستخدم
     const users = await sql`
-      SELECT firebase_uid FROM profiles WHERE email = ${email} AND role = 'teacher'
+      SELECT uid FROM users WHERE email = ${email} AND role = 'teacher'
     `;
     if (users.length === 0) {
       return NextResponse.json({ message: "Teacher not found" }, { status: 404 });
     }
 
-    const userUid = users[0].firebase_uid;
+    const userUid = users[0].uid;
 
     // جلب أحدث رمز
     const codes = await sql`
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     // تفعيل المستخدم
     await sql`
-      UPDATE profiles SET status = 'active' WHERE firebase_uid = ${userUid}
+      UPDATE users SET is_verified = TRUE WHERE uid = ${userUid}
     `;
 
     // حذف الرموز

@@ -6,30 +6,25 @@ import { sendEmailVerificationCode } from "@/lib/email";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    // 🔥 إضافة استخراج العمر (age)
-    const { email, password, firstName, lastName, age, interests, ...optionalFields } = body;
+    const { email, password, firstName, lastName, interests, ...optionalFields } = body;
 
-    // 🔥 التأكد من أن العمر موجود وإلزامي
-    if (!email || !password || !firstName || !lastName || !age) {
-      return NextResponse.json({ message: "Missing required fields including age" }, { status: 400 });
+    if (!email || !password || !firstName || !lastName) {
+      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
 
     const auth = getAdminAuth();
     const userRecord = await auth.createUser({ email, password, emailVerified: false });
 
-    // 🔥 تم إصلاح دمج الاسم وإضافة العمر
-    const fullName = `${firstName} ${lastName}`.trim();
-
     await sql`
-      INSERT INTO profiles (
-        firebase_uid, email, full_name, age,
+      INSERT INTO users (
+        uid, email, first_name, last_name,
         country_of_residence, nationality, gender,
         languages, whatsapp, interests, role, status, created_at
       ) VALUES (
         ${userRecord.uid},
         ${email},
-        ${fullName},
-        ${parseInt(age)},
+        ${firstName},
+        ${lastName},
         ${optionalFields.countryOfResidence || null},
         ${optionalFields.nationality || null},
         ${optionalFields.gender || null},

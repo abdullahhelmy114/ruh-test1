@@ -1,3 +1,4 @@
+// app/api/signup/teacher/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminAuth } from "@/lib/firebase/admin";
 import { sql } from "@/lib/db/client";
@@ -25,11 +26,6 @@ export async function POST(req: NextRequest) {
     const step1 = JSON.parse(step1Str);
     const step2 = JSON.parse(step2Str);
 
-    // التحقق من وجود العمر كحقل إجباري
-    if (!step1.age) {
-      return NextResponse.json({ message: "Age is required" }, { status: 400 });
-    }
-
     const userRecord = await createFirebaseUser(step1.email, step1.password);
 
     const cvResult = await uploadFile(cvFile, "cvs", userRecord.uid);
@@ -39,20 +35,13 @@ export async function POST(req: NextRequest) {
       introVideoUrl = videoResult.url;
     }
 
-    // 🔥 تم إصلاح دمج الاسم وإضافة العمر وتصحيح firebase_uid
-    const fullName = `${step1.firstName} ${step1.lastName}`.trim();
-
     await sql`
-      INSERT INTO profiles (
-        firebase_uid, email, full_name, age, country_of_residence, 
-        nationality, gender, languages, whatsapp, telegram, 
-        social_links, bio, cv_url, intro_video_url, role, status, created_at
-      )
+      INSERT INTO users (uid, email, first_name, last_name, country_of_residence, nationality, gender, languages, whatsapp, telegram, social_links, bio, cv_url, intro_video_url, role, status, created_at)
       VALUES (
         ${userRecord.uid},
         ${step1.email},
-        ${fullName},
-        ${parseInt(step1.age)},
+        ${step1.firstName},
+        ${step1.lastName},
         ${step1.countryOfResidence},
         ${step1.nationality},
         ${step1.gender},
@@ -69,8 +58,10 @@ export async function POST(req: NextRequest) {
       )
     `;
 
+    // إرسال رمز البريد فقط
     const emailCode = await sendEmailVerificationCode(step1.email);
 
+    // تخزين رمز البريد فقط في جدول الرموز
     await sql`
       INSERT INTO verification_codes (user_uid, email_code, expires_at)
       VALUES (${userRecord.uid}, ${emailCode}, NOW() + INTERVAL '15 minutes')

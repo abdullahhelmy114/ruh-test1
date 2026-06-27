@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
           WHERE post_id = cp.id AND user_id = ${user.uid}
         ) AS "isLiked"
       FROM community_posts cp
-      JOIN profiles u ON cp.user_id = u.id
+      JOIN users u ON cp.user_id = u.id
       WHERE cp.gender = ${gender}
       ORDER BY cp.created_at DESC
       LIMIT ${limit} OFFSET ${offset}

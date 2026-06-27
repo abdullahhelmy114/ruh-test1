@@ -4,7 +4,6 @@ import { z } from "zod";
 export const teacherSignupStep1Schema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  age: z.string().min(1, "Age is required"),
   countryOfResidence: z.string().min(1, "Country of residence is required"),
   nationality: z.string().min(1, "Nationality is required"),
   // بدلاً من z.enum نستخدم string مع refine

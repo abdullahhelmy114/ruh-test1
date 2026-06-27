@@ -11,12 +11,12 @@ export async function GET(request: Request) {
   try {
     // بيانات المعلم الأساسية
     const [teacher] = await sql`
-      SELECT full_name FROM profiles WHERE firebase_uid = ${uid} AND role = 'teacher'
+      SELECT first_name, last_name FROM users WHERE uid = ${uid} AND role = 'teacher'
     `;
     if (!teacher) return NextResponse.json({ error: 'Teacher not found' }, { status: 404 });
 
-    const fullName = teacher.full_name;
-    const initial = fullName?.charAt(0) || 'T';
+    const fullName = `${teacher.first_name} ${teacher.last_name}`.trim();
+    const initial = teacher.first_name?.charAt(0) || 'T';
 
     // عدد الطلاب (مثال: عدّ الطلاب المسجلين في دورات هذا المعلم)
     const [{ count: students }] = await sql`

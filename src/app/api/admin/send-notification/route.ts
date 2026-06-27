@@ -7,8 +7,8 @@ export async function POST(request: Request) {
     const { title, body } = await request.json();
     if (!title || !body) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
 
-    // استعلام المستخدمين المفعلين من جدول profiles
-    const users = await sql`SELECT firebase_uid as uid FROM profiles WHERE status = 'active'`;
+    // استعلام المستخدمين المفعلين من جدول users
+    const users = await sql`SELECT uid FROM users WHERE is_verified = true`;
     const message = `${title}: ${body}`;
     
     for (const user of users) {

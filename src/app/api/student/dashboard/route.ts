@@ -11,11 +11,11 @@ export async function GET(request: Request) {
   try {
     // بيانات المستخدم الأساسية
     const [user] = await sql`
-      SELECT full_name, email FROM profiles WHERE firebase_uid = ${uid} AND role = 'student'
+      SELECT first_name, last_name, email FROM users WHERE uid = ${uid} AND role = 'student'
     `;
     if (!user) return NextResponse.json({ error: 'Student not found' }, { status: 404 });
 
-    const firstName = user.full_name || user.email.split('@')[0];
+    const firstName = user.first_name || user.email.split('@')[0];
 
     // دوال مساعدة لجلب البيانات بأمان (في حال عدم وجود الجداول)
     const safeQuery = async (queryFn: () => Promise<any>, fallback: any = []) => {
@@ -55,10 +55,11 @@ export async function GET(request: Request) {
       sql`
         SELECT l.id, l.title, l.scheduled_at, l.meeting_url, l.course_id,
                c.title AS course_title,
-               u.full_name AS teacher_name
+               CONCAT(t.first_name, ' ', t.last_name) AS teacher_name
         FROM lessons l
         JOIN courses c ON l.course_id = c.id
-JOIN profiles t ON l.teacher_uid = t.firebase_uid        WHERE l.type = 'zoom' AND l.status = 'approved' AND l.scheduled_at IS NOT NULL
+        JOIN users t ON l.teacher_uid = t.uid
+        WHERE l.type = 'zoom' AND l.status = 'approved' AND l.scheduled_at IS NOT NULL
           AND c.id IN (SELECT course_id FROM enrollments WHERE user_uid = ${uid})
         ORDER BY l.scheduled_at ASC
         LIMIT 10

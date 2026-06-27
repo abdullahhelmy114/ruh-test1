@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
          WHERE question_id = fq.id AND user_id = ${user.uid}
          LIMIT 1) AS "userVote"
       FROM forum_questions fq
-      JOIN profiles u ON fq.user_id = u.id
+      JOIN users u ON fq.user_id = u.id
       WHERE fq.gender = ${gender}
       ORDER BY ${orderBy}
       LIMIT ${limit} OFFSET ${offset}

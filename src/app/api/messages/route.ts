@@ -20,10 +20,10 @@ export async function POST(request: Request) {
 
     // 1. إشعار داخلي (نقوم بإدراجه مباشرة هنا)
     const [sender] = await sql`
-      SELECT full_name FROM profiles WHERE firebase_uid = ${senderUid}
+      SELECT first_name, last_name FROM users WHERE uid = ${senderUid}
     `;
     const senderName = sender
-      ? sender.full_name
+      ? `${sender.first_name || ''} ${sender.last_name || ''}`.trim()
       : 'Someone';
     await sql`
       INSERT INTO notifications (user_uid, message, link)
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
 
     // 2. إرسال Web Push (إن أمكن)
     const [receiver] = await sql`
-      SELECT fcm_token FROM profiles WHERE firebase_uid = ${receiverUid}
+      SELECT fcm_token FROM users WHERE uid = ${receiverUid}
     `;
     if (receiver?.fcm_token) {
       try {
@@ -64,10 +64,10 @@ export async function GET(request: Request) {
   try {
     const messages = await sql`
       SELECT m.*,
-             u.full_name AS sender_name,
+             u.first_name || ' ' || u.last_name AS sender_name,
              NULL AS sender_avatar   -- لا يوجد حقل avatar حالياً
       FROM messages m
-      JOIN profiles u ON m.sender_uid = u.firebase_uid
+      JOIN users u ON m.sender_uid = u.uid
       WHERE m.receiver_uid = ${uid}
       ORDER BY m.created_at DESC
       LIMIT 100

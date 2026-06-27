@@ -18,10 +18,10 @@ export async function POST(req: NextRequest) {
     const { uid } = await req.json();
     if (!uid) return NextResponse.json({ message: "Missing uid" }, { status: 400 });
 
-    const [user] = await sql`UPDATE profiles SET status = 'active' WHERE firebase_uid = ${uid} AND role = 'teacher'`;
+    const [user] = await sql`SELECT * FROM users WHERE uid = ${uid} AND role = 'teacher'`;
     if (!user) return NextResponse.json({ message: "Teacher not found" }, { status: 404 });
 
-    await sql`UPDATE profiles SET status = 'active' WHERE firebase_uid = ${uid}`;
+    await sql`UPDATE users SET status = 'active' WHERE uid = ${uid}`;
 
     // إرسال إيميل ترحيبي
     await sendEmail(

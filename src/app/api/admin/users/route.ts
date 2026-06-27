@@ -6,8 +6,8 @@ import { sql } from '@/lib/db/client';
 export async function GET() {
   try {
     const users = await sql`
-      SELECT uid, email, full_name, role, status, created_at
-      FROM profiles
+      SELECT uid, email, first_name, last_name, role, status, created_at
+      FROM users
       ORDER BY created_at DESC
     `;
     // إضافة حقل full_name ليسهل العرض
