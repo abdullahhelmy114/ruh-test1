@@ -1,11 +1,36 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
-import { getServerSession } from '@/lib/auth';
+import { getAdminAuth } from '@/lib/firebase/admin';
+
+// دالة مساعدة للتحقق من الأدمن باستخدام جدول profiles
+async function verifyAdmin(request: Request): Promise<boolean> {
+  // محاولة قراءة التوكن من الكوكيز أو الهيدر
+  const cookieHeader = request.headers.get('cookie') || '';
+  const sessionCookie = cookieHeader
+    .split(';')
+    .find(c => c.trim().startsWith('__session='))
+    ?.split('=')[1];
+
+  const authHeader = request.headers.get('authorization') || '';
+  const bearerToken = authHeader.replace('Bearer ', '');
+  const token = sessionCookie || bearerToken;
+
+  if (!token) return false;
+
+  try {
+    const auth = getAdminAuth();
+    const decoded = await auth.verifyIdToken(token);
+    const [user] = await sql`SELECT role FROM profiles WHERE firebase_uid = ${decoded.uid}`;
+    return user?.role === 'admin';
+  } catch {
+    return false;
+  }
+}
 
 // GET /api/admin/model-courses – جلب جميع النماذج
 export async function GET(req: Request) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== 'admin') {
+  const isAdmin = await verifyAdmin(req);
+  if (!isAdmin) {
     return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
   }
 
@@ -24,8 +49,8 @@ export async function GET(req: Request) {
 
 // POST /api/admin/model-courses – إنشاء نموذج جديد
 export async function POST(req: Request) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== 'admin') {
+  const isAdmin = await verifyAdmin(req);
+  if (!isAdmin) {
     return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
   }
 
