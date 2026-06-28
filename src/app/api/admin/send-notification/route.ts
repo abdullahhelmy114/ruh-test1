@@ -7,14 +7,14 @@ export async function POST(request: Request) {
     const { title, body } = await request.json();
     if (!title || !body) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
 
-    // استعلام المستخدمين المفعلين من جدول users
-    const users = await sql`SELECT uid FROM users WHERE is_verified = true`;
+    // استعلام المستخدمين المفعلين من جدول profiles (استخدام email_verified)
+    const users = await sql`SELECT firebase_uid FROM profiles WHERE email_verified = true`;
     const message = `${title}: ${body}`;
     
     for (const user of users) {
       await sql`
         INSERT INTO notifications (user_uid, message, link)
-        VALUES (${user.uid}, ${message}, '/dashboard')
+        VALUES (${user.firebase_uid}, ${message}, '/dashboard')
       `;
     }
     

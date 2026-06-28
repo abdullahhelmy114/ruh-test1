@@ -9,16 +9,16 @@ export async function GET(request: Request) {
   if (!uid) return NextResponse.json({ error: 'Missing uid' }, { status: 400 });
 
   try {
-    // بيانات المعلم الأساسية
+    // بيانات المعلم الأساسية من profiles
     const [teacher] = await sql`
-      SELECT first_name, last_name FROM users WHERE uid = ${uid} AND role = 'teacher'
+      SELECT full_name FROM profiles WHERE firebase_uid = ${uid} AND role = 'teacher'
     `;
     if (!teacher) return NextResponse.json({ error: 'Teacher not found' }, { status: 404 });
 
-    const fullName = `${teacher.first_name} ${teacher.last_name}`.trim();
-    const initial = teacher.first_name?.charAt(0) || 'T';
+    const fullName = teacher.full_name || '';
+    const initial = fullName?.charAt(0) || 'T';
 
-    // عدد الطلاب (مثال: عدّ الطلاب المسجلين في دورات هذا المعلم)
+    // عدد الطلاب
     const [{ count: students }] = await sql`
       SELECT COUNT(DISTINCT e.user_uid)::int AS count
       FROM enrollments e
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
       SELECT COUNT(*)::int AS count FROM courses WHERE teacher_uid = ${uid} AND status = 'published'
     `;
 
-    // الإيرادات (مجموع أسعار الكورسات التي اشتراها طلاب، بفرض جدول معاملات)
+    // الإيرادات
     const [{ revenue }] = await sql`
       SELECT COALESCE(SUM(c.price), 0) AS revenue
       FROM enrollments e
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
 
     // الدورات الخاصة بالمعلم
     const courses = await sql`
-      SELECT id, title, level, price, status, recording_url
+      SELECT id, title, level, price, status
       FROM courses
       WHERE teacher_uid = ${uid}
       ORDER BY created_at DESC
@@ -64,7 +64,7 @@ export async function GET(request: Request) {
       revenue,
       courses,
       sessions,
-      certificationProgress: 0, // يمكن تطويره لاحقاً
+      certificationProgress: 0,
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

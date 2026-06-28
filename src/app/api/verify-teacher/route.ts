@@ -1,4 +1,3 @@
-// app/api/verify-teacher/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
 
@@ -10,15 +9,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Email and code are required" }, { status: 400 });
     }
 
-    // البحث عن المستخدم
+    // البحث عن المستخدم في profiles
     const users = await sql`
-      SELECT uid FROM users WHERE email = ${email} AND role = 'teacher'
+      SELECT firebase_uid FROM profiles WHERE email = ${email} AND role = 'teacher'
     `;
     if (users.length === 0) {
       return NextResponse.json({ message: "Teacher not found" }, { status: 404 });
     }
 
-    const userUid = users[0].uid;
+    const userUid = users[0].firebase_uid;
 
     // جلب أحدث رمز
     const codes = await sql`
@@ -37,9 +36,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Invalid verification code" }, { status: 400 });
     }
 
-    // تفعيل المستخدم
+    // تفعيل المستخدم (email_verified = TRUE بدلاً من is_verified)
     await sql`
-      UPDATE users SET is_verified = TRUE WHERE uid = ${userUid}
+      UPDATE profiles SET email_verified = TRUE WHERE firebase_uid = ${userUid}
     `;
 
     // حذف الرموز

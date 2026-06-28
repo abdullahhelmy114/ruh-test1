@@ -4,9 +4,9 @@ import { sql } from "@/lib/db/client";
 export async function GET(req: NextRequest) {
   try {
     const teachers = await sql`
-      SELECT uid, email, first_name, last_name, country_of_residence, nationality, gender,
+      SELECT firebase_uid, email, full_name, country_of_residence, nationality, gender,
              languages, whatsapp, telegram, social_links, bio, cv_url, intro_video_url, created_at
-      FROM users
+      FROM profiles
       WHERE role = 'teacher' AND status = 'pending'
       ORDER BY created_at DESC
     `;

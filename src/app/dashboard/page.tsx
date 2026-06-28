@@ -33,7 +33,7 @@ export default function DashboardRedirect() {
         }
 
         // إذا لم يتم التحقق، أرسله إلى صفحة التحقق مع البريد
-        if (!profile.is_verified) {
+        if (!profile.email_verified) {
           router.replace(`/verify-email?email=${encodeURIComponent(profile.email)}`);
           return;
         }
@@ -47,7 +47,6 @@ export default function DashboardRedirect() {
         }
       })
       .catch(() => {
-        // في حالة الفشل، استخدم localStorage كملاذ أخير
         const fallbackRole = localStorage.getItem("userRole");
         if (fallbackRole === "teacher") {
           router.replace("/dashboard/teacher");

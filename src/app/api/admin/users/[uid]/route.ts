@@ -3,7 +3,7 @@ import { sql } from "@/lib/db/client";
 
 export async function GET(req: NextRequest, { params }: { params: { uid: string } }) {
   try {
-    const [user] = await sql`SELECT * FROM users WHERE uid = ${params.uid}`;
+    const [user] = await sql`SELECT * FROM profiles WHERE firebase_uid = ${params.uid}`;
     if (!user) return NextResponse.json({ message: "Not found" }, { status: 404 });
     return NextResponse.json(user);
   } catch (error: any) {

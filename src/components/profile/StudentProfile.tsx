@@ -35,7 +35,6 @@ export function StudentProfile({ readOnly = false }: { readOnly?: boolean }) {
   const [errors, setErrors] = React.useState<Partial<Record<keyof ProfileState, string>>>({});
   const [save, setSave] = React.useState<"idle" | "loading" | "success">("idle");
 
-  // ✅ جلب بيانات التسجيل من الخادم
   React.useEffect(() => {
     if (authLoading || !user) return;
     const fetchProfile = async () => {
@@ -44,18 +43,37 @@ export function StudentProfile({ readOnly = false }: { readOnly?: boolean }) {
         const data = await res.json();
         if (data.profile) {
           const p = data.profile;
-          const nativeLang = p.languages?.length ? p.languages[0].code : "";
-          const otherLangs = p.languages?.slice(1).map((l: any) => l.code) || [];
+          // تحليل اللغات من حقل languages
+          let languagesArray: any[] = [];
+          if (p.languages) {
+            try {
+              if (typeof p.languages === 'string') {
+                languagesArray = JSON.parse(p.languages);
+              } else if (Array.isArray(p.languages)) {
+                languagesArray = p.languages;
+              }
+            } catch {}
+          }
+
+          const nativeLang = languagesArray.length > 0
+            ? (typeof languagesArray[0] === 'string'
+                ? languagesArray[0]
+                : languagesArray[0].code || languagesArray[0])
+            : "";
+          const otherLangs = languagesArray.slice(1).map((l: any) =>
+            typeof l === 'string' ? l : l.code || l
+          );
+
           setS({
-            fullName: `${p.first_name || ""} ${p.last_name || ""}`.trim() || user.displayName || user.email?.split("@")[0] || "",
+            fullName: p.full_name || user.displayName || user.email?.split("@")[0] || "",
             email: p.email || user.email || "",
             avatar: user.photoURL || null,
             gender: p.gender || "",
             nationality: p.nationality || "",
-            age: p.age || "",
+            age: p.age?.toString() || "",
             nativeLanguage: nativeLang,
-            otherLanguages: otherLangs,
-            residence: p.country_of_residence || "",
+            otherLanguages: otherLangs.filter(Boolean),
+            residence: p.country_of_residence || p.country || "",
             whatsapp: p.whatsapp || "",
             telegram: p.telegram || "",
             facebook: "",

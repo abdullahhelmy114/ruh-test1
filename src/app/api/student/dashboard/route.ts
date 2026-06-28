@@ -9,15 +9,15 @@ export async function GET(request: Request) {
   if (!uid) return NextResponse.json({ error: 'Missing uid' }, { status: 400 });
 
   try {
-    // بيانات المستخدم الأساسية
+    // بيانات المستخدم الأساسية من profiles
     const [user] = await sql`
-      SELECT first_name, last_name, email FROM users WHERE uid = ${uid} AND role = 'student'
+      SELECT full_name, email FROM profiles WHERE firebase_uid = ${uid} AND role = 'student'
     `;
     if (!user) return NextResponse.json({ error: 'Student not found' }, { status: 404 });
 
-    const firstName = user.first_name || user.email.split('@')[0];
+    const firstName = user.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'Student';
 
-    // دوال مساعدة لجلب البيانات بأمان (في حال عدم وجود الجداول)
+    // دوال مساعدة لجلب البيانات بأمان
     const safeQuery = async (queryFn: () => Promise<any>, fallback: any = []) => {
       try {
         return await queryFn();
@@ -55,10 +55,10 @@ export async function GET(request: Request) {
       sql`
         SELECT l.id, l.title, l.scheduled_at, l.meeting_url, l.course_id,
                c.title AS course_title,
-               CONCAT(t.first_name, ' ', t.last_name) AS teacher_name
+               t.full_name AS teacher_name
         FROM lessons l
         JOIN courses c ON l.course_id = c.id
-        JOIN users t ON l.teacher_uid = t.uid
+        JOIN profiles t ON l.teacher_uid = t.firebase_uid
         WHERE l.type = 'zoom' AND l.status = 'approved' AND l.scheduled_at IS NOT NULL
           AND c.id IN (SELECT course_id FROM enrollments WHERE user_uid = ${uid})
         ORDER BY l.scheduled_at ASC

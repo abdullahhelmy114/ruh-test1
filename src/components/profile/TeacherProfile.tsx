@@ -44,7 +44,6 @@ export function TeacherProfile() {
   const [save, setSave] = React.useState<"idle" | "loading" | "success">("idle");
   const cvRef = React.useRef<HTMLInputElement>(null);
 
-  // ✅ جلب بيانات التسجيل من الخادم
   React.useEffect(() => {
     if (authLoading || !user) return;
     const fetchProfile = async () => {
@@ -53,16 +52,30 @@ export function TeacherProfile() {
         const data = await res.json();
         if (data.profile) {
           const p = data.profile;
-          const nativeLang = p.languages?.length ? p.languages[0].code : "Arabic";
-          const allLangs = p.languages?.map((l: any) => l.code) || ["Arabic", "English"];
+
+          // معالجة اللغات
+          let languagesArray: any[] = [];
+          if (p.languages) {
+            try {
+              if (typeof p.languages === 'string') {
+                languagesArray = JSON.parse(p.languages);
+              } else if (Array.isArray(p.languages)) {
+                languagesArray = p.languages;
+              }
+            } catch {}
+          }
+
+          const nativeLang = languagesArray.length > 0 ? languagesArray[0].code || languagesArray[0] : "Arabic";
+          const allLangs = languagesArray.map((l: any) => l.code || l).filter(Boolean);
+
           setS({
-            fullName: `${p.first_name || ""} ${p.last_name || ""}`.trim() || user.displayName || user.email?.split("@")[0] || "",
+            fullName: p.full_name || user.displayName || user.email?.split("@")[0] || "",
             email: p.email || user.email || "",
             gender: p.gender || "",
             nationality: p.nationality || "",
-            residence: p.country_of_residence || "",
+            residence: p.country_of_residence || p.country || "",
             nativeLanguage: nativeLang,
-            languages: allLangs,
+            languages: allLangs.length > 0 ? allLangs : ["Arabic", "English"],
             whatsapp: p.whatsapp || "",
             telegram: p.telegram || "",
             socials: p.social_links || [],
@@ -73,7 +86,7 @@ export function TeacherProfile() {
           return;
         }
       } catch {}
-      // fallback إلى localStorage
+      // fallback
       const stored = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
       if (stored) {
         try { setS(JSON.parse(stored)); return; } catch {}

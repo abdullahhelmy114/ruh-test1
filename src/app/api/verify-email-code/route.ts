@@ -8,13 +8,13 @@ export async function POST(request: Request) {
     const { email, code } = await request.json();
     if (!email || !code) return NextResponse.json({ error: 'Missing email or code' }, { status: 400 });
 
-    const trimmedCode = code.trim(); // إزالة المسافات
+    const trimmedCode = code.trim();
 
     const records = await sql`
-      SELECT vc.id, vc.email_code, vc.expires_at, u.uid, u.role
+      SELECT vc.id, vc.email_code, vc.expires_at, p.firebase_uid, p.role
       FROM verification_codes vc
-      JOIN users u ON vc.user_uid = u.uid
-      WHERE LOWER(u.email) = LOWER(${email})
+      JOIN profiles p ON vc.user_uid = p.firebase_uid
+      WHERE LOWER(p.email) = LOWER(${email})
         AND vc.email_code = ${trimmedCode}
         AND vc.expires_at > NOW()
       ORDER BY vc.created_at DESC
@@ -25,17 +25,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid or expired code' }, { status: 400 });
     }
 
-    const { uid, role } = records[0];
+    const { firebase_uid, role } = records[0];
 
     if (role === 'student') {
-      await sql`UPDATE users SET is_verified = TRUE, status = 'active' WHERE uid = ${uid}`;
+      await sql`UPDATE profiles SET email_verified = TRUE, status = 'active' WHERE firebase_uid = ${firebase_uid}`;
     } else if (role === 'teacher') {
-      await sql`UPDATE users SET is_verified = TRUE WHERE uid = ${uid}`;
+      // يظل pending حتى يوافق الأدمن
+      await sql`UPDATE profiles SET email_verified = TRUE WHERE firebase_uid = ${firebase_uid}`;
     } else {
-      await sql`UPDATE users SET is_verified = TRUE WHERE uid = ${uid}`;
+      await sql`UPDATE profiles SET email_verified = TRUE WHERE firebase_uid = ${firebase_uid}`;
     }
 
-    await sql`DELETE FROM verification_codes WHERE user_uid = ${uid}`;
+    await sql`DELETE FROM verification_codes WHERE user_uid = ${firebase_uid}`;
 
     return NextResponse.json({ success: true, role });
   } catch (error: any) {

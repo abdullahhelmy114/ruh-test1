@@ -18,13 +18,11 @@ export async function POST(request: Request) {
       VALUES (${senderUid}, ${receiverUid}, ${message})
     `;
 
-    // 1. إشعار داخلي (نقوم بإدراجه مباشرة هنا)
+    // 1. إشعار داخلي
     const [sender] = await sql`
-      SELECT first_name, last_name FROM users WHERE uid = ${senderUid}
+      SELECT full_name FROM profiles WHERE firebase_uid = ${senderUid}
     `;
-    const senderName = sender
-      ? `${sender.first_name || ''} ${sender.last_name || ''}`.trim()
-      : 'Someone';
+    const senderName = sender?.full_name || 'Someone';
     await sql`
       INSERT INTO notifications (user_uid, message, link)
       VALUES (${receiverUid}, ${'New message from ' + senderName}, '/messages')
@@ -32,7 +30,7 @@ export async function POST(request: Request) {
 
     // 2. إرسال Web Push (إن أمكن)
     const [receiver] = await sql`
-      SELECT fcm_token FROM users WHERE uid = ${receiverUid}
+      SELECT fcm_token FROM profiles WHERE firebase_uid = ${receiverUid}
     `;
     if (receiver?.fcm_token) {
       try {
@@ -44,7 +42,6 @@ export async function POST(request: Request) {
           },
         });
       } catch (e) {
-        // تجاهل فشل إرسال الإشعار
         console.error('Push notification failed:', e);
       }
     }
@@ -64,10 +61,10 @@ export async function GET(request: Request) {
   try {
     const messages = await sql`
       SELECT m.*,
-             u.first_name || ' ' || u.last_name AS sender_name,
-             NULL AS sender_avatar   -- لا يوجد حقل avatar حالياً
+             u.full_name AS sender_name,
+             NULL AS sender_avatar
       FROM messages m
-      JOIN users u ON m.sender_uid = u.uid
+      JOIN profiles u ON m.sender_uid = u.firebase_uid
       WHERE m.receiver_uid = ${uid}
       ORDER BY m.created_at DESC
       LIMIT 100

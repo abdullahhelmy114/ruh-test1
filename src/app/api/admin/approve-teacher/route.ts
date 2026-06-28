@@ -18,16 +18,16 @@ export async function POST(req: NextRequest) {
     const { uid } = await req.json();
     if (!uid) return NextResponse.json({ message: "Missing uid" }, { status: 400 });
 
-    const [user] = await sql`SELECT * FROM users WHERE uid = ${uid} AND role = 'teacher'`;
+    const [user] = await sql`SELECT * FROM profiles WHERE firebase_uid = ${uid} AND role = 'teacher'`;
     if (!user) return NextResponse.json({ message: "Teacher not found" }, { status: 404 });
 
-    await sql`UPDATE users SET status = 'active' WHERE uid = ${uid}`;
+    await sql`UPDATE profiles SET status = 'active' WHERE firebase_uid = ${uid}`;
 
     // إرسال إيميل ترحيبي
     await sendEmail(
       user.email,
       "تم تفعيل حسابك كمعلم",
-      teacherApprovedEmail(user.first_name || "معلم")
+      teacherApprovedEmail(user.full_name || "معلم")
     );
 
     return NextResponse.json({ success: true });

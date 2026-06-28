@@ -1,4 +1,4 @@
-export const runtime = 'edge';
+export const runtime = 'nodejs'; // أفضل من edge لتوافق sql
 
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
@@ -6,16 +6,11 @@ import { sql } from '@/lib/db/client';
 export async function GET() {
   try {
     const users = await sql`
-      SELECT uid, email, first_name, last_name, role, status, created_at
-      FROM users
+      SELECT firebase_uid, email, full_name, role, status, created_at
+      FROM profiles
       ORDER BY created_at DESC
     `;
-    // إضافة حقل full_name ليسهل العرض
-    const formatted = users.map((u: any) => ({
-      ...u,
-      full_name: `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.email,
-    }));
-    return NextResponse.json({ users: formatted });
+    return NextResponse.json({ users });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

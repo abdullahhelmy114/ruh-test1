@@ -6,7 +6,7 @@ import { sendEmailVerificationCode } from "@/lib/email";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { email, password, firstName, lastName, interests, ...optionalFields } = body;
+    const { email, password, firstName, lastName, age, interests, ...optionalFields } = body;
 
     if (!email || !password || !firstName || !lastName) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
@@ -15,16 +15,18 @@ export async function POST(req: NextRequest) {
     const auth = getAdminAuth();
     const userRecord = await auth.createUser({ email, password, emailVerified: false });
 
+    // دمج الاسم الكامل لأن جدول profiles يستخدم full_name
+    const fullName = `${firstName} ${lastName}`.trim();
+
     await sql`
-      INSERT INTO users (
-        uid, email, first_name, last_name,
+      INSERT INTO profiles (
+        firebase_uid, email, full_name,
         country_of_residence, nationality, gender,
-        languages, whatsapp, interests, role, status, created_at
+        languages, whatsapp, interests, role, status, age, created_at
       ) VALUES (
         ${userRecord.uid},
         ${email},
-        ${firstName},
-        ${lastName},
+        ${fullName},
         ${optionalFields.countryOfResidence || null},
         ${optionalFields.nationality || null},
         ${optionalFields.gender || null},
@@ -33,6 +35,7 @@ export async function POST(req: NextRequest) {
         ${interests || null},
         'student',
         'inactive',
+        ${age || null},
         NOW()
       )
     `;

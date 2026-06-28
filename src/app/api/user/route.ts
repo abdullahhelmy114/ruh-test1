@@ -5,23 +5,23 @@ import { sql } from '@/lib/db/client';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const uid = searchParams.get('uid');
+  const uid = searchParams.get('uid'); // هذا هو firebase_uid
   if (!uid) return NextResponse.json({ error: 'Missing uid' }, { status: 400 });
 
   try {
-    const [user] = await sql`SELECT * FROM users WHERE uid = ${uid}`;
-    if (!user) return NextResponse.json({ profile: null });
-    return NextResponse.json({ profile: user });
+    const [profile] = await sql`SELECT * FROM profiles WHERE firebase_uid = ${uid}`;
+    if (!profile) return NextResponse.json({ profile: null });
+    return NextResponse.json({ profile });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-// POST: يبقى كما هو بالضبط
+// POST: إنشاء/تحديث ملف شخصي
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const uid = body.uid || "";
+    const uid = body.uid || "";             // firebase_uid
     const email = body.email || "";
 
     if (!uid || !email) {
@@ -31,13 +31,16 @@ export async function POST(request: Request) {
     const emailVerified = body.email_verified === true;
     const referredBy = body.referred_by || null;
     const fullName = body.fullName || '';
-    const [firstName, ...lastNameArr] = fullName.split(' ');
-    const lastName = lastNameArr.join(' ') || '';
 
     await sql`
-      INSERT INTO users (uid, email, first_name, last_name, role, is_verified, referred_by)
-      VALUES (${uid}, ${email}, ${firstName}, ${lastName}, ${body.role || 'student'}, ${emailVerified}, ${referredBy})
-      ON CONFLICT (uid) DO UPDATE SET email = ${email}, is_verified = ${emailVerified}
+      INSERT INTO profiles (firebase_uid, email, full_name, role, email_verified, referred_by)
+      VALUES (${uid}, ${email}, ${fullName}, ${body.role || 'student'}, ${emailVerified}, ${referredBy})
+      ON CONFLICT (firebase_uid) DO UPDATE SET
+        email = ${email},
+        full_name = ${fullName},
+        role = ${body.role || 'student'},
+        email_verified = ${emailVerified},
+        referred_by = ${referredBy}
     `;
     return NextResponse.json({ success: true });
   } catch (error: any) {
