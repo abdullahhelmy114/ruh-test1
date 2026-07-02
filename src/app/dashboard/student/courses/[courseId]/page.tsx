@@ -239,7 +239,7 @@ export default function CoursePlayerPage() {
                 onClick={handleComplete}
                 disabled={currentLesson.completed || completing}
                 className={`inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition ${
-                  currentLesson.completed ? "bg-secondary text-primary cursor-default" : "bg-primarytext-primary-foregroundhover:bg-primary/90 disabled:opacity-50"
+                  currentLesson.completed ? "bg-secondary text-primary cursor-default" : "bg-primarytext-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 }`}
               >
                 {currentLesson.completed ? <><CheckCircle size={18} /> <T>Completed</T></> : <><Play size={18} /> <T>Mark as Complete</T></>}

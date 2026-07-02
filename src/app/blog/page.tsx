@@ -230,7 +230,7 @@ export default function BlogPage() {
               <div className="text-center pt-2 border-t border-border">
                 <p className="text-xs text-muted-foreground mb-2"><T>Want to interact?</T></p>
                 <div className="flex justify-center gap-2">
-                  <Link href="/signup?role=student" className="rounded-full bg-primarypx-3 py-1.5 text-xs font-semibold text-primary-foregroundhover:bg-primary/90 inline-flex items-center gap-1">
+                  <Link href="/signup?role=student" className="rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-1">
                     <T>Join as Student</T> <ArrowRight size={12} />
                   </Link>
                   <Link href="/signup?role=teacher" className="rounded-full bg-gold px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-gold/80 inline-flex items-center gap-1">

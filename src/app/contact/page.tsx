@@ -112,7 +112,7 @@ export default function ContactPage() {
             <div className="pt-4 border-t border-border">
               <p className="text-sm text-muted-foreground mb-3"><T>Ready to join us?</T></p>
               <div className="flex gap-2">
-                <Link href="/signup?role=student" className="rounded-full bg-primarypx-4 py-2 text-xs font-semibold text-primary-foregroundhover:bg-primary/90">
+                <Link href="/signup?role=student" className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90">
                   <T>Join as Student</T>
                 </Link>
                 <Link href="/signup?role=teacher" className="rounded-full bg-gold px-4 py-2 text-xs font-semibold text-foreground hover:bg-gold/80">

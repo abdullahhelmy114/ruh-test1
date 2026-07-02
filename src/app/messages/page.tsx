@@ -74,7 +74,7 @@ export default function MessagesPage() {
             <textarea value={replyText} onChange={e => setReplyText(e.target.value)} rows={3} className="w-full rounded-2xl border bg-background p-4 text-sm" placeholder="Type your reply..." />
             <div className="flex gap-3 justify-end">
               <button onClick={() => setReplyTo(null)} className="rounded-full border px-4 py-2 text-sm"><T>Cancel</T></button>
-              <button onClick={handleSendReply} disabled={sending} className="rounded-full bg-primarypx-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
+              <button onClick={handleSendReply} disabled={sending} className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4" /> <T>Send</T></>}
               </button>
             </div>

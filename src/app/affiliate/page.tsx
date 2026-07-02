@@ -71,7 +71,7 @@ export default function AffiliatePage() {
             <h2 className="font-serif text-2xl mb-2"><T>Start Earning Today</T></h2>
             <p className="text-muted-foreground mb-6"><T>Join our affiliate program and earn 20% on every referral.</T></p>
             <div className="flex justify-center gap-3">
-              <Link href="/signup?role=student" className="rounded-full bg-primarypx-5 py-2.5 text-sm font-semibold text-primary-foregroundhover:bg-primary/90 inline-flex items-center gap-2">
+              <Link href="/signup?role=student" className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2">
                 <T>Join as Student</T> <ArrowRight size={16} />
               </Link>
               <Link href="/signup?role=teacher" className="rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-gold/80 inline-flex items-center gap-2">

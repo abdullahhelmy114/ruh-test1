@@ -90,7 +90,7 @@ export function SpecialBundles() {
                   "w-full py-4 rounded-full font-bold transition-all active:scale-95 shadow-elegant",
                   bundle.isSpecial 
                     ? "bg-gold text-foreground hover:bg-gold/90" // البطاقة المميزة تظل بلمسة ذهبية ونصوص واضحة
-                    : "bg-primary/90 text-primary-foregroundhover:bg-primary/80"
+                    : "bg-primary/90 text-primary-foreground hover:bg-primary/80"
                 )}>
                   Choose Bundle
                 </button>

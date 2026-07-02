@@ -138,7 +138,7 @@ export default function ExamPage() {
             <ArrowLeft size={16} /> <T>Previous</T>
           </button>
           {current === questions.length - 1 ? (
-            <button onClick={handleSubmit} disabled={submitting} className="rounded-full bg-primarypx-6 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
+            <button onClick={handleSubmit} disabled={submitting} className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
               {submitting ? <Loader2 className="animate-spin" /> : <T>Submit Exam</T>}
             </button>
           ) : (
