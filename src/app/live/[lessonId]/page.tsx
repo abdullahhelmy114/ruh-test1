@@ -146,10 +146,10 @@ export default function LiveLessonPage() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="absolute bottom-0 left-0 right-0 bg-black/80 p-4"
+              className="absolute bottom-0 left-0 right-0 bg-foreground/80 p-4"
             >
               <div className="max-w-4xl mx-auto">
-                <h3 className="font-serif text-lg text-white mb-3"><T>📺 Lesson Recording</T></h3>
+                <h3 className="font-serif text-lg text-primary-foregroundmb-3"><T>📺 Lesson Recording</T></h3>
                 <YouTubeEmbed url={lesson.recording_url} title={lesson.title} />
               </div>
             </motion.div>

@@ -37,7 +37,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="grid min-h-[calc(100vh-4rem)] place-items-center bg-background px-4 py-12">
       <div className="relative w-full max-w-md">
-        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-amber-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-gold/20 blur-3xl" />
 
         <AnimatePresence mode="wait">
           {sent ? (
@@ -48,7 +48,7 @@ export default function ForgotPasswordPage() {
               exit={{ opacity: 0, y: -20 }}
               className="glass rounded-3xl p-8 md:p-10 shadow-elegant text-center"
             >
-              <CheckCircle className="mx-auto h-14 w-14 text-emerald-500 mb-4" />
+              <CheckCircle className="mx-auto h-14 w-14 text-primary mb-4" />
               <h1 className="font-serif text-2xl"><T>Check Your Email</T></h1>
               <p className="mt-3 text-sm text-muted-foreground">
                 <T>We have sent a password reset link to your email address.</T>
@@ -72,7 +72,7 @@ export default function ForgotPasswordPage() {
               className="glass overflow-hidden rounded-3xl bg-card p-8 shadow-elegant md:p-10"
             >
               <div className="mb-6 text-center">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/10 mb-4">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gold/10 mb-4">
                   <Mail className="h-7 w-7 text-secondary-foreground" />
                 </div>
                 <h1 className="font-serif text-2xl md:text-3xl"><T>Forgot Password?</T></h1>
@@ -109,7 +109,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={loading || !email.trim()}
-                  className="w-full rounded-full bg-amber-500 py-3.5 text-sm font-semibold text-black shadow-lg hover:bg-amber-400 disabled:opacity-50 transition flex items-center justify-center gap-2"
+                  className="w-full rounded-full bg-gold py-3.5 text-sm font-semibold text-foreground shadow-elegant hover:bg-gold/80 disabled:opacity-50 transition flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />

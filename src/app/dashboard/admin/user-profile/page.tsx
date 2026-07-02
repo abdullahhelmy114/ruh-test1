@@ -91,7 +91,7 @@ function AdminUserProfileContent() {
       <div className="glass rounded-3xl p-6 md:p-8 space-y-6">
         {/* الهيدر */}
         <div className="flex items-center gap-4">
-          <div className="grid h-16 w-16 place-items-center rounded-full gradient-emerald text-white text-2xl font-bold">
+          <div className="grid h-16 w-16 place-items-center rounded-full gradient-primary text-primary-foregroundtext-2xl font-bold">
             {(profile.first_name || profile.full_name || "?").charAt(0)}
           </div>
           <div>
@@ -99,7 +99,7 @@ function AdminUserProfileContent() {
               {profile.first_name} {profile.last_name}
             </h1>
             <p className="text-sm text-muted-foreground">{profile.email}</p>
-            <span className="inline-block mt-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-3 py-0.5 text-xs font-semibold capitalize">
+            <span className="inline-block mt-1 rounded-full bg-accent/30 dark:bg-gold/20 text-gold dark:text-gold px-3 py-0.5 text-xs font-semibold capitalize">
               {profile.role}
             </span>
           </div>
@@ -177,7 +177,7 @@ function AdminUserProfileContent() {
 
             {profile.status === "pending" && (
               <div className="mt-6">
-                <Button onClick={approveTeacher} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                <Button onClick={approveTeacher} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                   Approve Teacher
                 </Button>
               </div>

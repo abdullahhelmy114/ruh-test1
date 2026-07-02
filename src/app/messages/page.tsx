@@ -51,7 +51,7 @@ export default function MessagesPage() {
       ) : (
         <div className="space-y-3">
           {messages.map(m => (
-            <div key={m.id} className={`glass rounded-2xl p-4 ${!m.read ? 'border-l-4 border-l-amber-500' : ''}`}>
+            <div key={m.id} className={`glass rounded-2xl p-4 ${!m.read ? 'border-l-4 border-l-gold' : ''}`}>
               <div className="flex items-center gap-2 text-sm">
                 <User size={14} className="text-secondary-foreground" />
                 <span className="font-medium">{m.sender_name}</span>
@@ -68,13 +68,13 @@ export default function MessagesPage() {
 
       {/* Reply Modal */}
       {replyTo && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-foreground/50 flex items-center justify-center p-4">
           <div className="bg-card rounded-3xl p-6 max-w-md w-full shadow-elegant space-y-4">
             <h3 className="font-serif text-xl"><T>Reply</T></h3>
             <textarea value={replyText} onChange={e => setReplyText(e.target.value)} rows={3} className="w-full rounded-2xl border bg-background p-4 text-sm" placeholder="Type your reply..." />
             <div className="flex gap-3 justify-end">
               <button onClick={() => setReplyTo(null)} className="rounded-full border px-4 py-2 text-sm"><T>Cancel</T></button>
-              <button onClick={handleSendReply} disabled={sending} className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+              <button onClick={handleSendReply} disabled={sending} className="rounded-full bg-primarypx-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4" /> <T>Send</T></>}
               </button>
             </div>

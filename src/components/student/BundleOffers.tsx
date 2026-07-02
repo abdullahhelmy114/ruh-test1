@@ -51,7 +51,7 @@ export function SpecialBundles() {
               )}
             >
               {bundle.isSpecial && (
-                <div className="absolute top-0 right-0 bg-gold text-black px-4 py-1 rounded-bl-2xl rounded-tr-4xl text-[10px] font-bold uppercase tracking-wider">
+                <div className="absolute top-0 right-0 bg-gold text-foreground px-4 py-1 rounded-bl-2xl rounded-tr-4xl text-[10px] font-bold uppercase tracking-wider">
                   Best Value
                 </div>
               )}
@@ -80,17 +80,17 @@ export function SpecialBundles() {
                 <ul className="space-y-3 py-6 border-t border-border/50">
                   {bundle.features.map((feature, fIndex) => (
                     <li key={fIndex} className="flex items-center gap-3 text-sm text-foreground/80">
-                      <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      <Check className="h-4 w-4 text-primary dark:text-muted-foreground" />
                       {feature}
                     </li>
                   ))}
                 </ul>
 
                 <button className={cn(
-                  "w-full py-4 rounded-full font-bold transition-all active:scale-95 shadow-md",
+                  "w-full py-4 rounded-full font-bold transition-all active:scale-95 shadow-elegant",
                   bundle.isSpecial 
-                    ? "bg-gold text-black hover:bg-gold/90" // البطاقة المميزة تظل بلمسة ذهبية ونصوص واضحة
-                    : "bg-emerald-700 text-white hover:bg-emerald-800"
+                    ? "bg-gold text-foreground hover:bg-gold/90" // البطاقة المميزة تظل بلمسة ذهبية ونصوص واضحة
+                    : "bg-primary/90 text-primary-foregroundhover:bg-primary/80"
                 )}>
                   Choose Bundle
                 </button>

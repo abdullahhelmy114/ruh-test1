@@ -69,7 +69,7 @@ export default function PublicTeacherPage() {
       {/* بطاقة المعلم */}
       <div className="glass rounded-3xl p-6 md:p-8 mb-8">
         <div className="flex flex-col md:flex-row items-start gap-6">
-          <div className="grid h-24 w-24 place-items-center rounded-full gradient-emerald text-white text-3xl font-bold shrink-0">
+          <div className="grid h-24 w-24 place-items-center rounded-full gradient-primary text-primary-foregroundtext-3xl font-bold shrink-0">
             {teacher.avatar_url ? (
               <Image src={teacher.avatar_url} alt={teacher.full_name} width={96} height={96} className="rounded-full object-cover" />
             ) : (
@@ -115,16 +115,16 @@ export default function PublicTeacherPage() {
                 href={`/courses/${course.id}`}
                 className="glass rounded-2xl p-4 hover:shadow-elegant transition-shadow block"
               >
-                <div className="h-32 bg-linear-to-br from-emerald-600 to-emerald-800 rounded-xl flex items-center justify-center mb-3 overflow-hidden">
+                <div className="h-32 bg-gradient-primary rounded-xl flex items-center justify-center mb-3 overflow-hidden">
                   {course.image_url ? (
                     <Image src={course.image_url} alt={course.title} width={200} height={128} className="object-cover w-full h-full" />
                   ) : (
-                    <BookOpen className="h-10 w-10 text-white/30" />
+                    <BookOpen className="h-10 w-10 text-primary-foreground/30" />
                   )}
                 </div>
                 <h3 className="font-serif text-lg">{course.title}</h3>
                 <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs bg-amber-500/10 text-accent-foreground px-2 py-0.5 rounded-full">{course.level}</span>
+                  <span className="text-xs bg-gold/10 text-accent-foreground px-2 py-0.5 rounded-full">{course.level}</span>
                   <span className="font-bold text-accent-foreground">{course.price === 0 ? <T>Free</T> : `$${course.price}`}</span>
                 </div>
                 {course.description && (

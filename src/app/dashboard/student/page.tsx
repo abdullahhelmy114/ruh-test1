@@ -82,7 +82,7 @@ export default function StudentDashboard() {
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-10 md:px-8 min-h-screen bg-background">
       {/* Banner */}
-      <div className="relative overflow-hidden rounded-4xl border border-border bg-card p-8 shadow-lg flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+      <div className="relative overflow-hidden rounded-4xl border border-border bg-card p-8 shadow-elegant flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div className="absolute -top-16 -right-16 h-32 w-32 rounded-full bg-accent/10 blur-3xl" />
         <div className="relative z-10">
           <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent-foreground">
@@ -188,7 +188,7 @@ export default function StudentDashboard() {
                 </div>
               ) : (
                 data.enrolledCourses.map(c => (
-                  <div key={c.id} className="rounded-3xl border bg-card p-5 shadow-lg">
+                  <div key={c.id} className="rounded-3xl border bg-card p-5 shadow-elegant">
                     <h3 className="font-serif text-lg text-foreground">{c.title}</h3>
                     <p className="text-sm text-muted-foreground">
                       <T>المستوى</T> {c.level} · <T>المعلم</T>: {c.teacher_name}
@@ -262,7 +262,7 @@ export default function StudentDashboard() {
         {/* Sidebar */}
         <div className="space-y-8">
           {/* Stats */}
-          <div className="rounded-4xl border bg-card p-6 shadow-lg">
+          <div className="rounded-4xl border bg-card p-6 shadow-elegant">
             <div className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
               <T>إحصائيات</T>
             </div>
@@ -279,7 +279,7 @@ export default function StudentDashboard() {
           </div>
 
           {/* Referral */}
-          <div className="rounded-4xl border bg-card p-6 shadow-lg">
+          <div className="rounded-4xl border bg-card p-6 shadow-elegant">
             <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent-foreground">
               <T>الإحالات</T>
             </div>
@@ -324,7 +324,7 @@ export default function StudentDashboard() {
 
       {/* Recording Modal */}
       {selectedRecording && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-foreground/60 backdrop-blur-sm flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}

@@ -64,7 +64,7 @@ export default function ContactPage() {
     return (
       <div className="grid min-h-[calc(100vh-4rem)] place-items-center px-4 py-12">
         <div className="glass rounded-3xl p-8 md:p-10 text-center max-w-md">
-          <Send className="mx-auto h-12 w-12 text-emerald-500 mb-4" />
+          <Send className="mx-auto h-12 w-12 text-primary mb-4" />
           <h1 className="font-serif text-2xl"><T>Message Sent!</T></h1>
           <p className="mt-2 text-muted-foreground"><T>We'll get back to you shortly.</T></p>
           <Link href="/" className="mt-6 inline-flex items-center gap-2 text-accent-foreground hover:underline">
@@ -112,10 +112,10 @@ export default function ContactPage() {
             <div className="pt-4 border-t border-border">
               <p className="text-sm text-muted-foreground mb-3"><T>Ready to join us?</T></p>
               <div className="flex gap-2">
-                <Link href="/signup?role=student" className="rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700">
+                <Link href="/signup?role=student" className="rounded-full bg-primarypx-4 py-2 text-xs font-semibold text-primary-foregroundhover:bg-primary/90">
                   <T>Join as Student</T>
                 </Link>
-                <Link href="/signup?role=teacher" className="rounded-full bg-amber-500 px-4 py-2 text-xs font-semibold text-black hover:bg-amber-400">
+                <Link href="/signup?role=teacher" className="rounded-full bg-gold px-4 py-2 text-xs font-semibold text-foreground hover:bg-gold/80">
                   <T>Join as Teacher</T>
                 </Link>
               </div>
@@ -147,7 +147,7 @@ export default function ContactPage() {
                 <textarea rows={5} value={message} onChange={(e) => setMessage(e.target.value)} className="w-full rounded-2xl border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-gold resize-none" placeholder="How can we help?" />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
-              <button type="submit" className="w-full rounded-full bg-amber-500 py-3 text-sm font-semibold text-black hover:bg-amber-400 inline-flex items-center justify-center gap-2">
+              <button type="submit" className="w-full rounded-full bg-gold py-3 text-sm font-semibold text-foreground hover:bg-gold/80 inline-flex items-center justify-center gap-2">
                 <Send size={16} /> <T>Send Message</T>
               </button>
             </form>

@@ -5,7 +5,7 @@ import { T } from '@/components/TranslatedText';
 export default function SuccessPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="bg-card p-10 rounded-3xl shadow-lg text-center max-w-md border border-border space-y-4">
+      <div className="bg-card p-10 rounded-3xl shadow-elegant text-center max-w-md border border-border space-y-4">
         <CheckCircle className="h-16 w-16 text-primary mx-auto" />
         <h1 className="text-3xl font-bold text-foreground"><T>تم الدفع بنجاح!</T></h1>
         <p className="text-muted-foreground"><T>شكراً لثقتك، يمكنك الآن الوصول إلى محتواك.</T></p>

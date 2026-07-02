@@ -5,7 +5,7 @@ import { T } from '@/components/TranslatedText';
 export default function ErrorPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="bg-card p-10 rounded-3xl shadow-lg text-center max-w-md border border-border space-y-4">
+      <div className="bg-card p-10 rounded-3xl shadow-elegant text-center max-w-md border border-border space-y-4">
         <AlertTriangle className="h-16 w-16 text-destructive mx-auto" />
         <h1 className="text-3xl font-bold text-destructive"><T>حدث خطأ</T></h1>
         <p className="text-muted-foreground"><T>لم نتمكن من إتمام العملية.</T></p>

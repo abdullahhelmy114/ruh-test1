@@ -40,7 +40,7 @@ export function H5PPlayer({ src }: H5PPlayerProps) {
   }, [src]);
 
   return (
-    <div className="w-full rounded-2xl overflow-hidden border bg-white">
+    <div className="w-full rounded-2xl overflow-hidden border bg-background">
       <div ref={containerRef} className="min-h-[400px] flex items-center justify-center">
         <Loader2 className="animate-spin h-8 w-8 text-muted-foreground" />
       </div>

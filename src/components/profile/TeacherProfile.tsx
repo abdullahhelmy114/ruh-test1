@@ -256,7 +256,7 @@ export function TeacherProfile() {
 
         <div className="flex flex-col items-center justify-between gap-4 pt-4 sm:flex-row">
           <p className="text-xs text-muted-foreground">
-            Profile completion: <span className="font-semibold text-emerald dark:text-gold">{completion}%</span>
+            Profile completion: <span className="font-semibold text-primary dark:text-gold">{completion}%</span>
           </p>
           <div className="profile-save-btn">
             <SaveButton onClick={submit} state={save} />

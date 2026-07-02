@@ -25,7 +25,7 @@ export function Section({
       >
         <div className="flex items-center gap-4">
           {step !== undefined && (
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-emerald text-emerald-foreground font-serif text-sm">
+            <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground font-serif text-sm">
               {step}
             </span>
           )}

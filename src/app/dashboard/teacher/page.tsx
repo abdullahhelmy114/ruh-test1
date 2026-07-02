@@ -87,7 +87,7 @@ export default function TeacherDashboard() {
   if (error) {
     return (
       <div className="flex min-h-screen items-center justify-center flex-col gap-4">
-        <div className="rounded-3xl border bg-card p-8 text-center shadow-lg">
+        <div className="rounded-3xl border bg-card p-8 text-center shadow-elegant">
           <AlertCircle className="mx-auto h-10 w-10 text-destructive mb-4" />
           <h2 className="font-serif text-xl text-destructive">
             <T>خطأ في تحميل لوحة التحكم</T>
@@ -117,9 +117,9 @@ export default function TeacherDashboard() {
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-10 md:px-8 bg-background min-h-screen">
       {/* Header */}
-      <div className="flex flex-col items-start justify-between gap-6 rounded-4xl border border-border bg-card p-8 shadow-lg md:flex-row md:items-center">
+      <div className="flex flex-col items-start justify-between gap-6 rounded-4xl border border-border bg-card p-8 shadow-elegant md:flex-row md:items-center">
         <div className="flex items-center gap-5">
-          <div className="grid h-20 w-20 place-items-center rounded-full bg-gradient-primary font-serif text-3xl text-primary-foreground ring-4 ring-accent/20 shadow-lg">
+          <div className="grid h-20 w-20 place-items-center rounded-full bg-gradient-primary font-serif text-3xl text-primary-foreground ring-4 ring-accent/20 shadow-elegant">
             {stats.initial}
           </div>
           <div>
@@ -142,7 +142,7 @@ export default function TeacherDashboard() {
           </Link>
           <Link
             href="/dashboard/teacher/courses/new"
-            className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/90 shadow-md transition"
+            className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/90 shadow-elegant transition"
           >
             <Plus className="h-4 w-4" /> <T>طلب تدريس جديد</T>
           </Link>
@@ -160,11 +160,11 @@ export default function TeacherDashboard() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-4xl border bg-card p-6 shadow-lg"
+          className="rounded-4xl border bg-card p-6 shadow-elegant"
         >
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-primary text-white">
+              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground">
                 <Star className="h-6 w-6 fill-white" />
               </div>
               <div>
@@ -216,7 +216,7 @@ export default function TeacherDashboard() {
             courses.map((course) => (
               <div
                 key={course.id}
-                className="rounded-3xl border bg-card p-5 shadow-lg flex justify-between items-center"
+                className="rounded-3xl border bg-card p-5 shadow-elegant flex justify-between items-center"
               >
                 <div>
                   <h3 className="font-serif text-lg text-foreground">{course.title}</h3>
@@ -240,7 +240,7 @@ export default function TeacherDashboard() {
 
         {/* Stats Sidebar */}
         <div className="space-y-4">
-          <div className="rounded-3xl border bg-card p-6 shadow-lg">
+          <div className="rounded-3xl border bg-card p-6 shadow-elegant">
             <div className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
               <T>إحصائيات</T>
             </div>
@@ -265,7 +265,7 @@ export default function TeacherDashboard() {
           </div>
 
           {stats.averageRating > 0 && (
-            <div className="rounded-3xl border bg-card p-6 shadow-lg">
+            <div className="rounded-3xl border bg-card p-6 shadow-elegant">
               <div className="flex items-center gap-2">
                 <Star className="h-5 w-5 fill-accent text-accent" />
                 <span className="font-serif text-xl text-foreground">

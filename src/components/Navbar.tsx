@@ -384,8 +384,8 @@ export function Navbar() {
       {/* Mobile Drawer */}
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
-          <div className="absolute right-0 top-0 h-full w-72 max-w-[85vw] bg-card shadow-2xl p-6 overflow-y-auto animate-slide-in-right">
+          <div className="absolute inset-0 bg-foreground/50" onClick={() => setMobileOpen(false)} />
+          <div className="absolute right-0 top-0 h-full w-72 max-w-[85vw] bg-card shadow-elegant p-6 overflow-y-auto animate-slide-in-right">
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-serif text-xl text-foreground"><T>Menu</T></h3>
               <button onClick={() => setMobileOpen(false)} className="p-2 rounded-full hover:bg-accent">

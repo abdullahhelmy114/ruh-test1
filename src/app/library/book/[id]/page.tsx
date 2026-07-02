@@ -140,7 +140,7 @@ export default function BookReader() {
       ref={containerRef}
       className="min-h-screen bg-gradient-hero flex flex-col items-center justify-center p-4 select-none"
     >
-      <div className="flex flex-wrap items-center justify-center gap-3 mb-4 bg-secondary/60 backdrop-blur-md rounded-xl p-2 shadow-lg z-10">
+      <div className="flex flex-wrap items-center justify-center gap-3 mb-4 bg-secondary/60 backdrop-blur-md rounded-xl p-2 shadow-elegant z-10">
         <Button variant="ghost" size="icon" onClick={prevPage} className="text-secondary-foreground hover:text-primary hover:bg-accent/20" title="Previous page">
           <ChevronRight size={20} />
         </Button>
@@ -180,7 +180,7 @@ export default function BookReader() {
           mobileScrollSupport={true}
           onFlip={(e: any) => setCurrentPage(e.data)}
           ref={flipBookRef}
-          className="shadow-2xl rounded-lg overflow-hidden"
+          className="shadow-elegant rounded-lg overflow-hidden"
           style={{ background: "transparent" }}
           startPage={0}
           drawShadow={true}
@@ -196,7 +196,7 @@ export default function BookReader() {
           swipeDistance={30}
         >
           {pages.map((page) => (
-            <div key={page.page_number} className="relative bg-white select-none" style={{ width: 400, height: 550 }}>
+            <div key={page.page_number} className="relative bg-background select-none" style={{ width: 400, height: 550 }}>
               <img
                 src={page.image_url}
                 alt={`Page ${page.page_number}`}
@@ -204,7 +204,7 @@ export default function BookReader() {
                 draggable={false}
               />
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-20 mix-blend-difference z-10">
-                <p className="text-center text-[10px] font-mono text-white rotate-45 whitespace-nowrap">
+                <p className="text-center text-[10px] font-mono text-primary-foregroundrotate-45 whitespace-nowrap">
                   {user?.email || "Ruhulqudus Library"}
                 </p>
               </div>

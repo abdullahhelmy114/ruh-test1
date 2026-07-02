@@ -59,7 +59,7 @@ export default function AffiliatePage() {
           <h3 className="font-serif text-xl mb-2"><T>Your Referral Link</T></h3>
           <div className="flex items-center justify-center gap-2 mt-3">
             <code className="bg-background px-4 py-2 rounded-full text-sm">ruhulqudus.net/r/{referralCode}</code>
-            <button onClick={copyCode} className="rounded-full bg-amber-500 p-2 text-black hover:bg-amber-400">
+            <button onClick={copyCode} className="rounded-full bg-gold p-2 text-foreground hover:bg-gold/80">
               {copied ? <CheckCircle size={18} /> : <Copy size={18} />}
             </button>
           </div>
@@ -71,10 +71,10 @@ export default function AffiliatePage() {
             <h2 className="font-serif text-2xl mb-2"><T>Start Earning Today</T></h2>
             <p className="text-muted-foreground mb-6"><T>Join our affiliate program and earn 20% on every referral.</T></p>
             <div className="flex justify-center gap-3">
-              <Link href="/signup?role=student" className="rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 inline-flex items-center gap-2">
+              <Link href="/signup?role=student" className="rounded-full bg-primarypx-5 py-2.5 text-sm font-semibold text-primary-foregroundhover:bg-primary/90 inline-flex items-center gap-2">
                 <T>Join as Student</T> <ArrowRight size={16} />
               </Link>
-              <Link href="/signup?role=teacher" className="rounded-full bg-amber-500 px-5 py-2.5 text-sm font-semibold text-black hover:bg-amber-400 inline-flex items-center gap-2">
+              <Link href="/signup?role=teacher" className="rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-gold/80 inline-flex items-center gap-2">
                 <T>Join as Teacher</T> <ArrowRight size={16} />
               </Link>
             </div>

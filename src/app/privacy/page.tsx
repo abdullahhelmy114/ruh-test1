@@ -16,7 +16,7 @@ export default function PrivacyPage() {
         <p className="mt-2 text-muted-foreground"><T>Last updated: May 2026</T></p>
       </div>
 
-      <div className="glass rounded-3xl p-8 md:p-10 shadow-lg space-y-8 text-sm leading-relaxed">
+      <div className="glass rounded-3xl p-8 md:p-10 shadow-elegant space-y-8 text-sm leading-relaxed">
         <section>
           <h2 className="font-serif text-xl text-primary mb-2"><T>1. Information We Collect</T></h2>
           <p className="text-muted-foreground">

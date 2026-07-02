@@ -56,7 +56,7 @@ function VerifyTeacherContent() {
   return (
     <div className="grid min-h-screen place-items-center bg-background px-4 py-12">
       <div className="relative w-full max-w-md">
-        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-amber-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-gold/20 blur-3xl" />
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -103,7 +103,7 @@ function VerifyTeacherContent() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-full bg-linear-to-r from-amber-500 to-amber-600 py-3.5 text-sm font-semibold tracking-wide text-white shadow-elegant hover:scale-[1.01] transition-transform"
+                  className="w-full rounded-full bg-gradient-gold py-3.5 text-sm font-semibold tracking-wide text-primary-foreground shadow-elegant hover:scale-[1.01] transition-transform"
                 >
                   {loading ? <T>Verifying...</T> : <T>Verify</T>}
                 </Button>
@@ -111,14 +111,14 @@ function VerifyTeacherContent() {
             </>
           ) : (
             <div className="text-center space-y-6">
-              <CheckCircle className="mx-auto h-16 w-16 text-emerald-500" />
+              <CheckCircle className="mx-auto h-16 w-16 text-primary" />
               <h2 className="text-2xl font-bold"><T>Application Submitted!</T></h2>
               <p className="text-muted-foreground">
                 <T>Your application has been received and will be reviewed shortly. We will contact you soon.</T>
               </p>
               <Button
                 onClick={() => router.push("/")}
-                className="rounded-full bg-amber-500 hover:bg-amber-600 text-white"
+                className="rounded-full bg-gold hover:bg-gold/90 text-primary-foreground"
               >
                 <T>Back to Home</T>
               </Button>

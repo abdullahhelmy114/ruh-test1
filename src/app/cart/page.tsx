@@ -61,11 +61,11 @@ export default function CartPage() {
           {items.map((item: any) => (
             <div key={item.id} className="flex items-center justify-between glass rounded-2xl p-4">
               <div className="flex items-center gap-4">
-                <div className="h-16 w-16 rounded-xl bg-linear-to-br from-emerald-600 to-emerald-800 flex items-center justify-center overflow-hidden">
+                <div className="h-16 w-16 rounded-xl bg-gradient-primary flex items-center justify-center overflow-hidden">
                   {item.image_url ? (
                     <Image src={item.image_url} alt={item.title} width={64} height={64} className="object-cover" />
                   ) : (
-                    <ShoppingCart className="h-6 w-6 text-white/50" />
+                    <ShoppingCart className="h-6 w-6 text-primary-foreground/50" />
                   )}
                 </div>
                 <div>
@@ -82,7 +82,7 @@ export default function CartPage() {
             </div>
           ))}
           <div className="text-right mt-4">
-            <button className="rounded-full bg-amber-500 px-8 py-3 text-sm font-semibold text-black hover:bg-amber-400">
+            <button className="rounded-full bg-gold px-8 py-3 text-sm font-semibold text-foreground hover:bg-gold/80">
               <T>Checkout</T>
             </button>
           </div>

@@ -71,7 +71,7 @@ function CourseCompletionSection({
         <p className="text-muted-foreground"><T>You must pass the final exam to earn your certificate.</T></p>
         <Link
           href={`/dashboard/student/exam/${courseId}`}
-          className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-6 py-3 text-sm font-semibold text-black hover:bg-amber-400"
+          className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-foreground hover:bg-gold/80"
         >
           <T>Take Final Exam</T>
         </Link>
@@ -82,7 +82,7 @@ function CourseCompletionSection({
   // لا يوجد امتحان → شهادة مباشرة
   return (
     <div className="glass rounded-2xl p-6 text-center space-y-4">
-      <CheckCircle className="mx-auto h-10 w-10 text-emerald-500" />
+      <CheckCircle className="mx-auto h-10 w-10 text-primary" />
       <h3 className="font-serif text-xl"><T>Congratulations!</T></h3>
       <p className="text-muted-foreground"><T>You have completed all lessons.</T></p>
       <CertificateButton
@@ -182,14 +182,14 @@ export default function CoursePlayerPage() {
               onClick={() => setCurrentLesson(lesson)}
               className={`w-full text-left p-3 rounded-xl text-sm transition flex items-center gap-3 ${
                 currentLesson?.id === lesson.id
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-primarytext-primary-foreground"
                   : lesson.completed
-                  ? "bg-emerald-50 dark:bg-emerald-900/20"
+                  ? "bg-secondary dark:bg-primary/70/20"
                   : "hover:bg-accent"
               }`}
             >
               <span className="shrink-0 w-6 h-6 rounded-full border flex items-center justify-center text-xs">
-                {lesson.completed ? <CheckCircle size={14} className="text-emerald-500" /> : i + 1}
+                {lesson.completed ? <CheckCircle size={14} className="text-primary" /> : i + 1}
               </span>
               <span className="truncate">{lesson.title}</span>
             </button>
@@ -201,9 +201,9 @@ export default function CoursePlayerPage() {
           {allCompleted ? (
             <Link
               href={`/dashboard/student/exam/${courseId}`}
-              className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 transition w-full"
+              className="flex items-center gap-3 p-3 rounded-xl bg-gold/10 border border-gold/30 hover:bg-gold/20 transition w-full"
             >
-              <span className="shrink-0 w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center text-xs text-black font-bold">?</span>
+              <span className="shrink-0 w-6 h-6 rounded-full bg-gold flex items-center justify-center text-xs text-foreground font-bold">?</span>
               <span className="text-sm font-medium text-accent-foreground"><T>Final Exam</T></span>
             </Link>
           ) : (
@@ -239,7 +239,7 @@ export default function CoursePlayerPage() {
                 onClick={handleComplete}
                 disabled={currentLesson.completed || completing}
                 className={`inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition ${
-                  currentLesson.completed ? "bg-emerald-100 text-emerald-600 cursor-default" : "bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+                  currentLesson.completed ? "bg-secondary text-primary cursor-default" : "bg-primarytext-primary-foregroundhover:bg-primary/90 disabled:opacity-50"
                 }`}
               >
                 {currentLesson.completed ? <><CheckCircle size={18} /> <T>Completed</T></> : <><Play size={18} /> <T>Mark as Complete</T></>}

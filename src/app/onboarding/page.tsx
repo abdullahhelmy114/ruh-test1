@@ -65,7 +65,7 @@ export default function OnboardingPage() {
             </p>
             <button
               onClick={() => setStep(2)}
-              className="mt-6 w-full rounded-full bg-amber-500 py-3 text-sm font-semibold text-black"
+              className="mt-6 w-full rounded-full bg-gold py-3 text-sm font-semibold text-foreground"
             >
               <T>Get Started</T> <ArrowRight className="inline h-4 w-4" />
             </button>
@@ -88,7 +88,7 @@ export default function OnboardingPage() {
               <input value={interests} onChange={(e) => setInterests(e.target.value)} placeholder="e.g., Quran, Grammar, Conversation" className="w-full mt-1 rounded-2xl border bg-background px-4 py-3 text-sm" />
             </div>
             {error && <p className="text-sm text-red-500">{error}</p>}
-            <button onClick={handleComplete} disabled={saving} className="w-full rounded-full bg-emerald-600 py-3 text-sm font-semibold text-white disabled:opacity-50">
+            <button onClick={handleComplete} disabled={saving} className="w-full rounded-full bg-primarypy-3 text-sm font-semibold text-primary-foreground disabled:opacity-50">
               {saving ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : <T>Complete Profile</T>}
             </button>
           </div>

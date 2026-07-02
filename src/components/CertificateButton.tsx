@@ -99,7 +99,7 @@ export function CertificateButton({ studentName, courseName, teacherName }: Cert
   return (
     <button
       onClick={generateCertificate}
-      className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-6 py-3 text-sm font-semibold text-black hover:bg-amber-400 transition"
+      className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-foreground hover:bg-gold/80 transition"
     >
       <Award size={18} />
       <T>Download Certificate</T>

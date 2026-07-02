@@ -44,7 +44,7 @@ export function CertificationCard({ progress = 62 }: { progress?: number }) {
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <button className="inline-flex items-center gap-2 rounded-full gradient-gold px-5 py-2.5 text-sm font-semibold text-gold-foreground shadow-gold transition-transform hover:scale-105">
+            <button className="inline-flex items-center gap-2 rounded-full gradient-gold px-5 py-2.5 text-sm font-semibold text-gold-foreground shadow-goldold transition-transform hover:scale-105">
               <PlayCircle className="h-4 w-4" /> Continue Learning
             </button>
             <button className="group hero-row-bg hero-text inline-flex items-center gap-2 rounded-full border border-hero-border px-5 py-2.5 text-sm font-medium transition-colors hover:opacity-80">

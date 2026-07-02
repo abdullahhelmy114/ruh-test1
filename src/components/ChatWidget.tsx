@@ -40,7 +40,7 @@ export function ChatWidget({ roomId }: { roomId: string }) {
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {open ? (
-        <div className="glass rounded-3xl shadow-2xl w-80 h-112.5 flex flex-col overflow-hidden">
+        <div className="glass rounded-3xl shadow-elegant w-80 h-112.5 flex flex-col overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b">
             <h3 className="font-serif text-lg"><T>Live Chat</T></h3>
             <button onClick={() => setOpen(false)}><X size={18} /></button>
@@ -56,11 +56,11 @@ export function ChatWidget({ roomId }: { roomId: string }) {
           </div>
           <div className="p-3 border-t flex gap-2">
             <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && sendMessage()} placeholder="Type..." className="flex-1 rounded-full border bg-background px-4 py-2 text-sm" />
-            <button onClick={sendMessage} className="rounded-full bg-amber-500 p-2 text-black"><Send size={16} /></button>
+            <button onClick={sendMessage} className="rounded-full bg-gold p-2 text-foreground"><Send size={16} /></button>
           </div>
         </div>
       ) : (
-        <button onClick={() => setOpen(true)} className="rounded-full bg-amber-500 p-4 text-black shadow-xl hover:bg-amber-400">
+        <button onClick={() => setOpen(true)} className="rounded-full bg-gold p-4 text-foreground shadow-elegant hover:bg-gold/80">
           <MessageCircle size={24} />
         </button>
       )}

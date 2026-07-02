@@ -36,7 +36,7 @@ export function YouTubeEmbed({ url, title, className }: YouTubeEmbedProps) {
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-2xl shadow-elegant bg-black",
+        "relative overflow-hidden rounded-2xl shadow-elegant bg-foreground",
         className
       )}
       style={{ aspectRatio: "16 / 9" }}

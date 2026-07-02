@@ -71,7 +71,7 @@ function ResetPasswordForm() {
     return (
       <div className="grid min-h-[calc(100vh-4rem)] place-items-center px-4">
         <div className="glass rounded-3xl p-8 md:p-10 shadow-elegant text-center max-w-md">
-          <CheckCircle className="mx-auto h-12 w-12 text-emerald-500 mb-4" />
+          <CheckCircle className="mx-auto h-12 w-12 text-primary mb-4" />
           <h1 className="font-serif text-2xl"><T>Password Reset!</T></h1>
           <p className="mt-2 text-muted-foreground"><T>Redirecting to login...</T></p>
         </div>
@@ -82,7 +82,7 @@ function ResetPasswordForm() {
   return (
     <div className="grid min-h-[calc(100vh-4rem)] place-items-center bg-background px-4 py-12">
       <div className="relative w-full max-w-md">
-        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-amber-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-gold/20 blur-3xl" />
         <div className="glass rounded-3xl p-8 md:p-10 shadow-elegant text-center">
           <Lock className="mx-auto h-12 w-12 text-secondary-foreground mb-4" />
           <h1 className="font-serif text-2xl"><T>New Password</T></h1>
@@ -101,7 +101,7 @@ function ResetPasswordForm() {
             <button
               type="submit"
               disabled={loading || !password.trim()}
-              className="w-full rounded-full bg-amber-500 py-3 text-sm font-semibold text-black hover:bg-amber-400 disabled:opacity-50"
+              className="w-full rounded-full bg-gold py-3 text-sm font-semibold text-foreground hover:bg-gold/80 disabled:opacity-50"
             >
               {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : <T>Reset Password</T>}
             </button>

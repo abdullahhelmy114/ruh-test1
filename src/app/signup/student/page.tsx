@@ -101,7 +101,7 @@ export default function StudentSignupPage() {
   return (
     <div className="grid min-h-screen place-items-center bg-background px-4 py-12">
       <div className="relative w-full max-w-2xl">
-        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-emerald-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-secondary0/20 blur-3xl" />
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -109,7 +109,7 @@ export default function StudentSignupPage() {
           className="glass overflow-hidden rounded-3xl bg-card p-8 shadow-elegant md:p-10"
         >
           <div className="mb-8 text-center">
-            <div className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600">
+            <div className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">
               <T>Ruhulqudus Academy</T>
             </div>
             <h1 className="mt-3 font-serif text-3xl md:text-4xl">
@@ -363,7 +363,7 @@ export default function StudentSignupPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-full bg-emerald-600 hover:bg-emerald-700 py-3.5 text-sm font-semibold text-white shadow-elegant"
+                className="w-full rounded-full bg-primary hover:bg-primary/90 py-3.5 text-sm font-semibold text-primary-foreground shadow-elegant"
               >
                 <T>Create Student Account</T>
               </Button>
@@ -373,7 +373,7 @@ export default function StudentSignupPage() {
               <T>Already enrolled?</T>{" "}
               <Link
                 href="/login"
-                className="text-emerald-600 underline-offset-4 hover:underline"
+                className="text-primary underline-offset-4 hover:underline"
               >
                 <T>Sign in</T>
               </Link>

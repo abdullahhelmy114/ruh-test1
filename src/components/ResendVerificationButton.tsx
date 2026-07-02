@@ -33,7 +33,7 @@ export function ResendVerificationButton() {
 
   return (
     <div>
-      <button onClick={handleResend} disabled={loading} className="text-sm underline text-amber-600">
+      <button onClick={handleResend} disabled={loading} className="text-sm underline text-gold">
         {loading ? "Resending..." : <T>Resend Code</T>}
       </button>
       {message && <p className="text-xs mt-1 text-muted-foreground">{message}</p>}

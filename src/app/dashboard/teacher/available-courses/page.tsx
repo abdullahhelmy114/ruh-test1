@@ -103,7 +103,7 @@ export default function AvailableCoursesPage() {
           {courses.map((course) => (
             <Card
               key={course.id}
-              className="bg-card border-border transition-shadow hover:shadow-md"
+              className="bg-card border-border transition-shadow hover:shadow-elegant"
             >
               <CardHeader>
                 <CardTitle className="text-lg font-bold text-foreground">

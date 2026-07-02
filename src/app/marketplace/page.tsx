@@ -332,7 +332,7 @@ export default function MarketplacePage() {
               <motion.div
                 key={course.id}
                 whileHover={{ y: -6 }}
-                className="group overflow-hidden rounded-3xl border border-border bg-card shadow-lg transition-shadow hover:shadow-2xl hover:shadow-primary/10"
+                className="group overflow-hidden rounded-3xl border border-border bg-card shadow-elegant transition-shadow hover:shadow-elegant hover:shadow-goldrimary/10"
               >
                 {/* صورة الكورس */}
                 <Link href={`/courses/${course.id}`}>
@@ -347,7 +347,7 @@ export default function MarketplacePage() {
                     ) : (
                       <BookOpen className="h-20 w-20 text-primary-foreground/20" />
                     )}
-                    <span className="absolute top-3 right-3 rounded-full bg-black/30 backdrop-blur-md px-3 py-1 text-xs font-bold text-white">
+                    <span className="absolute top-3 right-3 rounded-full bg-foreground/30 backdrop-blur-md px-3 py-1 text-xs font-bold text-primary-foreground">
                       {course.level}
                     </span>
                     {hasDiscount && (

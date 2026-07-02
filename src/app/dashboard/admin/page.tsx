@@ -789,7 +789,7 @@ function UserManagementTab() {
 
       {/* Modals */}
       {showProfile && selectedUser && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-foreground/50 flex items-center justify-center p-4">
           <div className="bg-card rounded-3xl p-6 max-w-md w-full shadow-elegant space-y-3">
             <h3 className="font-serif text-xl">{selectedUser.full_name}</h3>
             <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
@@ -814,7 +814,7 @@ function UserManagementTab() {
       )}
 
       {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-foreground/50 flex items-center justify-center p-4">
           <div className="bg-card rounded-3xl p-6 max-w-sm w-full shadow-elegant text-center space-y-4">
             <Trash2 className="mx-auto h-10 w-10 text-destructive" />
             <p className="font-medium">
@@ -839,7 +839,7 @@ function UserManagementTab() {
       )}
 
       {showMessageModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-foreground/50 flex items-center justify-center p-4">
           <div className="bg-card rounded-3xl p-6 max-w-md w-full shadow-elegant space-y-4">
             <h3 className="font-serif text-xl">
               <T>Send Message to</T> {showMessageModal.full_name}
@@ -1506,7 +1506,7 @@ function SiteSettingsTab() {
             }`}
           >
             <div
-              className={`h-5 w-5 rounded-full bg-white transition-transform ${
+              className={`h-5 w-5 rounded-full bg-background transition-transform ${
                 maintenanceMode ? "translate-x-5" : ""
               }`}
             />

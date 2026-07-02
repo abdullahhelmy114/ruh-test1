@@ -56,7 +56,7 @@ export function SocialLinks({ items, onChange }: {
       <button
         type="button"
         onClick={add}
-        className="inline-flex items-center gap-2 rounded-full border border-dashed border-gold/50 px-4 py-2 text-xs font-medium text-emerald transition hover:bg-gold/10 dark:text-gold"
+        className="inline-flex items-center gap-2 rounded-full border border-dashed border-gold/50 px-4 py-2 text-xs font-medium text-primary transition hover:bg-gold/10 dark:text-gold"
       >
         <Plus size={14} /> Add social account
       </button>

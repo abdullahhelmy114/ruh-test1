@@ -14,7 +14,7 @@ export function RoleToggle({
         layout
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
         className={cn(
-          "absolute inset-y-1 w-1/2 rounded-full gradient-emerald shadow-elegant",
+          "absolute inset-y-1 w-1/2 rounded-full gradient-primary shadow-elegant",
           value === "teacher" ? "left-1/2" : "left-1"
         )}
         style={{ width: "calc(50% - 4px)" }}

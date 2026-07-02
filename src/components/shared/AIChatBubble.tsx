@@ -81,9 +81,9 @@ export function AIChatBubble() {
             transition={{ type: "spring", stiffness: 280, damping: 25 }}
             className="fixed bottom-24 right-6 z-50 flex h-[28rem] w-[22rem] flex-col overflow-hidden rounded-3xl border bg-card shadow-elegant"
           >
-            <div className="flex items-center justify-between gradient-emerald px-4 py-3 text-primary-foreground">
+            <div className="flex items-center justify-between gradient-primary px-4 py-3 text-primary-foreground">
               <div className="flex items-center gap-2">
-                <div className="grid h-9 w-9 place-items-center rounded-full bg-white/15 backdrop-blur">
+                <div className="grid h-9 w-9 place-items-center rounded-full bg-background/15 backdrop-blur">
                   <Sparkles className="h-4 w-4" />
                 </div>
                 <div>
@@ -91,7 +91,7 @@ export function AIChatBubble() {
                   <div className="text-[10px] uppercase tracking-widest opacity-70">Always here to help</div>
                 </div>
               </div>
-              <button onClick={() => setOpen(false)} className="rounded-full p-1 hover:bg-white/10">
+              <button onClick={() => setOpen(false)} className="rounded-full p-1 hover:bg-background/10">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -148,7 +148,7 @@ export function AIChatBubble() {
         whileTap={{ scale: 0.95 }}
         onClick={() => setOpen((o) => !o)}
         aria-label="Open AI Assistant"
-        className="fixed bottom-6 right-6 z-50 grid h-16 w-16 place-items-center rounded-full gradient-emerald shadow-elegant ring-4 ring-gold/30"
+        className="fixed bottom-6 right-6 z-50 grid h-16 w-16 place-items-center rounded-full gradient-primary shadow-elegant ring-4 ring-gold/30"
       >
         <span className="absolute inset-0 animate-ping rounded-full bg-gold/20" />
         <Brain className="relative h-7 w-7 text-primary-foreground" />

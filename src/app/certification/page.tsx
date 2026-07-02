@@ -41,13 +41,13 @@ export default function CertificationPage() {
             "Receive your official certification.",
           ].map((step, i) => (
             <div key={i} className="flex items-start gap-3">
-              <CheckCircle size={18} className="text-emerald-500 mt-0.5" />
+              <CheckCircle size={18} className="text-primary mt-0.5" />
               <span className="text-muted-foreground"><T>{step}</T></span>
             </div>
           ))}
         </div>
         <div className="text-center pt-2">
-          <Link href="/signup?role=teacher" className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-6 py-3 text-sm font-semibold text-black hover:bg-amber-400">
+          <Link href="/signup?role=teacher" className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-foreground hover:bg-gold/80">
             <T>Apply Now</T> <ArrowRight size={16} />
           </Link>
         </div>
@@ -55,8 +55,8 @@ export default function CertificationPage() {
 
       <div className="glass rounded-3xl p-8 md:p-10 space-y-6 mb-8">
         <div className="flex items-center gap-3">
-          <GraduationCap className="h-8 w-8 text-emerald-500" />
-          <h2 className="font-serif text-2xl text-emerald-600"><T>Student Certificate</T></h2>
+          <GraduationCap className="h-8 w-8 text-primary" />
+          <h2 className="font-serif text-2xl text-primary"><T>Student Certificate</T></h2>
         </div>
         <p className="text-muted-foreground"><T>Receive a Certificate of Completion for every course you finish.</T></p>
         <div className="space-y-3">
@@ -67,13 +67,13 @@ export default function CertificationPage() {
             "Share your achievement on social media or add it to your CV.",
           ].map((step, i) => (
             <div key={i} className="flex items-start gap-3">
-              <CheckCircle size={18} className="text-emerald-500 mt-0.5" />
+              <CheckCircle size={18} className="text-primary mt-0.5" />
               <span className="text-muted-foreground"><T>{step}</T></span>
             </div>
           ))}
         </div>
         <div className="text-center pt-2">
-          <Link href="/marketplace" className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
+          <Link href="/marketplace" className="inline-flex items-center gap-2 rounded-full bg-primarypx-6 py-3 text-sm font-semibold text-primary-foregroundhover:bg-primary/90">
             <T>Browse Courses</T> <ArrowRight size={16} />
           </Link>
         </div>
@@ -86,10 +86,10 @@ export default function CertificationPage() {
             <h2 className="font-serif text-2xl mb-2"><T>Join and Get Certified</T></h2>
             <p className="text-muted-foreground mb-6"><T>Start your journey today and earn your first certificate.</T></p>
             <div className="flex justify-center gap-3">
-              <Link href="/signup?role=student" className="rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 inline-flex items-center gap-2">
+              <Link href="/signup?role=student" className="rounded-full bg-primarypx-5 py-2.5 text-sm font-semibold text-primary-foregroundhover:bg-primary/90 inline-flex items-center gap-2">
                 <T>Join as Student</T> <ArrowRight size={16} />
               </Link>
-              <Link href="/signup?role=teacher" className="rounded-full bg-amber-500 px-5 py-2.5 text-sm font-semibold text-black hover:bg-amber-400 inline-flex items-center gap-2">
+              <Link href="/signup?role=teacher" className="rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-gold/80 inline-flex items-center gap-2">
                 <T>Join as Teacher</T> <ArrowRight size={16} />
               </Link>
             </div>

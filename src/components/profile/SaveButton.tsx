@@ -29,7 +29,7 @@ export function SaveButton({
       disabled={state !== "idle"}
       className={cn(
         "group relative inline-flex h-12 items-center justify-center gap-2 overflow-hidden rounded-full px-8 font-medium transition",
-        "bg-emerald text-emerald-foreground shadow-[0_10px_30px_-10px] shadow-emerald/60 hover:shadow-gold/50",
+        "bg-primary text-primary-foreground shadow-[0_10px_30px_-10px] shadow-elegant hover:shadow-goldold/50",
         "disabled:opacity-90",
       )}
     >

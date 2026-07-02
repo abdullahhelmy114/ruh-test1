@@ -115,7 +115,7 @@ export default function PendingLessonsPage() {
                     {lesson.type === "zoom" ? (
                       <Video className="h-5 w-5 text-secondary-foreground" />
                     ) : (
-                      <FileText className="h-5 w-5 text-emerald" />
+                      <FileText className="h-5 w-5 text-primary" />
                     )}
                   </div>
                   <div>
@@ -146,14 +146,14 @@ export default function PendingLessonsPage() {
                   <button
                     onClick={() => handleAction(lesson.id, "rejected")}
                     disabled={actionId === lesson.id}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-medium text-red-600 hover:bg-red-500/20 disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-50/10 px-4 py-2 text-xs font-medium text-red-600 hover:bg-red-500/20 disabled:opacity-50"
                   >
                     <XCircle className="h-3.5 w-3.5" /> Reject
                   </button>
                   <button
                     onClick={() => handleAction(lesson.id, "approved")}
                     disabled={actionId === lesson.id}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-linear-to-r from-emerald-600 to-emerald-700 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-gradient-primary px-4 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50"
                   >
                     {actionId === lesson.id ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />

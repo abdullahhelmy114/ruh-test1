@@ -31,7 +31,7 @@ export function StarRating({ rating, onChange, readonly = false, size = 20 }: St
             size={size}
             className={`${
               star <= displayRating
-                ? "fill-amber-400 text-accent"
+                ? "fill-gold text-accent"
                 : "fill-none text-muted-foreground/40"
             }`}
           />

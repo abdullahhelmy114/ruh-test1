@@ -136,34 +136,34 @@ export function OnboardingTour({ steps, tourKey = "onboarding_tour_seen", onFini
   return (
     <div ref={tourRef} className="fixed inset-0 z-[1000]">
       {/* طبقة التعتيم مع فتحة للإطار */}
-      <div className="absolute inset-0 bg-black/70" style={{ clipPath: `polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%, ${spotlightStyle.top || 0} ${spotlightStyle.left || 0}, ${spotlightStyle.top || 0} ${(parseFloat(spotlightStyle.left as string) || 0) + (parseFloat(spotlightStyle.width as string) || 0)}px, ${(parseFloat(spotlightStyle.top as string) || 0) + (parseFloat(spotlightStyle.height as string) || 0)}px ${(parseFloat(spotlightStyle.left as string) || 0) + (parseFloat(spotlightStyle.width as string) || 0)}px, ${(parseFloat(spotlightStyle.top as string) || 0) + (parseFloat(spotlightStyle.height as string) || 0)}px ${spotlightStyle.left || 0})` }} />
+      <div className="absolute inset-0 bg-foreground/70" style={{ clipPath: `polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%, ${spotlightStyle.top || 0} ${spotlightStyle.left || 0}, ${spotlightStyle.top || 0} ${(parseFloat(spotlightStyle.left as string) || 0) + (parseFloat(spotlightStyle.width as string) || 0)}px, ${(parseFloat(spotlightStyle.top as string) || 0) + (parseFloat(spotlightStyle.height as string) || 0)}px ${(parseFloat(spotlightStyle.left as string) || 0) + (parseFloat(spotlightStyle.width as string) || 0)}px, ${(parseFloat(spotlightStyle.top as string) || 0) + (parseFloat(spotlightStyle.height as string) || 0)}px ${spotlightStyle.left || 0})` }} />
 
       {/* إطار مضيء حول العنصر */}
       <div
-        className="absolute z-[1001] rounded-lg ring-4 ring-amber-400 shadow-[0_0_20px_rgba(212,175,55,0.5)] pointer-events-none transition-all duration-300"
+        className="absolute z-[1001] rounded-lg ring-4 ring-gold/60 shadow-[0_0_20px_rgba(212,175,55,0.5)] pointer-events-none transition-all duration-300"
         style={spotlightStyle}
       />
 
       {/* بطاقة الخطوة */}
       <div
-        className="absolute z-[1001] w-80 rounded-2xl bg-white dark:bg-gray-800 shadow-2xl p-5 transition-all duration-300"
+        className="absolute z-[1001] w-80 rounded-2xl bg-card shadow-elegant p-5 transition-all duration-300"
         style={tooltipStyle}
       >
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-bold text-lg text-gray-900 dark:text-white"><T>{step.title}</T></h3>
-          <button onClick={() => handleSkip} className="text-gray-400 hover:text-gray-600">
+          <h3 className="font-bold text-lg text-foreground"><T>{step.title}</T></h3>
+          <button onClick={() => handleSkip} className="text-muted-foreground hover:text-muted-foreground">
             <X size={18} />
           </button>
         </div>
 
-        <p className="text-sm text-gray-600 dark:text-gray-300 mb-5"><T>{step.content}</T></p>
+        <p className="text-sm text-muted-foreground dark:text-muted-foreground/70 mb-5"><T>{step.content}</T></p>
 
         <div className="flex items-center justify-between">
           <div className="flex gap-1">
             {steps.map((_, idx) => (
               <div
                 key={idx}
-                className={`h-1.5 w-6 rounded-full ${idx === currentStep ? "bg-amber-500" : "bg-gray-300 dark:bg-gray-600"}`}
+                className={`h-1.5 w-6 rounded-full ${idx === currentStep ? "bg-gold" : "bg-gray-300 dark:bg-gray-600"}`}
               />
             ))}
           </div>
@@ -171,7 +171,7 @@ export function OnboardingTour({ steps, tourKey = "onboarding_tour_seen", onFini
             {step.optional && (
               <button
                 onClick={handleSkip}
-                className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100"
+                className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
               >
                 <T>Skip</T>
               </button>
@@ -179,14 +179,14 @@ export function OnboardingTour({ steps, tourKey = "onboarding_tour_seen", onFini
             {currentStep > 0 && (
               <button
                 onClick={handlePrev}
-                className="flex items-center gap-1 rounded-full border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100"
+                className="flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
               >
                 <ArrowLeft size={14} /> <T>Back</T>
               </button>
             )}
             <button
               onClick={handleNext}
-              className="flex items-center gap-1 rounded-full bg-amber-500 px-4 py-1.5 text-xs font-semibold text-black hover:bg-amber-400"
+              className="flex items-center gap-1 rounded-full bg-gold px-4 py-1.5 text-xs font-semibold text-foreground hover:bg-gold/80"
             >
               <T>{currentStep === totalSteps - 1 ? "Finish" : "Next"}</T> <ArrowRight size={14} />
             </button>

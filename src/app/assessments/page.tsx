@@ -54,10 +54,10 @@ export default function AssessmentsPage() {
             <h2 className="font-serif text-2xl mb-2"><T>Ready to start learning?</T></h2>
             <p className="text-muted-foreground mb-6"><T>Join now and take the placement test.</T></p>
             <div className="flex justify-center gap-3">
-              <Link href="/signup?role=student" className="rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 inline-flex items-center gap-2">
+              <Link href="/signup?role=student" className="rounded-full bg-primarypx-5 py-2.5 text-sm font-semibold text-primary-foregroundhover:bg-primary/90 inline-flex items-center gap-2">
                 <T>Join as Student</T> <ArrowRight size={16} />
               </Link>
-              <Link href="/signup?role=teacher" className="rounded-full bg-amber-500 px-5 py-2.5 text-sm font-semibold text-black hover:bg-amber-400 inline-flex items-center gap-2">
+              <Link href="/signup?role=teacher" className="rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-gold/80 inline-flex items-center gap-2">
                 <T>Join as Teacher</T> <ArrowRight size={16} />
               </Link>
             </div>

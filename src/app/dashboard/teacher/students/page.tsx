@@ -54,7 +54,7 @@ export default function TeacherStudentsPage() {
       </Link>
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-serif text-3xl"><T>My Students</T></h1>
-        <Link href="/dashboard/teacher/marketing" className="rounded-full bg-amber-500 px-4 py-2 text-sm font-semibold text-black">
+        <Link href="/dashboard/teacher/marketing" className="rounded-full bg-gold px-4 py-2 text-sm font-semibold text-foreground">
           <Filter size={16} className="inline mr-1" /> <T>Advanced Filters</T>
         </Link>
       </div>
@@ -70,7 +70,7 @@ export default function TeacherStudentsPage() {
             key={f.key}
             onClick={() => setFilter(f.key)}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
-              filter === f.key ? "bg-emerald-600 text-white" : "bg-card border hover:bg-accent"
+              filter === f.key ? "bg-primarytext-primary-foreground" : "bg-card border hover:bg-accent"
             }`}
           >
             <T>{f.label}</T>
@@ -80,7 +80,7 @@ export default function TeacherStudentsPage() {
           <button
             onClick={() => setFilter("certificate-level")}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
-              filter === "certificate-level" ? "bg-emerald-600 text-white" : "bg-card border hover:bg-accent"
+              filter === "certificate-level" ? "bg-primarytext-primary-foreground" : "bg-card border hover:bg-accent"
             }`}
           >
             <T>Certificate Level</T>
@@ -107,9 +107,9 @@ export default function TeacherStudentsPage() {
                 <h3 className="font-medium">{s.full_name}</h3>
                 <p className="text-xs text-muted-foreground mt-1">{s.email}</p>
                 <div className="flex flex-wrap gap-1 mt-2">
-                  {s.nationality && <span className="text-[10px] bg-amber-500/10 text-accent-foreground px-2 py-0.5 rounded-full">{s.nationality}</span>}
-                  {s.residence && <span className="text-[10px] bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full">{s.residence}</span>}
-                  {s.native_language && <span className="text-[10px] bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full">{s.native_language}</span>}
+                  {s.nationality && <span className="text-[10px] bg-gold/10 text-accent-foreground px-2 py-0.5 rounded-full">{s.nationality}</span>}
+                  {s.residence && <span className="text-[10px] bg-secondary/10 text-primary px-2 py-0.5 rounded-full">{s.residence}</span>}
+                  {s.native_language && <span className="text-[10px] bg-blue-50/10 text-blue-600 px-2 py-0.5 rounded-full">{s.native_language}</span>}
                 </div>
               </div>
               <Link href={`/dashboard/teacher/student/${s.uid}`} className="p-2 rounded-full hover:bg-accent" title="View Profile">

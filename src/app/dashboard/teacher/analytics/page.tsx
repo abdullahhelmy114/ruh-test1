@@ -56,9 +56,9 @@ export default function TeacherAnalyticsPage() {
       {/* بطاقات الإحصائيات */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Total Students", value: data.totalStudents, icon: Users, color: "text-emerald-500" },
+          { label: "Total Students", value: data.totalStudents, icon: Users, color: "text-primary" },
           { label: "Courses", value: data.totalCourses, icon: BookOpen, color: "text-secondary-foreground" },
-          { label: "Revenue", value: `$${data.totalRevenue}`, icon: DollarSign, color: "text-emerald-500" },
+          { label: "Revenue", value: `$${data.totalRevenue}`, icon: DollarSign, color: "text-primary" },
           { label: "Avg Rating", value: data.averageRating.toFixed(1), icon: Star, color: "text-secondary-foreground" },
         ].map(s => {
           const Icon = s.icon;
@@ -109,7 +109,7 @@ export default function TeacherAnalyticsPage() {
       {/* نسبة الإكمال */}
       <div className="glass rounded-3xl p-6 text-center">
         <h3 className="font-serif text-xl mb-2"><T>Overall Completion Rate</T></h3>
-        <div className="text-5xl font-bold text-emerald-600">{data.completionRate}%</div>
+        <div className="text-5xl font-bold text-primary">{data.completionRate}%</div>
         <p className="text-sm text-muted-foreground mt-1"><T>of your students finish courses</T></p>
       </div>
     </div>

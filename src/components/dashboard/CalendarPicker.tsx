@@ -68,7 +68,7 @@ export function CalendarPicker({ selected, onChange, minDate, maxDate }: Calenda
               className={cn(
                 "h-9 w-9 rounded-full text-sm transition-colors",
                 disabled && "text-muted-foreground/30 cursor-not-allowed",
-                selectedDay && "bg-emerald-600! text-white! ring-2 ring-emerald-400 ring-offset-1",
+                selectedDay && "bg-primary! text-primary-foreground! ring-2 ring-primary/50 ring-offset-1",
                 !disabled && !selectedDay && "hover:bg-accent"
               )}
             >

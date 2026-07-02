@@ -75,7 +75,7 @@ export default function TeacherSignupStep1Page() {
   return (
     <div className="grid min-h-screen place-items-center bg-background px-4 py-12">
       <div className="relative w-full max-w-2xl">
-        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-amber-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-gold/20 blur-3xl" />
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -309,7 +309,7 @@ export default function TeacherSignupStep1Page() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-full bg-linear-to-r from-amber-500 to-amber-600 py-3.5 text-sm font-semibold tracking-wide text-white shadow-elegant hover:scale-[1.01] transition-transform"
+                className="w-full rounded-full bg-gradient-gold py-3.5 text-sm font-semibold tracking-wide text-primary-foreground shadow-elegant hover:scale-[1.01] transition-transform"
               >
                 <T>Create Teacher Account</T>
               </Button>

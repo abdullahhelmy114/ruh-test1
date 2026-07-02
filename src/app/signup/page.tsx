@@ -36,8 +36,8 @@ export default function SignupRolePage() {
             className="glass rounded-3xl p-8 border border-border/40 shadow-elegant flex flex-col"
           >
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 rounded-full bg-emerald-100 dark:bg-emerald-900/30">
-                <BookOpen className="h-6 w-6 text-emerald-600" />
+              <div className="p-3 rounded-full bg-secondary dark:bg-primary/70/30">
+                <BookOpen className="h-6 w-6 text-primary" />
               </div>
               <h2 className="text-2xl font-bold font-serif">
                 <T>Student</T>
@@ -46,19 +46,19 @@ export default function SignupRolePage() {
 
             <ul className="space-y-3 mb-8 text-muted-foreground flex-1">
               <li className="flex items-start gap-2">
-                <span className="text-emerald-500 mt-1">✓</span>
+                <span className="text-primary mt-1">✓</span>
                 <span><T>Access to hundreds of Arabic courses</T></span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-emerald-500 mt-1">✓</span>
+                <span className="text-primary mt-1">✓</span>
                 <span><T>Live sessions with certified teachers</T></span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-emerald-500 mt-1">✓</span>
+                <span className="text-primary mt-1">✓</span>
                 <span><T>Interactive quizzes & certificates</T></span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-emerald-500 mt-1">✓</span>
+                <span className="text-primary mt-1">✓</span>
                 <span><T>Community of learners worldwide</T></span>
               </li>
             </ul>
@@ -66,7 +66,7 @@ export default function SignupRolePage() {
             <div className="space-y-3">
               <Button
                 onClick={() => router.push("/signup/student")}
-                className="w-full rounded-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 text-sm font-semibold"
+                className="w-full rounded-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 text-sm font-semibold"
               >
                 <T>Join as Student</T>
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -89,7 +89,7 @@ export default function SignupRolePage() {
             className="glass rounded-3xl p-8 border border-border/40 shadow-elegant flex flex-col"
           >
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 rounded-full bg-amber-100 dark:bg-amber-900/30">
+              <div className="p-3 rounded-full bg-accent/30 dark:bg-gold/20">
                 <GraduationCap className="h-6 w-6 text-accent-foreground" />
               </div>
               <h2 className="text-2xl font-bold font-serif">
@@ -119,7 +119,7 @@ export default function SignupRolePage() {
             <div className="space-y-3">
               <Button
                 onClick={() => router.push("/signup/teacher")}
-                className="w-full rounded-full bg-amber-500 hover:bg-amber-600 text-white py-3 text-sm font-semibold"
+                className="w-full rounded-full bg-gold hover:bg-gold/90 text-primary-foreground py-3 text-sm font-semibold"
               >
                 <T>Join as Teacher</T>
                 <ArrowRight className="ml-2 h-4 w-4" />

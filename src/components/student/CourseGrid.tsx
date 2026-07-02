@@ -193,7 +193,7 @@ export function CourseGrid() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="group overflow-hidden rounded-3xl border border-border bg-card shadow-lg transition hover:-translate-y-1"
+              className="group overflow-hidden rounded-3xl border border-border bg-card shadow-elegant transition hover:-translate-y-1"
             >
               {/* رأس البطاقة بتدرج الهوية */}
               <div className="relative h-32 bg-gradient-primary">

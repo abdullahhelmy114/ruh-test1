@@ -30,12 +30,12 @@ export function AvatarCard({
       className="glass-strong arabesque sticky top-24 flex flex-col items-center gap-6 rounded-3xl p-8 text-center"
     >
       <div className="relative">
-        <div className="absolute -inset-2 rounded-full bg-linear-to-tr from-gold via-emerald to-gold opacity-70 blur-md" />
+        <div className="absolute -inset-2 rounded-full bg-linear-to-tr from-primary via-gold to-primary opacity-70 blur-md" />
         <div className="relative h-32 w-32 overflow-hidden rounded-full border-2 border-gold/40 bg-muted">
           {avatar ? (
             <img src={avatar} alt={name} className="h-full w-full object-cover" />
           ) : (
-            <div className="grid h-full w-full place-items-center font-serif text-4xl text-emerald dark:text-gold">
+            <div className="grid h-full w-full place-items-center font-serif text-4xl text-primary dark:text-gold">
               {name.charAt(0) || "؟"}
             </div>
           )}
@@ -43,7 +43,7 @@ export function AvatarCard({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-gold text-gold-foreground shadow-lg transition hover:scale-110"
+          className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-gold text-gold-foreground shadow-elegant transition hover:scale-110"
           aria-label="Upload avatar"
         >
           <Camera size={15} />
@@ -61,7 +61,7 @@ export function AvatarCard({
         <h2 className="font-serif text-2xl font-semibold text-foreground">{name}</h2>
         <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-xs">
           <Shield size={12} className="text-gold" />
-          <span className="font-medium text-emerald dark:text-gold">{role}</span>
+          <span className="font-medium text-primary dark:text-gold">{role}</span>
         </div>
         <p className="mt-3 inline-flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
           <Mail size={12} /> {email}

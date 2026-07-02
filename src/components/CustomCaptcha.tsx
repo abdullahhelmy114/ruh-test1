@@ -73,7 +73,7 @@ export function CustomCaptcha({ onVerify }: CustomCaptchaProps) {
           className={cn(
             "relative overflow-hidden rounded-2xl border p-5",
             status === "success"
-              ? "border-emerald-500/30 bg-emerald-500/5"
+              ? "border-primary/30 bg-secondary/5"
               : status === "error"
               ? "border-red-500/30 bg-red-500/5"
               : "border-border/50 bg-card/30 glass"
@@ -84,10 +84,10 @@ export function CustomCaptcha({ onVerify }: CustomCaptchaProps) {
               className={cn(
                 "absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl",
                 status === "success"
-                  ? "bg-emerald-500/20"
+                  ? "bg-secondary0/20"
                   : status === "error"
                   ? "bg-red-500/20"
-                  : "bg-amber-500/10"
+                  : "bg-gold/10"
               )}
             />
           </div>
@@ -148,10 +148,10 @@ export function CustomCaptcha({ onVerify }: CustomCaptchaProps) {
               className={cn(
                 "flex-1 rounded-xl border bg-background px-4 py-2.5 text-center text-lg font-semibold outline-none transition-all",
                 status === "success"
-                  ? "border-emerald-500 ring-2 ring-emerald-500/20"
+                  ? "border-primary ring-2 ring-primary/20"
                   : status === "error"
                   ? "border-red-500 ring-2 ring-red-500/20 animate-shake"
-                  : "border-border focus:ring-2 focus:ring-amber-500/30"
+                  : "border-border focus:ring-2 focus:ring-gold/30"
               )}
               disabled={status === "success"}
             />
@@ -161,8 +161,8 @@ export function CustomCaptcha({ onVerify }: CustomCaptchaProps) {
               className={cn(
                 "rounded-xl px-5 py-2.5 text-sm font-semibold transition-all disabled:opacity-50",
                 status === "success"
-                  ? "bg-emerald-600 text-white"
-                  : "bg-amber-500 text-black hover:bg-amber-400"
+                  ? "bg-primarytext-primary-foreground"
+                  : "bg-gold text-foreground hover:bg-gold/80"
               )}
             >
               {status === "success" ? (
@@ -179,7 +179,7 @@ export function CustomCaptcha({ onVerify }: CustomCaptchaProps) {
             </p>
           )}
           {status === "success" && (
-            <p className="mt-2 text-xs text-emerald-500 text-center">
+            <p className="mt-2 text-xs text-primary text-center">
               <T>Verified successfully!</T>
             </p>
           )}

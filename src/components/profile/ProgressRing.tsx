@@ -27,7 +27,7 @@ export function ProgressRing({ value, size = 120 }: { value: number; size?: numb
         <defs>
           <linearGradient id="goldGrad" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="var(--gold)" />
-            <stop offset="100%" stopColor="var(--emerald)" />
+            <stop offset="100%" stopColor="var(--primary)" />
           </linearGradient>
         </defs>
       </svg>

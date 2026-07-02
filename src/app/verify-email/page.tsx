@@ -101,11 +101,11 @@ function VerifyEmailContent() {
   return (
     <div className="grid min-h-[calc(100vh-4rem)] place-items-center bg-background px-4 py-12">
       <div className="relative w-full max-w-xl">
-        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-amber-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-gold/20 blur-3xl" />
         <div className="glass rounded-3xl p-8 md:p-10 shadow-elegant text-center">
           {success ? (
             <>
-              <ShieldCheck className="mx-auto h-12 w-12 text-emerald-500 mb-4" />
+              <ShieldCheck className="mx-auto h-12 w-12 text-primary mb-4" />
               <h1 className="font-serif text-2xl">
                 <T>Email Verified!</T>
               </h1>
@@ -139,8 +139,8 @@ function VerifyEmailContent() {
                     <div
                       key={idx}
                       onClick={() => hiddenInputRef.current?.focus()}
-                      className={`h-14 w-11 rounded-xl border bg-background text-center text-xl font-semibold outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 cursor-text flex items-center justify-center transition-all ${
-                        digit ? "border-amber-500" : "border-border"
+                      className={`h-14 w-11 rounded-xl border bg-background text-center text-xl font-semibold outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold cursor-text flex items-center justify-center transition-all ${
+                        digit ? "border-gold" : "border-border"
                       }`}
                     >
                       {digit}
@@ -154,7 +154,7 @@ function VerifyEmailContent() {
               <button
                 onClick={handleSubmit}
                 disabled={loading || digits.some((d) => d === "")}
-                className="mt-6 w-full rounded-full bg-amber-500 py-3 text-sm font-semibold text-black shadow-lg hover:bg-amber-400 disabled:opacity-50"
+                className="mt-6 w-full rounded-full bg-gold py-3 text-sm font-semibold text-foreground shadow-elegant hover:bg-gold/80 disabled:opacity-50"
               >
                 {loading ? (
                   <Loader2 className="mx-auto h-4 w-4 animate-spin" />

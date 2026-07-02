@@ -247,7 +247,7 @@ export default function LibraryPage() {
           </div>
           {hasAccess && (
             <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-[#FDFBF7]/15 bg-[#FDFBF7]/5 px-4 py-3 text-sm">
-              <Check className="h-4 w-4 text-emerald-300" />
+              <Check className="h-4 w-4 text-muted-foreground" />
               <span><T>Subscription Active</T></span>
             </div>
           )}
@@ -292,7 +292,7 @@ export default function LibraryPage() {
               <button
                 key={book.id}
                 onClick={() => handleBookClick(book)}
-                className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card text-right shadow-sm transition-all hover:-translate-y-1 hover:shadow-elegant"
+                className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card text-right shadow-elegant transition-all hover:-translate-y-1 hover:shadow-elegant"
               >
                 <div
                   className="relative aspect-[3/4] w-full overflow-hidden"
@@ -313,7 +313,7 @@ export default function LibraryPage() {
                           <div className="mt-1 text-xs opacity-80">{book.author}</div>
                         )}
                       </div>
-                      <div className="absolute right-0 top-0 h-full w-1.5 bg-black/30" />
+                      <div className="absolute right-0 top-0 h-full w-1.5 bg-foreground/30" />
                     </>
                   )}
                 </div>

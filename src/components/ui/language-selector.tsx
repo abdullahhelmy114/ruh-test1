@@ -46,7 +46,7 @@ export function LanguageSelect({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[200px] p-0 bg-popover border shadow-md"
+        className="w-[200px] p-0 bg-popover border shadow-elegant"
         align="start"
         sideOffset={4}
       >

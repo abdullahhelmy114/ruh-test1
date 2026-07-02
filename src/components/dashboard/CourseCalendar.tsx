@@ -26,9 +26,9 @@ export function CourseCalendar({ canJoin = true }: { canJoin?: boolean }) {
         {sessions.map((s, i) => (
           <div
             key={i}
-            className="group flex items-center gap-4 rounded-2xl border bg-background p-4 transition hover:border-gold/40 hover:shadow-gold"
+            className="group flex items-center gap-4 rounded-2xl border bg-background p-4 transition hover:border-gold/40 hover:shadow-goldold"
           >
-            <div className="grid h-14 w-14 flex-none place-items-center rounded-2xl gradient-emerald text-primary-foreground">
+            <div className="grid h-14 w-14 flex-none place-items-center rounded-2xl gradient-primary text-primary-foreground">
               <div className="text-center leading-tight">
                 <div className="text-[10px] uppercase tracking-wider opacity-70">{s.day}</div>
                 <div className="font-serif text-xl">{s.date}</div>

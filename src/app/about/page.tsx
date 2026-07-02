@@ -57,10 +57,10 @@ export default function AboutPage() {
         <div className="mt-8 text-center">
           <p className="text-sm text-muted-foreground mb-3"><T>Ready to start?</T></p>
           <div className="flex justify-center gap-3">
-            <Link href="/signup?role=student" className="rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">
+            <Link href="/signup?role=student" className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foregroundhover:bg-primary/90">
               <T>Join as Student</T>
             </Link>
-            <Link href="/signup?role=teacher" className="rounded-full bg-amber-500 px-5 py-2.5 text-sm font-semibold text-black hover:bg-amber-400">
+            <Link href="/signup?role=teacher" className="rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-gold/80">
               <T>Join as Teacher</T>
             </Link>
           </div>

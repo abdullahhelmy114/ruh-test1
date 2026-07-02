@@ -34,7 +34,7 @@ export function QuizPlayer({ quizzes, onComplete }: QuizPlayerProps) {
 
   if (finished) return (
     <div className="text-center p-6 glass rounded-3xl">
-      <CheckCircle className="mx-auto h-12 w-12 text-emerald-500 mb-3" />
+      <CheckCircle className="mx-auto h-12 w-12 text-primary mb-3" />
       <h2 className="font-serif text-2xl"><T>Quiz Completed!</T></h2>
       <p className="text-lg mt-2"><T>Your Score</T>: {score}/{quizzes.length}</p>
     </div>
@@ -58,16 +58,16 @@ export function QuizPlayer({ quizzes, onComplete }: QuizPlayerProps) {
                 ? "hover:bg-accent"
                 : selected === i
                 ? i === q.correct
-                  ? "bg-emerald-100 border-emerald-500 dark:bg-emerald-900/30"
+                  ? "bg-secondary border-primary dark:bg-primary/70/30"
                   : "bg-red-100 border-red-500 dark:bg-red-900/30"
                 : i === q.correct
-                ? "bg-emerald-50 border-emerald-300 dark:bg-emerald-900/20"
+                ? "bg-secondary border-secondary dark:bg-primary/70/20"
                 : "opacity-50"
             }`}
           >
             {opt}
             {selected !== null && i === q.correct && (
-              <CheckCircle size={16} className="inline ml-2 text-emerald-500" />
+              <CheckCircle size={16} className="inline ml-2 text-primary" />
             )}
             {selected === i && i !== q.correct && (
               <XCircle size={16} className="inline ml-2 text-red-500" />

@@ -63,7 +63,7 @@ export default function StudentDetailPage() {
 
       <div className="glass rounded-3xl p-6 md:p-8 space-y-6">
         <div className="flex items-center gap-4">
-          <div className="grid h-16 w-16 place-items-center rounded-full gradient-emerald text-white text-2xl font-bold">
+          <div className="grid h-16 w-16 place-items-center rounded-full gradient-primary text-primary-foregroundtext-2xl font-bold">
             {student.full_name?.charAt(0) || "?"}
           </div>
           <div>

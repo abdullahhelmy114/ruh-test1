@@ -166,7 +166,7 @@ export default function CourseDetailPage() {
 
           {/* فيديو التشويق */}
           {course.trailer_url && (
-            <div className="rounded-3xl overflow-hidden shadow-lg">
+            <div className="rounded-3xl overflow-hidden shadow-elegant">
               <YouTubeEmbed url={course.trailer_url} title={course.title} />
             </div>
           )}
@@ -222,7 +222,7 @@ export default function CourseDetailPage() {
 
         {/* بطاقة الشراء الجانبية */}
         <div className="space-y-4">
-          <div className="rounded-3xl border border-border bg-card p-6 shadow-lg sticky top-24">
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-elegant sticky top-24">
             <div className="text-3xl font-serif text-primary">${course.price}</div>
             <div className="mt-4 space-y-2">
               <div className="flex justify-between text-sm">

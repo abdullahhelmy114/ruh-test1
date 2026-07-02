@@ -130,7 +130,7 @@ export default function BlogPage() {
         <div className="text-right">
           <button
             onClick={() => setShowNewPost(true)}
-            className="rounded-full bg-amber-500 px-5 py-2.5 text-sm font-semibold text-black hover:bg-amber-400 inline-flex items-center gap-2"
+            className="rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-gold/80 inline-flex items-center gap-2"
           >
             <Plus size={16} /> <T>New Post</T>
           </button>
@@ -139,7 +139,7 @@ export default function BlogPage() {
 
       {/* نافذة إضافة بوست */}
       {showNewPost && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-foreground/50 flex items-center justify-center p-4">
           <div className="bg-card rounded-3xl p-6 max-w-lg w-full shadow-elegant space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="font-serif text-2xl"><T>New Post</T></h2>
@@ -148,7 +148,7 @@ export default function BlogPage() {
             <input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Title" className="w-full rounded-2xl border bg-background px-4 py-3 text-sm" />
             <textarea value={newContent} onChange={e => setNewContent(e.target.value)} rows={5} placeholder="Content" className="w-full rounded-2xl border bg-background px-4 py-3 text-sm" />
             <input value={newImageUrl} onChange={e => setNewImageUrl(e.target.value)} placeholder="Image URL (optional)" className="w-full rounded-2xl border bg-background px-4 py-3 text-sm" />
-            <button onClick={handleCreatePost} className="w-full rounded-full bg-amber-500 py-3 text-sm font-semibold text-black"><T>Publish</T></button>
+            <button onClick={handleCreatePost} className="w-full rounded-full bg-gold py-3 text-sm font-semibold text-foreground"><T>Publish</T></button>
           </div>
         </div>
       )}
@@ -216,10 +216,10 @@ export default function BlogPage() {
                   value={commentText[post.id] || ""}
                   onChange={e => setCommentText(prev => ({ ...prev, [post.id]: e.target.value }))}
                   placeholder="Add a comment..."
-                  className="flex-1 rounded-full border bg-background px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-500/50"
+                  className="flex-1 rounded-full border bg-background px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-gold/50"
                   onKeyDown={e => { if (e.key === 'Enter') handleAddComment(post.id); }}
                 />
-                <button onClick={() => handleAddComment(post.id)} disabled={submittingComment} className="p-2 rounded-full bg-amber-500 text-black hover:bg-amber-400 disabled:opacity-50">
+                <button onClick={() => handleAddComment(post.id)} disabled={submittingComment} className="p-2 rounded-full bg-gold text-foreground hover:bg-gold/80 disabled:opacity-50">
                   <Send size={16} />
                 </button>
               </div>
@@ -230,10 +230,10 @@ export default function BlogPage() {
               <div className="text-center pt-2 border-t border-border">
                 <p className="text-xs text-muted-foreground mb-2"><T>Want to interact?</T></p>
                 <div className="flex justify-center gap-2">
-                  <Link href="/signup?role=student" className="rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 inline-flex items-center gap-1">
+                  <Link href="/signup?role=student" className="rounded-full bg-primarypx-3 py-1.5 text-xs font-semibold text-primary-foregroundhover:bg-primary/90 inline-flex items-center gap-1">
                     <T>Join as Student</T> <ArrowRight size={12} />
                   </Link>
-                  <Link href="/signup?role=teacher" className="rounded-full bg-amber-500 px-3 py-1.5 text-xs font-semibold text-black hover:bg-amber-400 inline-flex items-center gap-1">
+                  <Link href="/signup?role=teacher" className="rounded-full bg-gold px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-gold/80 inline-flex items-center gap-1">
                     <T>Join as Teacher</T> <ArrowRight size={12} />
                   </Link>
                 </div>

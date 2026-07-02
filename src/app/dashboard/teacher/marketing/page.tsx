@@ -85,7 +85,7 @@ export default function MarketingPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-serif text-3xl"><T>Marketing Tools</T></h1>
         <button onClick={handleExport} disabled={exporting || students.length === 0}
-          className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 inline-flex items-center gap-2">
+          className="rounded-full bg-primarypx-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50 inline-flex items-center gap-2">
           <Download size={16} /> {exporting ? <T>Exporting…</T> : <T>Export Emails</T>}
         </button>
       </div>
@@ -95,7 +95,7 @@ export default function MarketingPage() {
         {filters.map(f => (
           <button key={f.key} onClick={() => setSelectedFilter(f.key)}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
-              selectedFilter === f.key ? "bg-emerald-600 text-white" : "bg-card border hover:bg-accent"
+              selectedFilter === f.key ? "bg-primarytext-primary-foreground" : "bg-card border hover:bg-accent"
             }`}>
             <T>{f.label}</T>
           </button>
@@ -125,8 +125,8 @@ export default function MarketingPage() {
                 <p className="text-xs text-muted-foreground flex items-center gap-1"><Mail size={14} /> {s.email}</p>
               </div>
               <div className="flex flex-wrap gap-1">
-                {s.nationality && <span className="text-[10px] bg-amber-500/10 text-accent-foreground px-2 py-0.5 rounded-full">{s.nationality}</span>}
-                {s.residence && <span className="text-[10px] bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full">{s.residence}</span>}
+                {s.nationality && <span className="text-[10px] bg-gold/10 text-accent-foreground px-2 py-0.5 rounded-full">{s.nationality}</span>}
+                {s.residence && <span className="text-[10px] bg-secondary/10 text-primary px-2 py-0.5 rounded-full">{s.residence}</span>}
               </div>
             </div>
           ))}

@@ -5,10 +5,23 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import {
-  ArrowRight, Award, Users, BookOpen, Sparkles, Star,
-  TrendingUp, Shield, Globe, GraduationCap, Heart,
-  MessageCircle, Calendar, ChevronRight, Play,
-  PackageOpen, ScrollText,
+  ArrowRight,
+  Award,
+  Users,
+  BookOpen,
+  Sparkles,
+  Star,
+  TrendingUp,
+  Shield,
+  Globe,
+  GraduationCap,
+  Heart,
+  MessageCircle,
+  Calendar,
+  ChevronRight,
+  Play,
+  PackageOpen,
+  ScrollText,
 } from "lucide-react";
 import { T } from "@/components/TranslatedText";
 
@@ -47,7 +60,11 @@ export default function HomePage() {
   const [blogPosts, setBlogPosts] = useState<any[]>([]);
   const [bundles, setBundles] = useState<any[]>([]);
   const [certification, setCertification] = useState<any>(null);
-  const [stats, setStats] = useState({ students: "12K+", completion: "98%", experience: "20+" });
+  const [stats, setStats] = useState({
+    students: "12K+",
+    completion: "98%",
+    experience: "20+",
+  });
 
   useEffect(() => {
     // Fetch real stats (example: from an API or static)
@@ -56,26 +73,26 @@ export default function HomePage() {
 
     // Featured Courses
     fetch("/api/marketplace?limit=3")
-      .then(r => r.json())
-      .then(d => setFeaturedCourses((d.courses || []).slice(0, 3)))
+      .then((r) => r.json())
+      .then((d) => setFeaturedCourses((d.courses || []).slice(0, 3)))
       .catch(() => {});
 
     // Blog Posts
     fetch("/api/blog/posts?limit=3")
-      .then(r => r.json())
-      .then(d => setBlogPosts((d.posts || []).slice(0, 3)))
+      .then((r) => r.json())
+      .then((d) => setBlogPosts((d.posts || []).slice(0, 3)))
       .catch(() => {});
 
     // Bundles
     fetch("/api/bundles")
-      .then(r => r.json())
-      .then(d => setBundles(d.bundles || []))
+      .then((r) => r.json())
+      .then((d) => setBundles(d.bundles || []))
       .catch(() => {});
 
     // Certification Info
     fetch("/api/certification")
-      .then(r => r.json())
-      .then(d => setCertification(d))
+      .then((r) => r.json())
+      .then((d) => setCertification(d))
       .catch(() => {});
   }, []);
 
@@ -110,13 +127,17 @@ export default function HomePage() {
             </h1>
 
             <p className="mt-6 max-w-lg text-lg leading-relaxed text-muted-foreground">
-              <T>An elite academy for those who seek mastery of the Arabic language — classical, modern, and Quranic — through live mentorship and timeless curriculum.</T>
+              <T>
+                An elite academy for those who seek mastery of the Arabic
+                language — classical, modern, and Quranic — through live
+                mentorship and timeless curriculum.
+              </T>
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <Link
                 href="/signup"
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-bold text-primary-foreground shadow-lg transition hover:scale-105 hover:bg-primary/90"
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-bold text-primary-foreground shadow-elegant transition hover:scale-105 hover:bg-primary/90"
               >
                 <T>Begin Your Journey</T>
                 <ArrowRight className="h-4 w-4" />
@@ -136,10 +157,12 @@ export default function HomePage() {
                 { v: stats.students, l: "Students", icon: Users },
                 { v: stats.completion, l: "Completion", icon: TrendingUp },
                 { v: stats.experience, l: "Years Exp.", icon: Calendar },
-              ].map(s => (
+              ].map((s) => (
                 <div key={s.l} className="text-center">
                   <s.icon className="mx-auto h-5 w-5 text-accent-foreground" />
-                  <div className="mt-1 font-serif text-2xl font-bold text-foreground">{s.v}</div>
+                  <div className="mt-1 font-serif text-2xl font-bold text-foreground">
+                    {s.v}
+                  </div>
                   <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                     <T>{s.l}</T>
                   </div>
@@ -156,9 +179,9 @@ export default function HomePage() {
             className="relative"
           >
             <div className="absolute -inset-6 rounded-[2.5rem] bg-accent/20 blur-2xl" />
-            <div className="relative overflow-hidden rounded-[2.5rem] bg-linear-to-br from-primary to-primary/90 p-10 text-white shadow-2xl">
+            <div className="relative overflow-hidden rounded-[2.5rem] bg-linear-to-br from-primary to-primary/90 p-10 text-primary-foreground shadow-elegant">
               <div
-                className="text-right text-7xl leading-tight text-white md:text-8xl"
+                className="text-right text-7xl leading-tight text-primary-foreground md:text-8xl"
                 style={{ fontFamily: "Amiri, serif" }}
               >
                 ٱقْرَأْ
@@ -172,15 +195,14 @@ export default function HomePage() {
                   { icon: <Award className="h-4 w-4" />, t: "Certified Teacher Program" },
                   { icon: <Users className="h-4 w-4" />, t: "Live Cohorts via Zoom" },
                   { icon: <BookOpen className="h-4 w-4" />, t: "A1 — C2 Curriculum" },
-                ].map(f => (
-                  <div
-                    key={f.t}
-                    className="flex items-center gap-3 rounded-2xl bg-white/10 p-3 backdrop-blur"
-                  >
+                ].map((f) => (
+                  <div key={f.t} className="flex items-center gap-3">
                     <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent text-primary">
                       {f.icon}
                     </div>
-                    <span className="text-sm text-white/80"><T>{f.t}</T></span>
+                    <span className="text-sm text-primary-foreground/80">
+                      <T>{f.t}</T>
+                    </span>
                   </div>
                 ))}
               </div>
@@ -223,12 +245,14 @@ export default function HomePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.1 }}
-              className="group rounded-3xl border bg-card p-8 shadow-elegant transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/10"
+              className="group rounded-3xl border bg-card p-8 shadow-elegant transition-all hover:-translate-y-1 hover:shadow-elegant"
             >
-              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-linear-to-br from-primary to-primary/80 text-white shadow-lg group-hover:scale-110 transition-transform">
+              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-linear-to-br from-primary to-primary/80 text-primary-foreground shadow-elegant group-hover:scale-110 transition-transform">
                 {p.i}
               </div>
-              <h3 className="mt-5 font-serif text-2xl"><T>{p.t}</T></h3>
+              <h3 className="mt-5 font-serif text-2xl">
+                <T>{p.t}</T>
+              </h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 <T>{p.d}</T>
               </p>
@@ -258,16 +282,21 @@ export default function HomePage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: i * 0.1 }}
-                  className="group overflow-hidden rounded-3xl border bg-card shadow-elegant transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/10"
+                  className="group overflow-hidden rounded-3xl border bg-card shadow-elegant transition-all hover:-translate-y-1 hover:shadow-elegant"
                 >
                   <Link href={`/courses/${course.id}`}>
                     <div className="h-40 bg-linear-to-br from-primary to-primary/80 flex items-center justify-center relative overflow-hidden">
                       {course.image_url ? (
-                        <Image src={course.image_url} alt={course.title} fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
+                        <Image
+                          src={course.image_url}
+                          alt={course.title}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
                       ) : (
-                        <BookOpen className="h-12 w-12 text-white/30" />
+                        <BookOpen className="h-12 w-12 text-primary-foreground/30" />
                       )}
-                      <span className="absolute top-3 right-3 rounded-full bg-black/30 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm">
+                      <span className="absolute top-3 right-3 rounded-full bg-foreground/30 px-3 py-1 text-xs font-bold text-primary-foreground backdrop-blur-sm">
                         {course.level}
                       </span>
                     </div>
@@ -330,14 +359,16 @@ export default function HomePage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: i * 0.1 }}
-                  className="group overflow-hidden rounded-3xl border bg-card shadow-elegant transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/10"
+                  className="group overflow-hidden rounded-3xl border bg-card shadow-elegant transition-all hover:-translate-y-1 hover:shadow-elegant"
                 >
                   <div className="h-40 bg-linear-to-br from-accent to-accent/80 flex items-center justify-center">
-                    <PackageOpen className="h-16 w-16 text-white/40" />
+                    <PackageOpen className="h-16 w-16 text-primary-foreground/40" />
                   </div>
                   <div className="p-5">
                     <h3 className="font-serif text-lg font-semibold">{bundle.name}</h3>
-                    <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{bundle.description}</p>
+                    <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                      {bundle.description}
+                    </p>
                     <div className="mt-3 flex items-center justify-between">
                       <span className="font-serif text-2xl font-bold text-accent-foreground">
                         ${bundle.price}
@@ -397,11 +428,16 @@ export default function HomePage() {
                   { icon: <Globe className="h-6 w-6" />, text: "Global Community" },
                   { icon: <Award className="h-6 w-6" />, text: "Prestigious Credential" },
                 ].map((item, idx) => (
-                  <div key={idx} className="flex items-start gap-3 rounded-2xl bg-card p-4 shadow-sm">
+                  <div
+                    key={idx}
+                    className="flex items-start gap-3 rounded-2xl bg-card p-4 shadow-elegant"
+                  >
                     <div className="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-primary">
                       {item.icon}
                     </div>
-                    <span className="text-sm font-medium"><T>{item.text}</T></span>
+                    <span className="text-sm font-medium">
+                      <T>{item.text}</T>
+                    </span>
                   </div>
                 ))}
               </div>
@@ -420,11 +456,16 @@ export default function HomePage() {
                   <T>Your Path to Certification</T>
                 </h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  {certification?.description || <T>Complete our program and earn a certificate to teach Arabic anywhere in the world.</T>}
+                  {certification?.description || (
+                    <T>
+                      Complete our program and earn a certificate to teach
+                      Arabic anywhere in the world.
+                    </T>
+                  )}
                 </p>
                 <Link
                   href="/certification"
-                  className="mt-6 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground shadow-lg hover:bg-accent/90 transition"
+                  className="mt-6 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground shadow-elegant hover:bg-accent/90 transition"
                 >
                   <T>Learn More</T> <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -455,7 +496,7 @@ export default function HomePage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: i * 0.1 }}
-                  className="group overflow-hidden rounded-3xl border bg-card shadow-elegant transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/10"
+                  className="group overflow-hidden rounded-3xl border bg-card shadow-elegant transition-all hover:-translate-y-1 hover:shadow-elegant"
                 >
                   {post.image_url && (
                     <div className="h-40 relative overflow-hidden">
@@ -473,7 +514,8 @@ export default function HomePage() {
                       {new Date(post.created_at).toLocaleDateString()}
                       <span className="flex items-center gap-1 ml-auto">
                         <Heart className="h-3.5 w-3.5" /> {post.likes_count}
-                        <MessageCircle className="h-3.5 w-3.5 ml-2" /> {post.comments_count}
+                        <MessageCircle className="h-3.5 w-3.5 ml-2" />{" "}
+                        {post.comments_count}
                       </span>
                     </div>
                     <Link href={`/blog/${post.id}`}>
@@ -481,7 +523,9 @@ export default function HomePage() {
                         {post.title}
                       </h3>
                     </Link>
-                    <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{post.excerpt}</p>
+                    <p className="mt-2 text-xs text-muted-foreground line-clamp-2">
+                      {post.excerpt}
+                    </p>
                   </div>
                 </motion.div>
               ))}
@@ -527,15 +571,17 @@ export default function HomePage() {
                   ))}
                 </div>
                 <p className="mt-4 text-sm italic leading-relaxed text-muted-foreground">
-                  "<T>{t.text}</T>"
+                  &quot;<T>{t.text}</T>&quot;
                 </p>
                 <div className="mt-4 flex items-center gap-3 border-t border-border/50 pt-4">
-                  <div className="grid h-10 w-10 place-items-center rounded-full bg-linear-to-br from-primary to-primary/80 text-white font-bold text-sm">
+                  <div className="grid h-10 w-10 place-items-center rounded-full bg-linear-to-br from-primary to-primary/80 text-primary-foreground font-bold text-sm">
                     {t.avatar}
                   </div>
                   <div>
                     <p className="text-sm font-medium">{t.name}</p>
-                    <p className="text-xs text-muted-foreground"><T>{t.role}</T></p>
+                    <p className="text-xs text-muted-foreground">
+                      <T>{t.role}</T>
+                    </p>
                   </div>
                 </div>
               </motion.div>
@@ -552,28 +598,33 @@ export default function HomePage() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="relative overflow-hidden rounded-[3rem] bg-linear-to-br from-primary to-primary/90 p-10 shadow-2xl md:p-16"
+            className="relative overflow-hidden rounded-[3rem] bg-linear-to-br from-primary to-primary/90 p-10 shadow-elegant md:p-16"
           >
             <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-accent/20 blur-3xl" />
-            <div className="absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
+            <div className="absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-background/10 blur-2xl" />
             <div className="relative z-10">
               <GraduationCap className="mx-auto h-12 w-12 text-accent" />
-              <h2 className="mt-6 font-serif text-4xl font-bold text-white md:text-5xl">
-                <T>A tradition of excellence, now at your fingertips.</T>
+              <h2 className="mt-6 font-serif text-4xl font-bold text-primary-foreground md:text-5xl">
+                <T>
+                  A tradition of excellence, now at your fingertips.
+                </T>
               </h2>
-              <p className="mt-4 text-lg text-white/70">
-                <T>Whether you're beginning your first letter or refining your scholarly voice, the Academy welcomes you.</T>
+              <p className="mt-4 text-lg text-primary-foreground/70">
+                <T>
+                  Whether you&apos;re beginning your first letter or refining your
+                  scholarly voice, the Academy welcomes you.
+                </T>
               </p>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
                 <Link
                   href="/signup"
-                  className="inline-flex items-center gap-2 rounded-full bg-accent px-8 py-4 text-sm font-bold text-accent-foreground shadow-xl transition hover:scale-105 hover:bg-accent/90"
+                  className="inline-flex items-center gap-2 rounded-full bg-accent px-8 py-4 text-sm font-bold text-accent-foreground shadow-elegant transition hover:scale-105 hover:bg-accent/90"
                 >
                   <T>Enroll Today</T> <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/marketplace"
-                  className="inline-flex items-center gap-2 rounded-full border-2 border-white/30 px-8 py-4 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/10"
+                  className="inline-flex items-center gap-2 rounded-full border-2 border-primary/30 px-8 py-4 text-sm font-semibold text-primary-foreground backdrop-blur-sm transition hover:bg-background/10"
                 >
                   <T>Explore Courses</T>
                 </Link>

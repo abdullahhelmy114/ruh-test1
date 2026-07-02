@@ -129,7 +129,7 @@ export default function CertificateViewer({
 
   return (
     <div className="flex flex-col items-center gap-6">
-      <div className="overflow-auto border shadow-lg" style={{ transform: "scale(0.5)", transformOrigin: "top left" }}>
+      <div className="overflow-auto border shadow-elegant" style={{ transform: "scale(0.5)", transformOrigin: "top left" }}>
         <div
           ref={containerRef}
           style={{
