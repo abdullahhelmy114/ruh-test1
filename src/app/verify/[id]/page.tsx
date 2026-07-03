@@ -4,6 +4,8 @@ import CertificateViewer from "@/components/CertificateViewer";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic"; // يمنع Static Generation
+
 type Props = {
   params: { id: string };
 };
@@ -24,9 +26,9 @@ async function getCertificateData(certificateCode: string) {
       t.full_name AS teacher_name,
       c.issued_at::text AS issue_date
     FROM certificates c
-    JOIN users u ON c.user_uid = u.uid
+    JOIN profiles u ON c.user_uid = u.firebase_uid
     JOIN courses co ON c.course_id = co.id
-    JOIN users t ON co.teacher_uid = t.id
+    JOIN profiles t ON co.teacher_uid = t.firebase_uid
     WHERE c.code = ${certificateCode}
   `;
 
@@ -63,7 +65,6 @@ export default async function VerifyCertificatePage({ params }: Props) {
         teacherName={certificate.teacher_name}
         certificateId={certificate.certificate_id}
         teacherSignatureText={teacherSignatureText}
-        // teacherSignature و headMasterSignature تُركت اختيارية (ستعرض التوقيع النصي)
       />
     </div>
   );
