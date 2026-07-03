@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
     const posts = await sql`
       SELECT 
         cp.id,
-        cp.user_id AS "userId",
+        cp.user_uid AS "userId",
         cp.type,
         cp.content,
         cp.created_at AS "createdAt",
@@ -50,10 +50,10 @@ export async function GET(req: NextRequest) {
         (SELECT COUNT(*) FROM community_comments WHERE post_id = cp.id)::int AS "commentsCount",
         EXISTS (
           SELECT 1 FROM community_likes 
-          WHERE post_id = cp.id AND user_id = ${user.uid}
+          WHERE post_id = cp.id AND user_uid = ${user.uid}
         ) AS "isLiked"
       FROM community_posts cp
-      JOIN users u ON cp.user_id = u.id
+      JOIN users u ON cp.user_uid = u.uid
       WHERE cp.gender = ${gender}
       ORDER BY cp.created_at DESC
       LIMIT ${limit} OFFSET ${offset}
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const result = await sql`
-      INSERT INTO community_posts (user_id, gender, type, content)
+      INSERT INTO community_posts (user_uid, gender, type, content)
       VALUES (${user.uid}, ${gender}, ${type}, ${content})
       RETURNING id
     `;

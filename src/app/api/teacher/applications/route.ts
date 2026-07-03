@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
       `SELECT ta.*, mc.title AS course_title, mc.category, mc.level
       FROM teaching_applications ta
       JOIN model_courses mc ON mc.id = ta.model_course_id
-      WHERE ta.teacher_id = $1 AND ta.status = 'pending'
+      WHERE ta.teacher_uid = $1 AND ta.status = 'pending'
       ORDER BY ta.applied_at DESC`,
       [user.uid]
     );

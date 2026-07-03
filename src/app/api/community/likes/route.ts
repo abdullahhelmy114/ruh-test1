@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     // التحقق من وجود إعجاب سابق
     const existing = await sql`
       SELECT id FROM community_likes
-      WHERE post_id = ${postId} AND user_id = ${user.uid}
+      WHERE post_id = ${postId} AND user_uid = ${user.uid}
     `;
 
     if (existing.length > 0) {
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     } else {
       // إضافة إعجاب
       await sql`
-        INSERT INTO community_likes (post_id, user_id)
+        INSERT INTO community_likes (post_id, user_uid)
         VALUES (${postId}, ${user.uid})
       `;
       return NextResponse.json({ liked: true });

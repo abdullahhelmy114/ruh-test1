@@ -15,7 +15,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       `SELECT lc.*, mc.title, mc.category, mc.level, mc.base_price, mc.scenario AS model_scenario
       FROM live_courses lc
       JOIN model_courses mc ON mc.id = lc.model_course_id
-      WHERE lc.id = $1 AND lc.teacher_id = $2`,
+      WHERE lc.id = $1 AND lc.teacher_uid = $2`,
       [courseId, user.uid]
     );
 

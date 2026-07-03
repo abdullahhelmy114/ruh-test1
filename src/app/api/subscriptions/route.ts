@@ -13,7 +13,7 @@ export async function GET(req: Request) {
     const [subscription] = await sql`
       SELECT s.id, s.max_courses, s.courses_used, s.expires_at
       FROM subscriptions s
-      JOIN profiles p ON s.user_id = p.id
+      JOIN profiles p ON s.user_uid = p.id
       WHERE p.firebase_uid = ${session.uid}
         AND s.expires_at > NOW()
       LIMIT 1

@@ -23,11 +23,11 @@ export async function POST(req: Request) {
 
   // نحذف أي وصول قديم ثم ندرج الجديد
   await sql`
-    DELETE FROM library_access WHERE user_id = ${session.uid}
+    DELETE FROM library_access WHERE user_uid = ${session.uid}
   `;
 
   await sql`
-    INSERT INTO library_access (user_id, book_id, expires_at)
+    INSERT INTO library_access (user_uid, book_id, expires_at)
     VALUES (${session.uid}, NULL, ${expiresAt.toISOString()})
   `;
 

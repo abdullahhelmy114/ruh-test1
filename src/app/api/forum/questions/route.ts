@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
     const questions = await sql`
       SELECT 
         fq.id,
-        fq.user_id AS "userId",
+        fq.user_uid AS "userId",
         fq.title,
         fq.content,
         fq.upvotes,
@@ -53,10 +53,10 @@ export async function GET(req: NextRequest) {
         u.avatar_url AS "userAvatar",
         (SELECT COUNT(*) FROM forum_answers WHERE question_id = fq.id)::int AS "answersCount",
         (SELECT vote_type FROM forum_votes 
-         WHERE question_id = fq.id AND user_id = ${user.uid}
+         WHERE question_id = fq.id AND user_uid = ${user.uid}
          LIMIT 1) AS "userVote"
       FROM forum_questions fq
-      JOIN users u ON fq.user_id = u.id
+      JOIN users u ON fq.user_uid = u.uid
       WHERE fq.gender = ${gender}
       ORDER BY ${orderBy}
       LIMIT ${limit} OFFSET ${offset}
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const result = await sql`
-      INSERT INTO forum_questions (user_id, gender, title, content)
+      INSERT INTO forum_questions (user_uid, gender, title, content)
       VALUES (${user.uid}, ${gender}, ${title}, ${content})
       RETURNING id
     `;

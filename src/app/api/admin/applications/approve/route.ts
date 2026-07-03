@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 
     // 3. جلب بيانات الطلب والتأكد من أنه بحالة pending
     const [app] = await sql`
-      SELECT ta.id, ta.teacher_id, ta.model_course_id
+      SELECT ta.id, ta.teacher_uid, ta.model_course_id
       FROM teaching_applications ta
       WHERE ta.id = ${application_id} AND ta.status = 'pending'
     `;
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 
     // 5. التأكد من أن المعلم موجود (من جدول profiles)
     const [teacher] = await sql`
-      SELECT id, firebase_uid, full_name FROM profiles WHERE firebase_uid = ${app.teacher_id}
+      SELECT id, firebase_uid, full_name FROM profiles WHERE firebase_uid = ${app.teacher_uid}
     `;
     if (!teacher) {
       return NextResponse.json({ error: 'المعلم غير موجود' }, { status: 404 });
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
 
     // 6. إنشاء الكورس الحي (live_course)
     await sql`
-      INSERT INTO live_courses (model_course_id, teacher_id, title, description, level, price, status)
+      INSERT INTO live_courses (model_course_id, teacher_uid, title, description, level, price, status)
       VALUES (
         ${model.id},
         ${teacher.id},

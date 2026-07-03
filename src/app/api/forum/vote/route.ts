@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     const existingVote = await sql`
       SELECT id, vote_type 
       FROM forum_votes 
-      WHERE user_id = ${user.uid}
+      WHERE user_uid = ${user.uid}
         AND (
           ${targetType === 'question' ? sql`question_id = ${targetId}` : sql`answer_id = ${targetId}`}
         )
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
       // تصويت جديد
       if (targetType === 'question') {
         await sql`
-          INSERT INTO forum_votes (user_id, question_id, vote_type)
+          INSERT INTO forum_votes (user_uid, question_id, vote_type)
           VALUES (${user.uid}, ${targetId}, ${voteType})
         `;
         if (voteType === 'upvote') {
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
         }
       } else {
         await sql`
-          INSERT INTO forum_votes (user_id, answer_id, vote_type)
+          INSERT INTO forum_votes (user_uid, answer_id, vote_type)
           VALUES (${user.uid}, ${targetId}, ${voteType})
         `;
         if (voteType === 'upvote') {

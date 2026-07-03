@@ -8,7 +8,7 @@ export async function GET() {
       SELECT id, user_name, item_name, amount, type, created_at FROM transactions ORDER BY created_at DESC LIMIT 10
     `;
     const payouts = await sql`
-      SELECT teacher_id, teacher_name, students_count, commission_rate, pending_amount FROM payouts WHERE status='pending'
+      SELECT teacher_uid, teacher_name, students_count, commission_rate, pending_amount FROM payouts WHERE status='pending'
     `;
     return NextResponse.json({ transactions, payouts });
   } catch (err: any) {

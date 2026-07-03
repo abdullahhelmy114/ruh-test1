@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS model_lessons (
 CREATE TABLE IF NOT EXISTS live_courses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   model_course_id UUID NOT NULL REFERENCES model_courses(id),
-  teacher_id UUID NOT NULL REFERENCES profiles(id),   -- المعلم القائم بالتدريس
+  teacher_uid UUID NOT NULL REFERENCES profiles(firebase_uid)),   -- المعلم القائم بالتدريس
   title TEXT NOT NULL,
   description TEXT,
   level TEXT DEFAULT 'B1',
@@ -64,12 +64,12 @@ CREATE TABLE IF NOT EXISTS live_courses (
 -- =============================================
 CREATE TABLE IF NOT EXISTS progress (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES profiles(id),
+  user_uid UUID REFERENCES profiles(firebase_uid),
   course_id UUID REFERENCES live_courses(id),
   lesson_id INT,
   completed BOOLEAN DEFAULT false,
   completed_at TIMESTAMPTZ,
-  UNIQUE(user_id, lesson_id)
+  UNIQUE(user_uid, lesson_id)
 );
 
 -- =============================================
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS teacher_applications (
 -- =============================================
 CREATE TABLE IF NOT EXISTS transactions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES profiles(id),
+  user_uid UUID REFERENCES profiles(firebase_uid),
   item_name TEXT,
   amount NUMERIC,
   type TEXT,
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS transactions (
 -- =============================================
 CREATE TABLE IF NOT EXISTS payouts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  teacher_id UUID REFERENCES profiles(id),
+  teacher_uid UUID REFERENCES profiles(firebase_uid),
   commission_rate NUMERIC DEFAULT 10,
   pending_amount NUMERIC DEFAULT 0,
   status TEXT DEFAULT 'pending',
@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS payouts (
 -- =============================================
 CREATE TABLE IF NOT EXISTS reports (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  reported_by UUID REFERENCES profiles(id),
+  reported_by UUID REFERENCES profiles(firebase_uid),
   description TEXT,
   resolved BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT now()
@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS bundles (
 -- =============================================
 CREATE TABLE IF NOT EXISTS subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES profiles(id),
+  user_uid UUID NOT NULL REFERENCES profiles(firebase_uid),
   plan_id UUID NOT NULL,
   expires_at TIMESTAMP NOT NULL,
   courses_used INTEGER DEFAULT 0,
@@ -179,7 +179,7 @@ CREATE TABLE IF NOT EXISTS subscription_courses (
 -- =============================================
 CREATE TABLE IF NOT EXISTS purchases (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES profiles(id),
+  user_uid UUID NOT NULL REFERENCES profiles(firebase_uid),
   type TEXT NOT NULL CHECK (type IN ('course', 'bundle', 'subscription')),
   course_id UUID REFERENCES live_courses(id),
   bundle_id UUID REFERENCES bundles(id),
@@ -197,7 +197,7 @@ CREATE TABLE IF NOT EXISTS purchase_courses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   purchase_id UUID REFERENCES purchases(id) ON DELETE CASCADE,
   course_id UUID NOT NULL REFERENCES live_courses(id),
-  teacher_id UUID REFERENCES profiles(id),
+  teacher_uid UUID REFERENCES profiles(firebase_uid),
   amount NUMERIC(10,2) NOT NULL,
   commission_amount NUMERIC(10,2) NOT NULL DEFAULT 0,
   commission_status TEXT DEFAULT 'pending' CHECK (commission_status IN ('pending', 'paid'))
@@ -208,7 +208,7 @@ CREATE TABLE IF NOT EXISTS purchase_courses (
 -- =============================================
 CREATE TABLE IF NOT EXISTS teacher_earnings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  teacher_id UUID NOT NULL REFERENCES profiles(id),
+  teacher_uid UUID NOT NULL REFERENCES profiles(firebase_uid),
   purchase_course_id UUID REFERENCES purchase_courses(id),
   amount NUMERIC(10,2) NOT NULL,
   source TEXT DEFAULT 'shopier',
@@ -221,7 +221,7 @@ CREATE TABLE IF NOT EXISTS teacher_earnings (
 -- =============================================
 CREATE TABLE community_posts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  user_uid UUID NOT NULL REFERENCES profiles(firebase_uid) ON DELETE CASCADE,
   gender VARCHAR(10) NOT NULL CHECK (gender IN ('male', 'female')),
   type VARCHAR(20) NOT NULL CHECK (type IN ('achievement', 'manual')),
   content TEXT NOT NULL,
@@ -231,7 +231,7 @@ CREATE TABLE community_posts (
 CREATE TABLE community_comments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   post_id UUID NOT NULL REFERENCES community_posts(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  user_uid UUID NOT NULL REFERENCES profiles(firebase_uid) ON DELETE CASCADE,
   content TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -239,9 +239,9 @@ CREATE TABLE community_comments (
 CREATE TABLE community_likes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   post_id UUID NOT NULL REFERENCES community_posts(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  user_uid UUID NOT NULL REFERENCES profiles(firebase_uid) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(post_id, user_id)
+  UNIQUE(post_id, user_uid)
 );
 
 -- =============================================
@@ -249,7 +249,7 @@ CREATE TABLE community_likes (
 -- =============================================
 CREATE TABLE forum_questions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  user_uid UUID NOT NULL REFERENCES profiles(firebase_uid) ON DELETE CASCADE,
   gender VARCHAR(10) NOT NULL CHECK (gender IN ('male', 'female')),
   title TEXT NOT NULL,
   content TEXT NOT NULL,
@@ -261,7 +261,7 @@ CREATE TABLE forum_questions (
 CREATE TABLE forum_answers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   question_id UUID NOT NULL REFERENCES forum_questions(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  user_uid UUID NOT NULL REFERENCES profiles(firebase_uid) ON DELETE CASCADE,
   content TEXT NOT NULL,
   upvotes INT NOT NULL DEFAULT 0,
   downvotes INT NOT NULL DEFAULT 0,
@@ -270,7 +270,7 @@ CREATE TABLE forum_answers (
 
 CREATE TABLE forum_votes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  user_uid UUID NOT NULL REFERENCES profiles(firebase_uid) ON DELETE CASCADE,
   question_id UUID REFERENCES forum_questions(id) ON DELETE CASCADE,
   answer_id UUID REFERENCES forum_answers(id) ON DELETE CASCADE,
   vote_type VARCHAR(10) NOT NULL CHECK (vote_type IN ('upvote', 'downvote')),
@@ -279,7 +279,7 @@ CREATE TABLE forum_votes (
     (question_id IS NOT NULL AND answer_id IS NULL) OR
     (question_id IS NULL AND answer_id IS NOT NULL)
   ),
-  UNIQUE(user_id, question_id, answer_id)
+  UNIQUE(user_uid, question_id, answer_id)
 );
 
 -- =============================================
@@ -293,14 +293,14 @@ CREATE TABLE challenges (
   start_date DATE NOT NULL,
   end_date DATE NOT NULL,
   badge_id UUID REFERENCES badges(id) ON DELETE SET NULL,
-  created_by UUID NOT NULL REFERENCES profiles(id),
+  created_by UUID NOT NULL REFERENCES profiles(firebase_uid),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE challenge_participants (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   challenge_id UUID NOT NULL REFERENCES challenges(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  user_uid UUID NOT NULL REFERENCES profiles(firebase_uid) ON DELETE CASCADE,
   joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(challenge_id, user_id)
+  UNIQUE(challenge_id, user_uid)
 );

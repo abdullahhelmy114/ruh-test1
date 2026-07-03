@@ -12,7 +12,7 @@ export async function GET(req: Request) {
     const courses = await sql`
       SELECT lc.id, lc.title, lc.level, lc.price, lc.status
       FROM live_courses lc
-      JOIN profiles p ON lc.teacher_id = p.id
+      JOIN profiles p ON lc.teacher_uid = p.firebase_uid
       WHERE p.firebase_uid = ${session.uid}
       ORDER BY lc.created_at DESC
     `;

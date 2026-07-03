@@ -16,7 +16,7 @@ export async function GET(req: Request) {
   // تحقق من وجود وصول في library_access (حقيقي أو وهمي)
   const [access] = await sql`
     SELECT id, expires_at FROM library_access
-    WHERE user_id = ${session.uid}
+    WHERE user_uid = ${session.uid}
     AND (expires_at IS NULL OR expires_at > now())
     LIMIT 1
   `;

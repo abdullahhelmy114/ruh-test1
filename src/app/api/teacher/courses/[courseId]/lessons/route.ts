@@ -18,7 +18,7 @@ export async function POST(
   // التحقق من أن الكورس الحي يخص هذا المعلم
   const [course] = await sql`
     SELECT * FROM live_courses
-    WHERE id = ${courseId} AND teacher_id = ${session.uid}
+    WHERE id = ${courseId} AND teacher_uid = ${session.uid}
   `;
   if (!course) {
     return NextResponse.json(

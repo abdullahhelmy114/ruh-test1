@@ -8,7 +8,7 @@ export async function GET(req: Request) {
     FROM teacher_earnings te
     JOIN purchase_courses pc ON te.purchase_course_id = pc.id
     JOIN courses c ON pc.course_id = c.id
-    WHERE te.teacher_id = ${teacherId}
+    WHERE te.teacher_uid = ${teacherId}
     ORDER BY te.id DESC
   `;
   return NextResponse.json(earnings || []);

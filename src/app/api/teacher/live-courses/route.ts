@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
         (SELECT COUNT(*) FROM lessons WHERE live_course_id = lc.id) AS lessons_count
       FROM live_courses lc
       JOIN model_courses mc ON mc.id = lc.model_course_id
-      WHERE lc.teacher_id = $1 AND lc.status = 'active'
+      WHERE lc.teacher_uid = $1 AND lc.status = 'active'
       ORDER BY lc.created_at DESC`,
       [user.uid]
     );

@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     // 3. التحقق من عدم وجود كورس حي بالفعل لهذا المعلم
     const existingLive = await sql`
       SELECT lc.id FROM live_courses lc
-      JOIN profiles p ON lc.teacher_id = p.id
+      JOIN profiles p ON lc.teacher_uid = p.firebase_uid
       WHERE p.firebase_uid = ${teacherUid} AND lc.model_course_id = ${model_course_id}
     `;
     if (existingLive.length > 0) {

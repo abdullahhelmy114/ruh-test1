@@ -14,7 +14,7 @@ export async function POST(req: Request, { params }: { params: { courseId: strin
   const [liveCourse] = await sql`
     SELECT model_course_id FROM live_courses
     WHERE id = ${params.courseId}
-    AND teacher_id = (SELECT id FROM profiles WHERE firebase_uid = ${session.uid})
+    AND teacher_uid = (SELECT id FROM profiles WHERE firebase_uid = ${session.uid})
   `;
   if (!liveCourse) {
     return NextResponse.json({ error: 'الكورس غير موجود' }, { status: 404 });

@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     const [subscription] = await sql`
       SELECT id, max_courses, courses_used, expires_at
       FROM subscriptions
-      WHERE user_id = (SELECT id FROM profiles WHERE firebase_uid = ${session.uid})
+      WHERE user_uid = (SELECT id FROM profiles WHERE firebase_uid = ${session.uid})
         AND expires_at > NOW()
       LIMIT 1
     `;

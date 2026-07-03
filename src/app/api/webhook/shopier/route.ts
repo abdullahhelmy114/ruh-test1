@@ -68,7 +68,7 @@ export async function POST(req: Request) {
     // 6. معالجة الشراء حسب النوع
     if (type === 'course') {
       const [liveCourse] = await sql`
-        SELECT id, price, teacher_id FROM live_courses WHERE id = ${entityId}
+        SELECT id, price, teacher_uid FROM live_courses WHERE id = ${entityId}
       `;
       if (!liveCourse) return NextResponse.json({ error: 'Course not found' }, { status: 404 });
 
@@ -82,8 +82,8 @@ export async function POST(req: Request) {
       // احتساب عمولة المعلم (20%)
       const commission = parseFloat(liveCourse.price) * 0.2;
       await sql`
-        INSERT INTO teacher_earnings (teacher_id, amount, status, source)
-        VALUES (${liveCourse.teacher_id}, ${commission}, 'pending', 'shopier')
+        INSERT INTO teacher_earnings (teacher_uid, amount, status, source)
+        VALUES (${liveCourse.teacher_uid}, ${commission}, 'pending', 'shopier')
       `;
     } else if (type === 'bundle') {
       const [bundle] = await sql`
@@ -101,12 +101,12 @@ export async function POST(req: Request) {
           ON CONFLICT (user_uid, course_id) DO NOTHING
         `;
 
-        const [course] = await sql`SELECT teacher_id FROM live_courses WHERE id = ${cid}`;
+        const [course] = await sql`SELECT teacher_uid FROM live_courses WHERE id = ${cid}`;
         if (course) {
           const commission = amountPerCourse * 0.2;
           await sql`
-            INSERT INTO teacher_earnings (teacher_id, amount, status, source)
-            VALUES (${course.teacher_id}, ${commission}, 'pending', 'shopier')
+            INSERT INTO teacher_earnings (teacher_uid, amount, status, source)
+            VALUES (${course.teacher_uid}, ${commission}, 'pending', 'shopier')
           `;
         }
       }
@@ -115,7 +115,7 @@ export async function POST(req: Request) {
       const expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 3 أشهر
 
       await sql`
-        INSERT INTO subscriptions (user_id, plan_id, expires_at, max_courses, courses_used)
+        INSERT INTO subscriptions (user_uid, plan_id, expires_at, max_courses, courses_used)
         VALUES (${user.firebase_uid}, ${planId}, ${expiresAt}, 3, 0)
       `;
     }

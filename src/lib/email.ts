@@ -18,7 +18,7 @@ function wrapTemplate(title: string, content: string) {
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <style>
-        body { margin: 0; padding: 0; background-color: #FDF8F0; font-family: 'Georgia', serif; }
+        body { margin: 0; padding: 0; background-color: #FDFBF7; font-family: 'Inter', 'Georgia', serif; }
         .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
         .card { background: #ffffff; border-radius: 24px; padding: 40px; box-shadow: 0 8px 32px rgba(0,0,0,0.06); border: 1px solid #f0e6d3; }
         .logo { text-align: center; margin-bottom: 30px; }
@@ -37,7 +37,7 @@ function wrapTemplate(title: string, content: string) {
       <div class="container">
         <div class="card">
           <div class="logo">
-            <h2 style="color:#059669;font-family:'Cormorant Garamond',serif;font-size:28px;margin:0;">Ruhulqudus Academy</h2>
+            <h2 style="color:#22305C;font-family:'Cormorant Garamond',serif;font-size:28px;margin:0;">Ruhulqudus Academy</h2>
           </div>
           <h1 class="title">${title}</h1>
           <div class="content">${content}</div>

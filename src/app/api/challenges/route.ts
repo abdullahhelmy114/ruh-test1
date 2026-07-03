@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
         (SELECT COUNT(*) FROM challenge_participants WHERE challenge_id = c.id)::int AS "participantsCount",
         EXISTS (
           SELECT 1 FROM challenge_participants 
-          WHERE challenge_id = c.id AND user_id = ${user.uid}
+          WHERE challenge_id = c.id AND user_uid = ${user.uid}
         ) AS "isJoined",
         CASE 
           WHEN c.end_date < CURRENT_DATE THEN 'ended'

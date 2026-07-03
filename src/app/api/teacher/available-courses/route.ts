@@ -31,7 +31,7 @@ export async function GET(req: Request) {
         ON ta.model_course_id = mc.id AND ta.teacher_uid = ${teacherUid}
       LEFT JOIN live_courses lc
         ON lc.model_course_id = mc.id
-        AND lc.teacher_id = (SELECT id FROM profiles WHERE firebase_uid = ${teacherUid})
+        AND lc.teacher_uid = (SELECT id FROM profiles WHERE firebase_uid = ${teacherUid})
       WHERE mc.status = 'approved'
       ORDER BY mc.created_at DESC
     `;

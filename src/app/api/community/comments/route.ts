@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
 
     // إدراج التعليق
     const result = await sql`
-      INSERT INTO community_comments (post_id, user_id, content)
+      INSERT INTO community_comments (post_id, user_uid, content)
       VALUES (${postId}, ${user.uid}, ${content})
       RETURNING id
     `;

@@ -1202,7 +1202,7 @@ function FinancialCenterTab() {
           </h3>
           {payouts.map((p: any) => (
             <div
-              key={p.teacher_id}
+              key={p.teacher_uid}
               className="flex justify-between p-2 border-b text-sm"
             >
               <span>{p.teacher_name}</span>

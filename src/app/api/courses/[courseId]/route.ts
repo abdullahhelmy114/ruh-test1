@@ -5,7 +5,7 @@ export async function GET(request: Request, { params }: { params: { courseId: st
   const [course] = await sql`
     SELECT lc.*, p.full_name AS teacher_name, p.firebase_uid AS teacher_uid
     FROM live_courses lc
-    JOIN profiles p ON lc.teacher_id = p.id
+    JOIN profiles p ON lc.teacher_uid = p.firebase_uid
     WHERE lc.id = ${params.courseId}
   `;
 

@@ -11,10 +11,10 @@ export async function GET(request: Request) {
   // استعلام أساسي بدون description (لأنه غير موجود في live_courses)
   let query = sql`
     SELECT lc.id, lc.title, lc.level, lc.price,
-           lc.status, lc.teacher_id,
+           lc.status, lc.teacher_uid,
            p.full_name AS teacher_name, p.firebase_uid AS teacher_uid
     FROM live_courses lc
-    JOIN profiles p ON lc.teacher_id = p.id
+    JOIN profiles p ON lc.teacher_uid = p.firebase_uid
     WHERE lc.status = 'active'
   `;
 

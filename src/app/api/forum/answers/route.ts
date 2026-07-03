@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
 
     // إدراج الإجابة
     const result = await sql`
-      INSERT INTO forum_answers (question_id, user_id, content)
+      INSERT INTO forum_answers (question_id, user_uid, content)
       VALUES (${questionId}, ${user.uid}, ${content})
       RETURNING id
     `;

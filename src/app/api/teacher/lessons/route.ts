@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 
     // التحقق من ملكية الكورس الحي
     const courseRows = await sql.query(
-      `SELECT created_at, scenario FROM live_courses WHERE id = $1 AND teacher_id = $2`,
+      `SELECT created_at, scenario FROM live_courses WHERE id = $1 AND teacher_uid = $2`,
       [live_course_id, user.uid]
     );
     if (courseRows.length === 0) {

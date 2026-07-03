@@ -50,7 +50,7 @@ export interface TeacherApplication {
 export interface Course {
   id: string;
   title: string;
-  teacher_id: string;
+  teacher_uid: string;
   level: string;
   price: number;
   lesson_count: number;
@@ -61,7 +61,7 @@ export interface Course {
 
 export interface Transaction {
   id: string;
-  user_id: string;
+  user_uid: string;
   item_name: string;
   amount: number;
   type: string;
@@ -71,7 +71,7 @@ export interface Transaction {
 
 export interface TeacherPayout {
   id: string;
-  teacher_id: string;
+  teacher_uid: string;
   student_count: number;
   commission_rate: number;
   amount: number;

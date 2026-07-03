@@ -13,7 +13,7 @@ export async function publishAchievement(
 ) {
   try {
     await sql`
-      INSERT INTO community_posts (user_id, gender, type, content)
+      INSERT INTO community_posts (user_uid, gender, type, content)
       VALUES (${userId}, ${gender}, 'achievement', ${content})
     `;
   } catch (error) {

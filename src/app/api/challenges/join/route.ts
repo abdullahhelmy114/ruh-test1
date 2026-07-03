@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     // التحقق من عدم الاشتراك مسبقًا
     const existing = await sql`
       SELECT id FROM challenge_participants
-      WHERE challenge_id = ${challengeId} AND user_id = ${user.uid}
+      WHERE challenge_id = ${challengeId} AND user_uid = ${user.uid}
     `;
 
     if (existing.length > 0) {
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
 
     // إدراج الاشتراك
     await sql`
-      INSERT INTO challenge_participants (challenge_id, user_id)
+      INSERT INTO challenge_participants (challenge_id, user_uid)
       VALUES (${challengeId}, ${user.uid})
     `;
 
