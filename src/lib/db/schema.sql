@@ -286,3 +286,13 @@ CREATE TABLE challenge_participants (
   joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(challenge_id, user_uid)
 );
+
+CREATE TABLE IF NOT EXISTS quran_words (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  surah_number INT NOT NULL,
+  ayah_number INT NOT NULL,
+  word_position INT NOT NULL,
+  arabic_text TEXT NOT NULL,
+  default_type TEXT DEFAULT 'اسم',
+  UNIQUE(surah_number, ayah_number, word_position)
+);
