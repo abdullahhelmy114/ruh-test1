@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
+import { T } from "@/components/TranslatedText";
 
 interface SurahInfo {
   number: number;
@@ -24,7 +25,7 @@ export default async function QuranSurahsPage() {
     <div className="min-h-screen bg-background py-10" dir="rtl">
       <div className="max-w-4xl mx-auto px-4">
         <h1 className="text-3xl font-bold text-foreground text-center mb-8">
-          فهرس سور القرآن الكريم
+          <T>Quran Surahs Index</T>
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {surahs.map((surah) => (

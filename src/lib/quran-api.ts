@@ -1,7 +1,11 @@
+// lib/quran-api.ts
+
 const cache = new Map<string, any>();
+
 export async function fetchTranslation(surah: number, ayah: number, lang: "en" | "tr") {
   const key = `${surah}:${ayah}:${lang}`;
   if (cache.has(key)) return cache.get(key);
+
   const edition = lang === "en" ? "en.asad" : "tr.diyanet";
   const res = await fetch(`https://api.alquran.cloud/v1/ayah/${surah}:${ayah}/editions/${edition}`);
   const data = await res.json();
@@ -9,9 +13,14 @@ export async function fetchTranslation(surah: number, ayah: number, lang: "en" |
   cache.set(key, text);
   return text;
 }
+
 export function getAyahAudioUrl(surah: number, ayah: number) {
-  return `https://cdn.islamicnetwork.com/quran/audio/64/ar.alhudhaifi/${String(surah).padStart(3,'0')}${String(ayah).padStart(3,'0')}.mp3`;
+  // المصدر الموثوق والمفتوح: EveryAyah.com - تلاوة الحذيفي (مجمع الملك فهد)
+  // يتم تنسيق رقم الآية بشكل عالمي
+  return `https://everyayah.com/data/Hudhaifi_64kbps/${String(surah).padStart(3, '0')}${String(ayah).padStart(3, '0')}.mp3`;
 }
+
 export function getWordAudioUrl(surah: number, ayah: number, wordPosition: number) {
-  return `https://audio.quranwbw.com/audio/${surah}_${ayah}_${wordPosition}.mp3`;
+  // المصدر المفتوح: مستودع QuranWBW على GitHub
+  return `https://raw.githubusercontent.com/qazasaz/quranwbw/main/audio/${surah}/${ayah}/${wordPosition}.mp3`;
 }

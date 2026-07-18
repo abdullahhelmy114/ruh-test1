@@ -188,7 +188,6 @@
   "Referrals": "Referrals",
   "Credits": "Credits",
   "Explore Marketplace →": "Explore Marketplace →",
-  "Close": "Close",
   "As‑salāmu ʿalaykum": "As‑salāmu ʿalaykum",
   "Welcome back,": "Welcome back,",
   "-day streak": "-day streak",
@@ -797,5 +796,16 @@
   "Join a network of top Arabic instructors": "Join a network of top Arabic instructors",
   "Join as Teacher": "Join as Teacher",
   "Learn more about teaching": "Learn more about teaching",
-  "Create Student Account": "Create Student Account"
+  "Create Student Account": "Create Student Account",
+  "Previous": "Previous",
+  "Next": "Next",
+  "Previous Surah": "Previous Surah",
+  "Next Surah": "Next Surah",
+  "Go": "Go",
+  "Hide Translation": "Hide Translation",
+  "Show Translation": "Show Translation",
+  "Listen to Ayah": "Listen to Ayah",
+  "Close": "Close",
+  "Quran Surahs Index": "Quran Surahs Index",
+  "Explanation": "Explanation"
 }

@@ -158,3 +158,7 @@
   td { border: 1px solid #000 !important; color: black !important; background: white !important; }
   .font-arabic { font-family: 'Amiri', serif !important; }
 }
+
+.font-arabic {
+  font-family: 'Scheherazade New', 'Amiri', serif;
+}

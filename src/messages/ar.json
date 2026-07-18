@@ -188,7 +188,6 @@
   "Referrals": "الإحالات",
   "Credits": "الأرصدة",
   "Explore Marketplace →": "استكشف السوق ←",
-  "Close": "إغلاق",
   "As‑salāmu ʿalaykum": "السلام عليكم",
   "Welcome back,": "مرحبًا بعودتك،",
   "-day streak": "-يوم متتالي",
@@ -797,5 +796,16 @@
   "Join a network of top Arabic instructors": "انضم إلى شبكة من أفضل معلمي العربية",
   "Join as Teacher": "انضم كمعلم",
   "Learn more about teaching": "اعرف المزيد عن التدريس",
-  "Create Student Account": "إنشاء حساب طالب"
+  "Create Student Account": "إنشاء حساب طالب",
+  "Previous": "السابق",
+  "Next": "التالي",
+  "Previous Surah": "السورة السابقة",
+  "Next Surah": "السورة التالية",
+  "Go": "اذهب",
+  "Hide Translation": "إخفاء الترجمة",
+  "Show Translation": "إظهار الترجمة",
+  "Listen to Ayah": "استمع للآية",
+  "Close": "إغلاق",
+  "Quran Surahs Index": "فهرس سور القرآن الكريم"
+
 }

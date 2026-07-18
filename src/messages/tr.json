@@ -188,7 +188,6 @@
   "Referrals": "Yönlendirmeler",
   "Credits": "Krediler",
   "Explore Marketplace →": "Pazar Yerini Keşfet →",
-  "Close": "Kapat",
   "As‑salāmu ʿalaykum": "Selamün aleyküm",
   "Welcome back,": "Hoş geldin,",
   "-day streak": "-gün serisi",
@@ -797,5 +796,17 @@
   "Join a network of top Arabic instructors": "En iyi Arapça eğitmenlerinden oluşan bir ağa katılın",
   "Join as Teacher": "Öğretmen Olarak Katıl",
   "Learn more about teaching": "Öğretme hakkında daha fazla bilgi",
-  "Create Student Account": "Öğrenci Hesabı Oluştur"
+  "Create Student Account": "Öğrenci Hesabı Oluştur",
+  "Previous": "Önceki",
+  "Next": "Sonraki",
+  "Previous Surah": "Önceki Sure",
+  "Next Surah": "Sonraki Sure",
+  "Go": "Git",
+  "Hide Translation": "Çeviriyi Gizle",
+  "Show Translation": "Çeviriyi Göster",
+  "Listen to Ayah": "Ayeti Dinle",
+  "Close": "Kapat",
+  "Quran Surahs Index": "Kuran Sureleri Dizini",
+  "Explanation": "Açıklama"
+
 }

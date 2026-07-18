@@ -1,20 +1,34 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronRight, ChevronLeft, Volume2, Languages } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ChevronRight, ChevronLeft, Volume2, HelpCircle } from "lucide-react";
+import { T } from "@/components/TranslatedText";
 import { fetchTranslation, getAyahAudioUrl, getWordAudioUrl } from "@/lib/quran-api";
 
-interface IrabWord {
-  word: string;
+// ========== أنواع ==========
+interface IrabComponent {
+  text: string;
   type: string;
   position: string;
-  sign: { text: string; type: string };
+  sign: string;
 }
 
+interface AnalyzedWord {
+  word: string;
+  components: IrabComponent[];
+}
+
+// ========== لون ثابت لكل كلمة ==========
 function getWordColor(word: string): string {
   const palette = [
     "#1e3a5f", "#2c4a6e", "#3b5a7d", "#4a6a8c", "#597a9b",
@@ -29,12 +43,23 @@ function getWordColor(word: string): string {
   return palette[Math.abs(hash) % palette.length];
 }
 
-const POSITION_LABELS: Record<string, string> = {
-  'مبتدأ': 'مبتدأ', 'خبر': 'خبر', 'فاعل': 'فاعل', 'مفعول_به': 'مفعول به',
-  'مضاف_إليه': 'مضاف إليه', 'جار_ومجرور': 'جار ومجرور', 'معطوف': 'معطوف',
-  'نعت': 'نعت', 'حال': 'حال', 'تمييز': 'تمييز', 'بدل': 'بدل', 'مبني': 'مبني',
-  'غير_محدد': 'غير محدد', 'مجرور_بحرف_جر': 'مجرور بحرف جر',
-  'اسم_ان': 'اسم إن', 'خبر_ان': 'خبر إن',
+// ========== أدلة المساعدة ==========
+const HELP_TEXTS: Record<string, Record<string, string>> = {
+  ar: {
+    type: "نوع الكلمة: يصف التصنيف النحوي للكلمة (اسم، فعل، حرف، ضمير، إلخ).",
+    position: "الموقع الإعرابي: يحدد وظيفة الكلمة في الجملة (مبتدأ، خبر، فاعل، مفعول به، إلخ).",
+    sign: "العلامة الإعرابية: الحركة أو الحرف الذي يدل على حالة الكلمة الإعرابية (رفع، نصب، جر، جزم).",
+  },
+  en: {
+    type: "Word Type: Describes the grammatical category of the word (noun, verb, particle, pronoun, etc.).",
+    position: "Grammatical Position: Specifies the function of the word in the sentence (subject, predicate, doer, object, etc.).",
+    sign: "Inflection Sign: The diacritic or letter indicating the grammatical case (nominative, accusative, genitive, jussive).",
+  },
+  tr: {
+    type: "Kelime Türü: Kelimenin gramer kategorisini tanımlar (isim, fiil, edat, zamir vb.).",
+    position: "Gramatik Konum: Kelimenin cümledeki işlevini belirtir (özne, yüklem, fail, nesne vb.).",
+    sign: "İrab İşareti: Kelimenin gramer durumunu gösteren hareke veya harf (ref, nasb, cer, cezm).",
+  },
 };
 
 export default function QuranIrabViewer() {
@@ -42,25 +67,34 @@ export default function QuranIrabViewer() {
   const surah = parseInt(params?.surah as string, 10);
   const ayah = parseInt(params?.ayah as string, 10);
 
-  const [words, setWords] = useState<IrabWord[]>([]);
+  const [locale, setLocale] = useState("en");
+  useEffect(() => {
+    const stored = localStorage.getItem("preferred-locale");
+    if (stored) setLocale(stored);
+  }, []);
+
+  const [words, setWords] = useState<AnalyzedWord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const [selectedWordIdx, setSelectedWordIdx] = useState<number | null>(null);
   const [translation, setTranslation] = useState("");
   const [showTranslation, setShowTranslation] = useState(false);
-  const [lang, setLang] = useState<"en" | "tr">("en");
   const [goToAyah, setGoToAyah] = useState("");
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  const [helpDialogOpen, setHelpDialogOpen] = useState(false);
+  const [helpContent, setHelpContent] = useState("");
 
   const fetchAyahData = async (s: number, a: number) => {
     setLoading(true);
     setError(null);
-    setSelectedIdx(null);
+    setSelectedWordIdx(null);
     setTranslation("");
     try {
+      const translationLang = locale === "ar" ? "en" : locale === "tr" ? "tr" : "en";
       const [irabRes, transRes] = await Promise.all([
         fetch(`/api/quran-irab?surah=${s}&ayah=${a}`),
-        fetchTranslation(s, a, lang),
+        fetchTranslation(s, a, translationLang),
       ]);
       if (!irabRes.ok) {
         const errData = await irabRes.json();
@@ -84,7 +118,7 @@ export default function QuranIrabViewer() {
       return;
     }
     fetchAyahData(surah, ayah);
-  }, [surah, ayah, lang]);
+  }, [surah, ayah, locale]);
 
   const goNext = () => {
     if (!isNaN(surah) && !isNaN(ayah)) {
@@ -120,6 +154,19 @@ export default function QuranIrabViewer() {
     setGoToAyah("");
   };
 
+  const openHelp = (type: "type" | "position" | "sign") => {
+    const texts = HELP_TEXTS[locale] || HELP_TEXTS.en;
+    setHelpContent(texts[type]);
+    setHelpDialogOpen(true);
+  };
+
+  const surahAyahTitle =
+    locale === "ar"
+      ? `سورة ${surah} - آية ${ayah}`
+      : locale === "tr"
+      ? `Sure ${surah} - Ayet ${ayah}`
+      : `Surah ${surah} - Ayah ${ayah}`;
+
   if (isNaN(surah) || isNaN(ayah)) {
     return (
       <div className="text-center py-20 space-y-4">
@@ -144,97 +191,173 @@ export default function QuranIrabViewer() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-6" dir="rtl">
+    <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-8" dir="rtl">
       <audio ref={audioRef} className="hidden" />
 
       {/* شريط التنقل العلوي */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={goPrev} disabled={surah === 1 && ayah === 1}>
-            <ChevronRight className="h-4 w-4 ml-1" /> السابق
+            <ChevronRight className="h-4 w-4 ml-1" /> <T>Previous</T>
           </Button>
           {ayah === 1 && surah > 1 && (
-            <Link href={`/quran/${surah - 1}`} className="text-sm text-muted-foreground hover:underline self-center">
-              السورة السابقة
+            <Link href={`/quran/${surah - 1}/1`} className="text-sm text-muted-foreground hover:underline self-center">
+              <T>Previous Surah</T>
             </Link>
           )}
         </div>
 
         <div className="text-center flex-1">
-          <h2 className="text-xl font-bold text-foreground">سورة {surah} - آية {ayah}</h2>
+          <h2 className="text-xl font-bold text-foreground">{surahAyahTitle}</h2>
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={goNext}>التالي <ChevronLeft className="h-4 w-4 mr-1" /></Button>
+          <Button variant="outline" size="sm" onClick={goNext}>
+            <T>Next</T> <ChevronLeft className="h-4 w-4 mr-1" />
+          </Button>
           {surah < 114 && (
-            <Link href={`/quran/${surah + 1}`} className="text-sm text-primary hover:underline self-center">السورة التالية</Link>
+            <Link href={`/quran/${surah + 1}/1`} className="text-sm text-primary hover:underline self-center">
+              <T>Next Surah</T>
+            </Link>
           )}
         </div>
       </div>
 
-      {/* الانتقال لآية */}
+      {/* مربع الانتقال لآية */}
       <form onSubmit={handleGoToAyah} className="flex justify-center gap-2">
-        <Input type="number" min={1} placeholder="رقم الآية" value={goToAyah} onChange={(e) => setGoToAyah(e.target.value)} className="w-24 text-center" />
-        <Button type="submit" variant="outline" size="sm">اذهب</Button>
+        <Input
+          type="number"
+          min={1}
+          placeholder={ayah.toString()}
+          value={goToAyah}
+          onChange={(e) => setGoToAyah(e.target.value)}
+          className="w-24 text-center"
+        />
+        <Button type="submit" variant="outline" size="sm"><T>Go</T></Button>
       </form>
 
       {/* أزرار الترجمة والصوت */}
       <div className="flex justify-center gap-2">
-        <Button variant="ghost" size="sm" onClick={() => setLang(lang === "en" ? "tr" : "en")}>
-          <Languages className="h-4 w-4 ml-1" /> {lang === "en" ? "Türkçe" : "English"}
-        </Button>
         <Button variant="ghost" size="sm" onClick={() => setShowTranslation(!showTranslation)}>
-          {showTranslation ? "إخفاء الترجمة" : "ترجمة"}
+          {showTranslation ? <T>Hide Translation</T> : <T>Show Translation</T>}
         </Button>
         <Button variant="ghost" size="sm" onClick={playAyahAudio}>
-          <Volume2 className="h-4 w-4 ml-1" /> تشغيل الآية
+          <Volume2 className="h-4 w-4 ml-1" /> <T>Listen to Ayah</T>
         </Button>
       </div>
 
-      {/* عرض الآية مع ترجمة اختيارية */}
+      {/* عرض الآية */}
       <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
-        <div className="flex flex-wrap justify-center gap-2 text-2xl md:text-4xl font-arabic leading-loose">
+        <div className="flex flex-wrap justify-center gap-3 text-3xl md:text-5xl font-[Scheherazade_New] leading-loose">
           {words.map((w, i) => {
-            const color = getWordColor(w.word);
+            const wordColor = getWordColor(w.word);
             return (
-              <div key={i} className="flex flex-col items-center">
-                <button
-                  onClick={() => { setSelectedIdx(i === selectedIdx ? null : i); playWordAudio(i); }}
-                  className={`px-2 py-1 rounded-md transition hover:scale-110 ${selectedIdx === i ? 'ring-2 ring-primary' : ''}`}
-                  style={{ color }}
-                >
-                  {w.word}
-                </button>
-                {showTranslation && translation && <span className="text-xs text-muted-foreground">{/* ترجمة الكلمة */}</span>}
-              </div>
+              <button
+                key={i}
+                onClick={() => { setSelectedWordIdx(i === selectedWordIdx ? null : i); playWordAudio(i); }}
+                className={`px-2 py-1 rounded-lg transition-all duration-300 hover:scale-110 ${
+                  selectedWordIdx === i ? 'ring-2 ring-primary bg-primary/10' : 'hover:bg-muted/30'
+                }`}
+                style={{ color: wordColor, fontWeight: 700 }}
+              >
+                {w.word}
+              </button>
             );
           })}
         </div>
-        {showTranslation && translation && <div className="mt-4 text-sm text-muted-foreground text-center border-t pt-3">{translation}</div>}
+        {showTranslation && translation && (
+          <div className="mt-4 text-sm text-muted-foreground text-center border-t pt-3">
+            {translation}
+          </div>
+        )}
       </div>
 
-      {/* جدول التحليل */}
+      {/* جدول التحليل (تصميم جديد مع أسطر أكبر ومستطيلات) */}
       <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-base">
             <thead>
               <tr className="bg-muted/50 border-b border-border">
                 <th className="px-4 py-3 text-right text-foreground">الكلمة</th>
-                <th className="px-4 py-3 text-right text-foreground">النوع</th>
-                <th className="px-4 py-3 text-right text-foreground">الموقع الإعرابي</th>
-                <th className="px-4 py-3 text-right text-foreground">العلامة الإعرابية</th>
+                <th className="px-4 py-3 text-right text-foreground">
+                  تحليل النوع{" "}
+                  <button onClick={() => openHelp("type")} className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/20 text-primary hover:bg-primary/30 transition">
+                    <HelpCircle className="w-3 h-3" />
+                  </button>
+                </th>
+                <th className="px-4 py-3 text-right text-foreground">
+                  الموقع الإعرابي{" "}
+                  <button onClick={() => openHelp("position")} className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/20 text-primary hover:bg-primary/30 transition">
+                    <HelpCircle className="w-3 h-3" />
+                  </button>
+                </th>
+                <th className="px-4 py-3 text-right text-foreground">
+                  العلامة الإعرابية{" "}
+                  <button onClick={() => openHelp("sign")} className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/20 text-primary hover:bg-primary/30 transition">
+                    <HelpCircle className="w-3 h-3" />
+                  </button>
+                </th>
               </tr>
             </thead>
             <tbody>
-              {words.map((w, i) => {
-                const color = getWordColor(w.word);
-                const isSel = selectedIdx === i;
+              {words.map((w, wordIdx) => {
+                const wordColor = getWordColor(w.word);
+                const isSelected = selectedWordIdx === wordIdx;
                 return (
-                  <tr key={i} onClick={() => setSelectedIdx(i === selectedIdx ? null : i)} className={`border-b border-border cursor-pointer transition ${isSel ? 'bg-primary/10' : 'hover:bg-muted/20'}`}>
-                    <td className="px-4 py-3 font-arabic text-lg font-medium" style={{ color }}>{w.word}</td>
-                    <td className="px-4 py-3" style={{ color }}>{w.type}</td>
-                    <td className="px-4 py-3" style={{ color }}>{POSITION_LABELS[w.position] || w.position}</td>
-                    <td className="px-4 py-3" style={{ color }}>{w.sign.text}</td>
+                  <tr
+                    key={wordIdx}
+                    onClick={() => setSelectedWordIdx(wordIdx === selectedWordIdx ? null : wordIdx)}
+                    className={`border-b border-border cursor-pointer transition-all duration-300 ${
+                      isSelected ? 'bg-primary/10' : 'hover:bg-muted/20'
+                    }`}
+                  >
+                    <td className="px-4 py-3 align-top">
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="inline-block w-3 h-3 rounded-full border-2" style={{ borderColor: wordColor, boxShadow: `0 0 8px ${wordColor}` }} />
+                        <span className="font-arabic text-xl font-bold" style={{ color: wordColor }}>
+                          {w.word}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      <div className="flex flex-col gap-2">
+                        {w.components.map((comp, j) => (
+                          <span
+                            key={j}
+                            className="inline-block px-3 py-1.5 rounded-lg text-sm border-2"
+                            style={{ color: getWordColor(comp.text), borderColor: getWordColor(comp.text), backgroundColor: `${getWordColor(comp.text)}10` }}
+                          >
+                            {comp.type}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      <div className="flex flex-col gap-2">
+                        {w.components.map((comp, j) => (
+                          <span
+                            key={j}
+                            className="inline-block px-3 py-1.5 rounded-lg text-sm border-2"
+                            style={{ color: getWordColor(comp.text), borderColor: getWordColor(comp.text), backgroundColor: `${getWordColor(comp.text)}10` }}
+                          >
+                            {comp.position}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      <div className="flex flex-col gap-2">
+                        {w.components.map((comp, j) => (
+                          <span
+                            key={j}
+                            className="inline-block px-3 py-1.5 rounded-lg text-sm border-2"
+                            style={{ color: getWordColor(comp.text), borderColor: getWordColor(comp.text), backgroundColor: `${getWordColor(comp.text)}10` }}
+                          >
+                            {comp.sign}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
                   </tr>
                 );
               })}
@@ -243,16 +366,45 @@ export default function QuranIrabViewer() {
         </div>
       </div>
 
-      {/* نافذة منبثقة للكلمة المختارة */}
-      {selectedIdx !== null && words[selectedIdx] && (
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
-          <div className="rounded-2xl border-2 p-4 shadow-xl max-w-md text-center" style={{ borderColor: getWordColor(words[selectedIdx].word), backgroundColor: 'var(--background)' }}>
-            <p className="font-arabic text-xl mb-2" style={{ color: getWordColor(words[selectedIdx].word) }}>{words[selectedIdx].word}</p>
-            <p className="text-sm text-foreground"><strong>{words[selectedIdx].type}</strong> – {POSITION_LABELS[words[selectedIdx].position]} – {words[selectedIdx].sign.text}</p>
-            <Button variant="ghost" size="sm" className="mt-2" onClick={() => setSelectedIdx(null)}>إغلاق</Button>
+      {/* فقاعة منبثقة للكلمة المحددة */}
+      {selectedWordIdx !== null && words[selectedWordIdx] && (
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 scale-100">
+          <div
+            className="rounded-2xl border-2 p-5 shadow-2xl max-w-lg text-center bg-card"
+            style={{ borderColor: getWordColor(words[selectedWordIdx].word) }}
+          >
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <span
+                className="inline-block w-4 h-4 rounded-full border-2"
+                style={{ borderColor: getWordColor(words[selectedWordIdx].word), boxShadow: `0 0 12px ${getWordColor(words[selectedWordIdx].word)}` }}
+              />
+              <h3 className="text-2xl font-arabic font-bold" style={{ color: getWordColor(words[selectedWordIdx].word) }}>
+                {words[selectedWordIdx].word}
+              </h3>
+            </div>
+            <div className="text-sm text-foreground leading-relaxed">
+              {words[selectedWordIdx].components.map((comp, i) => (
+                <div key={i} className="mb-1" style={{ color: getWordColor(comp.text) }}>
+                  {comp.text}: {comp.type} – {comp.position} – {comp.sign}
+                </div>
+              ))}
+            </div>
+            <Button variant="ghost" size="sm" className="mt-3" onClick={() => setSelectedWordIdx(null)}>
+              <T>Close</T>
+            </Button>
           </div>
         </div>
       )}
+
+      {/* نافذة المساعدة */}
+      <Dialog open={helpDialogOpen} onOpenChange={setHelpDialogOpen}>
+        <DialogContent className="bg-card border-border text-foreground">
+          <DialogHeader>
+            <DialogTitle className="text-xl"><T>Explanation</T></DialogTitle>
+          </DialogHeader>
+          <div className="text-sm leading-relaxed">{helpContent}</div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
