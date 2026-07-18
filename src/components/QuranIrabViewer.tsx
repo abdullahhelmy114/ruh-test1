@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,15 +37,11 @@ const POSITION_LABELS: Record<string, string> = {
   'اسم_ان': 'اسم إن', 'خبر_ان': 'خبر إن',
 };
 
-export default function QuranIrabViewer({
-  initialSurah = 1,
-  initialAyah = 1,
-}: {
-  initialSurah?: number;
-  initialAyah?: number;
-}) {
-  const [surah, setSurah] = useState(initialSurah);
-  const [ayah, setAyah] = useState(initialAyah);
+export default function QuranIrabViewer() {
+  const params = useParams();
+  const surah = parseInt(params?.surah as string, 10);
+  const ayah = parseInt(params?.ayah as string, 10);
+
   const [words, setWords] = useState<IrabWord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,21 +78,34 @@ export default function QuranIrabViewer({
   };
 
   useEffect(() => {
+    if (isNaN(surah) || isNaN(ayah)) {
+      setError("رابط غير صالح");
+      setLoading(false);
+      return;
+    }
     fetchAyahData(surah, ayah);
   }, [surah, ayah, lang]);
 
-  const goNext = () => setAyah((prev) => prev + 1);
-  const goPrev = () => setAyah((prev) => prev - 1);
+  const goNext = () => {
+    if (!isNaN(surah) && !isNaN(ayah)) {
+      window.location.href = `/quran/${surah}/${ayah + 1}`;
+    }
+  };
+  const goPrev = () => {
+    if (!isNaN(surah) && !isNaN(ayah)) {
+      window.location.href = `/quran/${surah}/${ayah - 1}`;
+    }
+  };
 
   const playAyahAudio = () => {
-    if (audioRef.current) {
+    if (audioRef.current && !isNaN(surah) && !isNaN(ayah)) {
       audioRef.current.src = getAyahAudioUrl(surah, ayah);
       audioRef.current.play();
     }
   };
 
   const playWordAudio = (idx: number) => {
-    if (audioRef.current) {
+    if (audioRef.current && !isNaN(surah) && !isNaN(ayah)) {
       audioRef.current.src = getWordAudioUrl(surah, ayah, idx + 1);
       audioRef.current.play();
     }
@@ -104,9 +114,21 @@ export default function QuranIrabViewer({
   const handleGoToAyah = (e: React.FormEvent) => {
     e.preventDefault();
     const a = parseInt(goToAyah, 10);
-    if (a >= 1) setAyah(a);
+    if (a >= 1 && !isNaN(surah)) {
+      window.location.href = `/quran/${surah}/${a}`;
+    }
     setGoToAyah("");
   };
+
+  if (isNaN(surah) || isNaN(ayah)) {
+    return (
+      <div className="text-center py-20 space-y-4">
+        <h1 className="text-2xl font-bold text-destructive">رابط غير صالح</h1>
+        <p className="text-muted-foreground">تأكد من رقم السورة والآية.</p>
+        <Link href="/quran" className="text-primary hover:underline">العودة لفهرس السور</Link>
+      </div>
+    );
+  }
 
   if (loading) {
     return <div className="flex justify-center py-20"><div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
