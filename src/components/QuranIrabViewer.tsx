@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { ChevronRight, ChevronLeft, Volume2, HelpCircle } from "lucide-react";
 import { T } from "@/components/TranslatedText";
-import { fetchTranslation, getAyahAudioUrl, getWordAudioUrl } from "@/lib/quran-api";
+import { fetchTranslation } from "@/lib/quran-api";
 
 // ========== أنواع ==========
 interface IrabComponent {
@@ -43,7 +43,7 @@ function getWordColor(word: string): string {
   return palette[Math.abs(hash) % palette.length];
 }
 
-// ========== أدلة المساعدة (مع دعم اللغات) ==========
+// ========== أدلة المساعدة ==========
 const HELP_TEXTS: Record<string, Record<string, string>> = {
   ar: {
     type: "نوع الكلمة: يصف التصنيف النحوي للكلمة (اسم، فعل، حرف، ضمير، إلخ).",
@@ -131,26 +131,46 @@ export default function QuranIrabViewer() {
     }
   };
 
-  const handleAudioError = (type: "ayah" | "word") => {
-    alert(`عذراً، تعذر تحميل ${type === "ayah" ? "الآية" : "الكلمة"}. يرجى المحاولة لاحقاً.`);
+  // ========== دوال الصوت المحسنة ==========
+  const playUrl = (url: string, errorMessage: string) => {
+    if (audioRef.current) {
+      audioRef.current.src = url;
+      audioRef.current.play().catch(() => alert(errorMessage));
+    }
   };
 
- const playAyahAudio = async () => {
-  if (audioRef.current && !isNaN(surah) && !isNaN(ayah)) {
-    try {
-      const url = await getAyahAudioUrl(surah, ayah);
-      audioRef.current.src = url;
-      await audioRef.current.play();
-    } catch {
-      handleAudioError("ayah");
+  const getAyahAudioUrl = (surah: number, ayah: number) => {
+    // EveryAyah.com: رقم السورة والآية متلاصقتين بدون أصفار
+    return `https://everyayah.com/data/Hudhaifi_64kbps/${surah}${ayah}.mp3`;
+  };
+
+  const getAyahAudioFallback = (surah: number, ayah: number) => {
+    return `https://cdn.islamicnetwork.com/quran/audio/64/ar.alhudhaifi/${String(surah).padStart(3, '0')}${String(ayah).padStart(3, '0')}.mp3`;
+  };
+
+  const playAyahAudio = async () => {
+    if (!isNaN(surah) && !isNaN(ayah)) {
+      const primaryUrl = getAyahAudioUrl(surah, ayah);
+      try {
+        playUrl(primaryUrl, "عذراً، تعذر تحميل الآية.");
+      } catch {
+        playUrl(getAyahAudioFallback(surah, ayah), "عذراً، تعذر تحميل الآية.");
+      }
     }
-  }
-};
+  };
+
+  const getWordAudioUrl = (surah: number, ayah: number, word: number) => {
+    // QuranWBW: مع شرطة سفلية وأصفار ثلاثة
+    const s = String(surah).padStart(3, '0');
+    const a = String(ayah).padStart(3, '0');
+    const w = String(word).padStart(3, '0');
+    return `https://audio.quranwbw.com/audio/${s}_${a}_${w}.mp3`;
+  };
 
   const playWordAudio = (idx: number) => {
-    if (audioRef.current && !isNaN(surah) && !isNaN(ayah)) {
-      audioRef.current.src = getWordAudioUrl(surah, ayah, idx + 1);
-      audioRef.current.play().catch(() => handleAudioError("word"));
+    if (!isNaN(surah) && !isNaN(ayah)) {
+      const url = getWordAudioUrl(surah, ayah, idx + 1);
+      playUrl(url, "عذراً، تعذر تحميل الكلمة.");
     }
   };
 
@@ -217,7 +237,9 @@ export default function QuranIrabViewer() {
         </div>
 
         <div className="text-center flex-1">
-          <h2 className="text-xl font-bold text-foreground">{surahAyahTitle}</h2>
+          <h2 className="text-xl font-bold text-foreground" style={{ fontFamily: "Arial, sans-serif" }}>
+            {surahAyahTitle}
+          </h2>
         </div>
 
         <div className="flex gap-2">
@@ -255,52 +277,64 @@ export default function QuranIrabViewer() {
         </Button>
       </div>
 
-      {/* عرض الآية */}
-      <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
-        <div className="flex flex-wrap justify-center gap-3 text-3xl md:text-5xl font-[Scheherazade_New] leading-loose">
-          {words.map((w, i) => {
-            const wordColor = getWordColor(w.word);
-            return (
-              <button
-                key={i}
-                onClick={() => { setSelectedWordIdx(i === selectedWordIdx ? null : i); playWordAudio(i); }}
-                className={`px-2 py-1 rounded-lg transition-all duration-300 hover:scale-110 ${
-                  selectedWordIdx === i ? 'ring-2 ring-primary bg-primary/10' : 'hover:bg-muted/30'
-                }`}
-                style={{ color: wordColor, fontWeight: 700 }}
-              >
-                {w.word}
-              </button>
-            );
-          })}
-        </div>
-        {showTranslation && translation && (
-          <div className="mt-4 text-sm text-muted-foreground text-center border-t pt-3">
-            {translation}
-          </div>
-        )}
-      </div>
+{/* عرض الآية */}
+<div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+  <div
+    className="flex flex-wrap justify-center gap-3 text-3xl md:text-5xl leading-loose"
+    style={{ fontFamily: "Arial, sans-serif" }}
+  >
+    {words.map((w, i) => {
+      const wordColor = getWordColor(w.word);
+      const isSelected = selectedWordIdx === i;
+      return (
+        <button
+          key={i}
+          onClick={() => { setSelectedWordIdx(i === selectedWordIdx ? null : i); playWordAudio(i); }}
+          className={`px-3 py-1.5 rounded-lg transition-all duration-300 hover:scale-110 ${
+            isSelected ? 'ring-2 ring-primary' : ''
+          }`}
+          style={{
+            color: wordColor,
+            fontWeight: 700,
+            backgroundColor: `${wordColor}15`, // خلفية شفافة بلون الكلمة
+            border: `2px solid ${wordColor}60`, // حدود نصف شفافة
+            boxShadow: `0 0 12px ${wordColor}80, 0 4px 12px rgba(0,0,0,0.1)`, // توهج نيوني + ظل خفيف
+            textShadow: `0 0 8px ${wordColor}40`, // توهج خفيف للنص
+            backdropFilter: 'blur(4px)', // تأثير زجاجي خفيف
+          }}
+        >
+          {w.word}
+        </button>
+      );
+    })}
+  </div>
+  {showTranslation && translation && (
+    <div className="mt-4 text-sm text-muted-foreground text-center border-t pt-3" style={{ fontFamily: "Calibri, sans-serif" }}>
+      {translation}
+    </div>
+  )}
+</div>
 
-      {/* جدول التحليل (تصميم جديد مع أسطر أكبر ومستطيلات) */}
+      {/* جدول التحليل */}
       <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-base">
             <thead>
               <tr className="bg-muted/50 border-b border-border">
-                <th className="px-4 py-3 text-right text-foreground">الكلمة</th>
-                <th className="px-4 py-3 text-right text-foreground">
-                 بيان نوع الكلمة{" "}
+                <th className="px-4 py-3 text-right text-foreground" style={{ fontFamily: "Arial, sans-serif" }}>الكلمة</th>
+                <th className="px-4 py-3 text-right text-foreground" style={{ fontFamily: "Arial, sans-serif" }}>
+                  تحليل النوع{" "}
                   <button onClick={() => openHelp("type")} className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/20 text-primary hover:bg-primary/30 transition">
                     <HelpCircle className="w-3 h-3" />
                   </button>
                 </th>
-                <th className="px-4 py-3 text-right text-foreground">
+                <th className="px-4 py-3 text-right text-foreground" style={{ fontFamily: "Arial, sans-serif" }}>
                   الموقع الإعرابي{" "}
                   <button onClick={() => openHelp("position")} className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/20 text-primary hover:bg-primary/30 transition">
                     <HelpCircle className="w-3 h-3" />
                   </button>
                 </th>
-                <th className="px-4 py-3 text-right text-foreground">
+                <th className="px-4 py-3 text-right text-foreground" style={{ fontFamily: "Arial, sans-serif" }}>
                   العلامة الإعرابية{" "}
                   <button onClick={() => openHelp("sign")} className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/20 text-primary hover:bg-primary/30 transition">
                     <HelpCircle className="w-3 h-3" />
@@ -323,7 +357,7 @@ export default function QuranIrabViewer() {
                     <td className="px-4 py-3 align-top">
                       <div className="flex items-center justify-center gap-2">
                         <span className="inline-block w-3 h-3 rounded-full border-2" style={{ borderColor: wordColor, boxShadow: `0 0 8px ${wordColor}` }} />
-                        <span className="font-arabic text-xl font-bold" style={{ color: wordColor }}>
+                        <span className="text-xl font-bold" style={{ fontFamily: "Arial, sans-serif", color: wordColor }}>
                           {w.word}
                         </span>
                       </div>
@@ -334,7 +368,7 @@ export default function QuranIrabViewer() {
                           <span
                             key={j}
                             className="inline-block px-3 py-1.5 rounded-lg text-sm border-2"
-                            style={{ color: getWordColor(comp.text), borderColor: getWordColor(comp.text), backgroundColor: `${getWordColor(comp.text)}10` }}
+                            style={{ fontFamily: "Calibri, sans-serif", color: getWordColor(comp.text), borderColor: getWordColor(comp.text), backgroundColor: `${getWordColor(comp.text)}10` }}
                           >
                             {comp.type}
                           </span>
@@ -347,7 +381,7 @@ export default function QuranIrabViewer() {
                           <span
                             key={j}
                             className="inline-block px-3 py-1.5 rounded-lg text-sm border-2"
-                            style={{ color: getWordColor(comp.text), borderColor: getWordColor(comp.text), backgroundColor: `${getWordColor(comp.text)}10` }}
+                            style={{ fontFamily: "Calibri, sans-serif", color: getWordColor(comp.text), borderColor: getWordColor(comp.text), backgroundColor: `${getWordColor(comp.text)}10` }}
                           >
                             {comp.position}
                           </span>
@@ -360,7 +394,7 @@ export default function QuranIrabViewer() {
                           <span
                             key={j}
                             className="inline-block px-3 py-1.5 rounded-lg text-sm border-2"
-                            style={{ color: getWordColor(comp.text), borderColor: getWordColor(comp.text), backgroundColor: `${getWordColor(comp.text)}10` }}
+                            style={{ fontFamily: "Calibri, sans-serif", color: getWordColor(comp.text), borderColor: getWordColor(comp.text), backgroundColor: `${getWordColor(comp.text)}10` }}
                           >
                             {comp.sign}
                           </span>
@@ -387,11 +421,11 @@ export default function QuranIrabViewer() {
                 className="inline-block w-4 h-4 rounded-full border-2"
                 style={{ borderColor: getWordColor(words[selectedWordIdx].word), boxShadow: `0 0 12px ${getWordColor(words[selectedWordIdx].word)}` }}
               />
-              <h3 className="text-2xl font-arabic font-bold" style={{ color: getWordColor(words[selectedWordIdx].word) }}>
+              <h3 className="text-2xl font-bold" style={{ fontFamily: "Arial, sans-serif", color: getWordColor(words[selectedWordIdx].word) }}>
                 {words[selectedWordIdx].word}
               </h3>
             </div>
-            <div className="text-sm text-foreground leading-relaxed">
+            <div className="text-sm text-foreground leading-relaxed" style={{ fontFamily: "Calibri, sans-serif" }}>
               {words[selectedWordIdx].components.map((comp, i) => (
                 <div key={i} className="mb-1" style={{ color: getWordColor(comp.text) }}>
                   {comp.text}: {comp.type} – {comp.position} – {comp.sign}
@@ -411,7 +445,7 @@ export default function QuranIrabViewer() {
           <DialogHeader>
             <DialogTitle className="text-xl"><T>Explanation</T></DialogTitle>
           </DialogHeader>
-          <div className="text-sm leading-relaxed">{helpContent}</div>
+          <div className="text-sm leading-relaxed" style={{ fontFamily: "Calibri, sans-serif" }}>{helpContent}</div>
         </DialogContent>
       </Dialog>
     </div>
