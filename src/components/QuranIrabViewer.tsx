@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 
-// ========== أنواع البيانات ==========
+// ========== أنواع ==========
 interface IrabWord {
   word: string;
   type: string;
@@ -12,31 +12,21 @@ interface IrabWord {
   sign: { text: string; type: string };
 }
 
-// ========== لوحة الألوان حسب النوع ==========
-const TYPE_COLORS: Record<string, string> = {
-  'حرف': '#cc3333',
-  'فعل': '#cc5500',
-  'اسم': '#0099bb',
-  'ضمير': '#b22222',
-  'نعت': '#b84a8a',
-  'مبتدأ': '#2e7d32',
-  'خبر': '#00695c',
-  'مفعول_به': '#8e24aa',
-  'مضاف_إليه': '#00897b',
-  'جار_ومجرور': '#bf8f00',
-  'بدل': '#3949ab',
-  'اسم_موصول': '#1565c0',
-  'اسم_اشارة': '#558b2f',
-  'ظرف': '#bf5e00',
-  'فاعل': '#00695c',
-  'تمييز': '#9c27b0',
-  'حال': '#006064',
-  'مبني': '#555555',
-  'غير_محدد': '#888888',
-  'اسم_ان': '#2e7d32',
-  'خبر_ان': '#00695c',
-  'مجرور_بحرف_جر': '#bf8f00',
-};
+// ========== دالة توليد لون ثابت لكل كلمة ==========
+function getWordColor(word: string): string {
+  // لوحة ألوان متناسقة مع الهوية الكحلية والبيج
+  const palette = [
+    "#1e3a5f", "#2c4a6e", "#3b5a7d", "#4a6a8c", "#597a9b",
+    "#2e4a3a", "#3d5a4a", "#4c6a5a", "#5b7a6a", "#6a8a7a",
+    "#5f3a1e", "#6e4a2d", "#7d5a3c", "#8c6a4b", "#9b7a5a",
+    "#5f1e3a", "#6e2d4a", "#7d3c5a", "#8c4b6a", "#9b5a7a",
+  ];
+  let hash = 0;
+  for (let i = 0; i < word.length; i++) {
+    hash = word.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return palette[Math.abs(hash) % palette.length];
+}
 
 // ترجمة المواقع الإعرابية للعرض
 const POSITION_LABELS: Record<string, string> = {
@@ -106,7 +96,6 @@ export default function QuranIrabViewer({
     if (ayah > 1) setAyah(ayah - 1);
     else if (surah > 1) {
       setSurah(surah - 1);
-      // عدد آيات السورة السابقة غير معروف بدون API، سنكتفي بالرجوع لآية 1
       setAyah(1);
     }
   };
@@ -131,7 +120,7 @@ export default function QuranIrabViewer({
           <ChevronRight className="h-4 w-4 ml-2" /> السابق
         </Button>
         <div className="text-center">
-          <h2 className="text-xl font-bold">
+          <h2 className="text-xl font-bold text-foreground">
             سورة {surah} - آية {ayah}
           </h2>
         </div>
@@ -143,18 +132,24 @@ export default function QuranIrabViewer({
       {/* عرض الآية */}
       <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
         <div className="flex flex-wrap justify-center gap-2 text-2xl md:text-4xl font-arabic leading-loose">
-          {words.map((w, i) => (
-            <button
-              key={i}
-              onClick={() => setSelectedIdx(i === selectedIdx ? null : i)}
-              className={`px-1.5 py-0.5 rounded-md transition-all duration-200 hover:scale-110 ${
-                selectedIdx === i ? 'ring-2 ring-offset-2 bg-accent/30' : ''
-              }`}
-              style={{ color: TYPE_COLORS[w.type] || '#000', borderColor: TYPE_COLORS[w.type] || '#000' }}
-            >
-              {w.word}
-            </button>
-          ))}
+          {words.map((w, i) => {
+            const wordColor = getWordColor(w.word);
+            return (
+              <button
+                key={i}
+                onClick={() => setSelectedIdx(i === selectedIdx ? null : i)}
+                className={`px-2 py-1 rounded-md transition-all duration-200 hover:scale-110 ${
+                  selectedIdx === i ? 'ring-2 ring-offset-2 ring-primary' : ''
+                }`}
+                style={{
+                  color: wordColor,
+                  fontWeight: 500,
+                }}
+              >
+                {w.word}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -164,29 +159,36 @@ export default function QuranIrabViewer({
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-muted/50 border-b border-border">
-                <th className="px-4 py-3 text-right font-semibold">الكلمة</th>
-                <th className="px-4 py-3 text-right font-semibold">النوع</th>
-                <th className="px-4 py-3 text-right font-semibold">الموقع الإعرابي</th>
-                <th className="px-4 py-3 text-right font-semibold">العلامة الإعرابية</th>
+                <th className="px-4 py-3 text-right font-semibold text-foreground">الكلمة</th>
+                <th className="px-4 py-3 text-right font-semibold text-foreground">النوع</th>
+                <th className="px-4 py-3 text-right font-semibold text-foreground">الموقع الإعرابي</th>
+                <th className="px-4 py-3 text-right font-semibold text-foreground">العلامة الإعرابية</th>
               </tr>
             </thead>
             <tbody>
-              {words.map((w, i) => (
-                <tr
-                  key={i}
-                  onClick={() => setSelectedIdx(i === selectedIdx ? null : i)}
-                  className={`border-b border-border cursor-pointer transition-colors ${
-                    selectedIdx === i ? 'bg-accent/30' : 'hover:bg-muted/20'
-                  }`}
-                >
-                  <td className="px-4 py-3 font-arabic text-lg" style={{ color: TYPE_COLORS[w.type] || '#333' }}>
-                    {w.word}
-                  </td>
-                  <td className="px-4 py-3">{w.type}</td>
-                  <td className="px-4 py-3">{POSITION_LABELS[w.position] || w.position}</td>
-                  <td className="px-4 py-3">{w.sign.text}</td>
-                </tr>
-              ))}
+              {words.map((w, i) => {
+                const wordColor = getWordColor(w.word);
+                const isSelected = selectedIdx === i;
+                return (
+                  <tr
+                    key={i}
+                    onClick={() => setSelectedIdx(i === selectedIdx ? null : i)}
+                    className={`border-b border-border cursor-pointer transition-colors ${
+                      isSelected ? 'bg-primary/10' : 'hover:bg-muted/20'
+                    }`}
+                  >
+                    <td
+                      className="px-4 py-3 font-arabic text-lg font-medium"
+                      style={{ color: wordColor }}
+                    >
+                      {w.word}
+                    </td>
+                    <td className="px-4 py-3 text-foreground">{w.type}</td>
+                    <td className="px-4 py-3 text-foreground">{POSITION_LABELS[w.position] || w.position}</td>
+                    <td className="px-4 py-3 text-foreground">{w.sign.text}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
