@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 
 interface SurahInfo {
   number: number;
@@ -25,33 +26,28 @@ export default async function QuranSurahsPage() {
         <h1 className="text-3xl font-bold text-foreground text-center mb-8">
           فهرس سور القرآن الكريم
         </h1>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {surahs.map((surah) => (
             <Link
               key={surah.number}
               href={`/quran/${surah.number}/1`}
-              className="flex items-center gap-4 bg-card border border-border rounded-xl p-3 hover:bg-primary/5 transition"
+              className="flex items-center gap-4 bg-card border border-border rounded-xl p-4 hover:bg-primary/5 transition group"
             >
-              <div className="shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary">
+              <div className="shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                 {surah.number}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold text-foreground truncate">
-                    {surah.englishName}
-                  </p>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">
-                    {surah.numberOfAyahs} آيات
-                  </span>
-                </div>
+                <p className="font-semibold text-foreground truncate">
+                  {surah.englishName}
+                </p>
                 <p className="text-sm text-muted-foreground truncate font-arabic">
                   {surah.name}
                 </p>
                 <p className="text-xs text-muted-foreground/60 truncate">
-                  {surah.englishNameTranslation}
+                  {surah.englishNameTranslation} · {surah.numberOfAyahs} آيات
                 </p>
               </div>
+              <ChevronLeft className="h-5 w-5 text-muted-foreground/30 group-hover:text-primary transition-colors" />
             </Link>
           ))}
         </div>

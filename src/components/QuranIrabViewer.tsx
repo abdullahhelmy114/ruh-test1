@@ -115,7 +115,14 @@ export default function QuranIrabViewer({
   };
 
   if (isNaN(surah) || isNaN(ayah)) {
-    return <div className="text-center py-20 text-destructive">رابط غير صالح</div>;
+    return (
+      <div className="text-center py-20 space-y-4">
+        <div className="text-destructive">رابط غير صالح</div>
+        <Link href="/quran" className="text-primary hover:underline">
+          العودة لفهرس السور
+        </Link>
+      </div>
+    );
   }
 
   if (loading) {
@@ -126,7 +133,9 @@ export default function QuranIrabViewer({
     return (
       <div className="text-center py-20 space-y-4">
         <div className="text-destructive">{error}</div>
-        <Link href="/quran" className="text-primary hover:underline">العودة لفهرس السور</Link>
+        <Link href="/quran" className="text-primary hover:underline">
+          العودة لفهرس السور
+        </Link>
       </div>
     );
   }
@@ -263,7 +272,7 @@ export default function QuranIrabViewer({
         </div>
       </div>
 
-      {/* نافذة منبثقة (tooltip) للكلمة المختارة */}
+      {/* نافذة منبثقة للكلمة المختارة */}
       {selectedIdx !== null && words[selectedIdx] && (
         <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
           <div
