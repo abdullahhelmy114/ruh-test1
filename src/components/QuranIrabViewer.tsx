@@ -4,11 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ChevronRight, ChevronLeft, Volume2, Languages } from "lucide-react";
 import { fetchTranslation, getAyahAudioUrl, getWordAudioUrl } from "@/lib/quran-api";
 
-// ========== أنواع ==========
 interface IrabWord {
   word: string;
   type: string;
@@ -16,7 +14,6 @@ interface IrabWord {
   sign: { text: string; type: string };
 }
 
-// ========== لون ثابت لكل كلمة ==========
 function getWordColor(word: string): string {
   const palette = [
     "#1e3a5f", "#2c4a6e", "#3b5a7d", "#4a6a8c", "#597a9b",
@@ -46,13 +43,13 @@ export default function QuranIrabViewer({
   initialSurah?: number;
   initialAyah?: number;
 }) {
-  const [surah, setSurah] = useState(initialSurah);
-  const [ayah, setAyah] = useState(initialAyah);
+  const [surah, setSurah] = useState(() => initialSurah);
+  const [ayah, setAyah] = useState(() => initialAyah);
   const [words, setWords] = useState<IrabWord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
-  const [translation, setTranslation] = useState<string>("");
+  const [translation, setTranslation] = useState("");
   const [showTranslation, setShowTranslation] = useState(false);
   const [lang, setLang] = useState<"en" | "tr">("en");
   const [goToAyah, setGoToAyah] = useState("");
@@ -68,7 +65,10 @@ export default function QuranIrabViewer({
         fetch(`/api/quran-irab?surah=${s}&ayah=${a}`),
         fetchTranslation(s, a, lang),
       ]);
-      if (!irabRes.ok) throw new Error("Ayah not found");
+      if (!irabRes.ok) {
+        const errData = await irabRes.json();
+        throw new Error(errData.error || "Ayah not found");
+      }
       const irabData = await irabRes.json();
       setWords(irabData.words || []);
       setTranslation(transRes || "");
@@ -81,17 +81,16 @@ export default function QuranIrabViewer({
   };
 
   useEffect(() => {
+    if (isNaN(surah) || isNaN(ayah)) return;
     fetchAyahData(surah, ayah);
   }, [surah, ayah, lang]);
 
   const goNext = () => {
-    if (ayah < 286) setAyah(ayah + 1);
-    else if (surah < 114) { setSurah(surah + 1); setAyah(1); }
+    setAyah(prev => prev + 1);
   };
 
   const goPrev = () => {
-    if (ayah > 1) setAyah(ayah - 1);
-    else if (surah > 1) setSurah(surah - 1);
+    setAyah(prev => prev - 1);
   };
 
   const playAyahAudio = () => {
@@ -111,15 +110,25 @@ export default function QuranIrabViewer({
   const handleGoToAyah = (e: React.FormEvent) => {
     e.preventDefault();
     const a = parseInt(goToAyah, 10);
-    if (a >= 1 && a <= 286) setAyah(a);
+    if (a >= 1) setAyah(a);
     setGoToAyah("");
   };
+
+  if (isNaN(surah) || isNaN(ayah)) {
+    return <div className="text-center py-20 text-destructive">رابط غير صالح</div>;
+  }
 
   if (loading) {
     return <div className="flex justify-center py-20"><div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
   }
+
   if (error) {
-    return <div className="text-center py-20 text-destructive">{error}</div>;
+    return (
+      <div className="text-center py-20 space-y-4">
+        <div className="text-destructive">{error}</div>
+        <Link href="/quran" className="text-primary hover:underline">العودة لفهرس السور</Link>
+      </div>
+    );
   }
 
   return (
@@ -132,7 +141,7 @@ export default function QuranIrabViewer({
           <Button variant="outline" size="sm" onClick={goPrev} disabled={surah === 1 && ayah === 1}>
             <ChevronRight className="h-4 w-4 ml-1" /> السابق
           </Button>
-          {surah > 1 && ayah === 1 && (
+          {ayah === 1 && surah > 1 && (
             <Link href={`/quran/${surah - 1}`} className="text-sm text-muted-foreground hover:underline self-center">
               السورة السابقة
             </Link>
@@ -146,14 +155,13 @@ export default function QuranIrabViewer({
         </div>
 
         <div className="flex gap-2">
-          {ayah === 286 ? (
+          <Button variant="outline" size="sm" onClick={goNext}>
+            التالي <ChevronLeft className="h-4 w-4 mr-1" />
+          </Button>
+          {surah < 114 && (
             <Link href={`/quran/${surah + 1}`} className="text-sm text-primary hover:underline self-center">
               السورة التالية
             </Link>
-          ) : (
-            <Button variant="outline" size="sm" onClick={goNext}>
-              التالي <ChevronLeft className="h-4 w-4 mr-1" />
-            </Button>
           )}
         </div>
       </div>
@@ -163,7 +171,6 @@ export default function QuranIrabViewer({
         <Input
           type="number"
           min={1}
-          max={286}
           placeholder="رقم الآية"
           value={goToAyah}
           onChange={(e) => setGoToAyah(e.target.value)}
@@ -175,10 +182,10 @@ export default function QuranIrabViewer({
       {/* أزرار الترجمة والصوت */}
       <div className="flex justify-center gap-2">
         <Button variant="ghost" size="sm" onClick={() => setLang(lang === "en" ? "tr" : "en")}>
-          <Languages className="h-4 w-4 ml-1" /> {lang === "en" ? "TR" : "EN"}
+          <Languages className="h-4 w-4 ml-1" /> {lang === "en" ? "Türkçe" : "English"}
         </Button>
         <Button variant="ghost" size="sm" onClick={() => setShowTranslation(!showTranslation)}>
-          {showTranslation ? "إخفاء الترجمة" : "إظهار الترجمة"}
+          {showTranslation ? "إخفاء الترجمة" : "ترجمة"}
         </Button>
         <Button variant="ghost" size="sm" onClick={playAyahAudio}>
           <Volume2 className="h-4 w-4 ml-1" /> تشغيل الآية
