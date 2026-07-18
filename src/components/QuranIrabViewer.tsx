@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ChevronRight, ChevronLeft, Volume2, HelpCircle } from "lucide-react";
+import { ChevronRight, ChevronLeft, Volume2, HelpCircle, BookOpen, AlertCircle } from "lucide-react";
 import { T } from "@/components/TranslatedText";
 import { fetchTranslation } from "@/lib/quran-api";
 
@@ -26,6 +26,8 @@ interface IrabComponent {
 interface AnalyzedWord {
   word: string;
   components: IrabComponent[];
+  meaning?: string;
+  root?: string;
 }
 
 // ========== لون ثابت لكل كلمة ==========
@@ -79,6 +81,8 @@ export default function QuranIrabViewer() {
   const [selectedWordIdx, setSelectedWordIdx] = useState<number | null>(null);
   const [translation, setTranslation] = useState("");
   const [showTranslation, setShowTranslation] = useState(false);
+  const [tafsir, setTafsir] = useState("");
+  const [showTafsir, setShowTafsir] = useState(false);
   const [goToAyah, setGoToAyah] = useState("");
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -90,6 +94,7 @@ export default function QuranIrabViewer() {
     setError(null);
     setSelectedWordIdx(null);
     setTranslation("");
+    setTafsir("");
     try {
       const translationLang = locale === "ar" ? "en" : locale === "tr" ? "tr" : "en";
       const [irabRes, transRes] = await Promise.all([
@@ -108,6 +113,17 @@ export default function QuranIrabViewer() {
       setWords([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTafsir = async () => {
+    try {
+      const res = await fetch(`/api/quran-tafsir?surah=${surah}&ayah=${ayah}`);
+      const data = await res.json();
+      setTafsir(data.tafsir || "");
+      setShowTafsir(true);
+    } catch {
+      setError("تعذر تحميل التفسير");
     }
   };
 
@@ -140,31 +156,21 @@ export default function QuranIrabViewer() {
   };
 
   const getAyahAudioUrl = (surah: number, ayah: number) => {
-    // EveryAyah.com: رقم السورة والآية متلاصقتين بدون أصفار
     return `https://everyayah.com/data/Hudhaifi_64kbps/${surah}${ayah}.mp3`;
   };
 
-  const getAyahAudioFallback = (surah: number, ayah: number) => {
-    return `https://cdn.islamicnetwork.com/quran/audio/64/ar.alhudhaifi/${String(surah).padStart(3, '0')}${String(ayah).padStart(3, '0')}.mp3`;
-  };
-
-  const playAyahAudio = async () => {
-    if (!isNaN(surah) && !isNaN(ayah)) {
-      const primaryUrl = getAyahAudioUrl(surah, ayah);
-      try {
-        playUrl(primaryUrl, "عذراً، تعذر تحميل الآية.");
-      } catch {
-        playUrl(getAyahAudioFallback(surah, ayah), "عذراً، تعذر تحميل الآية.");
-      }
-    }
-  };
-
   const getWordAudioUrl = (surah: number, ayah: number, word: number) => {
-    // QuranWBW: مع شرطة سفلية وأصفار ثلاثة
     const s = String(surah).padStart(3, '0');
     const a = String(ayah).padStart(3, '0');
     const w = String(word).padStart(3, '0');
     return `https://audio.quranwbw.com/audio/${s}_${a}_${w}.mp3`;
+  };
+
+  const playAyahAudio = async () => {
+    if (!isNaN(surah) && !isNaN(ayah)) {
+      const url = getAyahAudioUrl(surah, ayah);
+      playUrl(url, "عذراً، تعذر تحميل الآية.");
+    }
   };
 
   const playWordAudio = (idx: number) => {
@@ -267,7 +273,7 @@ export default function QuranIrabViewer() {
         <Button type="submit" variant="outline" size="sm"><T>Go</T></Button>
       </form>
 
-      {/* أزرار الترجمة والصوت */}
+      {/* أزرار التحكم (ترجمة، صوت، تفسير) */}
       <div className="flex justify-center gap-2">
         <Button variant="ghost" size="sm" onClick={() => setShowTranslation(!showTranslation)}>
           {showTranslation ? <T>Hide Translation</T> : <T>Show Translation</T>}
@@ -275,45 +281,59 @@ export default function QuranIrabViewer() {
         <Button variant="ghost" size="sm" onClick={playAyahAudio}>
           <Volume2 className="h-4 w-4 ml-1" /> <T>Listen to Ayah</T>
         </Button>
+        <Button variant="ghost" size="sm" onClick={loadTafsir}>
+          <BookOpen className="h-4 w-4 ml-1" /> <T>Show Tafsir</T>
+        </Button>
       </div>
 
-{/* عرض الآية */}
-<div className="bg-card rounded-xl border border-border p-6 shadow-sm">
-  <div
-    className="flex flex-wrap justify-center gap-3 text-3xl md:text-5xl leading-loose"
-    style={{ fontFamily: "Arial, sans-serif" }}
-  >
-    {words.map((w, i) => {
-      const wordColor = getWordColor(w.word);
-      const isSelected = selectedWordIdx === i;
-      return (
-        <button
-          key={i}
-          onClick={() => { setSelectedWordIdx(i === selectedWordIdx ? null : i); playWordAudio(i); }}
-          className={`px-3 py-1.5 rounded-lg transition-all duration-300 hover:scale-110 ${
-            isSelected ? 'ring-2 ring-primary' : ''
-          }`}
-          style={{
-            color: wordColor,
-            fontWeight: 700,
-            backgroundColor: `${wordColor}15`, // خلفية شفافة بلون الكلمة
-            border: `2px solid ${wordColor}60`, // حدود نصف شفافة
-            boxShadow: `0 0 12px ${wordColor}80, 0 4px 12px rgba(0,0,0,0.1)`, // توهج نيوني + ظل خفيف
-            textShadow: `0 0 8px ${wordColor}40`, // توهج خفيف للنص
-            backdropFilter: 'blur(4px)', // تأثير زجاجي خفيف
-          }}
+      {/* عرض الآية */}
+      <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+        <div
+          className="flex flex-wrap justify-center gap-3 text-3xl md:text-5xl leading-loose"
+          style={{ fontFamily: "Arial, sans-serif" }}
         >
-          {w.word}
-        </button>
-      );
-    })}
-  </div>
-  {showTranslation && translation && (
-    <div className="mt-4 text-sm text-muted-foreground text-center border-t pt-3" style={{ fontFamily: "Calibri, sans-serif" }}>
-      {translation}
-    </div>
-  )}
-</div>
+          {words.map((w, i) => {
+            const wordColor = getWordColor(w.word);
+            const isSelected = selectedWordIdx === i;
+            return (
+              <button
+                key={i}
+                onClick={() => { setSelectedWordIdx(i === selectedWordIdx ? null : i); playWordAudio(i); }}
+                className={`px-3 py-1.5 rounded-lg transition-all duration-300 hover:scale-110 ${
+                  isSelected ? 'ring-2 ring-primary' : ''
+                }`}
+                style={{
+                  color: wordColor,
+                  fontWeight: 700,
+                  backgroundColor: `${wordColor}15`,
+                  border: `2px solid ${wordColor}60`,
+                  boxShadow: `0 0 12px ${wordColor}80, 0 4px 12px rgba(0,0,0,0.1)`,
+                  textShadow: `0 0 8px ${wordColor}40`,
+                  backdropFilter: 'blur(4px)',
+                }}
+              >
+                {w.word}
+              </button>
+            );
+          })}
+        </div>
+        {showTranslation && translation && (
+          <div className="mt-4 text-sm text-muted-foreground text-center border-t pt-3" style={{ fontFamily: "Calibri, sans-serif" }}>
+            {translation}
+          </div>
+        )}
+      </div>
+
+      {/* عرض التفسير */}
+      {showTafsir && tafsir && (
+        <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xl font-bold text-foreground"><T>Tafsir</T></h3>
+            <Button variant="ghost" size="sm" onClick={() => setShowTafsir(false)}><T>Close</T></Button>
+          </div>
+          <p className="text-sm leading-relaxed" style={{ fontFamily: "Calibri, sans-serif" }}>{tafsir}</p>
+        </div>
+      )}
 
       {/* جدول التحليل */}
       <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
@@ -431,6 +451,9 @@ export default function QuranIrabViewer() {
                   {comp.text}: {comp.type} – {comp.position} – {comp.sign}
                 </div>
               ))}
+              {words[selectedWordIdx].meaning && (
+                <p className="mt-2"><strong>المعنى:</strong> {words[selectedWordIdx].meaning}</p>
+              )}
             </div>
             <Button variant="ghost" size="sm" className="mt-3" onClick={() => setSelectedWordIdx(null)}>
               <T>Close</T>

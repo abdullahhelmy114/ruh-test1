@@ -1,35 +1,42 @@
 import { NextResponse } from "next/server";
-import { sql } from "@/lib/db/client";
-import { analyzeVerse } from "@/lib/irab-analyzer";
+import { getAyahIrab, getAyahTafsir, getAyahNozool } from "@/lib/quran-db";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const surah = parseInt(searchParams.get("surah") || "1");
   const ayah = parseInt(searchParams.get("ayah") || "1");
 
-  if (isNaN(surah) || isNaN(ayah)) {
-    return NextResponse.json({ error: "Invalid surah or ayah" }, { status: 400 });
-  }
-
   try {
-    const rawWords = await sql`
-      SELECT arabic_text FROM quran_words
-      WHERE surah_number = ${surah} AND ayah_number = ${ayah}
-      ORDER BY word_position ASC
-    `;
+    const words = await getAyahIrab(surah, ayah);
+    if (!words.length) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    if (!rawWords || rawWords.length === 0) {
-      return NextResponse.json(
-        { error: `Ayah not found: surah=${surah}, ayah=${ayah}. تأكد من استيراد البيانات` },
-        { status: 404 }
-      );
-    }
+    // تحويل كل كلمة إلى components (قد يكون irab نصاً طويلاً يحتاج لتقسيم)
+    const analyzedWords = words.map((w: any) => ({
+      word: w.word,
+      components: parseIrabComponents(w.irab), // نحلل النص الإعرابي
+      meaning: w.meaning,
+      root: w.root,
+      sarf: w.sarf,
+    }));
 
-    const words = rawWords.map((w: any) => ({ arabic_text: w.arabic_text as string }));
-    const analysis = analyzeVerse(words);
-    return NextResponse.json({ surah, ayah, words: analysis });
-  } catch (error) {
-    console.error("Irab error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ surah, ayah, words: analyzedWords });
+  } catch (e) {
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
+}
+
+// دالة مساعدة لتحليل نص الإعراب (مثال: "حرف جر مبني على السكون لا محل له من الإعراب")
+function parseIrabComponents(irabText: string) {
+  if (!irabText) return [];
+  // تقسيم بسيط بناءً على الفواصل أو "لا محل له"
+  const parts = irabText.split(/،|؛|\./).filter(p => p.trim());
+  return parts.map(p => {
+    const text = p.trim();
+    let type = "غير محدد";
+    if (text.includes("حرف")) type = "حرف";
+    else if (text.includes("اسم")) type = "اسم";
+    else if (text.includes("فعل")) type = "فعل";
+    else if (text.includes("ضمير")) type = "ضمير";
+    return { text, type, position: text, sign: text };
+  });
 }
