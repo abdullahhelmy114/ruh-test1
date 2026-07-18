@@ -43,8 +43,8 @@ export default function QuranIrabViewer({
   initialSurah?: number;
   initialAyah?: number;
 }) {
-  const [surah, setSurah] = useState(() => initialSurah);
-  const [ayah, setAyah] = useState(() => initialAyah);
+  const [surah, setSurah] = useState(initialSurah);
+  const [ayah, setAyah] = useState(initialAyah);
   const [words, setWords] = useState<IrabWord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,17 +81,11 @@ export default function QuranIrabViewer({
   };
 
   useEffect(() => {
-    if (isNaN(surah) || isNaN(ayah)) return;
     fetchAyahData(surah, ayah);
   }, [surah, ayah, lang]);
 
-  const goNext = () => {
-    setAyah(prev => prev + 1);
-  };
-
-  const goPrev = () => {
-    setAyah(prev => prev - 1);
-  };
+  const goNext = () => setAyah((prev) => prev + 1);
+  const goPrev = () => setAyah((prev) => prev - 1);
 
   const playAyahAudio = () => {
     if (audioRef.current) {
@@ -114,17 +108,6 @@ export default function QuranIrabViewer({
     setGoToAyah("");
   };
 
-  if (isNaN(surah) || isNaN(ayah)) {
-    return (
-      <div className="text-center py-20 space-y-4">
-        <div className="text-destructive">رابط غير صالح</div>
-        <Link href="/quran" className="text-primary hover:underline">
-          العودة لفهرس السور
-        </Link>
-      </div>
-    );
-  }
-
   if (loading) {
     return <div className="flex justify-center py-20"><div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
   }
@@ -133,9 +116,7 @@ export default function QuranIrabViewer({
     return (
       <div className="text-center py-20 space-y-4">
         <div className="text-destructive">{error}</div>
-        <Link href="/quran" className="text-primary hover:underline">
-          العودة لفهرس السور
-        </Link>
+        <Link href="/quran" className="text-primary hover:underline">العودة لفهرس السور</Link>
       </div>
     );
   }
@@ -158,33 +139,20 @@ export default function QuranIrabViewer({
         </div>
 
         <div className="text-center flex-1">
-          <h2 className="text-xl font-bold text-foreground">
-            سورة {surah} - آية {ayah}
-          </h2>
+          <h2 className="text-xl font-bold text-foreground">سورة {surah} - آية {ayah}</h2>
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={goNext}>
-            التالي <ChevronLeft className="h-4 w-4 mr-1" />
-          </Button>
+          <Button variant="outline" size="sm" onClick={goNext}>التالي <ChevronLeft className="h-4 w-4 mr-1" /></Button>
           {surah < 114 && (
-            <Link href={`/quran/${surah + 1}`} className="text-sm text-primary hover:underline self-center">
-              السورة التالية
-            </Link>
+            <Link href={`/quran/${surah + 1}`} className="text-sm text-primary hover:underline self-center">السورة التالية</Link>
           )}
         </div>
       </div>
 
-      {/* مربع الانتقال لآية */}
+      {/* الانتقال لآية */}
       <form onSubmit={handleGoToAyah} className="flex justify-center gap-2">
-        <Input
-          type="number"
-          min={1}
-          placeholder="رقم الآية"
-          value={goToAyah}
-          onChange={(e) => setGoToAyah(e.target.value)}
-          className="w-24 text-center"
-        />
+        <Input type="number" min={1} placeholder="رقم الآية" value={goToAyah} onChange={(e) => setGoToAyah(e.target.value)} className="w-24 text-center" />
         <Button type="submit" variant="outline" size="sm">اذهب</Button>
       </form>
 
@@ -209,29 +177,18 @@ export default function QuranIrabViewer({
             return (
               <div key={i} className="flex flex-col items-center">
                 <button
-                  onClick={() => {
-                    setSelectedIdx(i === selectedIdx ? null : i);
-                    playWordAudio(i);
-                  }}
-                  className={`px-2 py-1 rounded-md transition hover:scale-110 ${
-                    selectedIdx === i ? 'ring-2 ring-primary' : ''
-                  }`}
+                  onClick={() => { setSelectedIdx(i === selectedIdx ? null : i); playWordAudio(i); }}
+                  className={`px-2 py-1 rounded-md transition hover:scale-110 ${selectedIdx === i ? 'ring-2 ring-primary' : ''}`}
                   style={{ color }}
                 >
                   {w.word}
                 </button>
-                {showTranslation && translation && (
-                  <span className="text-xs text-muted-foreground">{/* ترجمة الكلمة ستأتي لاحقاً */}</span>
-                )}
+                {showTranslation && translation && <span className="text-xs text-muted-foreground">{/* ترجمة الكلمة */}</span>}
               </div>
             );
           })}
         </div>
-        {showTranslation && translation && (
-          <div className="mt-4 text-sm text-muted-foreground text-center border-t pt-3">
-            {translation}
-          </div>
-        )}
+        {showTranslation && translation && <div className="mt-4 text-sm text-muted-foreground text-center border-t pt-3">{translation}</div>}
       </div>
 
       {/* جدول التحليل */}
@@ -251,16 +208,8 @@ export default function QuranIrabViewer({
                 const color = getWordColor(w.word);
                 const isSel = selectedIdx === i;
                 return (
-                  <tr
-                    key={i}
-                    onClick={() => setSelectedIdx(i === selectedIdx ? null : i)}
-                    className={`border-b border-border cursor-pointer transition ${
-                      isSel ? 'bg-primary/10' : 'hover:bg-muted/20'
-                    }`}
-                  >
-                    <td className="px-4 py-3 font-arabic text-lg font-medium" style={{ color }}>
-                      {w.word}
-                    </td>
+                  <tr key={i} onClick={() => setSelectedIdx(i === selectedIdx ? null : i)} className={`border-b border-border cursor-pointer transition ${isSel ? 'bg-primary/10' : 'hover:bg-muted/20'}`}>
+                    <td className="px-4 py-3 font-arabic text-lg font-medium" style={{ color }}>{w.word}</td>
                     <td className="px-4 py-3" style={{ color }}>{w.type}</td>
                     <td className="px-4 py-3" style={{ color }}>{POSITION_LABELS[w.position] || w.position}</td>
                     <td className="px-4 py-3" style={{ color }}>{w.sign.text}</td>
@@ -275,19 +224,10 @@ export default function QuranIrabViewer({
       {/* نافذة منبثقة للكلمة المختارة */}
       {selectedIdx !== null && words[selectedIdx] && (
         <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
-          <div
-            className="rounded-2xl border-2 p-4 shadow-xl max-w-md text-center"
-            style={{ borderColor: getWordColor(words[selectedIdx].word), backgroundColor: 'var(--background)' }}
-          >
-            <p className="font-arabic text-xl mb-2" style={{ color: getWordColor(words[selectedIdx].word) }}>
-              {words[selectedIdx].word}
-            </p>
-            <p className="text-sm text-foreground">
-              <strong>{words[selectedIdx].type}</strong> – {POSITION_LABELS[words[selectedIdx].position]} – {words[selectedIdx].sign.text}
-            </p>
-            <Button variant="ghost" size="sm" className="mt-2" onClick={() => setSelectedIdx(null)}>
-              إغلاق
-            </Button>
+          <div className="rounded-2xl border-2 p-4 shadow-xl max-w-md text-center" style={{ borderColor: getWordColor(words[selectedIdx].word), backgroundColor: 'var(--background)' }}>
+            <p className="font-arabic text-xl mb-2" style={{ color: getWordColor(words[selectedIdx].word) }}>{words[selectedIdx].word}</p>
+            <p className="text-sm text-foreground"><strong>{words[selectedIdx].type}</strong> – {POSITION_LABELS[words[selectedIdx].position]} – {words[selectedIdx].sign.text}</p>
+            <Button variant="ghost" size="sm" className="mt-2" onClick={() => setSelectedIdx(null)}>إغلاق</Button>
           </div>
         </div>
       )}
