@@ -43,7 +43,7 @@ function getWordColor(word: string): string {
   return palette[Math.abs(hash) % palette.length];
 }
 
-// ========== أدلة المساعدة ==========
+// ========== أدلة المساعدة (مع دعم اللغات) ==========
 const HELP_TEXTS: Record<string, Record<string, string>> = {
   ar: {
     type: "نوع الكلمة: يصف التصنيف النحوي للكلمة (اسم، فعل، حرف، ضمير، إلخ).",
@@ -131,17 +131,26 @@ export default function QuranIrabViewer() {
     }
   };
 
-  const playAyahAudio = () => {
-    if (audioRef.current && !isNaN(surah) && !isNaN(ayah)) {
-      audioRef.current.src = getAyahAudioUrl(surah, ayah);
-      audioRef.current.play();
-    }
+  const handleAudioError = (type: "ayah" | "word") => {
+    alert(`عذراً، تعذر تحميل ${type === "ayah" ? "الآية" : "الكلمة"}. يرجى المحاولة لاحقاً.`);
   };
+
+ const playAyahAudio = async () => {
+  if (audioRef.current && !isNaN(surah) && !isNaN(ayah)) {
+    try {
+      const url = await getAyahAudioUrl(surah, ayah);
+      audioRef.current.src = url;
+      await audioRef.current.play();
+    } catch {
+      handleAudioError("ayah");
+    }
+  }
+};
 
   const playWordAudio = (idx: number) => {
     if (audioRef.current && !isNaN(surah) && !isNaN(ayah)) {
       audioRef.current.src = getWordAudioUrl(surah, ayah, idx + 1);
-      audioRef.current.play();
+      audioRef.current.play().catch(() => handleAudioError("word"));
     }
   };
 
@@ -280,7 +289,7 @@ export default function QuranIrabViewer() {
               <tr className="bg-muted/50 border-b border-border">
                 <th className="px-4 py-3 text-right text-foreground">الكلمة</th>
                 <th className="px-4 py-3 text-right text-foreground">
-                  تحليل النوع{" "}
+                 بيان نوع الكلمة{" "}
                   <button onClick={() => openHelp("type")} className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/20 text-primary hover:bg-primary/30 transition">
                     <HelpCircle className="w-3 h-3" />
                   </button>

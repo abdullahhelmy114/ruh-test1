@@ -1,5 +1,3 @@
-// lib/quran-api.ts
-
 const cache = new Map<string, any>();
 
 export async function fetchTranslation(surah: number, ayah: number, lang: "en" | "tr") {
@@ -15,12 +13,12 @@ export async function fetchTranslation(surah: number, ayah: number, lang: "en" |
 }
 
 export function getAyahAudioUrl(surah: number, ayah: number) {
-  // المصدر الموثوق والمفتوح: EveryAyah.com - تلاوة الحذيفي (مجمع الملك فهد)
-  // يتم تنسيق رقم الآية بشكل عالمي
-  return `https://everyayah.com/data/Hudhaifi_64kbps/${String(surah).padStart(3, '0')}${String(ayah).padStart(3, '0')}.mp3`;
+  return `https://cdn.islamicnetwork.com/quran/audio/64/ar.alhudhaifi/${String(surah).padStart(3, '0')}${String(ayah).padStart(3, '0')}.mp3`;
 }
 
 export function getWordAudioUrl(surah: number, ayah: number, wordPosition: number) {
-  // المصدر المفتوح: مستودع QuranWBW على GitHub
-  return `https://raw.githubusercontent.com/qazasaz/quranwbw/main/audio/${surah}/${ayah}/${wordPosition}.mp3`;
+  const s = String(surah).padStart(3, '0');
+  const a = String(ayah).padStart(3, '0');
+  const w = String(wordPosition).padStart(3, '0');
+  return `https://audio.quranwbw.com/audio/${s}/${a}/${w}.mp3`;
 }
