@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+data/*.txt
+data/*.json
+!data/quran-corpus-cleaned.json   # إذا أردت الاحتفاظ به
