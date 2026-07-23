@@ -1,10 +1,9 @@
-// app/verify/[id]/page.tsx
 import { sql } from "@/lib/db/client";
 import CertificateViewer from "@/components/CertificateViewer";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic"; // يمنع Static Generation
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: { id: string };
@@ -12,8 +11,8 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
-    title: `Certificate Verification - ${params.id}`,
-    description: "Verify your certificate authenticity",
+    title: `Certificate Verification - ${params.id} | Ruhulqudus Academy`,
+    description: "Verify the authenticity of a Ruhulqudus Academy certificate.",
   };
 }
 
@@ -57,7 +56,7 @@ export default async function VerifyCertificatePage({ params }: Props) {
   const teacherSignatureText = extractSignatureText(certificate.teacher_name);
 
   return (
-    <div className="container mx-auto py-12 px-4">
+    <main className="min-h-screen bg-background flex items-center justify-center py-12 px-4">
       <CertificateViewer
         studentName={certificate.student_name}
         courseName={certificate.course_name}
@@ -66,6 +65,6 @@ export default async function VerifyCertificatePage({ params }: Props) {
         certificateId={certificate.certificate_id}
         teacherSignatureText={teacherSignatureText}
       />
-    </div>
+    </main>
   );
 }

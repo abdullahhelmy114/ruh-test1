@@ -254,3 +254,4 @@ export const ALL_COUNTRIES: Country[] = [
   { code: 'ZM', name: 'Zambia', phoneCode: '+260' },
   { code: 'ZW', name: 'Zimbabwe', phoneCode: '+263' },
 ];
+

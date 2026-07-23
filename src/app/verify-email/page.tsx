@@ -2,12 +2,15 @@
 
 import { Suspense, useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Mail, ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
+// ✅ تمت إضافة AlertCircle هنا
+import { Mail, ArrowLeft, Loader2, ShieldCheck, AlertCircle } from "lucide-react"; 
+import { motion } from "framer-motion";
 import { T } from "@/components/TranslatedText";
 import { ResendVerificationButton } from "@/components/ResendVerificationButton";
 import Link from "next/link";
+// ✅ تمت إضافة استيراد زر Button هنا
+import { Button } from "@/components/ui/button";
 
-// المكون الداخلي الذي يستخدم useSearchParams
 function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -39,7 +42,6 @@ function VerifyEmailContent() {
       setError("Please enter the full 6-digit code.");
       return;
     }
-
     if (!email) {
       setError("No email found. Please sign up again.");
       return;
@@ -57,9 +59,7 @@ function VerifyEmailContent() {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.error || "Verification failed.");
-      }
+      if (!res.ok) throw new Error(data.error || "Verification failed.");
 
       const role = data.role as string;
       localStorage.setItem("userRole", role);
@@ -67,14 +67,9 @@ function VerifyEmailContent() {
       setSuccess(true);
 
       setTimeout(() => {
-        // التوجيه بناءً على الدور
-        if (role === "admin") {
-          router.push("/dashboard/admin");
-        } else if (role === "teacher") {
-          router.push("/dashboard/teacher");
-        } else {
-          router.push("/dashboard/student");
-        }
+        if (role === "admin") router.push("/dashboard/admin");
+        else if (role === "teacher") router.push("/dashboard/teacher");
+        else router.push("/dashboard/student");
       }, 2000);
     } catch (err: any) {
       setError(err.message);
@@ -87,59 +82,47 @@ function VerifyEmailContent() {
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData
-      .getData("text")
-      .replace(/[^0-9]/g, "")
-      .slice(0, 6);
-    if (pastedData.length > 0) {
-      handleInputChange(pastedData);
-    }
+    const pastedData = e.clipboardData.getData("text").replace(/[^0-9]/g, "").slice(0, 6);
+    if (pastedData.length > 0) handleInputChange(pastedData);
   };
 
   return (
-    <div className="grid min-h-[calc(100vh-4rem)] place-items-center bg-background px-4 py-12">
-      <div className="relative w-full max-w-xl">
-        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-gold/20 blur-3xl" />
-        <div className="glass rounded-3xl p-8 md:p-10 shadow-elegant text-center">
+    <main className="grid min-h-screen place-items-center bg-background px-4 py-12 relative overflow-hidden">
+      {/* Ambient Lights */}
+      <div aria-hidden="true" className="pointer-events-none absolute top-0 left-0 -z-10 h-[500px] w-[500px] rounded-full bg-primary/10 blur-[120px]" />
+      
+      <div className="relative w-full max-w-lg">
+        <motion.div 
+          initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+          className="rounded-3xl bg-card p-8 md:p-10 shadow-elegant text-center"
+        >
           {success ? (
-            <>
-              <ShieldCheck className="mx-auto h-12 w-12 text-primary mb-4" />
-              <h1 className="font-serif text-2xl">
-                <T>Email Verified!</T>
-              </h1>
-              <p className="mt-2 text-sm text-muted-foreground">
-                <T>Redirecting to your dashboard...</T>
-              </p>
-            </>
+            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-4">
+              <ShieldCheck className="mx-auto h-16 w-16 text-primary" />
+              <h1 className="font-serif text-3xl text-primary"><T>Email Verified!</T></h1>
+              <p className="text-muted-foreground"><T>Redirecting to your dashboard...</T></p>
+            </motion.div>
           ) : (
             <>
-              <Mail className="mx-auto h-12 w-12 text-secondary-foreground mb-4" />
-              <h1 className="font-serif text-2xl">
-                <T>Enter Verification Code</T>
-              </h1>
-              <p className="mt-2 text-sm text-muted-foreground">
-                <T>We sent a 6-digit code to your email.</T>
+              <Mail className="mx-auto h-14 w-14 text-primary/80 mb-6" />
+              <h1 className="font-serif text-3xl text-primary mb-2"><T>Check Your Email</T></h1>
+              <p className="text-sm text-muted-foreground mb-8">
+                <T>We sent a 6-digit code to</T> <strong className="text-foreground">{email}</strong>
               </p>
 
-              <div className="flex justify-center mt-6" onPaste={handlePaste}>
+              <div className="flex justify-center mb-8" onPaste={handlePaste}>
                 <input
-                  ref={hiddenInputRef}
-                  type="text"
-                  inputMode="numeric"
-                  value={digits.join("")}
-                  onChange={(e) => handleInputChange(e.target.value)}
-                  maxLength={6}
-                  className="absolute opacity-0 w-0 h-0"
-                  autoFocus
+                  ref={hiddenInputRef} type="text" inputMode="numeric" value={digits.join("")}
+                  onChange={(e) => handleInputChange(e.target.value)} maxLength={6}
+                  className="absolute opacity-0 w-0 h-0" autoFocus
                 />
-                <div className="flex gap-3">
+                <div className="flex gap-2 sm:gap-3 direction-ltr" dir="ltr">
                   {digits.map((digit, idx) => (
                     <div
-                      key={idx}
-                      onClick={() => hiddenInputRef.current?.focus()}
-                      className={`h-14 w-11 rounded-xl border bg-background text-center text-xl font-semibold outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold cursor-text flex items-center justify-center transition-all ${
-                        digit ? "border-gold" : "border-border"
-                      }`}
+                      key={idx} onClick={() => hiddenInputRef.current?.focus()}
+                      className={`h-14 w-10 sm:h-16 sm:w-12 rounded-xl bg-background text-center text-2xl font-bold text-foreground outline-none ring-1 transition-all cursor-text flex items-center justify-center ${
+                        digit ? "ring-primary shadow-sm" : "ring-primary/20"
+                      } focus-within:ring-2 focus-within:ring-primary`}
                     >
                       {digit}
                     </div>
@@ -147,47 +130,36 @@ function VerifyEmailContent() {
                 </div>
               </div>
 
-              {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
+              {error && (
+                <div className="mb-6 flex items-center justify-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+                  <AlertCircle className="h-4 w-4" /> {error}
+                </div>
+              )}
 
-              <button
-                onClick={handleSubmit}
-                disabled={loading || digits.some((d) => d === "")}
-                className="mt-6 w-full rounded-full bg-gold py-3 text-sm font-semibold text-foreground shadow-elegant hover:bg-gold/80 disabled:opacity-50"
+              <Button
+                onClick={handleSubmit} disabled={loading || digits.some((d) => d === "")}
+                className="w-full rounded-full bg-primary hover:bg-primary/90 py-6 text-base font-semibold text-primary-foreground shadow-elegant"
               >
-                {loading ? (
-                  <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-                ) : (
-                  <T>Verify</T>
-                )}
-              </button>
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <T>Verify Account</T>}
+              </Button>
 
-              <div className="mt-4">
+              <div className="mt-6 flex flex-col items-center gap-4">
                 <ResendVerificationButton />
+                <Link href="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+                  <ArrowLeft className="h-4 w-4" /> <T>Back to Sign In</T>
+                </Link>
               </div>
-              <Link
-                href="/login"
-                className="mt-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:underline"
-              >
-                <ArrowLeft className="h-4 w-4" /> <T>Back to Sign In</T>
-              </Link>
             </>
           )}
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </main>
   );
 }
 
-// الصفحة المصدرة مع Suspense
 export default function VerifyEmailPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center">
-          <Loader2 className="h-10 w-10 animate-spin" />
-        </div>
-      }
-    >
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>}>
       <VerifyEmailContent />
     </Suspense>
   );

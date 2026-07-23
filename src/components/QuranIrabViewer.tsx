@@ -147,7 +147,7 @@ export default function QuranIrabViewer() {
     }
   };
 
-  // ========== دوال الصوت المحسنة ==========
+// ========== دوال الصوت المحسنة ==========
   const playUrl = (url: string, errorMessage: string) => {
     if (audioRef.current) {
       audioRef.current.src = url;
@@ -156,16 +156,20 @@ export default function QuranIrabViewer() {
   };
 
   const getAyahAudioUrl = (surah: number, ayah: number) => {
-    return `https://everyayah.com/data/Hudhaifi_64kbps/${surah}${ayah}.mp3`;
+    // يجب أن تكون السورة والآية 3 أرقام: سورة 2 آية 1 = 002001
+    const s = String(surah).padStart(3, '0');
+    const a = String(ayah).padStart(3, '0');
+    return `https://everyayah.com/data/Alafasy_128kbps/${s}${a}.mp3`;
   };
 
   const getWordAudioUrl = (surah: number, ayah: number, word: number) => {
     const s = String(surah).padStart(3, '0');
     const a = String(ayah).padStart(3, '0');
     const w = String(word).padStart(3, '0');
-    return `https://audio.quranwbw.com/audio/${s}_${a}_${w}.mp3`;
+    // سيرفر الكلمات الصحيح
+    return `https://words.audios.quranwbw.com/${surah}/${s}_${a}_${w}.mp3`;
   };
-
+  
   const playAyahAudio = async () => {
     if (!isNaN(surah) && !isNaN(ayah)) {
       const url = getAyahAudioUrl(surah, ayah);

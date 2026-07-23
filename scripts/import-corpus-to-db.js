@@ -2,10 +2,18 @@
 import fs from 'fs';
 import readline from 'readline';
 import { neon } from '@neondatabase/serverless';
-import 'dotenv/config';
+import dotenv from 'dotenv';
 
+dotenv.config({ path: '.env.local' });
 const sql = neon(process.env.DATABASE_URL);
 const INPUT_FILE = 'data/quranic-corpus-morphology.txt';
+
+// ==========================================
+// 🚀 إعدادات الاستئناف (Resume Settings)
+// ==========================================
+const START_SURAH = 47; // يبدأ من سورة محمد
+const START_AYAH = 11;  // يبدأ من الآية 11
+// ==========================================
 
 const wordsCache = new Map();
 
@@ -13,21 +21,38 @@ function getWordKey(surah, ayah, wordNum) {
   return `${surah}:${ayah}:${wordNum}`;
 }
 
-// دالة لإيقاف السكربت مؤقتاً (لإراحة السيرفر)
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-// دالة لتنفيذ الاستعلام مع إعادة المحاولة عند انقطاع الاتصال
 async function withRetry(operation, maxRetries = 5) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await operation();
     } catch (error) {
       if (attempt === maxRetries) throw error;
-      console.log(`\n⏳ انقطع الاتصال بـ Neon (محاولة ${attempt}/${maxRetries})... إعادة المحاولة بعد ${attempt * 3} ثوانٍ`);
-      await sleep(3000 * attempt); // الانتظار وقتاً أطول مع كل محاولة فاشلة
+      console.log(`\n⏳ انقطع الاتصال... إعادة المحاولة (${attempt}/${maxRetries})`);
+      await sleep(3000 * attempt);
     }
   }
 }
+
+// ==========================================
+// 🔠 محول شفرة الفرانكو (Buckwalter) إلى عربي
+// ==========================================
+const buckwalterToArabic = {
+  "'": "ء", "|": "آ", "?": "أ", "&": "ؤ", "<": "إ", "}": "ئ",
+  "A": "ا", "b": "ب", "p": "ة", "t": "ت", "v": "ث", "j": "ج",
+  "H": "ح", "x": "خ", "d": "د", "*": "ذ", "r": "ر", "z": "ز",
+  "s": "س", "$": "ش", "S": "ص", "D": "ض", "T": "ط", "Z": "ظ",
+  "E": "ع", "g": "غ", "f": "ف", "q": "ق", "k": "ك", "l": "ل",
+  "m": "م", "n": "ن", "h": "ه", "w": "و", "Y": "ى", "y": "ي",
+  "F": "ً", "N": "ٌ", "K": "ٍ", "a": "َ", "u": "ُ", "i": "ِ",
+  "~": "ّ", "o": "ْ", "`": "ٰ", "{": "ٱ", "^": "ط", "#": "ص"
+};
+
+function toArabic(bwText) {
+  return bwText.split('').map(char => buckwalterToArabic[char] || char).join('');
+}
+// ==========================================
 
 async function processLine(line) {
   if (!line.startsWith('(')) return;
@@ -39,9 +64,17 @@ async function processLine(line) {
 
   const surah = parseInt(locMatch[1]);
   const ayah = parseInt(locMatch[2]);
+  
+  // ⛔ تخطي كل السور والآيات التي تم حفظها مسبقاً
+  if (surah < START_SURAH) return;
+  if (surah === START_SURAH && ayah < START_AYAH) return;
+
   const wordNum = parseInt(locMatch[3]);
   const segmentNum = parseInt(locMatch[4]);
-  const form = parts[1].replace(/[{<~}]/g, '');
+  
+  // تحويل الفرانكو إلى عربي فوراً
+  const form = toArabic(parts[1]); 
+  
   const tag = parts[2];
   const features = parts[3].trim();
 
@@ -61,7 +94,6 @@ async function processLine(line) {
 }
 
 async function flushWord(entry) {
-  // إدراج الكلمة
   const [wordRow] = await sql`
     INSERT INTO quran_corpus_words (surah_number, ayah_number, word_position, word_text)
     VALUES (${entry.surah}, ${entry.ayah}, ${entry.wordNum}, ${entry.wordText})
@@ -70,7 +102,6 @@ async function flushWord(entry) {
   `;
   const wordId = wordRow.id;
 
-  // إدراج مقاطع الكلمة
   for (const seg of entry.segments) {
     await sql`
       INSERT INTO quran_corpus_segments (word_id, segment_number, segment_text, tag, features)
@@ -81,9 +112,8 @@ async function flushWord(entry) {
 }
 
 async function main() {
-  console.log('📖 بدء/استئناف استيراد بيانات QAC إلى قاعدة البيانات...');
-  
-  // ⚠️ تم إيقاف كود مسح البيانات (DELETE) لكي يستأنف السكربت عمله دون أن يبدأ من الصفر
+  console.log(`📖 استئناف الاستيراد من السورة ${START_SURAH} الآية ${START_AYAH}...`);
+  console.log(`🔠 تم تفعيل مترجم اللغات (Buckwalter to Arabic)...`);
 
   const rl = readline.createInterface({
     input: fs.createReadStream(INPUT_FILE),
@@ -100,27 +130,27 @@ async function main() {
     const locMatch = line.match(/\((\d+):(\d+):(\d+):(\d+)\)/);
     if (locMatch) {
       const [surah, ayah, wordNum] = [parseInt(locMatch[1]), parseInt(locMatch[2]), parseInt(locMatch[3])];
+      
+      // لا نفعل شيء إذا كنا لا نزال في النطاق المتخَطَّى
+      if (surah < START_SURAH || (surah === START_SURAH && ayah < START_AYAH)) continue;
+
       const key = getWordKey(surah, ayah, wordNum);
       
       if (currentKey && key !== currentKey) {
         const prevEntry = wordsCache.get(currentKey);
         if (prevEntry) {
-          // تنفيذ الإدخال مع نظام إعادة المحاولة
           await withRetry(() => flushWord(prevEntry));
           wordsCache.delete(currentKey);
           wordCount++;
           
-          if (wordCount % 1000 === 0) {
-            console.log(`   ✅ تمت معالجة وحفظ ${wordCount} كلمة...`);
+          if (wordCount % 500 === 0) {
+            console.log(`   ✅ تم رفع ${wordCount} كلمة بالعربي... (نحن الآن في سورة ${surah} آية ${ayah})`);
           }
-          
-          // استراحة 5 أجزاء من الثانية بعد كل كلمة لتخفيف الضغط على السيرفر
           await sleep(5);
         }
       }
       currentKey = key;
     }
-
     count++;
   }
 
@@ -129,12 +159,12 @@ async function main() {
     wordCount++;
   }
 
-  console.log(`🎉 اكتمل الاستيراد!`);
-  console.log(`   📝 الكلمات المخزنة: ${wordCount}`);
+  console.log(`🎉 اكتمل الاستيراد بنجاح حتى سورة الناس!`);
+  console.log(`   📝 الكلمات التي تم رفعها في هذه الجلسة: ${wordCount}`);
   process.exit(0);
 }
 
 main().catch(err => {
-  console.error('❌ فشل السكربت بالكامل:', err);
+  console.error('❌ فشل السكربت:', err);
   process.exit(1);
 });

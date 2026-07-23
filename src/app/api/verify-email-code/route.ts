@@ -2,6 +2,7 @@ export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
+import { getAdminAuth } from '@/lib/firebase/admin'; // 🛑 تمت إضافة Firebase Admin
 
 export async function POST(request: Request) {
   try {
@@ -27,19 +28,22 @@ export async function POST(request: Request) {
 
     const { firebase_uid, role } = records[0];
 
+    // 🛑 الأهم: تفعيل الإيميل في Firebase ليتمكن من تسجيل الدخول!
+    await getAdminAuth().updateUser(firebase_uid, { emailVerified: true });
+
+    // تحديث قاعدة البيانات
     if (role === 'student') {
       await sql`UPDATE profiles SET email_verified = TRUE, status = 'active' WHERE firebase_uid = ${firebase_uid}`;
-    } else if (role === 'teacher') {
-      // يظل pending حتى يوافق الأدمن
-      await sql`UPDATE profiles SET email_verified = TRUE WHERE firebase_uid = ${firebase_uid}`;
     } else {
       await sql`UPDATE profiles SET email_verified = TRUE WHERE firebase_uid = ${firebase_uid}`;
     }
 
+    // حذف الكود بعد الاستخدام
     await sql`DELETE FROM verification_codes WHERE user_uid = ${firebase_uid}`;
 
     return NextResponse.json({ success: true, role });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Verification Error:", error);
+    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
   }
 }
