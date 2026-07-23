@@ -2,63 +2,59 @@ import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
 import { verifyIdToken } from '@/lib/firebase/server';
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
-  // 1. التحقق من التوكن وصلاحية الأدمن
+// تعديل درس (تحديث العنوان والمحتوى)
+export async function PUT(
+  req: Request, 
+  { params }: { params: { id: string; lessonId: string } }
+) {
   const user = await verifyIdToken(req);
   if (!user || user.role !== 'admin') {
     return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
   }
 
   try {
-    const [course] = await sql`
-      SELECT id, title FROM model_courses WHERE id = ${params.id}
-    `;
-    if (!course) {
-      return NextResponse.json({ error: 'النموذج غير موجود' }, { status: 404 });
+    const { title, content } = await req.json();
+
+    if (!title) {
+      return NextResponse.json({ error: 'العنوان مطلوب' }, { status: 400 });
     }
 
-    const lessons = await sql`
-      SELECT id, title, order_index, type, script_pdf_url, duration_minutes
-      FROM model_lessons
-      WHERE model_course_id = ${params.id}
-      ORDER BY order_index ASC
+    const updatedLesson = await sql`
+      UPDATE model_lessons
+      SET title = ${title}, content = ${content || ''}
+      WHERE id = ${params.lessonId} AND model_course_id = ${params.id}
+      RETURNING *
     `;
 
-    return NextResponse.json({ course, lessons });
+    if (updatedLesson.length === 0) {
+      return NextResponse.json({ error: 'الدرس غير موجود' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, lesson: updatedLesson[0] }, { status: 200 });
   } catch (error) {
-    console.error('Get model lessons error:', error);
+    console.error('Update lesson error:', error);
     return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
   }
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
-  // 1. التحقق من التوكن وصلاحية الأدمن
+// حذف درس
+export async function DELETE(
+  req: Request, 
+  { params }: { params: { id: string; lessonId: string } }
+) {
   const user = await verifyIdToken(req);
   if (!user || user.role !== 'admin') {
     return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
   }
 
   try {
-    const { title, type, order_index, script_pdf_url, duration_minutes } = await req.json();
-
-    if (!title || !type) {
-      return NextResponse.json({ error: 'العنوان والنوع مطلوبان' }, { status: 400 });
-    }
-
-    // التحقق من وجود النموذج
-    const [course] = await sql`SELECT id FROM model_courses WHERE id = ${params.id}`;
-    if (!course) {
-      return NextResponse.json({ error: 'النموذج غير موجود' }, { status: 404 });
-    }
-
     await sql`
-      INSERT INTO model_lessons (model_course_id, title, type, order_index, script_pdf_url, duration_minutes)
-      VALUES (${params.id}, ${title}, ${type}, ${order_index || 0}, ${script_pdf_url || null}, ${duration_minutes || null})
+      DELETE FROM model_lessons
+      WHERE id = ${params.lessonId} AND model_course_id = ${params.id}
     `;
-
-    return NextResponse.json({ success: true }, { status: 201 });
+    return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error('Create model lesson error:', error);
+    console.error('Delete lesson error:', error);
     return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
   }
 }

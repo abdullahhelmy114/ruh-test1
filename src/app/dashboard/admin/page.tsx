@@ -1,23 +1,23 @@
 "use client";
 
-import { FileSearch, Library, Package } from "lucide-react";
-import { T } from "@/components/TranslatedText";
-import { useAuth } from "@/lib/firebase/AuthProvider";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { T } from "@/components/TranslatedText";
+import { useAuth } from "@/lib/firebase/AuthProvider";
+import { cn } from "@/lib/utils";
+
+// كل أيقونات lucide-react في استيراد واحد مرتب
 import {
   Users, GraduationCap, DollarSign, TrendingUp, ShieldCheck, FileText,
-  CheckCircle2, XCircle, Search, BookOpen, Clock, Wallet,
-  Sparkles, Settings2, Crown, AlertCircle, ArrowUpRight, MoreHorizontal,
-  Filter, Download, Bot, Save, Loader2, Ban, UserCheck, ExternalLink, Video,
-  MessageSquare, Bell, Trash2, Eye, Send, Mail, Edit3, UserX,
-  Ticket, HelpCircle, BarChart3, Layers, Book,
+  CheckCircle2, XCircle, Search, BookOpen, Clock, Wallet, Sparkles, 
+  Settings2, Crown, AlertCircle, ArrowUpRight, MoreHorizontal, Filter, 
+  Download, Bot, Save, Loader2, Ban, UserCheck, ExternalLink, Video,
+  MessageSquare, Bell, Trash2, Eye, Send, Mail, Edit3, UserX, Ticket, 
+  HelpCircle, BarChart3, Layers, Book, FileSearch, Library, Package,
+  Megaphone, Plus, PenTool, Type, Image, FileVideo, MonitorPlay, ArrowRight, X
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Megaphone, Plus } from "lucide-react";
-
 // ─── Types ─────────────────────────────────────────────
 type TabKey =
   | "overview"
@@ -36,7 +36,8 @@ type TabKey =
   | "library"
   | "model-courses"
   | "bundles"
-  | "applications";
+  | "applications"
+  | "lesson-scripts";
 
 const TABS = [
   { key: "overview", label: "Overview", icon: TrendingUp },
@@ -56,6 +57,7 @@ const TABS = [
   { key: "model-courses", label: "Model Courses", icon: BookOpen },
   { key: "bundles", label: "Bundles", icon: Package },
   { key: "applications", label: "Teaching Requests", icon: FileSearch },
+  { key: "lesson-scripts", label: "Lesson Scripts", icon: PenTool },
 ] as const;
 
 // استيراد ديناميكي لمحتوى إدارة المكتبة
@@ -177,6 +179,7 @@ export default function AdminDashboard() {
         {tab === "model-courses" && <ModelCoursesTab />}
         {tab === "bundles" && <BundlesTab />}
         {tab === "applications" && <ApplicationsTab />}
+        {tab === "lesson-scripts" && <ModelLessonsTab />}
       </div>
     </div>
   );
@@ -1966,6 +1969,60 @@ function ModelCoursesTab() {
               <span className="ml-4 text-sm text-muted-foreground">{c.level} · ${c.price}</span>
             </div>
             <button onClick={() => handleDelete(c.id)} className="text-destructive text-sm"><Trash2 size={16} /></button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────── Lesson Scripts Tab (اختيار الكورس فقط) ─────────── */
+function ModelLessonsTab() {
+  const { user } = useAuth();
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!user) return;
+    user.getIdToken().then((token) =>
+      fetch("/api/admin/model-courses", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          setCourses(data.courses || []);
+          setLoading(false);
+        })
+    );
+  }, [user]);
+
+  if (loading) {
+    return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-primary" /></div>;
+  }
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div>
+        <h2 className="font-serif text-2xl text-foreground"><T>إدارة السكربتات والدروس</T></h2>
+        <p className="text-muted-foreground mt-1 text-sm"><T>اختر الكورس للانتقال إلى مساحة العمل المستقلة وإضافة الدروس.</T></p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {courses.map((c) => (
+          <div 
+            key={c.id} 
+            // التوجيه إلى الصفحة المستقلة الجديدة
+            onClick={() => router.push(`/dashboard/admin/lesson-scripts/${c.id}`)}
+            className="group cursor-pointer glass rounded-2xl p-6 transition-all hover:shadow-elegant hover:border-primary border border-border flex justify-between items-center"
+          >
+            <div>
+              <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">{c.title}</h3>
+              <p className="text-sm text-muted-foreground mt-2">{c.level} · {c.category}</p>
+            </div>
+            <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+              <ArrowUpRight size={20} />
+            </div>
           </div>
         ))}
       </div>

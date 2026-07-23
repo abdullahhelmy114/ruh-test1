@@ -1,50 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { sql } from "@/lib/db/client";
 import { verifyIdToken } from "@/lib/firebase/server";
 
-// جعلنا الـ Schema مرناً ليقبل أي اسم للمعرف يرسله الـ Frontend
-const approveSchema = z.object({
-  teacherId: z.string().optional(),
-  id: z.string().optional(),
-  userId: z.string().optional(),
-  uid: z.string().optional(), // <-- أضفنا uid هنا
-}).refine(data => data.teacherId || data.id || data.userId || data.uid, {
-  message: "لم يتم العثور على معرف المعلم في الطلب",
-});
-
 export async function POST(req: NextRequest) {
   try {
+    // 1. التحقق من صلاحيات المشرف
     const adminUser = await verifyIdToken(req);
     if (!adminUser || adminUser.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // 2. قراءة البيانات المرسلة
     const body = await req.json();
-    console.log("البيانات المستلمة من الواجهة:", body); // للمساعدة في التتبع
-
-    const parsedData = approveSchema.parse(body);
     
-    // استخراج الـ ID أياً كان اسمه
-    const targetId = parsedData.teacherId || parsedData.id || parsedData.userId || parsedData.uid;
+    // 3. استخراج المعرف بأي اسم تم إرساله (بدون تعقيدات Zod)
+    const targetId = body.uid || body.teacherId || body.id;
 
-    const updatedUser = await sql.query(
-      `UPDATE users SET role = 'teacher' WHERE id = $1 RETURNING id`,
-      [targetId]
-    );
-
-    if (!updatedUser || updatedUser.length === 0) {
-      return NextResponse.json({ error: "المستخدم غير موجود" }, { status: 404 });
+    if (!targetId) {
+      return NextResponse.json(
+        { error: [{ message: "لم يتم العثور على معرف المعلم في الطلب" }] }, 
+        { status: 400 }
+      );
     }
 
+    // 4. التحديث في قاعدة البيانات باستخدام طريقتك الصحيحة (await sql)
+    const updatedUser = await sql`
+      UPDATE users 
+      SET role = 'teacher' 
+      WHERE id = ${targetId} 
+      RETURNING id
+    `;
+
+    if (updatedUser.length === 0) {
+      return NextResponse.json({ error: "المستخدم غير موجود في قاعدة البيانات" }, { status: 404 });
+    }
+
+    // 5. إرجاع رسالة نجاح
     return NextResponse.json({ message: "تمت الموافقة على المعلم بنجاح" }, { status: 200 });
 
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.error("Zod Validation Error:", error.issues);
-      return NextResponse.json({ error: error.issues }, { status: 400 });
-    }
-    console.error("Server Error:", error);
+    console.error("Server Error in approve-teacher:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

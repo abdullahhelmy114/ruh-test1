@@ -75,7 +75,7 @@ export default function TeacherSignupStep2Page() {
     }
   };
 
-  const onSubmit = async (data: TeacherSignupStep2Data) => {
+const onSubmit = async (data: TeacherSignupStep2Data) => {
     setError("");
     setLoading(true);
 
@@ -84,20 +84,70 @@ export default function TeacherSignupStep2Page() {
       if (!step1DataStr) throw new Error("Missing step 1 data");
       
       const step1Data = JSON.parse(step1DataStr);
-      const formData = new FormData();
-      formData.append("step1", JSON.stringify(step1Data));
-      formData.append("step2", JSON.stringify({ telegram: data.telegram, socialLinks: data.socialLinks, bio: data.bio }));
-      formData.append("cv", data.cvFile);
-      if (data.introVideo) formData.append("introVideo", data.introVideo);
 
-      const res = await fetch("/api/signup/teacher", { method: "POST", body: formData });
+      // 1. دالة الرفع إلى Cloudinary ببياناتك الخاصة
+      const uploadToCloudinary = async (file: File) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        
+        // بيانات Cloudinary الخاصة بك
+        formData.append("upload_preset", "ruhulqudus"); 
+        const cloudName = "flpsabx6"; 
+
+        // الرفع المباشر (auto تتعرف تلقائياً هل هو pdf أو فيديو)
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) {
+          throw new Error("فشل رفع الملف إلى السحابة، يرجى المحاولة مرة أخرى.");
+        }
+
+        const uploadedData = await res.json();
+        return uploadedData.secure_url; // الرابط السحابي الدائم
+      };
+
+      // 2. رفع الـ CV والحصول على الرابط السحابي
+      let cvUrl = "";
+      if (data.cvFile) {
+        cvUrl = await uploadToCloudinary(data.cvFile);
+      }
+
+      // 3. رفع الفيديو (إذا وجد) والحصول على الرابط
+      let videoUrl = "";
+      if (data.introVideo) {
+        videoUrl = await uploadToCloudinary(data.introVideo);
+      }
+
+      // 4. إرسال البيانات כـ JSON نظيف إلى الباك إند الخاص بك
+      const payload = {
+        step1: step1Data,
+        step2: {
+          telegram: data.telegram,
+          socialLinks: data.socialLinks,
+          bio: data.bio
+        },
+        cv_url: cvUrl,       // رابط Cloudinary
+        video_url: videoUrl  // رابط Cloudinary
+      };
+
+      const res = await fetch("/api/signup/teacher", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || "Registration failed");
 
+      // نجاح التسجيل!
       sessionStorage.removeItem("teacher_signup_step1");
       router.push(`/verify-teacher?email=${encodeURIComponent(step1Data.email)}`);
+
     } catch (err: any) {
-      setError(err.message || "An error occurred");
+      console.error("Upload Error:", err);
+      setError(err.message || "حدث خطأ أثناء الرفع، يرجى المحاولة لاحقاً");
       window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setLoading(false);
