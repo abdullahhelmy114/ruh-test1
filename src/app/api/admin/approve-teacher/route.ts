@@ -3,27 +3,33 @@ import { z } from "zod";
 import { sql } from "@/lib/db/client";
 import { verifyIdToken } from "@/lib/firebase/server";
 
-// التأكد من أن الاسم يطابق ما يرسله الـ Frontend
+// جعلنا الـ Schema مرناً ليقبل أي اسم للمعرف يرسله الـ Frontend
 const approveSchema = z.object({
-  teacherId: z.string().min(1, "معرف المعلم مطلوب"),
+  teacherId: z.string().optional(),
+  id: z.string().optional(),
+  userId: z.string().optional(),
+}).refine(data => data.teacherId || data.id || data.userId, {
+  message: "لم يتم العثور على معرف المعلم في الطلب (id أو teacherId)",
 });
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. التحقق من صلاحيات المشرف
     const adminUser = await verifyIdToken(req);
     if (!adminUser || adminUser.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // 2. تحليل الطلب والتحقق منه
     const body = await req.json();
-    const { teacherId } = approveSchema.parse(body);
+    console.log("البيانات المستلمة من الواجهة:", body); // للمساعدة في التتبع
 
-    // 3. تحديث دور المستخدم في قاعدة البيانات إلى 'teacher'
+    const parsedData = approveSchema.parse(body);
+    
+    // استخراج الـ ID أياً كان اسمه
+    const targetId = parsedData.teacherId || parsedData.id || parsedData.userId;
+
     const updatedUser = await sql.query(
       `UPDATE users SET role = 'teacher' WHERE id = $1 RETURNING id`,
-      [teacherId]
+      [targetId]
     );
 
     if (!updatedUser || updatedUser.length === 0) {
@@ -34,10 +40,10 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     if (error instanceof z.ZodError) {
-      // استخدام issues بدلاً من errors لتوافق Zod
+      console.error("Zod Validation Error:", error.issues);
       return NextResponse.json({ error: error.issues }, { status: 400 });
     }
-    console.error("Error approving teacher:", error);
+    console.error("Server Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
