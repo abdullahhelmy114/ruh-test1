@@ -8,8 +8,9 @@ const approveSchema = z.object({
   teacherId: z.string().optional(),
   id: z.string().optional(),
   userId: z.string().optional(),
-}).refine(data => data.teacherId || data.id || data.userId, {
-  message: "لم يتم العثور على معرف المعلم في الطلب (id أو teacherId)",
+  uid: z.string().optional(), // <-- أضفنا uid هنا
+}).refine(data => data.teacherId || data.id || data.userId || data.uid, {
+  message: "لم يتم العثور على معرف المعلم في الطلب",
 });
 
 export async function POST(req: NextRequest) {
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
     const parsedData = approveSchema.parse(body);
     
     // استخراج الـ ID أياً كان اسمه
-    const targetId = parsedData.teacherId || parsedData.id || parsedData.userId;
+    const targetId = parsedData.teacherId || parsedData.id || parsedData.userId || parsedData.uid;
 
     const updatedUser = await sql.query(
       `UPDATE users SET role = 'teacher' WHERE id = $1 RETURNING id`,
