@@ -1,26 +1,27 @@
-import { NextResponse } from 'next/server';
-import { sql } from '@/lib/db/client';
-import { getServerSession } from '@/lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import { sql } from "@/lib/db/client";
+import { verifyIdToken } from "@/lib/firebase/server";
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== 'admin') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-  }
-
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    // التحقق من وجود النموذج
-    const [course] = await sql`SELECT id FROM model_courses WHERE id = ${params.id}`;
-    if (!course) {
-      return NextResponse.json({ error: 'النموذج غير موجود' }, { status: 404 });
+    // 1. التحقق من صلاحيات المشرف
+    const adminUser = await verifyIdToken(req);
+    if (!adminUser || adminUser.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // حذف النموذج (سيؤدي ON DELETE CASCADE إلى حذف الدروس النموذجية المرتبطة)
-    await sql`DELETE FROM model_courses WHERE id = ${params.id}`;
+    const courseId = params.id;
+    if (!courseId) {
+      return NextResponse.json({ error: "Course ID is required" }, { status: 400 });
+    }
 
-    return NextResponse.json({ success: true });
+    // 2. حذف الكورس من قاعدة البيانات
+    await sql.query(`DELETE FROM model_courses WHERE id = $1`, [courseId]);
+
+    return NextResponse.json({ message: "تم حذف الكورس بنجاح" }, { status: 200 });
+    
   } catch (error) {
-    console.error('Delete model course error:', error);
-    return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
+    console.error("Error deleting model course:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

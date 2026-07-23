@@ -1,45 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { sql } from "@/lib/db/client";
-import { sendEmail } from "@/lib/email";
 import { verifyIdToken } from "@/lib/firebase/server";
 
-function teacherApprovedEmail(name: string) {
-  return `
-    <div style="text-align:center">
-      <h2>مبروك ${name}!</h2>
-      <p>تم قبول طلبك للتدريس في أكاديمية روح القدس.</p>
-      <p>يمكنك الآن تسجيل الدخول والبدء بإنشاء دوراتك.</p>
-      <a href="https://ruhulqudus.net/login">تسجيل الدخول</a>
-    </div>
-  `;
-}
+// التأكد من أن الاسم يطابق ما يرسله الـ Frontend
+const approveSchema = z.object({
+  teacherId: z.string().min(1, "معرف المعلم مطلوب"),
+});
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. التحقق من صلاحية الأدمن
-    const user = await verifyIdToken(req);
-    if (!user || user.role !== "admin") {
-      return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
+    // 1. التحقق من صلاحيات المشرف
+    const adminUser = await verifyIdToken(req);
+    if (!adminUser || adminUser.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { uid } = await req.json();
-    if (!uid) return NextResponse.json({ message: "Missing uid" }, { status: 400 });
+    // 2. تحليل الطلب والتحقق منه
+    const body = await req.json();
+    const { teacherId } = approveSchema.parse(body);
 
-    const [teacher] = await sql`SELECT * FROM profiles WHERE firebase_uid = ${uid} AND role = 'teacher'`;
-    if (!teacher) return NextResponse.json({ message: "Teacher not found" }, { status: 404 });
-
-    await sql`UPDATE profiles SET status = 'active' WHERE firebase_uid = ${uid}`;
-
-    // إرسال إيميل ترحيبي
-    await sendEmail(
-      teacher.email,
-      "تم تفعيل حسابك كمعلم",
-      teacherApprovedEmail(teacher.full_name || "معلم")
+    // 3. تحديث دور المستخدم في قاعدة البيانات إلى 'teacher'
+    const updatedUser = await sql.query(
+      `UPDATE users SET role = 'teacher' WHERE id = $1 RETURNING id`,
+      [teacherId]
     );
 
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error("Approve teacher error:", error);
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    if (!updatedUser || updatedUser.length === 0) {
+      return NextResponse.json({ error: "المستخدم غير موجود" }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: "تمت الموافقة على المعلم بنجاح" }, { status: 200 });
+
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      // استخدام issues بدلاً من errors لتوافق Zod
+      return NextResponse.json({ error: error.issues }, { status: 400 });
+    }
+    console.error("Error approving teacher:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
