@@ -1,8 +1,8 @@
-// 1. الخدعة الهندسية (Polyfill) في أعلى الملف لتعمل قبل أي شيء وتمنع انهيار البناء (Build)
+// 1. الخدعة الهندسية (Polyfill) معدلة للعمل كدوال (Functions) بدلاً من Classes لمنع خطأ r2
 if (typeof globalThis.DOMMatrix === "undefined") {
-  (globalThis as any).DOMMatrix = class DOMMatrix {};
-  (globalThis as any).ImageData = class ImageData {};
-  (globalThis as any).Path2D = class Path2D {};
+  (globalThis as any).DOMMatrix = function() {};
+  (globalThis as any).ImageData = function() {};
+  (globalThis as any).Path2D = function() {};
 }
 
 import { NextRequest, NextResponse } from "next/server";
@@ -32,21 +32,18 @@ export async function POST(req: NextRequest) {
     let fullText = "";
 
     // =================================================================
-    // 2. عزل عملية قراءة الـ PDF لمعرفة السبب بدقة وحل مشكلة l is not a function
+    // 2. قراءة الـ PDF بطريقة آمنة
     // =================================================================
     try {
       const buffer = Buffer.from(await file.arrayBuffer());
       
-      // استخراج دالة الـ PDF بشكل صارم جداً (مهما كان نوع الضغط الذي طبقه Next.js)
       const pdfParseModule = require("pdf-parse");
       const pdfParse = typeof pdfParseModule === "function" 
         ? pdfParseModule 
         : (pdfParseModule.default || Object.values(pdfParseModule).find(v => typeof v === 'function'));
 
       if (typeof pdfParse !== "function") {
-        return NextResponse.json({ 
-          error: `المكتبة لم تُحمّل كدالة. نوعها الحالي: ${typeof pdfParseModule}` 
-        }, { status: 400 });
+        return NextResponse.json({ error: "المكتبة لم تُحمّل كدالة." }, { status: 400 });
       }
 
       const pdfData = await pdfParse(buffer);
@@ -54,7 +51,6 @@ export async function POST(req: NextRequest) {
     } catch (pdfError: any) {
       console.error("PDF Extraction Error Detailed:", pdfError);
       return NextResponse.json({ 
-        // سيتم طباعة السبب التقني الحقيقي للواجهة إذا فشل قراءة الملف
         error: `فشل قراءة الملف. السبب التقني: ${pdfError.message || String(pdfError)}` 
       }, { status: 400 });
     }
@@ -66,23 +62,16 @@ export async function POST(req: NextRequest) {
     // =================================================================
     // 3. معالجة النص، تقسيمه، وحفظه كـ Vectors
     // =================================================================
-    
-    // تقسيم الكتاب إلى "أجزاء" (Chunks) كل جزء 1000 حرف تقريباً ليسهل البحث فيه بدقة
     const chunks = fullText.match(/[\s\S]{1,1000}/g) || [];
-    
-    // استخدام نموذج التضمين الخاص بجوجل
     const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
 
     let processedChunks = 0;
 
     for (const chunk of chunks) {
-      if (chunk.trim().length < 50) continue; // تخطي الأجزاء الفارغة والقصيرة جداً
+      if (chunk.trim().length < 50) continue;
 
-      // تحويل النص إلى متجهات رياضية
       const result = await embeddingModel.embedContent(chunk);
-      const embedding = result.embedding.values; // مصفوفة من الأرقام
-      
-      // تحويل المصفوفة إلى نص حتى يفهمها محرك pgvector في قاعدة البيانات
+      const embedding = result.embedding.values; 
       const embeddingString = `[${embedding.join(",")}]`;
 
       await sql`
