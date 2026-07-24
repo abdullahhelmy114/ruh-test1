@@ -1,7 +1,17 @@
+// 1. الخدعة الهندسية (Polyfill) لمنع انهيار Next.js أثناء الـ Build
+if (typeof global.DOMMatrix === "undefined") {
+  (global as any).DOMMatrix = class DOMMatrix {};
+  (global as any).ImageData = class ImageData {};
+  (global as any).Path2D = class Path2D {};
+}
+
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
 import { verifyIdToken } from "@/lib/firebase/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+
+// 2. إخبار Next.js أن هذا المسار ديناميكي لمنع البناء الثابت (Static Generation)
+export const dynamic = "force-dynamic";
 
 const pdfParse = require("pdf-parse");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
@@ -9,13 +19,17 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 export async function POST(req: NextRequest) {
   try {
     const user = await verifyIdToken(req);
-    if (!user || user.role !== "admin") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user || user.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
     const bookTitle = formData.get("book_title") as string;
 
-    if (!file || !bookTitle) return NextResponse.json({ error: "Missing data" }, { status: 400 });
+    if (!file || !bookTitle) {
+      return NextResponse.json({ error: "Missing data" }, { status: 400 });
+    }
 
     // 1. قراءة الـ PDF وتحويله لنص
     const buffer = Buffer.from(await file.arrayBuffer());
