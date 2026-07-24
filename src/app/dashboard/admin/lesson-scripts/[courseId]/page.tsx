@@ -71,11 +71,43 @@ export default function SmartLessonEditor() {
     }, 1500);
   };
 
-  const generateFullLesson = (template: any) => {
-    toast.success(<T>Generating full lesson script...</T> as unknown as string);
-    setScript({ ...script, title: template.title, subtitle: template.desc, grade: template.grade, subject: template.subject });
-    editor?.commands.setContent(`<h1>${template.title}</h1><p>This is an AI generated comprehensive lesson based on the selected book/template. It covers all necessary pedagogical steps.</p>`);
-    addAiQuiz();
+const generateFullLesson = async (book: any) => {
+    const toastId = toast.loading(<T>Generating a comprehensive lesson from</T> as unknown as string + ` "${book.book_title}"...`);
+    setAiLoading(true);
+    
+    try {
+      const token = await user?.getIdToken();
+      // هنا نوجه الأمر للـ RAG System للبحث في هذا الكتاب حصراً وكتابة الدرس
+      const prompt = `Write a comprehensive, highly detailed educational lesson in Arabic based ONLY on the book titled "${book.book_title}". Include a strong introduction, main educational concepts, and a clear conclusion. Format the response entirely in HTML so it looks beautiful in a rich text editor.`;
+
+      const res = await fetch("/api/ai/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ prompt, type: "text" })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        // تحديث العنوان ليطابق الكتاب
+        setScript(prev => ({ 
+          ...prev, 
+          title: `درس مستخرج من: ${book.book_title}`, 
+          subtitle: "تم التوليد بواسطة الذكاء الاصطناعي" 
+        }));
+        
+        // إزالة علامات الماركداون إذا أرجعها Gemini ووضع المحتوى في المحرر
+        const cleanHtml = data.text.replace(/```html/g, "").replace(/```/g, "").trim();
+        editor?.commands.setContent(cleanHtml);
+        
+        toast.success(<T>Lesson generated successfully!</T> as unknown as string, { id: toastId });
+      } else {
+        throw new Error();
+      }
+    } catch (err) {
+      toast.error(<T>Failed to generate lesson from the book</T> as unknown as string, { id: toastId });
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-primary h-12 w-12" /></div>;

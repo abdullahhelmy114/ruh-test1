@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { T } from "@/components/TranslatedText";
 import { AudioBlockData, QuizBlockData, ActiveTool } from "./types";
+import { useAuth } from "@/lib/firebase/AuthProvider";
 
 // ==========================================
 // 1. Audio Block
@@ -157,16 +158,30 @@ export const AiToolsModal = ({ activeTool, onClose, lessonText, onApply }: { act
 };
 
 // ==========================================
-// 4. Library & Full Lesson Generator Modal
+// 4. AI Library & Knowledge Base Modal
 // ==========================================
 export const LibraryModal = ({ isOpen, onClose, onGenerateLesson }: { isOpen: boolean, onClose: any, onGenerateLesson: any }) => {
-  if (!isOpen) return null;
+  const { user } = useAuth();
+  const [books, setBooks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const templates = [
-    { id: "physics", title: "Quantum Optics: Wave-Particle Duality", subject: "PHYSICS", grade: "GRADE 11", desc: "Analyzing Young's double-slit experiment." },
-    { id: "arabic", title: "المتنبي: دراسة بلاغية في معلقة الخيل والليل", subject: "LITERATURE", grade: "GRADE 10", desc: "دراسة تحليلية للصور الفنية والبلاغية." },
-    { id: "biology", title: "The Wonders of Photosynthesis", subject: "BIOLOGY", grade: "GRADE 9", desc: "A gentle introduction to how plants turn sunlight into life." },
-  ];
+  React.useEffect(() => {
+    if (!isOpen || !user) return;
+    setLoading(true);
+    user.getIdToken().then((token) => {
+      fetch("/api/admin/knowledge/books", {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(data => {
+        setBooks(data.books || []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+    });
+  }, [isOpen, user]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/20 backdrop-blur-sm p-4 animate-in fade-in">
@@ -175,30 +190,41 @@ export const LibraryModal = ({ isOpen, onClose, onGenerateLesson }: { isOpen: bo
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground"><Book size={20} /></div>
             <div>
-              <h2 className="text-xl font-bold text-foreground"><T>Lesson Scripts Workspace</T></h2>
-              <p className="text-xs text-muted-foreground"><T>Notion x Apple Pages Editor</T></p>
+              <h2 className="text-xl font-bold text-foreground"><T>Knowledge Base Library</T></h2>
+              <p className="text-xs text-muted-foreground"><T>Select a book to generate a lesson from it.</T></p>
             </div>
           </div>
           <button onClick={onClose} className="rounded-full p-2 text-muted-foreground hover:bg-secondary"><X size={18} /></button>
         </div>
 
         <div className="overflow-y-auto space-y-4 pr-2">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground"><T>Quick Templates & Books</T></h3>
-          {templates.map((tpl) => (
-            <div key={tpl.id} className="p-4 rounded-2xl border border-border bg-background hover:border-primary/50 transition-all flex items-center justify-between group">
-              <div>
-                <h4 className="font-bold text-foreground">{tpl.title}</h4>
-                <p className="text-sm text-muted-foreground mt-1">{tpl.desc}</p>
-                <div className="text-[10px] font-bold text-primary uppercase mt-2">{tpl.grade} • {tpl.subject}</div>
-              </div>
-              <button 
-                onClick={() => { onGenerateLesson(tpl); onClose(); }}
-                className="px-4 py-2 rounded-full bg-primary/10 text-primary font-bold text-xs opacity-0 group-hover:opacity-100 transition-all hover:bg-primary hover:text-primary-foreground flex items-center gap-1"
-              >
-                <Sparkles size={14}/> <T>Generate Lesson</T>
-              </button>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground"><T>Available Books & Materials</T></h3>
+          
+          {loading ? (
+            <div className="flex justify-center py-10"><Loader2 className="animate-spin text-primary" /></div>
+          ) : books.length === 0 ? (
+            <div className="text-center py-10 text-muted-foreground bg-secondary/20 rounded-2xl border border-dashed border-border">
+              <T>No books found. Go to the Knowledge Base tab to upload PDF materials first.</T>
             </div>
-          ))}
+          ) : (
+            books.map((book, idx) => (
+              <div key={idx} className="p-4 rounded-2xl border border-border bg-background hover:border-primary/50 transition-all flex items-center justify-between group">
+                <div>
+                  <h4 className="font-bold text-foreground">{book.book_title}</h4>
+                  <p className="text-sm text-muted-foreground mt-1"><T>Contains</T> {book.chunks_count} <T>knowledge chunks</T></p>
+                  <div className="text-[10px] font-bold text-primary uppercase mt-2">
+                    <T>Uploaded on</T> {new Date(book.uploaded_at).toLocaleDateString()}
+                  </div>
+                </div>
+                <button 
+                  onClick={() => { onGenerateLesson(book); onClose(); }}
+                  className="px-4 py-2 rounded-full bg-primary/10 text-primary font-bold text-xs opacity-0 group-hover:opacity-100 transition-all hover:bg-primary hover:text-primary-foreground flex items-center gap-1"
+                >
+                  <Sparkles size={14}/> <T>Generate AI Lesson</T>
+                </button>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
