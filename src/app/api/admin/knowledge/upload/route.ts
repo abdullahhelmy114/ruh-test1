@@ -1,9 +1,25 @@
+// 1. الخدعة الهندسية (Polyfill) في أعلى الملف لتعمل قبل أي شيء
+if (typeof globalThis.DOMMatrix === "undefined") {
+  (globalThis as any).DOMMatrix = class DOMMatrix {};
+  (globalThis as any).ImageData = class ImageData {};
+  (globalThis as any).Path2D = class Path2D {};
+}
+
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
 import { verifyIdToken } from "@/lib/firebase/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export const dynamic = "force-dynamic";
+
+// =================================================================
+// 🛠️ الحل الجذري لمشكلة "l is not a function" (ESM/CJS Interop)
+// =================================================================
+const pdfParseModule = require("pdf-parse");
+// استخراج الدالة بشكل آمن مهما كان نوع الضغط الذي يفعله Next.js
+const pdfParse = typeof pdfParseModule === "function" ? pdfParseModule : pdfParseModule.default;
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,42 +28,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // =========================================================
-    // 🛠️ الخدعة الهندسية والاستدعاء داخل الدالة
-    // هذا يضمن 100% نجاح الـ Build لأنه لن يعمل إلا وقت الرفع الفعلي
-    // =========================================================
-    if (typeof globalThis.DOMMatrix === "undefined") {
-      (globalThis as any).DOMMatrix = class DOMMatrix {};
-      (globalThis as any).ImageData = class ImageData {};
-      (globalThis as any).Path2D = class Path2D {};
-    }
-    const pdfParse = require("pdf-parse");
-    // =========================================================
-
     const formData = await req.formData();
     const file = formData.get("file") as File;
     const bookTitle = formData.get("book_title") as string;
 
     if (!file || !bookTitle) {
-      return NextResponse.json({ error: "البيانات غير مكتملة" }, { status: 400 });
+      return NextResponse.json({ error: "Missing data" }, { status: 400 });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
-      throw new Error("مفتاح Gemini API مفقود في إعدادات السيرفر!");
+    let fullText = "";
+
+    // 2. عزل عملية قراءة الـ PDF لضمان عدم انهيار السيرفر
+    try {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const pdfData = await pdfParse(buffer);
+      fullText = pdfData.text;
+    } catch (pdfError: any) {
+      console.error("PDF Extraction Error:", pdfError);
+      return NextResponse.json({ error: "فشل استخراج النص من ملف الـ PDF. تأكد أن الملف سليم." }, { status: 400 });
     }
 
-    // قراءة الـ PDF
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const pdfData = await pdfParse(buffer);
-    const fullText = pdfData.text;
-
-    if (!fullText) {
-      throw new Error("لم يتمكن النظام من استخراج النص من هذا الملف، تأكد أنه ملف نصي وليس مجرد صور ممسوحة ضوئياً.");
+    if (!fullText || fullText.trim() === "") {
+      return NextResponse.json({ error: "لم يتمكن النظام من استخراج نص. تأكد أن الـ PDF ليس مجرد صور (Scanned)." }, { status: 400 });
     }
 
-    // تقسيم الكتاب
+    // 3. تقسيم الكتاب إلى "أجزاء" (Chunks) كل جزء 1000 حرف تقريباً
     const chunks = fullText.match(/[\s\S]{1,1000}/g) || [];
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    
     const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
 
     let processedChunks = 0;
@@ -70,8 +77,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, message: `تمت إضافة الكتاب ومعالجة ${processedChunks} جزء بنجاح!` });
 
   } catch (error: any) {
-    console.error("🔥 الخطأ الحقيقي:", error);
-    // إرجاع الخطأ الحقيقي للمتصفح لكي نراه في الإشعار الأحمر!
+    console.error("Upload Knowledge Error Detailed:", error);
     return NextResponse.json({ 
       error: error.message || "حدث خطأ غير معروف في السيرفر" 
     }, { status: 500 });
