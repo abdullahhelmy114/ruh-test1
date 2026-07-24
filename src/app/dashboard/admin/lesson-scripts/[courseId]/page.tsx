@@ -1,23 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/AuthProvider";
 import { T } from "@/components/TranslatedText";
 import { toast } from "sonner";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { Color } from "@tiptap/extension-color";
 import Highlight from "@tiptap/extension-highlight";
-import { TextStyle } from "@tiptap/extension-text-style"; // تمت إضافة الأقواس {}
-import { Color } from "@tiptap/extension-color";   
-import ImageExtension from "@tiptap/extension-image";
 import { 
-  ArrowRight, Plus, PenTool, Type, Image as ImageIcon, 
-  MonitorPlay, X, Save, Loader2, Trash2, Bold, Italic, 
-  Underline as UnderlineIcon, Highlighter, Wand2, Mic, Play, CheckSquare
+  ArrowRight, Save, Loader2, Bold, Italic, Highlighter, 
+  Mic, Wand2, FileText, Languages, Sparkles, Plus, Trash2, PenTool, X 
 } from "lucide-react";
+import { LessonScript, ActiveTool, AudioBlockData } from "@/components/editor/types"; 
+import { AudioBlock, QuizBlock, AiToolsModal } from "@/components/editor/EditorComponents";
 
-export default function LessonWorkspacePage() {
+export default function SmartLessonEditor() {
   const params = useParams();
   const router = useRouter();
   const courseId = params.courseId as string;
@@ -26,34 +26,23 @@ export default function LessonWorkspacePage() {
   const [view, setView] = useState<"list" | "editor">("list");
   const [lessons, setLessons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [script, setScript] = useState<LessonScript>({
+    id: "new", title: "", subtitle: "", grade: "GRADE 10", subject: "GENERAL", status: "DRAFT",
+    fontFamily: "sans", fontSize: 18, contentHtml: "", audioBlocks: [], quizBlocks: []
+  });
+  
   const [saving, setSaving] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
-  
-  const [selectedLesson, setSelectedLesson] = useState<any>(null);
-  const [editorTitle, setEditorTitle] = useState("");
-  
-  // حفظ البلوكات الإضافية (مثل الصوت والأسئلة)
-  const [audioBlocks, setAudioBlocks] = useState<any[]>([]);
-  const [quizBlocks, setQuizBlocks] = useState<any[]>([]);
+  const [activeTool, setActiveTool] = useState<ActiveTool>(null);
 
-  // 1. إعداد محرك Tiptap
   const editor = useEditor({
-    extensions: [
-      StarterKit,
-      TextStyle,
-      Color,
-      Highlight.configure({ multicolor: true }),
-      ImageExtension,
-    ],
+    extensions: [StarterKit, TextStyle, Color, Highlight.configure({ multicolor: true })],
     content: "",
-    editorProps: {
-      attributes: {
-        class: "prose prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[400px] text-foreground leading-loose",
-      },
-    },
+    editorProps: { attributes: { class: "prose prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[400px] text-foreground leading-loose" } },
+    onUpdate: ({ editor }) => setScript(prev => ({ ...prev, contentHtml: editor.getHTML() }))
   });
 
-  // 2. جلب الدروس
   const fetchLessons = () => {
     if (!user || !courseId) return;
     user.getIdToken().then((token) => {
@@ -66,7 +55,7 @@ export default function LessonWorkspacePage() {
           setLoading(false);
         })
         .catch(() => {
-          toast.error(<T>حدث خطأ أثناء جلب الدروس</T> as unknown as string);
+          toast.error(<T>Failed to fetch lessons</T> as unknown as string);
           setLoading(false);
         });
     });
@@ -74,154 +63,108 @@ export default function LessonWorkspacePage() {
 
   useEffect(() => { fetchLessons(); }, [user, courseId]);
 
-  // 3. فتح المحرر وتوزيع البيانات
   const openEditor = (lesson: any = null) => {
-    setSelectedLesson(lesson);
-    setEditorTitle(lesson ? lesson.title : "");
-    
-    // نقوم بفك تشفير الـ JSON إذا كان موجوداً
-    if (lesson && lesson.content) {
+    if (lesson) {
+      let audio = [], quiz = [];
+      let html = lesson.content || "";
       try {
         const parsed = JSON.parse(lesson.content);
-        editor?.commands.setContent(parsed.html || "");
-        setAudioBlocks(parsed.audio || []);
-        setQuizBlocks(parsed.quiz || []);
-      } catch (e) {
-        // إذا كان نصاً قديماً عادياً
-        editor?.commands.setContent(lesson.content);
-        setAudioBlocks([]);
-        setQuizBlocks([]);
-      }
+        html = parsed.html || "";
+        audio = parsed.audio || [];
+        quiz = parsed.quiz || [];
+      } catch (e) {}
+
+      setScript({
+        id: lesson.id, title: lesson.title, subtitle: "", grade: "GRADE 10", subject: "GENERAL", status: "DRAFT",
+        fontFamily: "sans", fontSize: 18, contentHtml: html, audioBlocks: audio, quizBlocks: quiz
+      });
+      editor?.commands.setContent(html);
     } else {
+      setScript({
+        id: "new", title: "", subtitle: "", grade: "GRADE 10", subject: "GENERAL", status: "DRAFT",
+        fontFamily: "sans", fontSize: 18, contentHtml: "", audioBlocks: [], quizBlocks: []
+      });
       editor?.commands.setContent("");
-      setAudioBlocks([]);
-      setQuizBlocks([]);
     }
     setView("editor");
   };
 
-  // 4. دالة الحفظ
   const handleSave = async () => {
-    if (!editorTitle.trim()) return toast.error(<T>يرجى إدخال عنوان الدرس</T> as unknown as string);
-    if (!user) return;
+    if (!script.title) return toast.error(<T>Please enter a title</T> as unknown as string);
     setSaving(true);
     try {
-      const token = await user.getIdToken();
-      const isNew = !selectedLesson;
-      const url = isNew ? `/api/admin/model-courses/${courseId}/lessons` : `/api/admin/model-courses/${courseId}/lessons/${selectedLesson.id}`;
+      const token = await user?.getIdToken();
+      const isNew = script.id === "new";
+      const url = isNew ? `/api/admin/model-courses/${courseId}/lessons` : `/api/admin/model-courses/${courseId}/lessons/${script.id}`;
       
-      // ندمج المحتوى مع البلوكات التفاعلية في JSON واحد لنحفظه في عمود Content
-      const finalContent = JSON.stringify({
-        html: editor?.getHTML(),
-        audio: audioBlocks,
-        quiz: quizBlocks
-      });
-
       const res = await fetch(url, {
         method: isNew ? "POST" : "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ title: editorTitle, content: finalContent, type: "video" }),
+        body: JSON.stringify({ 
+          title: script.title, 
+          content: JSON.stringify({ html: script.contentHtml, audio: script.audioBlocks, quiz: script.quizBlocks })
+        }),
       });
-
       if (res.ok) {
-        toast.success(<T>تم حفظ السكربت بجميع تفاعلاته بنجاح!</T> as unknown as string);
+        toast.success(<T>Lesson saved successfully</T> as unknown as string);
         fetchLessons();
         setView("list");
-      } else throw new Error();
-    } catch (error) {
-      toast.error(<T>فشل الحفظ، تأكد من الاتصال</T> as unknown as string);
-    } finally {
-      setSaving(false);
-    }
+      }
+    } catch (e) { toast.error(<T>Failed to save</T> as unknown as string); }
+    finally { setSaving(false); }
   };
 
   const handleDelete = async (lessonId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!user || !window.confirm("هل أنت متأكد من حذف هذا الدرس نهائياً؟")) return;
+    if (!user || !window.confirm("Are you sure you want to delete this lesson?")) return;
     try {
       const token = await user.getIdToken();
       const res = await fetch(`/api/admin/model-courses/${courseId}/lessons/${lessonId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) { toast.success(<T>تم الحذف</T> as unknown as string); fetchLessons(); }
-    } catch (error) { toast.error(<T>فشل الحذف</T> as unknown as string); }
+      if (res.ok) { toast.success(<T>Lesson deleted</T> as unknown as string); fetchLessons(); }
+    } catch (error) { toast.error(<T>Failed to delete</T> as unknown as string); }
   };
 
-  // ==========================================
-  // 🤖 5. دوال الذكاء الاصطناعي (Gemini & ElevenLabs)
-  // ==========================================
-  const generateAIQuiz = async () => {
-    const text = editor?.getText();
-    if (!text || text.length < 50) return toast.error(<T>يرجى كتابة نص كافٍ أولاً ليستنتج منه الأسئلة</T> as unknown as string);
-    
+  const addAiQuiz = async () => {
     setAiLoading(true);
-    const toastId = toast.loading(<T>يتم الآن تحليل النص وتوليد الأسئلة عبر Gemini...</T> as unknown as string);
+    const text = editor?.getText() || script.title;
     try {
-      const token = await user?.getIdToken();
       const res = await fetch("/api/ai/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: text, type: "quiz" })
       });
       const data = await res.json();
-      
       if (data.success) {
-        // تنظيف الـ JSON من أي علامات Markdown قد يرسلها Gemini
-        const cleanJson = data.text.replace(/```json/g, "").replace(/```/g, "").trim();
-        const generatedQuiz = JSON.parse(cleanJson);
-        setQuizBlocks([...quizBlocks, { id: Date.now(), questions: generatedQuiz }]);
-        toast.success(<T>تم توليد الأسئلة بنجاح!</T> as unknown as string, { id: toastId });
-      } else throw new Error();
-    } catch (error) {
-      toast.error(<T>فشل توليد الأسئلة</T> as unknown as string, { id: toastId });
-    } finally { setAiLoading(false); }
+        const parsed = JSON.parse(data.text.replace(/```json/g, "").replace(/```/g, ""));
+        setScript(prev => ({ ...prev, quizBlocks: [...prev.quizBlocks, { id: Date.now().toString(), title: "AI Generated Quiz", currentQuestionIndex: 0, questions: parsed }] }));
+        toast.success(<T>Quiz generated successfully</T> as unknown as string);
+      }
+    } catch (e) { toast.error(<T>Generation failed</T> as unknown as string); }
+    setAiLoading(false);
   };
 
-  const generateAIAudio = async () => {
-    const text = editor?.getText();
-    if (!text || text.length < 20) return toast.error(<T>النص قصير جداً للتسجيل</T> as unknown as string);
-    
-    setAiLoading(true);
-    const toastId = toast.loading(<T>جاري تسجيل الصوت عبر ElevenLabs...</T> as unknown as string);
-    try {
-      const token = await user?.getIdToken();
-      const res = await fetch("/api/ai/tts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ text: text.substring(0, 500) }) // تحديد أول 500 حرف للتجربة
-      });
-
-      if (res.ok) {
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        setAudioBlocks([...audioBlocks, { id: Date.now(), url, title: "AI Generated Voiceover" }]);
-        toast.success(<T>تم توليد الصوت بنجاح!</T> as unknown as string, { id: toastId });
-      } else throw new Error();
-    } catch (error) {
-      toast.error(<T>فشل توليد الصوت</T> as unknown as string, { id: toastId });
-    } finally { setAiLoading(false); }
-  };
-
-  if (authLoading || loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-primary h-12 w-12" /></div>;
+  if (authLoading || loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-primary h-10 w-10" /></div>;
 
   return (
-    <main className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary pb-20">
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary">
       
-      {/* ─── وضع القائمة ─── */}
+      {/* ─── List View ─── */}
       {view === "list" && (
         <article className="max-w-5xl mx-auto px-6 py-12 animate-in fade-in duration-500">
           <button onClick={() => router.push("/dashboard/admin")} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors font-medium mb-8">
-            <ArrowRight size={18} className="rotate-180" /> <T>العودة للوحة التحكم</T>
+            <ArrowRight size={18} className="rotate-180" /> <T>Back to Dashboard</T>
           </button>
 
           <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
             <div>
-              <h1 className="text-3xl font-serif font-bold text-foreground"><T>إدارة الدروس والسكربتات</T></h1>
-              <p className="text-muted-foreground mt-2"><T>قم ببناء المنهج الدراسي وترتيب الدروس التي ستظهر للمعلمين.</T></p>
+              <h1 className="text-3xl font-serif font-bold text-foreground"><T>Lesson & Script Management</T></h1>
+              <p className="text-muted-foreground mt-2"><T>Build the curriculum and arrange lessons for teachers.</T></p>
             </div>
             <button onClick={() => openEditor()} className="flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-bold text-primary-foreground hover:bg-primary/90 shadow-elegant transition-all">
-              <Plus size={18} /> <T>إضافة درس جديد</T>
+              <Plus size={18} /> <T>Add New Lesson</T>
             </button>
           </header>
 
@@ -234,7 +177,7 @@ export default function LessonWorkspacePage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={(e) => handleDelete(lesson.id, e)} className="p-2.5 rounded-full text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={18} /></button>
-                  <button onClick={() => openEditor(lesson)} className="flex items-center gap-2 text-sm font-semibold text-accent-foreground bg-accent/10 px-5 py-2.5 rounded-full hover:bg-accent/20 transition-all"><PenTool size={16} /> <T>تعديل السكربت</T></button>
+                  <button onClick={() => openEditor(lesson)} className="flex items-center gap-2 text-sm font-semibold text-accent-foreground bg-accent/10 px-5 py-2.5 rounded-full hover:bg-accent/20 transition-all"><PenTool size={16} /> <T>Edit Script</T></button>
                 </div>
               </div>
             ))}
@@ -242,105 +185,65 @@ export default function LessonWorkspacePage() {
         </article>
       )}
 
-      {/* ─── وضع المحرر (Tiptap + Dynamic Island) ─── */}
+      {/* ─── Editor View (Tiptap + Dynamic Island) ─── */}
       {view === "editor" && (
         <section className="relative min-h-screen bg-muted/20 animate-in zoom-in-95 duration-300">
           
-          {/* 🏝️ Dynamic Island (Sticky under Navbar) */}
-          <nav className="sticky top-4 mx-auto max-w-4xl z-50 flex items-center justify-between bg-card/90 backdrop-blur-2xl border border-border px-6 py-3 rounded-full shadow-2xl">
-            
-            {/* Tiptap Formatting Tools */}
+          <nav className="sticky top-4 mx-auto max-w-4xl z-50 flex items-center justify-between bg-card/90 backdrop-blur-2xl border border-border px-5 py-2.5 rounded-full shadow-2xl">
             <div className="flex items-center gap-1 border-r border-border pr-4">
-              <button onClick={() => editor?.chain().focus().toggleBold().run()} className={`p-2 rounded-lg transition-colors ${editor?.isActive('bold') ? 'bg-primary/20 text-primary' : 'hover:bg-secondary'}`}><Bold size={18} /></button>
-              <button onClick={() => editor?.chain().focus().toggleItalic().run()} className={`p-2 rounded-lg transition-colors ${editor?.isActive('italic') ? 'bg-primary/20 text-primary' : 'hover:bg-secondary'}`}><Italic size={18} /></button>
-              <button onClick={() => editor?.chain().focus().toggleHighlight().run()} className={`p-2 rounded-lg transition-colors ${editor?.isActive('highlight') ? 'bg-accent text-accent-foreground' : 'hover:bg-secondary'}`}><Highlighter size={18} /></button>
+              <button onClick={() => editor?.chain().focus().toggleBold().run()} className={`p-2 rounded-lg ${editor?.isActive('bold') ? 'bg-primary/20 text-primary' : 'hover:bg-secondary'}`}><Bold size={16} /></button>
+              <button onClick={() => editor?.chain().focus().toggleItalic().run()} className={`p-2 rounded-lg ${editor?.isActive('italic') ? 'bg-primary/20 text-primary' : 'hover:bg-secondary'}`}><Italic size={16} /></button>
+              <button onClick={() => editor?.chain().focus().toggleHighlight().run()} className="p-2 rounded-lg hover:bg-secondary text-accent-foreground"><Highlighter size={16} /></button>
             </div>
 
-            {/* AI Tools (Magical) */}
-            <div className="flex items-center gap-2 px-4">
-              <button onClick={generateAIAudio} disabled={aiLoading} className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-medium text-sm disabled:opacity-50">
-                <Mic size={16} /> <T>تسجيل AI</T>
-              </button>
-              <button onClick={generateAIQuiz} disabled={aiLoading} className="flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 text-accent-foreground hover:bg-accent/30 transition-colors font-medium text-sm disabled:opacity-50">
-                <Wand2 size={16} /> <T>توليد أسئلة</T>
-              </button>
+            <div className="flex items-center gap-1 px-4">
+              <div className="flex items-center rounded-full bg-primary/5 p-1 border border-primary/10 shadow-inner">
+                <span className="text-[11px] font-bold px-3 text-primary flex items-center gap-1"><Sparkles size={12}/> <T>AI Tools</T></span>
+                <button onClick={() => setScript(p => ({...p, audioBlocks: [...p.audioBlocks, { id: Date.now().toString(), title: "Voice Recording", waveformHeights: [2,4,6,8,5], textToRead: editor?.getText() }]}))} className="p-2 rounded-full hover:bg-primary/10 text-primary transition tooltip"><Mic size={14} /></button>
+                <button onClick={addAiQuiz} disabled={aiLoading} className="p-2 rounded-full hover:bg-primary/10 text-primary transition tooltip"><Wand2 size={14} /></button>
+                <button onClick={() => setActiveTool("summary")} className="p-2 rounded-full hover:bg-primary/10 text-primary transition tooltip"><FileText size={14} /></button>
+                <button onClick={() => setActiveTool("translate")} className="p-2 rounded-full hover:bg-primary/10 text-primary transition tooltip"><Languages size={14} /></button>
+              </div>
             </div>
-            
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2 border-l border-border pl-4">
-              <button onClick={() => setView("list")} className="p-2.5 rounded-full hover:bg-destructive/10 text-destructive transition-colors"><X size={20} /></button>
-              <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-6 py-2 rounded-full bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors disabled:opacity-50">
-                {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} <T>حفظ</T>
+
+            <div className="flex items-center border-l border-border pl-4">
+              <button onClick={() => setView("list")} className="p-2.5 rounded-full hover:bg-destructive/10 text-destructive transition-colors mr-1"><X size={20} /></button>
+              <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-6 py-2 rounded-full bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition shadow-md disabled:opacity-50">
+                {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} <T>Save & Publish</T>
               </button>
             </div>
           </nav>
 
-          {/* 📄 Paper Canvas */}
-          <article className="pt-12 pb-24 px-4 overflow-y-auto flex justify-center">
-            <div className="w-full max-w-[850px] bg-background border border-border shadow-md rounded-lg p-10 md:p-20">
+          <article className="pt-12 pb-32 px-4 flex justify-center">
+            <div className="w-full max-w-[850px] min-h-[1000px] bg-card border border-border shadow-lg rounded-2xl p-10 md:p-20 relative">
               
-              <input 
-                value={editorTitle}
-                onChange={(e) => setEditorTitle(e.target.value)}
-                placeholder="Lesson Title..."
-                className="w-full text-4xl md:text-5xl font-serif font-bold text-foreground bg-transparent outline-none placeholder:text-muted-foreground/30 border-b border-transparent hover:border-border focus:border-primary transition-colors pb-4 mb-8"
-              />
-              
-              {/* Tiptap Rich Text Editor */}
-              <EditorContent editor={editor} className="min-h-[300px]" />
-
-              {/* --- Interactive Blocks Section --- */}
-              <div className="mt-12 space-y-6">
-                
-                {/* 1. Audio Blocks Render */}
-                {audioBlocks.map((audio, i) => (
-                  <div key={i} className="flex items-center justify-between rounded-2xl border border-border bg-secondary/30 p-4">
-                    <div className="flex items-center gap-4">
-                      <button onClick={() => { const a = new Audio(audio.url); a.play(); }} className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md hover:scale-105 transition-transform">
-                        <Play size={20} className="ml-1" />
-                      </button>
-                      <div>
-                        <div className="flex items-center gap-1.5 text-xs font-bold tracking-wider text-primary uppercase"><Wand2 size={12} /> <T>صوت مولد بالذكاء الاصطناعي</T></div>
-                        <div className="mt-1 text-sm font-medium text-foreground">{audio.title}</div>
-                      </div>
-                    </div>
-                    <button onClick={() => setAudioBlocks(audioBlocks.filter((_, idx) => idx !== i))} className="text-destructive p-2 hover:bg-destructive/10 rounded-full"><Trash2 size={16}/></button>
-                  </div>
-                ))}
-
-                {/* 2. Quiz Blocks Render */}
-                {quizBlocks.map((quiz, i) => (
-                  <div key={i} className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-                    <div className="flex items-center justify-between bg-secondary/40 px-5 py-3 border-b border-border text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      <div className="flex items-center gap-2"><CheckSquare size={14} className="text-accent-foreground" /> <T>اختبار تفاعلي (AI)</T></div>
-                      <button onClick={() => setQuizBlocks(quizBlocks.filter((_, idx) => idx !== i))} className="text-destructive hover:underline"><T>حذف</T></button>
-                    </div>
-                    <div className="p-6 space-y-8">
-                      {quiz.questions?.map((q: any, qIdx: number) => (
-                        <div key={qIdx}>
-                          <h3 className="text-lg font-medium text-foreground mb-4 leading-relaxed">{q.question}</h3>
-                          <div className="space-y-3">
-                            {q.options?.map((opt: any, optIdx: number) => (
-                              <div key={optIdx} className={`flex w-full items-center gap-4 rounded-xl border p-3 ${q.correctIndex === optIdx ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border'}`}>
-                                <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${q.correctIndex === optIdx ? 'bg-primary text-primary-foreground' : 'border border-border text-muted-foreground'}`}>
-                                  {opt.label || String.fromCharCode(65 + optIdx)}
-                                </div>
-                                <span className="font-medium">{opt.text}</span>
-                              </div>
-                            ))}
-                          </div>
-                          {q.explanation && <p className="mt-4 text-sm text-muted-foreground bg-secondary/20 p-3 rounded-lg">💡 {q.explanation}</p>}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-
+              <div className="mb-6 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                <span className="h-2 w-2 rounded-full bg-primary" /> <T>Lesson Draft</T>
               </div>
+
+              <input 
+                value={script.title} onChange={(e) => setScript({...script, title: e.target.value})} 
+                placeholder="Lesson Title..." 
+                className="w-full text-4xl md:text-5xl font-serif font-bold text-foreground bg-transparent outline-none placeholder:text-muted-foreground/30 border-b border-transparent hover:border-border focus:border-primary pb-4 mb-4 transition"
+              />
+
+              <EditorContent editor={editor} />
+
+              <div className="mt-12 space-y-6">
+                {script.audioBlocks.map((b) => <AudioBlock key={b.id} block={b} onUpdate={(updated: AudioBlockData) => setScript(p => ({...p, audioBlocks: p.audioBlocks.map(x => x.id === updated.id ? updated : x)}))} onDelete={() => setScript(p => ({...p, audioBlocks: p.audioBlocks.filter(x => x.id !== b.id)}))} />)}
+                {script.quizBlocks.map((b) => <QuizBlock key={b.id} block={b} onGenerateAIQuiz={addAiQuiz} onDelete={() => setScript(p => ({...p, quizBlocks: p.quizBlocks.filter(x => x.id !== b.id)}))} />)}
+              </div>
+
             </div>
           </article>
+
+          <AiToolsModal 
+            activeTool={activeTool} onClose={() => setActiveTool(null)} 
+            lessonText={editor?.getText() || script.title} 
+            onApply={(txt: string) => editor?.commands.insertContent(`<p>${txt}</p>`)} 
+          />
         </section>
       )}
-    </main>
+    </div>
   );
 }

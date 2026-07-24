@@ -1977,6 +1977,7 @@ function ModelCoursesTab() {
 }
 
 /* ─────────── Lesson Scripts Tab (اختيار الكورس فقط) ─────────── */
+/* ─────────── Lesson Scripts Tab (اختيار الكورس فقط) ─────────── */
 function ModelLessonsTab() {
   const { user } = useAuth();
   const [courses, setCourses] = useState<any[]>([]);
@@ -2004,15 +2005,14 @@ function ModelLessonsTab() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div>
-        <h2 className="font-serif text-2xl text-foreground"><T>إدارة السكربتات والدروس</T></h2>
-        <p className="text-muted-foreground mt-1 text-sm"><T>اختر الكورس للانتقال إلى مساحة العمل المستقلة وإضافة الدروس.</T></p>
+        <h2 className="font-serif text-2xl text-foreground"><T>Manage Scripts and Lessons</T></h2>
+        <p className="text-muted-foreground mt-1 text-sm"><T>Select a course to enter the workspace and manage lessons.</T></p>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {courses.map((c) => (
           <div 
             key={c.id} 
-            // التوجيه إلى الصفحة المستقلة الجديدة
             onClick={() => router.push(`/dashboard/admin/lesson-scripts/${c.id}`)}
             className="group cursor-pointer glass rounded-2xl p-6 transition-all hover:shadow-elegant hover:border-primary border border-border flex justify-between items-center"
           >
