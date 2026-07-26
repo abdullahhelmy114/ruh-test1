@@ -2039,101 +2039,80 @@ function KnowledgeBaseTab() {
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0); // شريط التقدم
 
   const handleUpload = async () => {
-    if (!title.trim()) return toast.error(<T>Please enter the book title</T> as unknown as string);
-    if (!file) return toast.error(<T>Please select a PDF file</T> as unknown as string);
-    if (!user) return;
-
+    if (!title.trim() || !file || !user) return;
     setUploading(true);
-    const toastId = toast.loading(<T>Processing book and converting to AI vectors... This may take a minute</T> as unknown as string);
+    setProgress(5); 
 
     try {
       const token = await user.getIdToken();
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("book_title", title);
 
+      // 1. إرسال الملف للقراءة والتقطيع (يستغرق ثانيتين)
       const res = await fetch("/api/admin/knowledge/upload", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
+        method: "POST", headers: { Authorization: `Bearer ${token}` }, body: formData,
       });
-
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
 
-      if (res.ok) {
-        toast.success(<T>{data.message}</T> as unknown as string, { id: toastId });
-        setTitle("");
-        setFile(null);
-      } else {
-        toast.error(<T>{data.error || "Upload failed"}</T> as unknown as string, { id: toastId });
+      const chunks: string[] = data.chunks;
+      const totalChunks = chunks.length;
+      
+      // 2. إرسال الأجزاء للسيرفر في دفعات (كل دفعة 5 أجزاء) لمنع الـ Timeout
+      const batchSize = 5;
+      for (let i = 0; i < totalChunks; i += batchSize) {
+        const batch = chunks.slice(i, i + batchSize);
+        await fetch("/api/admin/knowledge/embed", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ chunks: batch, bookTitle: title }),
+        });
+        
+        // تحديث شريط التقدم أمامك
+        const currentProgress = Math.round(((i + batch.length) / totalChunks) * 100);
+        setProgress(Math.min(currentProgress, 100));
       }
-    } catch (error) {
-      toast.error(<T>Server connection error</T> as unknown as string, { id: toastId });
+
+      toast.success(<T>تم حفظ الكتاب في العقل الذكي بنجاح!</T> as unknown as string);
+      setTitle(""); setFile(null);
+    } catch (error: any) {
+      toast.error(<T>حدث خطأ أثناء الرفع</T> as unknown as string);
     } finally {
       setUploading(false);
+      setTimeout(() => setProgress(0), 2000);
     }
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-3xl">
+    <div className="space-y-6 animate-in fade-in max-w-3xl">
       <div>
-        <h2 className="font-serif text-2xl text-foreground flex items-center gap-2">
-          <BrainCircuit className="text-primary" /> <T>AI Knowledge Base (AI Brain)</T>
-        </h2>
-        <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-          <T>Upload books, curriculum, and interpretations (in PDF format). The system will read and convert them into vectors in the database. When you ask the AI to write a lesson, it will exclusively search these books and will not hallucinate external information.</T>
-        </p>
+        <h2 className="font-serif text-2xl flex items-center gap-2"><BrainCircuit className="text-primary" /> <T>AI Knowledge Base</T></h2>
+        <p className="text-muted-foreground mt-2 text-sm"><T>Upload PDF books. The AI will convert them into vectors.</T></p>
       </div>
       
       <div className="glass rounded-[2rem] border border-border p-8 shadow-xl space-y-6 relative overflow-hidden">
-        {/* خلفية جمالية */}
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Book Title" className="w-full text-base bg-background border rounded-xl px-4 py-3 outline-none focus:border-primary transition-all relative z-10" />
 
-        <div className="relative z-10">
-          <label className="block text-sm font-bold text-foreground mb-2"><T>Book or Curriculum Title</T></label>
-          <input 
-            value={title} 
-            onChange={(e) => setTitle(e.target.value)} 
-            placeholder="e.g., Al-Tibyan in Tajweed Rules" 
-            className="w-full text-base font-medium text-foreground bg-background border border-border rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-          />
+        <div className="relative z-10 border-2 border-dashed rounded-xl p-8 text-center transition-all border-border hover:border-primary/50">
+          <input type="file" accept=".pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} className="hidden" id="pdf-upload" />
+          <label htmlFor="pdf-upload" className="cursor-pointer flex flex-col items-center gap-3">
+            <div className="p-3 rounded-full bg-secondary"><Book size={24} /></div>
+            {file ? <span className="font-bold text-primary">{file.name}</span> : <span><T>Click to select PDF</T></span>}
+          </label>
         </div>
 
-        <div className="relative z-10">
-          <label className="block text-sm font-bold text-foreground mb-2"><T>Curriculum File (PDF)</T></label>
-          <div className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${file ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-secondary/50'}`}>
-            <input 
-              type="file" 
-              accept=".pdf" 
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="hidden" 
-              id="pdf-upload"
-            />
-            <label htmlFor="pdf-upload" className="cursor-pointer flex flex-col items-center gap-3">
-              <div className={`p-3 rounded-full ${file ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'}`}>
-                <Book size={24} />
-              </div>
-              {file ? (
-                <span className="font-bold text-primary">{file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
-              ) : (
-                <span className="text-muted-foreground font-medium"><T>Click to select a PDF file or drag and drop it here</T></span>
-              )}
-            </label>
+        {uploading && (
+          <div className="w-full bg-secondary rounded-full h-3 mb-4 relative z-10 overflow-hidden">
+            <div className="bg-primary h-3 rounded-full transition-all duration-300" style={{ width: `${progress}%` }}></div>
+            <p className="text-xs text-center mt-1 text-primary font-bold">{progress}%</p>
           </div>
-        </div>
+        )}
 
-        <button 
-          onClick={handleUpload} 
-          disabled={uploading || !file || !title} 
-          className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-lg hover:bg-primary/90 transition-all shadow-md disabled:opacity-50 relative z-10"
-        >
-          {uploading ? (
-            <><Loader2 className="animate-spin" /> <T>Processing and saving the book to the AI brain...</T></>
-          ) : (
-            <><Sparkles /> <T>Feed Knowledge Base</T></>
-          )}
+        <button onClick={handleUpload} disabled={uploading || !file || !title} className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-all disabled:opacity-50 relative z-10">
+          {uploading ? <T>Processing...</T> : <T>Feed Knowledge Base</T>}
         </button>
       </div>
     </div>
