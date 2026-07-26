@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     
     try {
       // أ. تحويل سؤال المعلم إلى متجهات بنفس اللغة التي يستخدمها سيرفر بايثون
-      const embeddingModel = genAI.getGenerativeModel({ model: "embedding-001" });
+      const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
       const promptEmbedResult = await embeddingModel.embedContent(prompt);
       const promptVector = `[${promptEmbedResult.embedding.values.join(",")}]`;
 
