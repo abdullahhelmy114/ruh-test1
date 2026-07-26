@@ -14,16 +14,24 @@ export async function POST(req: NextRequest) {
     const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
 
     for (const chunk of chunks) {
+      // 1. تحويل النص لمتجه
       const result = await embeddingModel.embedContent(chunk);
       const embeddingString = `[${result.embedding.values.join(",")}]`;
 
+      // 2. الحفظ في الداتا بيز (إذا لم تكن أنشأت الجدول سينفجر الخطأ هنا وسنراه)
       await sql`
         INSERT INTO knowledge_base (book_title, chunk_text, embedding)
         VALUES (${bookTitle}, ${chunk}, ${embeddingString}::vector)
       `;
+
+      // 3. 🛑 تأخير متعمد (1 ثانية) لحماية مفتاحك من حظر جوجل (Rate Limit)
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
+
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: "Failed" }, { status: 500 });
+  } catch (error: any) {
+    // سيطبع الخطأ الحقيقي في اللوجز (هل هو داتا بيز أم جوجل؟)
+    console.error("EMBEDDING ERROR DETAILED:", error.message || error);
+    return NextResponse.json({ error: error.message || "فشل الحفظ في قاعدة البيانات" }, { status: 500 });
   }
 }

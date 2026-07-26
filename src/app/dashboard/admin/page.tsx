@@ -2062,7 +2062,12 @@ function KnowledgeBaseTab() {
       // 1. قراءة الـ PDF من المتصفح (صفر ضغط على السيرفر)
       // ==========================================
       const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      // إخبار المكتبة بمكان الخطوط القياسية لمنع التحذير الأصفر
+      const standardFontDataUrl = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/standard_fonts/`;
+      const pdf = await pdfjsLib.getDocument({ 
+        data: arrayBuffer,
+        standardFontDataUrl: standardFontDataUrl
+      }).promise;
       
       let fullText = "";
       for (let i = 1; i <= pdf.numPages; i++) {
