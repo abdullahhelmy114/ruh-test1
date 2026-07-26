@@ -1,14 +1,10 @@
-// 1. الخدعة الهندسية (Polyfill) معدلة للعمل كدوال (Functions) بدلاً من Classes لمنع خطأ r2
-if (typeof globalThis.DOMMatrix === "undefined") {
-  (globalThis as any).DOMMatrix = function() {};
-  (globalThis as any).ImageData = function() {};
-  (globalThis as any).Path2D = function() {};
-}
-
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
 import { verifyIdToken } from "@/lib/firebase/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+// استيراد المكتبة الجديدة (مخصصة للسيرفرات فقط)
+// @ts-ignore: لا توجد تعريفات TypeScript لهذه المكتبة
+import PDFParser from "pdf2json";
 
 export const dynamic = "force-dynamic";
 
@@ -32,24 +28,30 @@ export async function POST(req: NextRequest) {
     let fullText = "";
 
     // =================================================================
-    // 2. قراءة الـ PDF بطريقة آمنة
+    // 📖 قراءة الـ PDF بالطريقة النظيفة والحديثة (بدون أي Polyfills)
     // =================================================================
     try {
       const buffer = Buffer.from(await file.arrayBuffer());
-      
-      const pdfParseModule = require("pdf-parse");
-      const pdfParse = typeof pdfParseModule === "function" 
-        ? pdfParseModule 
-        : (pdfParseModule.default || Object.values(pdfParseModule).find(v => typeof v === 'function'));
 
-      if (typeof pdfParse !== "function") {
-        return NextResponse.json({ error: "المكتبة لم تُحمّل كدالة." }, { status: 400 });
-      }
+      // تغليف العملية في Promise لتعمل بسلاسة مع (async/await)
+      fullText = await new Promise((resolve, reject) => {
+        const pdfParser = new PDFParser(null, 1); // رقم 1 يعني: استخرج النصوص فقط (أسرع وأخف)
+        
+        pdfParser.on("pdfParser_dataError", (errData: any) => reject(errData.parserError));
+        pdfParser.on("pdfParser_dataReady", () => {
+          // جلب النص وفك تشفيره وتنظيفه من المسافات العشوائية
+          const text = decodeURIComponent(pdfParser.getRawTextContent())
+            .replace(/\r\n/g, " ")
+            .replace(/\n/g, " ");
+          resolve(text);
+        });
 
-      const pdfData = await pdfParse(buffer);
-      fullText = pdfData.text;
+        // بدء القراءة
+        pdfParser.parseBuffer(buffer);
+      });
+
     } catch (pdfError: any) {
-      console.error("PDF Extraction Error Detailed:", pdfError);
+      console.error("PDF2JSON Extraction Error:", pdfError);
       return NextResponse.json({ 
         error: `فشل قراءة الملف. السبب التقني: ${pdfError.message || String(pdfError)}` 
       }, { status: 400 });
@@ -60,7 +62,7 @@ export async function POST(req: NextRequest) {
     }
 
     // =================================================================
-    // 3. معالجة النص، تقسيمه، وحفظه كـ Vectors
+    // 🧠 تحويل النص إلى متجهات (Vectors) وحفظه
     // =================================================================
     const chunks = fullText.match(/[\s\S]{1,1000}/g) || [];
     const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
@@ -72,6 +74,7 @@ export async function POST(req: NextRequest) {
 
       const result = await embeddingModel.embedContent(chunk);
       const embedding = result.embedding.values; 
+
       const embeddingString = `[${embedding.join(",")}]`;
 
       await sql`
