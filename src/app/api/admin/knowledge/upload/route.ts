@@ -3,7 +3,6 @@ import { sql } from "@/lib/db/client";
 import { verifyIdToken } from "@/lib/firebase/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 // استيراد المكتبة الجديدة (مخصصة للسيرفرات فقط)
-// @ts-ignore: لا توجد تعريفات TypeScript لهذه المكتبة
 import PDFParser from "pdf2json";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +34,7 @@ export async function POST(req: NextRequest) {
 
       // تغليف العملية في Promise لتعمل بسلاسة مع (async/await)
       fullText = await new Promise((resolve, reject) => {
-        const pdfParser = new PDFParser(null, 1); // رقم 1 يعني: استخرج النصوص فقط (أسرع وأخف)
+        const pdfParser = new PDFParser(null, true); // رقم 1 يعني: استخرج النصوص فقط (أسرع وأخف)
         
         pdfParser.on("pdfParser_dataError", (errData: any) => reject(errData.parserError));
         pdfParser.on("pdfParser_dataReady", () => {
