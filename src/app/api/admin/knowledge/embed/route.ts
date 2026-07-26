@@ -10,7 +10,6 @@ export async function POST(req: NextRequest) {
     const user = await verifyIdToken(req);
     if (!user || user.role !== "admin") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    // المتصفح سيرسل لنا 5 أجزاء كل مرة
     const { chunks, bookTitle } = await req.json();
     const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
 
@@ -23,9 +22,8 @@ export async function POST(req: NextRequest) {
         VALUES (${bookTitle}, ${chunk}, ${embeddingString}::vector)
       `;
     }
-
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: "Failed to embed chunk" }, { status: 500 });
+    return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
 }

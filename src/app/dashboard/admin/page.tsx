@@ -1,5 +1,6 @@
 "use client";
 
+import * as pdfjsLib from "pdfjs-dist";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -17,8 +18,14 @@ import {
   Download, Bot, Save, Loader2, Ban, UserCheck, ExternalLink, Video,
   MessageSquare, Bell, Trash2, Eye, Send, Mail, Edit3, UserX, Ticket, 
   HelpCircle, BarChart3, Layers, Book, FileSearch, Library, Package,
-  Megaphone, Plus, PenTool, Type, Image, FileVideo, MonitorPlay, ArrowRight, X, BrainCircuit
+  Megaphone, Plus, PenTool, Type, Image as ImageIcon, FileVideo, MonitorPlay, 
+  ArrowRight, X, BrainCircuit
 } from "lucide-react";
+
+// حماية الأداة (Worker) لتعمل فقط في المتصفح ولا تكسر سيرفر Next.js
+if (typeof window !== "undefined") {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+}
 // ─── Types ─────────────────────────────────────────────
 type TabKey =
   | "overview"
@@ -2033,53 +2040,78 @@ function ModelLessonsTab() {
   );
 }
 
-/* ─────────── AI Knowledge Base Tab (RAG System) ─────────── */
+/* ─────────── AI Knowledge Base Tab (Client-Side RAG) ─────────── */
 function KnowledgeBaseTab() {
   const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0); // شريط التقدم
+  const [progress, setProgress] = useState(0);
 
   const handleUpload = async () => {
     if (!title.trim() || !file || !user) return;
     setUploading(true);
-    setProgress(5); 
+    setProgress(2); 
 
     try {
       const token = await user.getIdToken();
-      const formData = new FormData();
-      formData.append("file", file);
-
-      // 1. إرسال الملف للقراءة والتقطيع (يستغرق ثانيتين)
-      const res = await fetch("/api/admin/knowledge/upload", {
-        method: "POST", headers: { Authorization: `Bearer ${token}` }, body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
-      const chunks: string[] = data.chunks;
-      const totalChunks = chunks.length;
       
-      // 2. إرسال الأجزاء للسيرفر في دفعات (كل دفعة 5 أجزاء) لمنع الـ Timeout
-      const batchSize = 5;
+      toast.info(<T>جاري قراءة الملف من متصفحك...</T> as unknown as string);
+
+      // ==========================================
+      // 1. قراءة الـ PDF من المتصفح (صفر ضغط على السيرفر)
+      // ==========================================
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      
+      let fullText = "";
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((item: any) => item.str).join(" ");
+        fullText += pageText + " ";
+      }
+
+      if (!fullText.trim()) throw new Error("الملف فارغ أو عبارة عن صور (Scanned).");
+
+      // ==========================================
+      // 2. تقطيع النص في المتصفح
+      // ==========================================
+      const chunks = fullText.match(/[\s\S]{1,1000}/g) || [];
+      const validChunks = chunks.filter(c => c.trim().length >= 50);
+      const totalChunks = validChunks.length;
+
+      if (totalChunks === 0) throw new Error("لم يتم العثور على نصوص كافية.");
+
+      toast.info(<T>{`Read complete! Converting ${totalChunks} chunks to vectors and saving...`}</T> as unknown as string);
+
+      // ==========================================
+      // 3. إرسال الأجزاء للسيرفر في دفعات (لتجنب Cloudflare Timeout)
+      // ==========================================
+      const batchSize = 5; // إرسال 5 أجزاء في كل طلب
       for (let i = 0; i < totalChunks; i += batchSize) {
-        const batch = chunks.slice(i, i + batchSize);
-        await fetch("/api/admin/knowledge/embed", {
+        const batch = validChunks.slice(i, i + batchSize);
+        
+        // إرسال لـ API الدمج (Embed) الذي أنشأناه سابقاً
+        const res = await fetch("/api/admin/knowledge/embed", {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({ chunks: batch, bookTitle: title }),
         });
+
+        if (!res.ok) throw new Error("فشل في معالجة إحدى الدفعات.");
         
-        // تحديث شريط التقدم أمامك
+        // تحديث شريط التقدم الفعلي
         const currentProgress = Math.round(((i + batch.length) / totalChunks) * 100);
         setProgress(Math.min(currentProgress, 100));
       }
 
       toast.success(<T>تم حفظ الكتاب في العقل الذكي بنجاح!</T> as unknown as string);
-      setTitle(""); setFile(null);
+      setTitle(""); 
+      setFile(null);
     } catch (error: any) {
-      toast.error(<T>حدث خطأ أثناء الرفع</T> as unknown as string);
+      console.error(error);
+      toast.error(<T>{error.message || "حدث خطأ أثناء المعالجة"}</T> as unknown as string);
     } finally {
       setUploading(false);
       setTimeout(() => setProgress(0), 2000);
@@ -2090,7 +2122,7 @@ function KnowledgeBaseTab() {
     <div className="space-y-6 animate-in fade-in max-w-3xl">
       <div>
         <h2 className="font-serif text-2xl flex items-center gap-2"><BrainCircuit className="text-primary" /> <T>AI Knowledge Base</T></h2>
-        <p className="text-muted-foreground mt-2 text-sm"><T>Upload PDF books. The AI will convert them into vectors.</T></p>
+        <p className="text-muted-foreground mt-2 text-sm"><T>Upload PDF books. The AI will convert them into vectors locally for maximum speed.</T></p>
       </div>
       
       <div className="glass rounded-[2rem] border border-border p-8 shadow-xl space-y-6 relative overflow-hidden">
