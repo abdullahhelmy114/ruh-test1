@@ -2041,85 +2041,43 @@ function ModelLessonsTab() {
 }
 
 /* ─────────── AI Knowledge Base Tab (Client-Side RAG) ─────────── */
+/* ─────────── AI Knowledge Base Tab (Python Microservice) ─────────── */
 function KnowledgeBaseTab() {
-  const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
 
   const handleUpload = async () => {
-    if (!title.trim() || !file || !user) return;
+    if (!title.trim() || !file) return;
     setUploading(true);
-    setProgress(2); 
+    
+    // ⚠️ استبدل هذا الرابط لاحقاً برابط سيرفر بايثون بعد رفعه على Coolify
+    const PYTHON_API_URL = "http://127.0.0.1:8000/upload-pdf"; 
+
+    const toastId = toast.loading(<T>جاري رفع الكتاب لسيرفر الذكاء الاصطناعي لمعالجته...</T> as unknown as string);
 
     try {
-      const token = await user.getIdToken();
-      
-      toast.info(<T>جاري قراءة الملف من متصفحك...</T> as unknown as string);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("book_title", title);
 
-      // ==========================================
-      // 1. قراءة الـ PDF من المتصفح (صفر ضغط على السيرفر)
-      // ==========================================
-      const arrayBuffer = await file.arrayBuffer();
-      // إخبار المكتبة بمكان الخطوط القياسية لمنع التحذير الأصفر
-      const standardFontDataUrl = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/standard_fonts/`;
-      const pdf = await pdfjsLib.getDocument({ 
-        data: arrayBuffer,
-        standardFontDataUrl: standardFontDataUrl
-      }).promise;
-      
-      let fullText = "";
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items.map((item: any) => item.str).join(" ");
-        fullText += pageText + " ";
+      const res = await fetch(PYTHON_API_URL, {
+        method: "POST",
+        body: formData, // لا نرسل Headers معينة هنا، دع المتصفح يضبطها
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success(<T>{data.message}</T> as unknown as string, { id: toastId });
+        setTitle(""); setFile(null);
+      } else {
+        throw new Error(data.detail || "حدث خطأ في سيرفر المعالجة");
       }
-
-      if (!fullText.trim()) throw new Error("الملف فارغ أو عبارة عن صور (Scanned).");
-
-      // ==========================================
-      // 2. تقطيع النص في المتصفح
-      // ==========================================
-      const chunks = fullText.match(/[\s\S]{1,1000}/g) || [];
-      const validChunks = chunks.filter(c => c.trim().length >= 50);
-      const totalChunks = validChunks.length;
-
-      if (totalChunks === 0) throw new Error("لم يتم العثور على نصوص كافية.");
-
-      toast.info(<T>{`Read complete! Converting ${totalChunks} chunks to vectors and saving...`}</T> as unknown as string);
-
-      // ==========================================
-      // 3. إرسال الأجزاء للسيرفر في دفعات (لتجنب Cloudflare Timeout)
-      // ==========================================
-      const batchSize = 5; // إرسال 5 أجزاء في كل طلب
-      for (let i = 0; i < totalChunks; i += batchSize) {
-        const batch = validChunks.slice(i, i + batchSize);
-        
-        // إرسال لـ API الدمج (Embed) الذي أنشأناه سابقاً
-        const res = await fetch("/api/admin/knowledge/embed", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ chunks: batch, bookTitle: title }),
-        });
-
-        if (!res.ok) throw new Error("فشل في معالجة إحدى الدفعات.");
-        
-        // تحديث شريط التقدم الفعلي
-        const currentProgress = Math.round(((i + batch.length) / totalChunks) * 100);
-        setProgress(Math.min(currentProgress, 100));
-      }
-
-      toast.success(<T>تم حفظ الكتاب في العقل الذكي بنجاح!</T> as unknown as string);
-      setTitle(""); 
-      setFile(null);
     } catch (error: any) {
-      console.error(error);
-      toast.error(<T>{error.message || "حدث خطأ أثناء المعالجة"}</T> as unknown as string);
+      toast.error(<T>{error.message}</T> as unknown as string, { id: toastId });
     } finally {
       setUploading(false);
-      setTimeout(() => setProgress(0), 2000);
     }
   };
 
@@ -2127,29 +2085,22 @@ function KnowledgeBaseTab() {
     <div className="space-y-6 animate-in fade-in max-w-3xl">
       <div>
         <h2 className="font-serif text-2xl flex items-center gap-2"><BrainCircuit className="text-primary" /> <T>AI Knowledge Base</T></h2>
-        <p className="text-muted-foreground mt-2 text-sm"><T>Upload PDF books. The AI will convert them into vectors locally for maximum speed.</T></p>
+        <p className="text-muted-foreground mt-2 text-sm"><T>قم برفع الكتب، سيقوم محرك بايثون الخارق بقراءتها وحفظها كمتجهات.</T></p>
       </div>
       
-      <div className="glass rounded-[2rem] border border-border p-8 shadow-xl space-y-6 relative overflow-hidden">
-        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Book Title" className="w-full text-base bg-background border rounded-xl px-4 py-3 outline-none focus:border-primary transition-all relative z-10" />
+      <div className="glass rounded-[2rem] border border-border p-8 shadow-xl space-y-6">
+        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Book Title" className="w-full bg-background border rounded-xl px-4 py-3 outline-none focus:border-primary" />
 
-        <div className="relative z-10 border-2 border-dashed rounded-xl p-8 text-center transition-all border-border hover:border-primary/50">
+        <div className="border-2 border-dashed rounded-xl p-8 text-center border-border hover:border-primary/50">
           <input type="file" accept=".pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} className="hidden" id="pdf-upload" />
           <label htmlFor="pdf-upload" className="cursor-pointer flex flex-col items-center gap-3">
             <div className="p-3 rounded-full bg-secondary"><Book size={24} /></div>
-            {file ? <span className="font-bold text-primary">{file.name}</span> : <span><T>Click to select PDF</T></span>}
+            {file ? <span className="font-bold text-primary">{file.name}</span> : <span><T>اختر ملف PDF</T></span>}
           </label>
         </div>
 
-        {uploading && (
-          <div className="w-full bg-secondary rounded-full h-3 mb-4 relative z-10 overflow-hidden">
-            <div className="bg-primary h-3 rounded-full transition-all duration-300" style={{ width: `${progress}%` }}></div>
-            <p className="text-xs text-center mt-1 text-primary font-bold">{progress}%</p>
-          </div>
-        )}
-
-        <button onClick={handleUpload} disabled={uploading || !file || !title} className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-all disabled:opacity-50 relative z-10">
-          {uploading ? <T>Processing...</T> : <T>Feed Knowledge Base</T>}
+        <button onClick={handleUpload} disabled={uploading || !file || !title} className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 disabled:opacity-50">
+          {uploading ? <T>جاري المعالجة...</T> : <T>تغذية قاعدة المعرفة</T>}
         </button>
       </div>
     </div>
