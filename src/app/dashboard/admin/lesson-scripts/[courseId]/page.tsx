@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/AuthProvider";
 import { T } from "@/components/TranslatedText";
@@ -12,14 +12,21 @@ import { Color } from "@tiptap/extension-color";
 import Highlight from "@tiptap/extension-highlight";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
-import ImageExtension from "@tiptap/extension-image";
+import ImageExtension from "@tiptap/extension-image"; // استيراد الصور
+import * as pdfjsLib from "pdfjs-dist";
+
 import { 
   Save, Loader2, Bold, Italic, Highlighter, Mic, Wand2, FileText, Languages, Sparkles, 
   Trash2, Underline as UnderlineIcon, Palette, Image as ImageIcon, Link2, List, ListOrdered, 
-  Library, Download, Printer, PenTool, BrainCircuit, Blocks
+  Library, Download, Printer, PenTool, BrainCircuit, Blocks, ArrowRight, X
 } from "lucide-react";
 import { LessonScript, ActiveTool, AudioBlockData, QuizBlockData } from "@/components/editor/types";
 import { AudioBlock, QuizBlock, AiToolsModal, LibraryModal } from "@/components/editor/EditorComponents";
+
+// حماية Worker الخاص بـ PDF.js من الانهيار على السيرفر (إذا كنت لا تزال تستخدمه هنا)
+if (typeof window !== "undefined") {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+}
 
 type TabCategory = "format" | "ai" | "insert";
 
@@ -48,7 +55,7 @@ export default function SmartLessonEditor() {
       Underline, 
       Link, 
       Highlight.configure({ multicolor: true }),
-      ImageExtension // <--- قمنا بإضافة هذه الكلمة هنا
+      ImageExtension // إضافة دعم الصور
     ],
     content: "",
     editorProps: { attributes: { class: "prose prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[500px] text-foreground leading-loose" } },
@@ -65,19 +72,33 @@ export default function SmartLessonEditor() {
   const addAiQuiz = async () => {
     setAiLoading(true);
     setTimeout(() => {
-      setScript(prev => ({ ...prev, quizBlocks: [...prev.quizBlocks, { id: Date.now().toString(), title: "AI Interactive Quiz", currentQuestionIndex: 0, questions: [{ id: "q1", question: "AI Generated Question?", options: [{ id: "opt1", text: "Yes", label: "A"}, { id: "opt2", text: "No", label: "B"}], correctIndex: 0 }] }] }));
+      setScript(prev => ({ 
+        ...prev, 
+        quizBlocks: [...prev.quizBlocks, { 
+          id: Date.now().toString(), 
+          title: "AI Interactive Quiz", 
+          currentQuestionIndex: 0, 
+          questions: [{ 
+            id: "q1", // تم إضافة id لتجنب خطأ TypeScript
+            question: "AI Generated Question?", 
+            options: [{ id: "opt1", text: "Yes", label: "A"}, { id: "opt2", text: "No", label: "B"}], 
+            correctIndex: 0 
+          }] 
+        }] 
+      }));
       toast.success(<T>Quiz generated!</T> as unknown as string);
       setAiLoading(false);
     }, 1500);
   };
 
-const generateFullLesson = async (book: any) => {
-    const toastId = toast.loading(<T>Generating a comprehensive lesson from</T> as unknown as string + ` "${book.book_title}"...`);
+  // دالة توليد الدرس من الكتاب (RAG)
+  const generateFullLesson = async (book: any) => {
+    const toastId = toast.loading(<T>Generating lesson from</T> as unknown as string + ` "${book.book_title}"...`);
     setAiLoading(true);
     
     try {
       const token = await user?.getIdToken();
-      // هنا نوجه الأمر للـ RAG System للبحث في هذا الكتاب حصراً وكتابة الدرس
+      // توجيه الأمر للـ RAG System للبحث في هذا الكتاب حصراً وكتابة الدرس
       const prompt = `Write a comprehensive, highly detailed educational lesson in Arabic based ONLY on the book titled "${book.book_title}". Include a strong introduction, main educational concepts, and a clear conclusion. Format the response entirely in HTML so it looks beautiful in a rich text editor.`;
 
       const res = await fetch("/api/ai/generate", {
@@ -91,11 +112,11 @@ const generateFullLesson = async (book: any) => {
         // تحديث العنوان ليطابق الكتاب
         setScript(prev => ({ 
           ...prev, 
-          title: `درس مستخرج من: ${book.book_title}`, 
-          subtitle: "تم التوليد بواسطة الذكاء الاصطناعي" 
+          title: `Lesson from: ${book.book_title}`, 
+          subtitle: "AI Generated Content" 
         }));
         
-        // إزالة علامات الماركداون إذا أرجعها Gemini ووضع المحتوى في المحرر
+        // إزالة علامات الماركداون وتحديث المحرر
         const cleanHtml = data.text.replace(/```html/g, "").replace(/```/g, "").trim();
         editor?.commands.setContent(cleanHtml);
         
@@ -115,19 +136,19 @@ const generateFullLesson = async (book: any) => {
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary flex">
       
-      {/* ─── 🗂️ Sidebar (القسم الجانبي الأنيق) ─── */}
+      {/* ─── 🗂️ Sidebar ─── */}
       <aside className="fixed left-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 p-3 bg-card/90 backdrop-blur-xl border border-border rounded-3xl shadow-2xl z-50">
-        <button onClick={() => setActiveTab("format")} className={`p-3 rounded-2xl transition-all tooltip ${activeTab === "format" ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`} title="التنسيق (Formatting)">
+        <button onClick={() => setActiveTab("format")} className={`p-3 rounded-2xl transition-all tooltip ${activeTab === "format" ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`} title="Formatting">
           <PenTool size={22} />
         </button>
-        <button onClick={() => setActiveTab("ai")} className={`p-3 rounded-2xl transition-all tooltip ${activeTab === "ai" ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`} title="الذكاء الاصطناعي (AI Tools)">
+        <button onClick={() => setActiveTab("ai")} className={`p-3 rounded-2xl transition-all tooltip ${activeTab === "ai" ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`} title="AI Tools">
           <BrainCircuit size={22} />
         </button>
-        <button onClick={() => setActiveTab("insert")} className={`p-3 rounded-2xl transition-all tooltip ${activeTab === "insert" ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`} title="الأدوات والإدراج (Insert)">
+        <button onClick={() => setActiveTab("insert")} className={`p-3 rounded-2xl transition-all tooltip ${activeTab === "insert" ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`} title="Insert Tools">
           <Blocks size={22} />
         </button>
         <div className="w-8 h-px bg-border mx-auto my-1" />
-        <button onClick={() => setIsLibraryOpen(true)} className="p-3 rounded-2xl text-accent-foreground bg-accent/10 hover:bg-accent/20 transition-all tooltip" title="مكتبة الكتب والنماذج">
+        <button onClick={() => setIsLibraryOpen(true)} className="p-3 rounded-2xl text-accent-foreground bg-accent/10 hover:bg-accent/20 transition-all tooltip" title="Library & Models">
           <Library size={22} />
         </button>
       </aside>
@@ -135,10 +156,9 @@ const generateFullLesson = async (book: any) => {
       {/* ─── 🖥️ Main Workspace ─── */}
       <main className="flex-1 ml-24 relative">
         
-        {/* 🏝️ Dynamic Island (تتغير حسب التاب المختار) */}
+        {/* 🏝️ Dynamic Island */}
         <nav className="sticky top-4 mx-auto max-w-3xl z-40 flex items-center justify-between bg-card/95 backdrop-blur-2xl border border-border px-5 py-2.5 rounded-full shadow-xl transition-all duration-300">
           
-          {/* محتوى الجزيرة المتغير */}
           <div className="flex items-center gap-1">
             
             {activeTab === "format" && (
@@ -154,11 +174,11 @@ const generateFullLesson = async (book: any) => {
 
             {activeTab === "ai" && (
               <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-4 px-2">
-                <button onClick={() => setScript(p => ({...p, audioBlocks: [...p.audioBlocks, { id: Date.now().toString(), title: "Voice Recording", waveformHeights: [2,4,6,8,5], textToRead: editor?.getText() }]}))} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition text-xs font-bold"><Mic size={14} /> <T>صوت AI</T></button>
-                <button onClick={addAiQuiz} disabled={aiLoading} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent/20 text-accent-foreground hover:bg-accent/30 transition text-xs font-bold"><Wand2 size={14} /> <T>أسئلة تفاعلية</T></button>
-                <button onClick={() => setActiveTool("summary")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-secondary transition text-xs font-bold"><FileText size={14} /> <T>تلخيص</T></button>
-                <button onClick={() => setActiveTool("ai-writer")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-secondary transition text-xs font-bold"><Sparkles size={14} /> <T>صياغة وتوسيع</T></button>
-                <button onClick={() => setActiveTool("translate")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-secondary transition text-xs font-bold"><Languages size={14} /> <T>ترجمة</T></button>
+                <button onClick={() => setScript(p => ({...p, audioBlocks: [...p.audioBlocks, { id: Date.now().toString(), title: "Voice Recording", waveformHeights: [2,4,6,8,5], textToRead: editor?.getText() }]}))} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition text-xs font-bold"><Mic size={14} /> <T>AI Voice</T></button>
+                <button onClick={addAiQuiz} disabled={aiLoading} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent/20 text-accent-foreground hover:bg-accent/30 transition text-xs font-bold"><Wand2 size={14} /> <T>Interactive Quiz</T></button>
+                <button onClick={() => setActiveTool("summary")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-secondary transition text-xs font-bold"><FileText size={14} /> <T>Summarize</T></button>
+                <button onClick={() => setActiveTool("ai-writer")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-secondary transition text-xs font-bold"><Sparkles size={14} /> <T>Expand & Rewrite</T></button>
+                <button onClick={() => setActiveTool("translate")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-secondary transition text-xs font-bold"><Languages size={14} /> <T>Translate</T></button>
               </div>
             )}
 
@@ -173,22 +193,21 @@ const generateFullLesson = async (book: any) => {
 
           </div>
 
-          {/* الأزرار العالمية الثابتة (حفظ، طباعة، تصدير) */}
           <div className="flex items-center gap-2 border-l border-border pl-4">
             <button onClick={() => window.print()} className="p-2 rounded-full hover:bg-secondary text-muted-foreground transition" title="Print/PDF"><Printer size={16} /></button>
             <button className="p-2 rounded-full hover:bg-secondary text-muted-foreground transition" title="Export Markdown"><Download size={16} /></button>
             <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-5 py-2 rounded-full bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition shadow-md disabled:opacity-50 text-sm">
-              {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} <T>حفظ</T>
+              {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} <T>Save</T>
             </button>
           </div>
         </nav>
 
-        {/* 📄 Canvas Digital Paper */}
+        {/* 📄 Canvas */}
         <article className="pt-12 pb-32 px-4 flex justify-center">
           <div className="w-full max-w-[850px] min-h-[1050px] bg-card border border-border shadow-2xl rounded-[2rem] p-12 md:p-20 relative">
             
             <div className="mb-6 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-              <span className="h-2 w-2 rounded-full bg-primary" /> <T>مسودة الدرس</T> · {script.grade} · {script.subject}
+              <span className="h-2 w-2 rounded-full bg-primary" /> <T>Lesson Draft</T> · {script.grade} · {script.subject}
             </div>
 
             <input 
