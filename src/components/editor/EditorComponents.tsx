@@ -210,10 +210,12 @@ export const LibraryModal = ({ isOpen, onClose, onGenerateLesson }: { isOpen: bo
             books.map((book, idx) => (
               <div key={idx} className="p-4 rounded-2xl border border-border bg-background hover:border-primary/50 transition-all flex items-center justify-between group">
                 <div>
-                  <h4 className="font-bold text-foreground">{book.book_title}</h4>
-                  <p className="text-sm text-muted-foreground mt-1"><T>Contains</T> {book.chunks_count} <T>knowledge chunks</T></p>
-                  <div className="text-[10px] font-bold text-primary uppercase mt-2">
-                    <T>Uploaded on</T> {new Date(book.uploaded_at).toLocaleDateString()}
+                  <h4 className="font-bold text-foreground">{book.title}</h4>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold">Gemini Source</span>
+                  </div>
+                  <div className="text-[10px] font-bold text-muted-foreground uppercase mt-2">
+                    <T>Uploaded on</T> {new Date(book.created_at).toLocaleDateString()}
                   </div>
                 </div>
                 <button 

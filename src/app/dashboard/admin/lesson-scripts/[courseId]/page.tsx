@@ -93,13 +93,13 @@ export default function SmartLessonEditor() {
 
   // دالة توليد الدرس من الكتاب (RAG)
   const generateFullLesson = async (book: any) => {
-    const toastId = toast.loading(<T>Generating lesson from</T> as unknown as string + ` "${book.book_title}"...`);
+    const toastId = toast.loading(<T>Generating a comprehensive lesson from</T> as unknown as string + ` "${book.title}"...`);
     setAiLoading(true);
     
     try {
       const token = await user?.getIdToken();
-      // توجيه الأمر للـ RAG System للبحث في هذا الكتاب حصراً وكتابة الدرس
-      const prompt = `Write a comprehensive, highly detailed educational lesson in Arabic based ONLY on the book titled "${book.book_title}". Include a strong introduction, main educational concepts, and a clear conclusion. Format the response entirely in HTML so it looks beautiful in a rich text editor.`;
+      // نوجه الأمر لـ Gemini للبحث في هذا الكتاب حصراً
+      const prompt = `Write a comprehensive, highly detailed educational lesson in Arabic based ONLY on the book titled "${book.title}". Include a strong introduction, main educational concepts, and a clear conclusion. Format the response entirely in HTML so it looks beautiful in a rich text editor.`;
 
       const res = await fetch("/api/ai/generate", {
         method: "POST",
