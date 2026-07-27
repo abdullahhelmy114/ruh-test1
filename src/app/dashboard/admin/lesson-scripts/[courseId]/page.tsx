@@ -103,10 +103,18 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
         
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-bold mb-2"><T>Select Reference Book</T></label>
-            <select className="w-full bg-background border border-border p-3 rounded-xl outline-none focus:border-primary" onChange={e => setSelectedBook(e.target.value)}>
-              <option value="">-- <T>Select a book from Knowledge Base</T> --</option>
-              {books.map((b, i) => <option key={i} value={b.book_title}>{b.book_title}</option>)}
+            <label className="block text-sm font-bold mb-2 text-foreground"><T>Select Reference Book</T></label>
+            <select 
+              value={selectedBook}
+              className="w-full bg-background text-foreground border border-border p-3 rounded-xl outline-none focus:border-primary cursor-pointer" 
+              onChange={e => setSelectedBook(e.target.value)}
+            >
+              <option value="" disabled>-- <T>Select a book from Knowledge Base</T> --</option>
+              {books.map((b, i) => (
+                <option key={i} value={b.title}>
+                  {b.title}
+                </option>
+              ))}
             </select>
           </div>
           <div>
