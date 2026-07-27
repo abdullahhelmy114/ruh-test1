@@ -1,16 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // تخطي فحص الأخطاء أثناء الرفع لتوفير الرامات السيرفر (لأننا فحصناها محلياً)
+  // 🚀 هذا هو السطر السحري الذي سيحل المشكلة ويضغط حجم المشروع
+  output: 'standalone', 
+  
   typescript: {
     ignoreBuildErrors: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // تقليل استهلاك الذاكرة أثناء ضغط الملفات
   experimental: {
     memoryBasedWorkersCount: true,
   },
 };
 
-export default nextConfig; // أو module.exports = nextConfig; حسب ملفك
+export default nextConfig; // إذا كان الملف ينتهي بـ .ts أو .mjs
+// module.exports = nextConfig; // استخدم هذا السطر فقط إذا كان الملف ينتهي بـ .js

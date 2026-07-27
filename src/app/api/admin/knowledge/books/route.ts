@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
 import { verifyIdToken } from "@/lib/firebase/server";
 
+// 🚀 هذا السطر السحري يمنع الكاش ويجبر السيرفر على قراءة الداتابيز في كل مرة تفتح فيها المكتبة
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const user = await verifyIdToken(req);
@@ -9,7 +12,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // جلب أسماء الكتب الفريدة من قاعدة البيانات مع عدد الأجزاء (Chunks) لكل كتاب
+    // جلب أسماء الكتب من قاعدة البيانات وتجميع عدد أجزائها
     const books = await sql`
       SELECT book_title, COUNT(id) as chunks_count, MIN(created_at) as uploaded_at
       FROM knowledge_base
