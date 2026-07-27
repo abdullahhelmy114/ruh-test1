@@ -63,7 +63,7 @@ export default function HomePage() {
   const [stats, setStats] = useState({
     students: "12K+",
     completion: "98%",
-    experience: "20+",
+    experience: "30+",
   });
 
   useEffect(() => {

@@ -8,115 +8,125 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   try {
     const user = await verifyIdToken(req);
-    if (!user || user.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    if (!user || user.role !== "admin") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { prompt, type } = await req.json();
-    if (!prompt) {
-      return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
-    }
+    const { prompt, type, courseTitle, level } = await req.json();
+    if (!prompt) return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) throw new Error("مفتاح GEMINI_API_KEY غير موجود!");
-
-    const genAI = new GoogleGenerativeAI(apiKey);
+    const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+    if (!openRouterApiKey) throw new Error("OPENROUTER_API_KEY is missing!");
 
     // =========================================================
-    // 🔍 المرحلة الأولى: سحب صفحات الكتاب من الداتا بيز
+    // 🔍 1. البحث في قاعدة بيانات Neon (RAG)
     // =========================================================
     let contextData = "";
-    
     try {
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
       const embeddingModel = genAI.getGenerativeModel({ model: "embedding-001" });
       const promptEmbedResult = await embeddingModel.embedContent(prompt);
       const promptVector = `[${promptEmbedResult.embedding.values.join(",")}]`;
 
-      // 🚀 تم زيادة الـ LIMIT إلى 8 لجلب صفحات أكثر من الكتاب ليكون الدرس دسماً وشاملاً
       const relevantChunks = await sql`
         SELECT book_title, chunk_text 
         FROM knowledge_base 
         ORDER BY embedding <=> ${promptVector}::vector 
-        LIMIT 8
+        LIMIT 15
       `;
-
       if (relevantChunks && relevantChunks.length > 0) {
-        contextData = relevantChunks.map(c => `[نص من كتاب: ${c.book_title}]:\n${c.chunk_text}`).join("\n\n---\n\n");
+        contextData = relevantChunks.map(c => `[كتاب: ${c.book_title}]:\n${c.chunk_text}`).join("\n\n");
       }
-    } catch (dbError: any) {
-      console.warn("Vector Search Bypassed:", dbError.message);
+    } catch (e) {
+      console.warn("RAG Bypassed");
     }
 
     // =========================================================
-    // 🧠 المرحلة الثانية: الأوامر الصارمة لـ Gemini
+    // 🧠 2. هندسة الأوامر الصارمة حسب نوع الطلب
     // =========================================================
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    let systemInstruction = "";
 
-    let finalPrompt = "";
-    
-    if (type === "quiz") {
-      finalPrompt = `أنت مصمم اختبارات تعليمية خبير.
-      
-المصدر الوحيد والمعتمد (من الكتاب):
+    if (type === "curriculum") {
+      systemInstruction = `أنت مطور مناهج ذو خبرة، متخصص في تعليم اللغات لغير الناطقين بها.
+المصدر المعتمد الوحيد لكتابة المنهج:
 ${contextData}
 
-المطلوب:
-بناءً على الموضوع التالي: "${prompt}" ومن خلال المصدر المرفق أعلاه حصراً، قم بإنشاء 5 أسئلة اختيار من متعدد.
+المطلوب إنجازه للمنهج:
+بناءً على طلب المستخدم التالي: "${prompt}"
+قم بتصميم دورة شاملة بعنوان "${courseTitle || 'دورة تعليمية'}" موجهة للمتعلمين في مستوى الكفاءة "${level || 'مبتدئ'}".
+حدد وحدات الدورة، ودروس كل وحدة متسلسلة منطقياً.
 
-قواعد صارمة جداً لا تكسرها:
-1. الأسئلة والخيارات والشرح يجب أن تكون جميعها باللغة العربية الفصحى 100%. (يُمنع استخدام الإنجليزية).
-2. لا تضف أي معلومة من خارج المصدر المرفق.
-3. أرجع الرد كـ JSON array فقط بدون أي نصوص إضافية أو علامات (مثل \`\`\`json).
-4. الهيكل المطلوب حرفياً:
+قاعدة برمجية صارمة جداً (إجباري):
+لا تكتب أي نص عادي. يجب أن ترجع الرد فقط على هيئة مصفوفة JSON (Raw JSON Array) صالحة برمجياً، حيث يمثل كل كائن (Object) درساً واحداً في هذه الدورة.
+يجب أن يكون محتوى الدرس (content) مكتوباً بصيغة HTML منسقة وجميلة وجاهزة للعرض.
+الهيكل الإجباري:
 [
   {
-    "id": "q1",
-    "question": "نص السؤال هنا؟",
-    "options": [
-      {"id": "o1", "text": "الخيار الأول", "label": "أ"},
-      {"id": "o2", "text": "الخيار الثاني", "label": "ب"}
-    ],
-    "correctIndex": 0,
-    "explanation": "شرح سبب الإجابة الصحيحة مستخرج من الكتاب."
+    "title": "اسم الوحدة: اسم الدرس",
+    "content": "<h1>أهداف الدرس</h1><p>...</p><h2>الأنشطة والواجبات</h2><p>...</p>"
   }
 ]`;
-    } else {
-      finalPrompt = `أنت خبير في صياغة المناهج الدراسية والأكاديمية.
 
-المصدر الوحيد والمعتمد (من الكتاب المرفوع):
+    } else if (type === "quiz") {
+      systemInstruction = `أنت مصمم اختبارات خبير.
+المصدر المعتمد:
 ${contextData}
 
-طلب المستخدم:
-"${prompt}"
+المطلوب: إنشاء 5 أسئلة اختيار من متعدد حول: "${prompt}".
+قواعد صارمة:
+1. اللغة العربية الفصحى فقط.
+2. لا تخرج عن المصدر.
+3. أرجع الرد كـ JSON array فقط بدون أي كلمات أخرى.
+الهيكل الإجباري:
+[{"id": "q1", "question": "السؤال؟", "options": [{"id": "o1", "text": "خيار 1", "label": "أ"}], "correctIndex": 0, "explanation": "الشرح"}]`;
 
-تعليمات صارمة جداً (إجباري الالتزام بها):
-1. أنت مقيد 100% بالمعلومات الموجودة في "المصدر الوحيد" أعلاه. يُمنع منعاً باتاً تأليف أي معلومة أو جلب أمثلة من خارج هذا الكتاب.
-2. اكتب "درساً تعليمياً شاملاً ومفصلاً جداً" باللغة العربية الفصحى فقط لا غير (يُمنع استخدام أي كلمات أو مصطلحات إنجليزية).
-3. يجب أن يكون بناء الدرس منهجياً ويحتوي على:
-   - عنوان رئيسي يعبر عن الدرس.
-   - مقدمة تمهيدية مشوقة للطالب.
-   - شرح عميق ومفصل مقسم إلى فقرات متسلسلة (استناداً للنص المرفق).
-   - ذكر الأمثلة أو الأدلة الموجودة في الكتاب نصاً.
-   - خاتمة تلخص أهم ما جاء في الدرس.
-4. قم بتنسيق الدرس بالكامل باستخدام وسوم HTML فقط ليكون جاهزاً للعرض (استخدم <h1> للعناوين الكبرى, <h2> للعناوين الفرعية, <p> للفقرات, <strong> للكلمات المهمة، <ul> للقوائم).
-5. لا تستخدم أسلوب Markdown إطلاقاً (لا تستخدم ** أو ##).
-6. إذا كان "المصدر" فارغاً أو لا يحتوي على معلومات كافية، اكتب فقط: "عذراً، لم أجد معلومات كافية في الكتاب المرفق لتوليد هذا الدرس." ولا تقم بالتأليف أبداً.`;
+    } else {
+      systemInstruction = `أنت خبير في صياغة المناهج الدراسية والأكاديمية.
+المصدر المعتمد:
+${contextData}
+
+طلب المستخدم: "${prompt}"
+
+تعليمات صارمة:
+1. أنت مقيد 100% بالمعلومات الموجودة في المصدر المرفق فقط.
+2. اكتب درساً تعليمياً شاملاً ومفصلاً باللغة العربية الفصحى.
+3. قم بتنسيق الدرس بالكامل باستخدام وسوم HTML فقط (<h1>, <h2>, <p>, <ul>). لا تستخدم Markdown أبداً.
+4. لا تقم بتغليف الرد بعلامات \`\`\`html. أرجع الكود مباشرة.`;
     }
 
-    const result = await model.generateContent(finalPrompt);
-    let text = result.response.text();
+    // =========================================================
+    // 🌐 3. إرسال الطلب لـ Claude 3.5 Sonnet عبر OpenRouter
+    // =========================================================
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${openRouterApiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://ruhulqudus.net", // مطلوب لعمل OpenRouter بكفاءة
+        "X-Title": "Ruhulqudus Academy"          // مطلوب لعمل OpenRouter بكفاءة
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.0-flash-exp:free", // أو استخدم النموذج المجاني google/gemini-2.0-flash-exp:free
+        messages: [{ role: "user", content: systemInstruction }],
+        temperature: 0.2
+      })
+    });
 
-    if (type === "quiz") {
+    if (!response.ok) throw new Error("OpenRouter API Failed");
+
+    const data = await response.json();
+    let text = data.choices[0].message.content;
+
+    // =========================================================
+    // 🧹 4. تنظيف الـ JSON والـ HTML من شوائب الماركداون
+    // =========================================================
+    if (type === "quiz" || type === "curriculum") {
       text = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+    } else {
+      text = text.replace(/```html/gi, "").replace(/```/g, "").trim();
     }
 
     return NextResponse.json({ success: true, text });
-
   } catch (error: any) {
-    console.error("Gemini AI Final Error Detailed:", error);
-    return NextResponse.json({ 
-      error: "Failed to generate content", 
-      details: error.message || String(error)
-    }, { status: 500 });
+    console.error("AI Generation Error Detailed:", error);
+    return NextResponse.json({ error: "Failed", details: error.message }, { status: 500 });
   }
 }
