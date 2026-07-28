@@ -33,6 +33,8 @@ type TabCategory = "format" | "ai" | "insert";
 // ==========================================
 // 🚀 AI Curriculum Generator Modal
 // ==========================================
+// ... (باقي الاستيرادات كما هي)
+
 const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: boolean, onClose: () => void, courseId: string, fetchLessons: () => void }) => {
   const { user } = useAuth();
   const [books, setBooks] = useState<any[]>([]);
@@ -48,46 +50,50 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
     }
   }, [isOpen, user]);
 
-  const handleGenerate = async () => {
+const handleGenerate = async () => {
     if (!selectedBook) return toast.error(<T>Please select a book first</T> as unknown as string);
     setLoading(true);
-    const toastId = toast.loading(<T>Building the curriculum and generating full lessons via AI...</T> as unknown as string);
+    const toastId = toast.loading(<T>AI agents are reading the book, planning, and creating full curriculum...</T> as unknown as string);
 
     try {
       const token = await user?.getIdToken();
-      // 1. توليد المنهج كـ JSON
+      
       const res = await fetch("/api/ai/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ 
-          type: "curriculum", 
-          prompt: `اعتمد على كتاب ${selectedBook}. ${instructions}`,
-          courseTitle: selectedBook,
-          level: level
+          bookTitle: selectedBook,
+          level: level,
+          instructions: instructions 
         })
       });
       const data = await res.json();
-      if (!data.success) throw new Error();
+      if (!data.success) throw new Error(data.details || "Generation failed");
 
-      const lessonsList = JSON.parse(data.text);
-
-      // 2. إنشاء الدروس في قاعدة البيانات أوتوماتيكياً بمحتواها الكامل
-      for (const lesson of lessonsList) {
+      const lessonTitles: string[] = data.titles;
+      
+      // إنشاء الدروس لكل عنوان
+      for (const title of lessonTitles) {
         await fetch(`/api/admin/model-courses/${courseId}/lessons`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({ 
-            title: lesson.title, 
-            content: JSON.stringify({ html: lesson.content, audio: [], quiz: [] }) 
+            title: title, 
+            content: JSON.stringify({ html: "", audio: [], quiz: [] })
           }),
         });
       }
 
-      toast.success(<T>Curriculum and lessons generated successfully!</T> as unknown as string, { id: toastId });
-      fetchLessons(); // تحديث القائمة لظهور الدروس الجديدة
+      // نجاح مع عرض عدد الدروس مع ترجمة آمنة
+      const lessonsCount = lessonTitles.length;
+      toast.success(
+        <span><T>Curriculum generated successfully!</T> {lessonsCount} <T>lessons created.</T></span>, 
+        { id: toastId }
+      );
+      fetchLessons();
       onClose();
-    } catch (e) {
-      toast.error(<T>Failed to generate. Please simplify your instructions.</T> as unknown as string, { id: toastId });
+    } catch (e: any) {
+      toast.error(<T>Failed to generate.</T> as unknown as string, { id: toastId });
     } finally { 
       setLoading(false); 
     }
@@ -99,7 +105,7 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
       <div className="w-full max-w-2xl bg-card border border-border rounded-3xl p-8 shadow-2xl relative">
         <button onClick={onClose} className="absolute right-6 top-6 p-2 text-muted-foreground hover:bg-secondary rounded-full transition-colors"><X size={18} /></button>
         <h2 className="text-2xl font-bold font-serif mb-2 flex items-center gap-2"><BrainCircuit className="text-primary"/> <T>AI Full Curriculum Generator</T></h2>
-        <p className="text-muted-foreground text-sm mb-6"><T>The AI will read the book, divide it into modules, and generate comprehensive lessons automatically.</T></p>
+        <p className="text-muted-foreground text-sm mb-6"><T>The AI agents will analyze the book, split it into 10 lessons, and create engaging titles.</T></p>
         
         <div className="space-y-5">
           <div>
@@ -119,7 +125,7 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
           </div>
           <div>
             <label className="block text-sm font-bold mb-2"><T>Target Level</T></label>
-            <select className="w-full bg-background border border-border p-3 rounded-xl outline-none focus:border-primary" onChange={e => setLevel(e.target.value)}>
+            <select className="w-full bg-background border border-border p-3 rounded-xl outline-none focus:border-primary" onChange={e => setLevel(e.target.value)} value={level}>
               <option value="A1">A1 - Beginner</option>
               <option value="A2">A2 - Elementary</option>
               <option value="B1">B1 - Intermediate</option>
@@ -131,7 +137,7 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
             <label className="block text-sm font-bold mb-2"><T>Additional AI Instructions</T></label>
             <textarea 
               rows={3} onChange={e => setInstructions(e.target.value)}
-              placeholder="e.g., Create exactly 10 lessons, focus on grammar and vocabulary..."
+              placeholder="e.g., Focus on grammar and Quranic vocabulary, make lessons interactive..."
               className="w-full bg-background border border-border p-3 rounded-xl outline-none focus:border-primary"
             />
           </div>
@@ -147,6 +153,7 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
     </div>
   );
 };
+
 
 // ==========================================
 // 🚀 Main Editor Component
