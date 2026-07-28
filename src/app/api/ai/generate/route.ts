@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     // 4. استخراج النص الكامل من PDF باستخدام Gemini File API
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
     const extractionModel = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash", // سريع ومجاني لاستخراج النصوص
+      model: "gemini-2.5-flash", // سريع ومجاني لاستخراج النصوص
     });
 
     const extractionResult = await extractionModel.generateContent([
