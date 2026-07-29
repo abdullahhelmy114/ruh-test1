@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyIdToken } from "@/lib/firebase/server";
 import { sql } from "@/lib/db/client";
-import fs from "fs";
-import path from "path";
+import pdfParse from "pdf-parse"; // استيراد مباشر (قد تحتاج ts-ignore)
 
 export const dynamic = "force-dynamic";
+
+// دالة مساعدة لاستخراج النص من PDF (سواء من ملف مباشر أو من رابط Gemini)
+async function extractTextFromBuffer(buffer: Buffer): Promise<string> {
+  // @ts-ignore – pdf-parse قد لا يملك تعريفات TypeScript متوافقة
+  const pdfParse = require("pdf-parse");
+  const data = await pdfParse(buffer);
+  return data.text;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,96 +21,100 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
     }
 
-    // 2. استلام البيانات من CurriculumModal
-    const { bookTitle, level, instructions } = await req.json();
-    if (!bookTitle || !level) {
-      return NextResponse.json(
-        { error: "يجب إرسال bookTitle و level" },
-        { status: 400 }
-      );
-    }
-
-    // 3. جلب file_uri من قاعدة البيانات
-    const books = await sql`
-      SELECT file_uri FROM gemini_books WHERE title = ${bookTitle} LIMIT 1
-    `;
-    if (!books || books.length === 0) {
-      return NextResponse.json(
-        { error: "الكتاب غير موجود في قاعدة المعرفة" },
-        { status: 404 }
-      );
-    }
-    const fileUri: string = books[0].file_uri;
-
-    // 4. استخراج النص الكامل من PDF محليًا (بدون استهلاك حصة Gemini generateContent)
-    const apiKey = process.env.GEMINI_API_KEY!;
-
-    // استخراج اسم الملف من الرابط الكامل (مثال: https://generativelanguage.googleapis.com/v1beta/files/XYZ)
-    const fileName = fileUri.split("/").pop();
-    if (!fileName) throw new Error("اسم الملف غير صالح");
-
-    // رابط التحميل المباشر مع مفتاح API
-    const downloadUrl = `https://generativelanguage.googleapis.com/v1beta/files/${fileName}?key=${apiKey}&alt=media`;
-
-    // تنزيل الملف PDF إلى مسار مؤقت
-    const tempDir = path.join(process.cwd(), "temp");
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
-    }
-    const tempFilePath = path.join(tempDir, `${Date.now()}.pdf`);
-
     let bookText = "";
-    try {
-      const downloadResponse = await fetch(downloadUrl);
-      if (!downloadResponse.ok) {
-        throw new Error(`فشل تنزيل الملف (${downloadResponse.status})`);
+    let level = "";
+    let instructions = "";
+
+    // 2. تحديد نوع المحتوى واستقبال البيانات
+    const contentType = req.headers.get("content-type") || "";
+
+    if (contentType.includes("multipart/form-data")) {
+      // --- حالة رفع ملف PDF أو إرسال FormData من الواجهة ---
+      const formData = await req.formData();
+      level = formData.get("level") as string;
+      instructions = (formData.get("instructions") as string) || "";
+      const pdfFile = formData.get("pdfFile") as File | null;
+      const bookTitle = formData.get("bookTitle") as string | null;
+
+      if (!level) {
+        return NextResponse.json({ error: "يجب توفير المستوى التعليمي" }, { status: 400 });
       }
 
-      const buffer = Buffer.from(await downloadResponse.arrayBuffer());
+      if (pdfFile) {
+        // قراءة الملف المرفوع مباشرة
+        const buffer = Buffer.from(await pdfFile.arrayBuffer());
+        bookText = await extractTextFromBuffer(buffer);
+      } else if (bookTitle) {
+        // جلب الكتاب من Gemini File API بنفس الآلية السابقة
+        const books = await sql`
+          SELECT file_uri FROM gemini_books WHERE title = ${bookTitle} LIMIT 1
+        `;
+        if (!books || books.length === 0) {
+          return NextResponse.json({ error: "الكتاب غير موجود في قاعدة المعرفة" }, { status: 404 });
+        }
+        const fileUri = books[0].file_uri;
+        const fileName = fileUri.split("/").pop();
+        if (!fileName) throw new Error("اسم الملف غير صالح");
 
-      // استخراج النص باستخدام pdf-parse
-      // @ts-ignore – مكتبة pdf-parse قد لا تملك تعريفات TypeScript حديثة
-      const pdfParse = require("pdf-parse");
-      const pdfData = await pdfParse(buffer);
-      bookText = pdfData.text;
+        const apiKey = process.env.GEMINI_API_KEY!;
+        const downloadUrl = `https://generativelanguage.googleapis.com/v1beta/files/${fileName}?key=${apiKey}&alt=media`;
+        const res = await fetch(downloadUrl);
+        if (!res.ok) throw new Error(`فشل تنزيل الكتاب من Gemini (${res.status})`);
+        const buffer = Buffer.from(await res.arrayBuffer());
+        bookText = await extractTextFromBuffer(buffer);
+      } else {
+        return NextResponse.json({ error: "يجب رفع ملف PDF أو اختيار كتاب" }, { status: 400 });
+      }
+    } else {
+      // --- حالة JSON (للتوافق مع الكود القديم إن وُجد) ---
+      const body = await req.json();
+      const { bookTitle, level: jsonLevel, instructions: jsonInstructions } = body;
+      if (!bookTitle || !jsonLevel) {
+        return NextResponse.json({ error: "يجب إرسال bookTitle و level" }, { status: 400 });
+      }
+      level = jsonLevel;
+      instructions = jsonInstructions || "";
 
-      if (!bookText || bookText.length < 100) {
-        throw new Error("النص المستخرج قصير جداً أو فارغ");
+      const books = await sql`
+        SELECT file_uri FROM gemini_books WHERE title = ${bookTitle} LIMIT 1
+      `;
+      if (!books || books.length === 0) {
+        return NextResponse.json({ error: "الكتاب غير موجود" }, { status: 404 });
       }
-    } finally {
-      // تنظيف الملف المؤقت
-      if (fs.existsSync(tempFilePath)) {
-        fs.unlinkSync(tempFilePath);
-      }
+      const fileUri = books[0].file_uri;
+      const fileName = fileUri.split("/").pop();
+      if (!fileName) throw new Error("اسم الملف غير صالح");
+
+      const apiKey = process.env.GEMINI_API_KEY!;
+      const downloadUrl = `https://generativelanguage.googleapis.com/v1beta/files/${fileName}?key=${apiKey}&alt=media`;
+      const res = await fetch(downloadUrl);
+      if (!res.ok) throw new Error("فشل تنزيل الكتاب من Gemini");
+      const buffer = Buffer.from(await res.arrayBuffer());
+      bookText = await extractTextFromBuffer(buffer);
     }
 
-    // 5. إرسال النص إلى خدمة وكلاء بايثون لتوليد المنهج
-    const pythonServiceUrl =
-      process.env.PYTHON_AI_SERVICE_URL || "https://ai.ruhulqudus.net";
+    if (!bookText || bookText.length < 100) {
+      return NextResponse.json({ error: "النص المستخرج قصير جداً أو فارغ" }, { status: 500 });
+    }
 
-    const pythonResponse = await fetch(
-      `${pythonServiceUrl}/generate-curriculum`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          book_text: bookText,
-          level: level,
-          instructions: instructions || "",
-        }),
-      }
-    );
+    // 3. إرسال النص إلى خدمة بايثون (وكلاء OpenRouter)
+    const pythonServiceUrl = process.env.PYTHON_AI_SERVICE_URL || "https://ai.ruhulqudus.net";
+    const pythonResponse = await fetch(`${pythonServiceUrl}/generate-curriculum`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        book_text: bookText,
+        level: level,
+        instructions: instructions,
+      }),
+    });
 
     if (!pythonResponse.ok) {
       const errData = await pythonResponse.json().catch(() => null);
-      throw new Error(
-        errData?.detail || "فشل الاتصال بخدمة توليد المنهج (Python)"
-      );
+      throw new Error(errData?.detail || "فشل الاتصال بخدمة توليد المنهج (Python)");
     }
 
     const curriculumData = await pythonResponse.json();
-
-    // 6. إرجاع المنهج النهائي للواجهة الأمامية
     return NextResponse.json({
       success: true,
       markdown: curriculumData.markdown,

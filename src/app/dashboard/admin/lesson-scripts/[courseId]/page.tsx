@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/AuthProvider";
 import { T } from "@/components/TranslatedText";
@@ -18,7 +18,7 @@ import * as pdfjsLib from "pdfjs-dist";
 import { 
   Save, Loader2, Bold, Italic, Highlighter, Mic, Wand2, FileText, Languages, Sparkles, 
   Trash2, Underline as UnderlineIcon, Palette, Image as ImageIcon, Link2, List, ListOrdered, 
-  Library, Download, Printer, PenTool, BrainCircuit, Blocks, ArrowRight, X, Plus
+  Library, Download, Printer, PenTool, BrainCircuit, Blocks, ArrowRight, X, Plus, Upload
 } from "lucide-react";
 import { LessonScript, ActiveTool, AudioBlockData, QuizBlockData } from "@/components/editor/types";
 import { AudioBlock, QuizBlock, AiToolsModal, LibraryModal } from "@/components/editor/EditorComponents";
@@ -33,8 +33,6 @@ type TabCategory = "format" | "ai" | "insert";
 // ==========================================
 // 🚀 AI Curriculum Generator Modal
 // ==========================================
-// ... (باقي الاستيرادات كما هي)
-
 const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: boolean, onClose: () => void, courseId: string, fetchLessons: () => void }) => {
   const { user } = useAuth();
   const [books, setBooks] = useState<any[]>([]);
@@ -42,6 +40,8 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
   const [level, setLevel] = useState("A1");
   const [instructions, setInstructions] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen && user) {
@@ -50,22 +50,30 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
     }
   }, [isOpen, user]);
 
-const handleGenerate = async () => {
-    if (!selectedBook) return toast.error(<T>Please select a book first</T> as unknown as string);
+  const handleGenerate = async () => {
+    if (!selectedBook && !selectedFile) {
+      return toast.error("Please select a book or upload a PDF file.");
+    }
     setLoading(true);
     const toastId = toast.loading(<T>AI agents are reading the book, planning, and creating full curriculum...</T> as unknown as string);
 
     try {
       const token = await user?.getIdToken();
       
+      const formData = new FormData();
+      formData.append("level", level);
+      formData.append("instructions", instructions);
+
+      if (selectedFile) {
+        formData.append("pdfFile", selectedFile);
+      } else if (selectedBook) {
+        formData.append("bookTitle", selectedBook);
+      }
+
       const res = await fetch("/api/ai/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ 
-          bookTitle: selectedBook,
-          level: level,
-          instructions: instructions 
-        })
+        headers: { Authorization: `Bearer ${token}` }, // لا نضع Content-Type للمتصفح ليضبطه مع FormData
+        body: formData,
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.details || "Generation failed");
@@ -84,7 +92,6 @@ const handleGenerate = async () => {
         });
       }
 
-      // نجاح مع عرض عدد الدروس مع ترجمة آمنة
       const lessonsCount = lessonTitles.length;
       toast.success(
         <span><T>Curriculum generated successfully!</T> {lessonsCount} <T>lessons created.</T></span>, 
@@ -105,15 +112,19 @@ const handleGenerate = async () => {
       <div className="w-full max-w-2xl bg-card border border-border rounded-3xl p-8 shadow-2xl relative">
         <button onClick={onClose} className="absolute right-6 top-6 p-2 text-muted-foreground hover:bg-secondary rounded-full transition-colors"><X size={18} /></button>
         <h2 className="text-2xl font-bold font-serif mb-2 flex items-center gap-2"><BrainCircuit className="text-primary"/> <T>AI Full Curriculum Generator</T></h2>
-        <p className="text-muted-foreground text-sm mb-6"><T>The AI agents will analyze the book, split it into 10 lessons, and create engaging titles.</T></p>
+        <p className="text-muted-foreground text-sm mb-6"><T>Select a book from Knowledge Base or upload a PDF directly.</T></p>
         
         <div className="space-y-5">
+          {/* اختيار كتاب من قاعدة المعرفة */}
           <div>
             <label className="block text-sm font-bold mb-2 text-foreground"><T>Select Reference Book</T></label>
             <select 
               value={selectedBook}
               className="w-full bg-background text-foreground border border-border p-3 rounded-xl outline-none focus:border-primary cursor-pointer" 
-              onChange={e => setSelectedBook(e.target.value)}
+              onChange={e => {
+                setSelectedBook(e.target.value);
+                setSelectedFile(null); // نلغي الملف إذا اختار كتاب
+              }}
             >
               <option value="" disabled>-- <T>Select a book from Knowledge Base</T> --</option>
               {books.map((b, i) => (
@@ -123,6 +134,34 @@ const handleGenerate = async () => {
               ))}
             </select>
           </div>
+
+          {/* فاصل أو اختيار رفع ملف */}
+          <div className="flex items-center gap-4">
+            <div className="flex-1 border-t border-border"></div>
+            <span className="text-xs text-muted-foreground font-medium"><T>OR</T></span>
+            <div className="flex-1 border-t border-border"></div>
+          </div>
+
+          {/* رفع ملف PDF مباشرة */}
+          <div>
+            <label className="block text-sm font-bold mb-2"><T>Upload PDF File</T></label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf"
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setSelectedFile(file);
+                  setSelectedBook(""); // نلغي الكتاب
+                }
+              }}
+              className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer text-muted-foreground"
+            />
+            {selectedFile && <p className="text-xs text-green-600 mt-1">📄 {selectedFile.name}</p>}
+          </div>
+
+          {/* المستوى */}
           <div>
             <label className="block text-sm font-bold mb-2"><T>Target Level</T></label>
             <select className="w-full bg-background border border-border p-3 rounded-xl outline-none focus:border-primary" onChange={e => setLevel(e.target.value)} value={level}>
@@ -133,6 +172,8 @@ const handleGenerate = async () => {
               <option value="C1">C1 - Advanced</option>
             </select>
           </div>
+
+          {/* تعليمات إضافية */}
           <div>
             <label className="block text-sm font-bold mb-2"><T>Additional AI Instructions</T></label>
             <textarea 
@@ -145,7 +186,7 @@ const handleGenerate = async () => {
 
         <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-border">
           <button onClick={onClose} className="px-5 py-2 rounded-xl border border-border hover:bg-secondary text-sm font-semibold transition-colors"><T>Cancel</T></button>
-          <button onClick={handleGenerate} disabled={loading || !selectedBook} className="px-6 py-2 rounded-xl bg-primary text-primary-foreground font-bold flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-md disabled:opacity-50">
+          <button onClick={handleGenerate} disabled={loading || (!selectedBook && !selectedFile)} className="px-6 py-2 rounded-xl bg-primary text-primary-foreground font-bold flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-md disabled:opacity-50">
             {loading ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />} <T>Build Curriculum</T>
           </button>
         </div>
@@ -153,7 +194,6 @@ const handleGenerate = async () => {
     </div>
   );
 };
-
 
 // ==========================================
 // 🚀 Main Editor Component
@@ -170,7 +210,7 @@ export default function SmartLessonEditor() {
 
   const [activeTab, setActiveTab] = useState<TabCategory>("format");
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
-  const [isCurriculumOpen, setIsCurriculumOpen] = useState(false); // <-- حالة زر توليد المنهج
+  const [isCurriculumOpen, setIsCurriculumOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [activeTool, setActiveTool] = useState<ActiveTool>(null);
@@ -284,7 +324,6 @@ export default function SmartLessonEditor() {
     setAiLoading(false);
   };
 
-  // دالة توليد درس واحد مفرد من المكتبة
   const generateSingleLesson = async (book: any) => {
     const toastId = toast.loading(<T>Generating a comprehensive lesson from</T> as unknown as string + ` "${book.book_title}"...`);
     setAiLoading(true);
@@ -312,7 +351,6 @@ export default function SmartLessonEditor() {
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary flex">
       
-      {/* ─── 🗂️ Sidebar ─── */}
       {view === "editor" && (
         <aside className="fixed left-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 p-3 bg-card/90 backdrop-blur-xl border border-border rounded-3xl shadow-2xl z-50">
           <button onClick={() => setActiveTab("format")} className={`p-3 rounded-2xl transition-all tooltip ${activeTab === "format" ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`} title="Formatting">
@@ -333,7 +371,6 @@ export default function SmartLessonEditor() {
 
       <main className={`flex-1 relative ${view === "editor" ? "ml-24" : ""}`}>
         
-        {/* ─── List View (Lessons Manager) ─── */}
         {view === "list" && (
           <article className="max-w-5xl mx-auto px-6 py-12 animate-in fade-in duration-500">
             <button onClick={() => router.push("/dashboard/admin")} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors font-medium mb-8">
@@ -379,7 +416,6 @@ export default function SmartLessonEditor() {
           </article>
         )}
 
-        {/* ─── Editor View (Tiptap + Dynamic Island) ─── */}
         {view === "editor" && (
           <section className="relative min-h-screen bg-muted/20 animate-in zoom-in-95 duration-300">
             

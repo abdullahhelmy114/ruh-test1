@@ -17,7 +17,10 @@ export const metadata: Metadata = {
   title: "Ruhulqudus Academy | أرقى منصة لتعلم العربية",
   description: "Traditional wisdom meets modern learning technology.",
     icons: {
-    icon: "/icon.png",
+    icon: [
+      { url: '/light.svg', media: '(prefers-color-scheme: light)' },
+      { url: '/dark.svg',  media: '(prefers-color-scheme: dark)' },
+    ],
   },
 };
 

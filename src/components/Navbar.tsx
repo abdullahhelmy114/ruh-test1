@@ -153,8 +153,12 @@ export function Navbar() {
           </button>
 
           <Link href="/" className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-full gradient-primary shadow-elegant">
-              <BookOpen className="h-5 w-5 text-primary-foreground" />
+            <div className="grid h-10 w-10 place-items-center rounded-full gradient-primary shadow-elegant p-1.5">
+              <picture>
+                <source srcSet="/light.svg" media="(prefers-color-scheme: light)" />
+                <source srcSet="/dark.svg" media="(prefers-color-scheme: dark)" />
+              <img src="/light.svg" alt="Ruhulqudus" className="h-full w-full object-contain" />
+              </picture>
             </div>
             <div className="leading-tight">
               <div className="font-serif text-lg font-semibold text-foreground">
@@ -162,9 +166,9 @@ export function Navbar() {
               </div>
               <div className="text-[10px] uppercase tracking-[0.2em] text-foreground">
                 <T>Academy</T>
+                </div>
               </div>
-            </div>
-          </Link>
+            </Link>
         </div>
 
         {/* Navigation (desktop) – هوية كريمي × كحلي */}

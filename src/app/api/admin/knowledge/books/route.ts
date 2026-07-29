@@ -6,22 +6,22 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
+    // التحقق من الصلاحية
     const user = await verifyIdToken(req);
     if (!user || user.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
     }
 
-    // جلب أسماء الكتب من الجدول الجديد (gemini_books)
+    // جلب قائمة الكتب من قاعدة المعرفة
     const books = await sql`
       SELECT id, title, file_uri, created_at
       FROM gemini_books
       ORDER BY created_at DESC
     `;
 
-    return NextResponse.json({ success: true, books: books || [] }, { status: 200 });
-
+    return NextResponse.json({ success: true, books: books || [] });
   } catch (error) {
-    console.error("Fetch Gemini Books Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("خطأ في جلب كتب Gemini:", error);
+    return NextResponse.json({ error: "فشل جلب الكتب من قاعدة البيانات" }, { status: 500 });
   }
 }

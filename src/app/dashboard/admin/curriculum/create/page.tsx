@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/AuthProvider";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,8 @@ export default function CreateModelCourse() {
   const [price, setPrice] = useState("");
   const [scenarioText, setScenarioText] = useState("[]");
   const [loading, setLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +31,7 @@ export default function CreateModelCourse() {
     }
     setLoading(true);
 
+    // 1. تحقق من صحة بيانات الكورس
     let scenario;
     try {
       scenario = JSON.parse(scenarioText);
@@ -40,9 +43,10 @@ export default function CreateModelCourse() {
     }
 
     const token = await user.getIdToken();
-    const res = await fetch("/api/admin/curriculum", {
+
+    // 2. إنشاء الكورس أولاً
+    const courseRes = await fetch("/api/admin/curriculum", {
       method: "POST",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -56,14 +60,62 @@ export default function CreateModelCourse() {
       }),
     });
 
-    if (res.ok) {
-      toast.success("تم إنشاء الكورس النموذجي");
-      router.push("/dashboard/admin");
-    } else {
-      const err = await res.json();
+    if (!courseRes.ok) {
+      const err = await courseRes.json();
       toast.error(err.error || "فشل إنشاء الكورس");
+      setLoading(false);
+      return;
     }
+
+    const courseData = await courseRes.json();
+    const courseId = courseData.id; // تأكد أن API يعيد id الكورس الجديد
+
+    toast.success("تم إنشاء الكورس النموذجي");
+
+    // 3. إذا تم رفع ملف PDF، قم بتوليد الدروس تلقائياً
+    if (selectedFile) {
+      try {
+        const genFormData = new FormData();
+        genFormData.append("pdfFile", selectedFile);
+        genFormData.append("level", level);
+        genFormData.append("instructions", ""); // يمكن إضافة تعليمات هنا
+
+        const genRes = await fetch("/api/ai/generate", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: genFormData,
+        });
+
+        if (!genRes.ok) throw new Error("فشل توليد الدروس");
+
+        const genData = await genRes.json();
+        const lessonTitles: string[] = genData.titles;
+
+        // إنشاء درس لكل عنوان
+        for (const lessonTitle of lessonTitles) {
+          await fetch(`/api/admin/model-courses/${courseId}/lessons`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              title: lessonTitle,
+              content: JSON.stringify({ html: "", audio: [], quiz: [] }),
+            }),
+          });
+        }
+        toast.success(`تم إنشاء ${lessonTitles.length} درساً بنجاح`);
+      } catch (error) {
+        toast.error("تم إنشاء الكورس ولكن فشل توليد الدروس تلقائياً");
+        console.error(error);
+      }
+    }
+
     setLoading(false);
+    router.push("/dashboard/admin");
   };
 
   return (
@@ -92,7 +144,7 @@ export default function CreateModelCourse() {
             </div>
             <div>
               <Label>الجزء/المستوى</Label>
-              <Input value={level} onChange={(e) => setLevel(e.target.value)} placeholder="مبتدئ، متوسط، 30، 29..." required />
+              <Input value={level} onChange={(e) => setLevel(e.target.value)} placeholder="مبتدئ، متوسط، A1, B1..." required />
             </div>
             <div>
               <Label>السعر (دولار)</Label>
@@ -112,8 +164,29 @@ export default function CreateModelCourse() {
                 <code>{`[{"step": "مقدمة", "type": "text"}, {"step": "عرض فيديو", "type": "video", "url": "..."}]`}</code>
               </p>
             </div>
+
+            {/* قسم رفع ملف PDF لتوليد المنهج تلقائياً */}
+            <div className="border-t pt-4">
+              <Label className="text-base font-semibold">📄 توليد دروس من كتاب PDF (اختياري)</Label>
+              <p className="text-sm text-muted-foreground mb-2">
+                بعد إنشاء الكورس، سيتم تحليل الكتاب وإنشاء الدروس تلقائياً.
+              </p>
+              <Input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) setSelectedFile(file);
+                }}
+              />
+              {selectedFile && (
+                <p className="text-xs text-green-600 mt-1">تم اختيار: {selectedFile.name}</p>
+              )}
+            </div>
+
             <Button type="submit" disabled={loading}>
-              {loading ? "جاري الحفظ..." : "إنشاء الكورس"}
+              {loading ? "جاري الإنشاء..." : "إنشاء الكورس" + (selectedFile ? " و توليد الدروس" : "")}
             </Button>
           </form>
         </CardContent>
