@@ -35,27 +35,29 @@ export async function POST(req: NextRequest) {
     const fileUri: string = books[0].file_uri;
 
     // 4. استخراج النص الكامل من PDF باستخدام Gemini File API
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-    const extractionModel = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash", // سريع ومجاني لاستخراج النصوص
-    });
+// 4. استخراج النص الكامل من PDF باستخدام Gemini File API
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const extractionModel = genAI.getGenerativeModel({
+  model: "gemini-2.0-flash", // النموذج الأقدم المتاح والأقل تشددًا
+});
 
-    const extractionResult = await extractionModel.generateContent([
-      {
-        fileData: {
-          mimeType: "application/pdf",
-          fileUri: fileUri,
-        },
-      },
-      {
-        text: "استخرج النص الكامل للكتاب حرفيًا، مع الحفاظ على البنية والفقرات. أعد النص العربي كاملاً بدون أي إضافات أو تلخيص.",
-      },
-    ]);
+const extractionResult = await extractionModel.generateContent([
+  {
+    fileData: {
+      mimeType: "application/pdf",
+      fileUri: fileUri,
+    },
+  },
+  {
+    // موجه تعليمي لتجنب مشكلة RECITATION
+    text: "أنشئ تحليلًا تعليميًا مفصلاً لمحتوى هذا الكتاب. قم بتقسيم المحتوى إلى وحدات ودروس، واشرح المفاهيم اللغوية والدينية الواردة بأسلوب تعليمي يناسب معلمي اللغة العربية. أعد الصياغة بأسلوبك، مع الحفاظ على التسلسل الأصلي للموضوعات. لا تنسخ النص حرفيًا بل قدم إعادة صياغة تعليمية للمفاهيم."
+  },
+]);
 
-    const bookText = extractionResult.response.text();
-    if (!bookText || bookText.length < 100) {
-      throw new Error("النص المستخرج قصير جدًا أو فارغ، تأكد من محتوى الكتاب");
-    }
+const bookText = extractionResult.response.text();
+if (!bookText || bookText.length < 100) {
+  throw new Error("النص المستخرج قصير جدًا أو فارغ، تأكد من محتوى الكتاب");
+}
 
     // 5. إرسال النص إلى خدمة وكلاء بايثون لتوليد المنهج
     const pythonServiceUrl =
