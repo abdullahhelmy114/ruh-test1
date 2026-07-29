@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleAIFileManager } from "@google/generative-ai/server";
 import { verifyIdToken } from "@/lib/firebase/server";
 import { sql } from "@/lib/db/client";
+import fs from "fs";
+import path from "path";
 
 export const dynamic = "force-dynamic";
 
@@ -34,30 +36,50 @@ export async function POST(req: NextRequest) {
     }
     const fileUri: string = books[0].file_uri;
 
-    // 4. استخراج النص الكامل من PDF باستخدام Gemini File API
-// 4. استخراج النص الكامل من PDF باستخدام Gemini File API
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-const extractionModel = genAI.getGenerativeModel({
-  model: "gemini-2.0-flash", // النموذج الأقدم المتاح والأقل تشددًا
-});
+    // 4. استخراج النص الكامل من PDF محلياً (بدون Gemini لتجنب الحصة)
+    const apiKey = process.env.GEMINI_API_KEY!;
+    const fileManager = new GoogleAIFileManager(apiKey);
 
-const extractionResult = await extractionModel.generateContent([
-  {
-    fileData: {
-      mimeType: "application/pdf",
-      fileUri: fileUri,
-    },
-  },
-  {
-    // موجه تعليمي لتجنب مشكلة RECITATION
-    text: "أنشئ تحليلًا تعليميًا مفصلاً لمحتوى هذا الكتاب. قم بتقسيم المحتوى إلى وحدات ودروس، واشرح المفاهيم اللغوية والدينية الواردة بأسلوب تعليمي يناسب معلمي اللغة العربية. أعد الصياغة بأسلوبك، مع الحفاظ على التسلسل الأصلي للموضوعات. لا تنسخ النص حرفيًا بل قدم إعادة صياغة تعليمية للمفاهيم."
-  },
-]);
+    // التحقق من وجود الملف
+    const fileInfo = await fileManager.getFile(fileUri);
+    if (!fileInfo || !fileInfo.uri) {
+      throw new Error("الملف غير موجود في Gemini File API");
+    }
 
-const bookText = extractionResult.response.text();
-if (!bookText || bookText.length < 100) {
-  throw new Error("النص المستخرج قصير جدًا أو فارغ، تأكد من محتوى الكتاب");
-}
+    // تنزيل الملف PDF إلى مسار مؤقت
+    const tempDir = path.join(process.cwd(), "temp");
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+    const tempFilePath = path.join(tempDir, `${Date.now()}.pdf`);
+
+    let bookText = "";
+    try {
+      // تنزيل الملف باستخدام الرابط مع مفتاح API
+      const downloadResponse = await fetch(fileInfo.uri, {
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+      if (!downloadResponse.ok) {
+        throw new Error(`فشل تنزيل الملف (${downloadResponse.status})`);
+      }
+
+      const buffer = Buffer.from(await downloadResponse.arrayBuffer());
+
+      // استخراج النص عبر pdf-parse (نستخدم require لتجنب أخطاء TypeScript)
+      // @ts-ignore
+      const pdfParse = require("pdf-parse");
+      const pdfData = await pdfParse(buffer);
+      bookText = pdfData.text;
+
+      if (!bookText || bookText.length < 100) {
+        throw new Error("النص المستخرج قصير جداً أو فارغ");
+      }
+    } finally {
+      // تنظيف الملف المؤقت
+      if (fs.existsSync(tempFilePath)) {
+        fs.unlinkSync(tempFilePath);
+      }
+    }
 
     // 5. إرسال النص إلى خدمة وكلاء بايثون لتوليد المنهج
     const pythonServiceUrl =
