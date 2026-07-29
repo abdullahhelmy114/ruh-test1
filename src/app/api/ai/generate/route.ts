@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyIdToken } from "@/lib/firebase/server";
-import { sql } from "@/lib/db/client";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 
-// تعطيل worker في بيئة Node (استخراج النص لا يحتاجه)
-if (typeof window === "undefined") {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = "";
-}
+// إعداد pdfjs ليعمل بدون worker في بيئة Node.js
+pdfjsLib.GlobalWorkerOptions.workerSrc = "";
+(pdfjsLib.GlobalWorkerOptions as any).disableWorker = true;
 
 /**
- * استخراج النص من PDF باستخدام pdfjs-dist
+ * استخراج النص من PDF باستخدام pdfjs (لا يتطلب worker)
  */
 async function extractTextFromBuffer(buffer: Buffer): Promise<string> {
-  const uint8 = new Uint8Array(buffer); // التحويل المطلوب
-  const loadingTask = pdfjsLib.getDocument({ data: uint8 });
+  const uint8 = new Uint8Array(buffer);
+  const loadingTask = pdfjsLib.getDocument({
+    data: uint8,
+    disableFontFace: true,
+    useSystemFonts: false,
+  });
   const pdf = await loadingTask.promise;
   let fullText = "";
   for (let i = 1; i <= pdf.numPages; i++) {
@@ -34,58 +36,58 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
     }
 
-    let bookText = "";
-    let level = "";
-    let instructions = "";
-
+    // استقبال FormData من الواجهة (رفع ملف PDF)
     const contentType = req.headers.get("content-type") || "";
-
-    if (contentType.includes("multipart/form-data")) {
-      const formData = await req.formData();
-      level = formData.get("level") as string;
-      instructions = (formData.get("instructions") as string) || "";
-      const pdfFile = formData.get("pdfFile") as File | null;
-      const bookTitle = formData.get("bookTitle") as string | null;
-
-      if (!level) {
-        return NextResponse.json({ error: "يجب توفير المستوى التعليمي" }, { status: 400 });
-      }
-
-      if (pdfFile) {
-        const buffer = Buffer.from(await pdfFile.arrayBuffer());
-        bookText = await extractTextFromBuffer(buffer);
-      } else if (bookTitle) {
-        bookText = await getTextFromStoredBook(bookTitle);
-      } else {
-        return NextResponse.json({ error: "يجب رفع ملف PDF أو اختيار كتاب" }, { status: 400 });
-      }
-    } else {
-      // JSON (للتوافق مع الكود القديم)
-      const body = await req.json();
-      const { bookTitle, level: jsonLevel, instructions: jsonInstructions } = body;
-      if (!bookTitle || !jsonLevel) {
-        return NextResponse.json({ error: "يجب إرسال bookTitle و level" }, { status: 400 });
-      }
-      level = jsonLevel;
-      instructions = jsonInstructions || "";
-      bookText = await getTextFromStoredBook(bookTitle);
+    if (!contentType.includes("multipart/form-data")) {
+      return NextResponse.json(
+        { error: "يرجى رفع ملف PDF مباشرة" },
+        { status: 400 }
+      );
     }
+
+    const formData = await req.formData();
+    const level = formData.get("level") as string;
+    const instructions = (formData.get("instructions") as string) || "";
+    const pdfFile = formData.get("pdfFile") as File | null;
+
+    if (!level || !pdfFile) {
+      return NextResponse.json(
+        { error: "يجب توفير المستوى ورفع ملف PDF" },
+        { status: 400 }
+      );
+    }
+
+    // استخراج النص من الملف مباشرة
+    const buffer = Buffer.from(await pdfFile.arrayBuffer());
+    const bookText = await extractTextFromBuffer(buffer);
 
     if (!bookText || bookText.length < 100) {
-      return NextResponse.json({ error: "النص المستخرج قصير جداً أو فارغ" }, { status: 500 });
+      return NextResponse.json(
+        { error: "النص المستخرج قصير جداً أو فارغ" },
+        { status: 500 }
+      );
     }
 
-    // إرسال النص إلى خدمة بايثون
-    const pythonServiceUrl = process.env.PYTHON_AI_SERVICE_URL || "https://ai.ruhulqudus.net";
-    const pythonResponse = await fetch(`${pythonServiceUrl}/generate-curriculum`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ book_text: bookText, level, instructions }),
-    });
+    // إرسال النص إلى خدمة بايثون (وكلاء OpenRouter)
+    const pythonServiceUrl =
+      process.env.PYTHON_AI_SERVICE_URL || "https://ai.ruhulqudus.net";
+
+    const pythonResponse = await fetch(
+      `${pythonServiceUrl}/generate-curriculum`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          book_text: bookText,
+          level,
+          instructions,
+        }),
+      }
+    );
 
     if (!pythonResponse.ok) {
       const errData = await pythonResponse.json().catch(() => null);
-      throw new Error(errData?.detail || "فشل الاتصال بخدمة Python");
+      throw new Error(errData?.detail || "فشل الاتصال بخدمة بايثون");
     }
 
     const curriculumData = await pythonResponse.json();
@@ -101,30 +103,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-/**
- * دالة مساعدة لتحميل كتاب من Gemini File API واستخراج النص
- */
-async function getTextFromStoredBook(bookTitle: string): Promise<string> {
-  const books = await sql`
-    SELECT file_uri FROM gemini_books WHERE title = ${bookTitle} LIMIT 1
-  `;
-  if (!books || books.length === 0) {
-    throw new Error("الكتاب غير موجود في قاعدة المعرفة");
-  }
-  const fileUri: string = books[0].file_uri;
-  // استخراج اسم الملف من الرابط (مثال: https://.../files/XYZ)
-  const fileName = fileUri.split("/").pop();
-  if (!fileName) throw new Error("اسم الملف غير صالح");
-
-  const apiKey = process.env.GEMINI_API_KEY!;
-  const downloadUrl = `https://generativelanguage.googleapis.com/v1beta/files/${fileName}?key=${apiKey}&alt=media`;
-
-  const res = await fetch(downloadUrl);
-  if (!res.ok) {
-    throw new Error(`فشل تنزيل الكتاب من Gemini (${res.status})`);
-  }
-  const buffer = Buffer.from(await res.arrayBuffer());
-  return extractTextFromBuffer(buffer);
 }
