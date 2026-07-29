@@ -79,7 +79,7 @@
     "pdf-parse": "^2.4.5",
     "pdf2json": "^4.0.3",
     "pdf2pic": "^3.2.0",
-    "pdfjs-dist": "^6.1.200",
+    "pdfjs-dist": "^6.2.108",
     "postcss": "^8.5.15",
     "pusher": "^5.3.4",
     "pusher-js": "^8.5.0",

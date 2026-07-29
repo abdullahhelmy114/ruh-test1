@@ -1,21 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyIdToken } from "@/lib/firebase/server";
 import { sql } from "@/lib/db/client";
-import pdfParse from "pdf-parse"; // استيراد مباشر (قد تحتاج ts-ignore)
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
+import { TextItem } from "pdfjs-dist/types/src/display/api";
+
+// إعداد worker للـ pdfjs في بيئة Node
+if (typeof window === "undefined") {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "";
+}
+
+async function extractTextFromBuffer(buffer: Buffer): Promise<string> {
+  const loadingTask = pdfjsLib.getDocument({ data: buffer });
+  const pdf = await loadingTask.promise;
+  let fullText = "";
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    const pageText = textContent.items
+      .map((item) => (item as TextItem).str)
+      .join(" ");
+    fullText += pageText + "\n";
+  }
+  return fullText;
+}
 
 export const dynamic = "force-dynamic";
 
-// دالة مساعدة لاستخراج النص من PDF (سواء من ملف مباشر أو من رابط Gemini)
-async function extractTextFromBuffer(buffer: Buffer): Promise<string> {
-  // @ts-ignore – pdf-parse قد لا يملك تعريفات TypeScript متوافقة
-  const pdfParse = require("pdf-parse");
-  const data = await pdfParse(buffer);
-  return data.text;
-}
-
 export async function POST(req: NextRequest) {
   try {
-    // 1. التحقق من الصلاحية (أدمن فقط)
     const user = await verifyIdToken(req);
     if (!user || user.role !== "admin") {
       return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
@@ -25,11 +37,9 @@ export async function POST(req: NextRequest) {
     let level = "";
     let instructions = "";
 
-    // 2. تحديد نوع المحتوى واستقبال البيانات
     const contentType = req.headers.get("content-type") || "";
 
     if (contentType.includes("multipart/form-data")) {
-      // --- حالة رفع ملف PDF أو إرسال FormData من الواجهة ---
       const formData = await req.formData();
       level = formData.get("level") as string;
       instructions = (formData.get("instructions") as string) || "";
@@ -41,11 +51,9 @@ export async function POST(req: NextRequest) {
       }
 
       if (pdfFile) {
-        // قراءة الملف المرفوع مباشرة
         const buffer = Buffer.from(await pdfFile.arrayBuffer());
         bookText = await extractTextFromBuffer(buffer);
       } else if (bookTitle) {
-        // جلب الكتاب من Gemini File API بنفس الآلية السابقة
         const books = await sql`
           SELECT file_uri FROM gemini_books WHERE title = ${bookTitle} LIMIT 1
         `;
@@ -53,11 +61,8 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: "الكتاب غير موجود في قاعدة المعرفة" }, { status: 404 });
         }
         const fileUri = books[0].file_uri;
-        const fileName = fileUri.split("/").pop();
-        if (!fileName) throw new Error("اسم الملف غير صالح");
-
         const apiKey = process.env.GEMINI_API_KEY!;
-        const downloadUrl = `https://generativelanguage.googleapis.com/v1beta/files/${fileName}?key=${apiKey}&alt=media`;
+        const downloadUrl = `${fileUri}?key=${apiKey}&alt=media`;
         const res = await fetch(downloadUrl);
         if (!res.ok) throw new Error(`فشل تنزيل الكتاب من Gemini (${res.status})`);
         const buffer = Buffer.from(await res.arrayBuffer());
@@ -66,7 +71,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "يجب رفع ملف PDF أو اختيار كتاب" }, { status: 400 });
       }
     } else {
-      // --- حالة JSON (للتوافق مع الكود القديم إن وُجد) ---
       const body = await req.json();
       const { bookTitle, level: jsonLevel, instructions: jsonInstructions } = body;
       if (!bookTitle || !jsonLevel) {
@@ -82,11 +86,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "الكتاب غير موجود" }, { status: 404 });
       }
       const fileUri = books[0].file_uri;
-      const fileName = fileUri.split("/").pop();
-      if (!fileName) throw new Error("اسم الملف غير صالح");
-
       const apiKey = process.env.GEMINI_API_KEY!;
-      const downloadUrl = `https://generativelanguage.googleapis.com/v1beta/files/${fileName}?key=${apiKey}&alt=media`;
+      const downloadUrl = `${fileUri}?key=${apiKey}&alt=media`;
       const res = await fetch(downloadUrl);
       if (!res.ok) throw new Error("فشل تنزيل الكتاب من Gemini");
       const buffer = Buffer.from(await res.arrayBuffer());
@@ -97,21 +98,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "النص المستخرج قصير جداً أو فارغ" }, { status: 500 });
     }
 
-    // 3. إرسال النص إلى خدمة بايثون (وكلاء OpenRouter)
     const pythonServiceUrl = process.env.PYTHON_AI_SERVICE_URL || "https://ai.ruhulqudus.net";
     const pythonResponse = await fetch(`${pythonServiceUrl}/generate-curriculum`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        book_text: bookText,
-        level: level,
-        instructions: instructions,
-      }),
+      body: JSON.stringify({ book_text: bookText, level, instructions }),
     });
 
     if (!pythonResponse.ok) {
       const errData = await pythonResponse.json().catch(() => null);
-      throw new Error(errData?.detail || "فشل الاتصال بخدمة توليد المنهج (Python)");
+      throw new Error(errData?.detail || "فشل الاتصال بخدمة Python");
     }
 
     const curriculumData = await pythonResponse.json();
