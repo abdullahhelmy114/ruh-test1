@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyIdToken } from "@/lib/firebase/server";
 import * as pdfjsLib from "pdfjs-dist";
 
-// تعيين worker من الملف المحلي للحزمة (يعمل في Node.js)
-pdfjsLib.GlobalWorkerOptions.workerSrc = require.resolve("pdfjs-dist/build/pdf.worker.js");
+// تعيين worker من CDN (يعمل في بيئة Node.js مع اتصال إنترنت)
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs";
 
 async function extractTextFromBuffer(buffer: Buffer): Promise<string> {
   const uint8 = new Uint8Array(buffer);
