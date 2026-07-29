@@ -36,17 +36,22 @@ export async function POST(req: NextRequest) {
     }
     const fileUri: string = books[0].file_uri;
 
-    // 4. استخراج النص الكامل من PDF محلياً (بدون Gemini لتجنب الحصة)
+    // 4. استخراج النص الكامل من PDF محليًا (بدون استهلاك حصة Gemini)
     const apiKey = process.env.GEMINI_API_KEY!;
+
+    // استخراج اسم الملف من الرابط الكامل
+    const fileName = fileUri.split("/").pop();
+    if (!fileName) throw new Error("اسم الملف غير صالح");
+
     const fileManager = new GoogleAIFileManager(apiKey);
 
-    // التحقق من وجود الملف
-    const fileInfo = await fileManager.getFile(fileUri);
+    // جلب معلومات الملف لمعرفة رابط التحميل الصحيح
+    const fileInfo = await fileManager.getFile(`files/${fileName}`);
     if (!fileInfo || !fileInfo.uri) {
       throw new Error("الملف غير موجود في Gemini File API");
     }
 
-    // تنزيل الملف PDF إلى مسار مؤقت
+    // تنزيل الملف إلى مجلد مؤقت
     const tempDir = path.join(process.cwd(), "temp");
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
@@ -55,7 +60,7 @@ export async function POST(req: NextRequest) {
 
     let bookText = "";
     try {
-      // تنزيل الملف باستخدام الرابط مع مفتاح API
+      // تنزيل الملف عبر الرابط المسترجع مع مفتاح API
       const downloadResponse = await fetch(fileInfo.uri, {
         headers: { Authorization: `Bearer ${apiKey}` },
       });
@@ -65,8 +70,8 @@ export async function POST(req: NextRequest) {
 
       const buffer = Buffer.from(await downloadResponse.arrayBuffer());
 
-      // استخراج النص عبر pdf-parse (نستخدم require لتجنب أخطاء TypeScript)
-      // @ts-ignore
+      // استخراج النص باستخدام pdf-parse
+      // @ts-ignore – مكتبة pdf-parse لا تملك تعريفات TypeScript حديثة
       const pdfParse = require("pdf-parse");
       const pdfData = await pdfParse(buffer);
       bookText = pdfData.text;
@@ -107,7 +112,7 @@ export async function POST(req: NextRequest) {
 
     const curriculumData = await pythonResponse.json();
 
-    // 6. إرجاع المنهج النهائي للواجهة الأمامية (Markdown + عناوين الدروس)
+    // 6. إرجاع المنهج النهائي للواجهة الأمامية
     return NextResponse.json({
       success: true,
       markdown: curriculumData.markdown,
