@@ -1,21 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyIdToken } from "@/lib/firebase/server";
-import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
+import * as pdfjsLib from "pdfjs-dist";
 
-// إعداد pdfjs ليعمل بدون worker في بيئة Node.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = "";
-(pdfjsLib.GlobalWorkerOptions as any).disableWorker = true;
+// تعيين worker من الملف المحلي للحزمة (يعمل في Node.js)
+pdfjsLib.GlobalWorkerOptions.workerSrc = require.resolve("pdfjs-dist/build/pdf.worker.js");
 
-/**
- * استخراج النص من PDF باستخدام pdfjs (لا يتطلب worker)
- */
 async function extractTextFromBuffer(buffer: Buffer): Promise<string> {
   const uint8 = new Uint8Array(buffer);
-  const loadingTask = pdfjsLib.getDocument({
-    data: uint8,
-    disableFontFace: true,
-    useSystemFonts: false,
-  });
+  const loadingTask = pdfjsLib.getDocument({ data: uint8 });
   const pdf = await loadingTask.promise;
   let fullText = "";
   for (let i = 1; i <= pdf.numPages; i++) {
@@ -36,13 +28,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
     }
 
-    // استقبال FormData من الواجهة (رفع ملف PDF)
     const contentType = req.headers.get("content-type") || "";
     if (!contentType.includes("multipart/form-data")) {
-      return NextResponse.json(
-        { error: "يرجى رفع ملف PDF مباشرة" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "يرجى رفع ملف PDF مباشرة" }, { status: 400 });
     }
 
     const formData = await req.formData();
@@ -51,39 +39,22 @@ export async function POST(req: NextRequest) {
     const pdfFile = formData.get("pdfFile") as File | null;
 
     if (!level || !pdfFile) {
-      return NextResponse.json(
-        { error: "يجب توفير المستوى ورفع ملف PDF" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "يجب توفير المستوى ورفع ملف PDF" }, { status: 400 });
     }
 
-    // استخراج النص من الملف مباشرة
     const buffer = Buffer.from(await pdfFile.arrayBuffer());
     const bookText = await extractTextFromBuffer(buffer);
 
     if (!bookText || bookText.length < 100) {
-      return NextResponse.json(
-        { error: "النص المستخرج قصير جداً أو فارغ" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "النص المستخرج قصير جداً أو فارغ" }, { status: 500 });
     }
 
-    // إرسال النص إلى خدمة بايثون (وكلاء OpenRouter)
-    const pythonServiceUrl =
-      process.env.PYTHON_AI_SERVICE_URL || "https://ai.ruhulqudus.net";
-
-    const pythonResponse = await fetch(
-      `${pythonServiceUrl}/generate-curriculum`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          book_text: bookText,
-          level,
-          instructions,
-        }),
-      }
-    );
+    const pythonServiceUrl = process.env.PYTHON_AI_SERVICE_URL || "https://ai.ruhulqudus.net";
+    const pythonResponse = await fetch(`${pythonServiceUrl}/generate-curriculum`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ book_text: bookText, level, instructions }),
+    });
 
     if (!pythonResponse.ok) {
       const errData = await pythonResponse.json().catch(() => null);
