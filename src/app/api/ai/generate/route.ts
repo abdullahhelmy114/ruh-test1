@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleAIFileManager } from "@google/generative-ai/server";
 import { verifyIdToken } from "@/lib/firebase/server";
 import { sql } from "@/lib/db/client";
 import fs from "fs";
@@ -36,22 +35,17 @@ export async function POST(req: NextRequest) {
     }
     const fileUri: string = books[0].file_uri;
 
-    // 4. استخراج النص الكامل من PDF محليًا (بدون استهلاك حصة Gemini)
+    // 4. استخراج النص الكامل من PDF محليًا (بدون استهلاك حصة Gemini generateContent)
     const apiKey = process.env.GEMINI_API_KEY!;
 
-    // استخراج اسم الملف من الرابط الكامل
+    // استخراج اسم الملف من الرابط الكامل (مثال: https://generativelanguage.googleapis.com/v1beta/files/XYZ)
     const fileName = fileUri.split("/").pop();
     if (!fileName) throw new Error("اسم الملف غير صالح");
 
-    const fileManager = new GoogleAIFileManager(apiKey);
+    // رابط التحميل المباشر مع مفتاح API
+    const downloadUrl = `https://generativelanguage.googleapis.com/v1beta/files/${fileName}?key=${apiKey}&alt=media`;
 
-    // جلب معلومات الملف لمعرفة رابط التحميل الصحيح
-    const fileInfo = await fileManager.getFile(`files/${fileName}`);
-    if (!fileInfo || !fileInfo.uri) {
-      throw new Error("الملف غير موجود في Gemini File API");
-    }
-
-    // تنزيل الملف إلى مجلد مؤقت
+    // تنزيل الملف PDF إلى مسار مؤقت
     const tempDir = path.join(process.cwd(), "temp");
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
@@ -60,10 +54,7 @@ export async function POST(req: NextRequest) {
 
     let bookText = "";
     try {
-      // تنزيل الملف عبر الرابط المسترجع مع مفتاح API
-      const downloadResponse = await fetch(fileInfo.uri, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-      });
+      const downloadResponse = await fetch(downloadUrl);
       if (!downloadResponse.ok) {
         throw new Error(`فشل تنزيل الملف (${downloadResponse.status})`);
       }
@@ -71,7 +62,7 @@ export async function POST(req: NextRequest) {
       const buffer = Buffer.from(await downloadResponse.arrayBuffer());
 
       // استخراج النص باستخدام pdf-parse
-      // @ts-ignore – مكتبة pdf-parse لا تملك تعريفات TypeScript حديثة
+      // @ts-ignore – مكتبة pdf-parse قد لا تملك تعريفات TypeScript حديثة
       const pdfParse = require("pdf-parse");
       const pdfData = await pdfParse(buffer);
       bookText = pdfData.text;
