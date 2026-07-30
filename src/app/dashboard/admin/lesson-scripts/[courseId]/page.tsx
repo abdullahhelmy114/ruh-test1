@@ -35,114 +35,67 @@ type TabCategory = "format" | "ai" | "insert";
 // ==========================================
 const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: boolean, onClose: () => void, courseId: string, fetchLessons: () => void }) => {
   const { user } = useAuth();
-  const [books, setBooks] = useState<any[]>([]);
-  const [selectedBook, setSelectedBook] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [level, setLevel] = useState("A1");
   const [instructions, setInstructions] = useState("");
   const [loading, setLoading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (isOpen && user) {
-      user.getIdToken().then(t => fetch("/api/admin/knowledge/books", { headers: { Authorization: `Bearer ${t}` } })
-        .then(r => r.json()).then(d => setBooks(d.books || [])));
-    }
-  }, [isOpen, user]);
-
   const handleGenerate = async () => {
-    if (!selectedBook && !selectedFile) {
-      return toast.error("Please select a book or upload a PDF file.");
-    }
+    if (!selectedFile) return toast.error("يرجى اختيار ملف PDF");
     setLoading(true);
-    const toastId = toast.loading(<T>AI agents are reading the book, planning, and creating full curriculum...</T> as unknown as string);
+    const toastId = toast.loading("جاري تحليل الكتاب وتوليد المنهج...");
 
     try {
       const token = await user?.getIdToken();
-      
       const formData = new FormData();
+      formData.append("file", selectedFile);
       formData.append("level", level);
       formData.append("instructions", instructions);
 
-      if (selectedFile) {
-        formData.append("pdfFile", selectedFile);
-      } else if (selectedBook) {
-        formData.append("bookTitle", selectedBook);
-      }
-
-      const res = await fetch("/api/ai/generate", {
+      const res = await fetch("https://ai.ruhulqudus.net/generate-from-pdf", {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` }, // لا نضع Content-Type للمتصفح ليضبطه مع FormData
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.details || "Generation failed");
 
+      const data = await res.json();
+      if (!data.success) throw new Error(data.detail || "فشل التوليد");
+
+      // إنشاء الدروس
       const lessonTitles: string[] = data.titles;
-      
-      // إنشاء الدروس لكل عنوان
       for (const title of lessonTitles) {
         await fetch(`/api/admin/model-courses/${courseId}/lessons`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({ 
             title: title, 
-            content: JSON.stringify({ html: "", audio: [], quiz: [] })
+            content: JSON.stringify({ html: "", audio: [], quiz: [] }) 
           }),
         });
       }
 
-      const lessonsCount = lessonTitles.length;
-      toast.success(
-        <span><T>Curriculum generated successfully!</T> {lessonsCount} <T>lessons created.</T></span>, 
-        { id: toastId }
-      );
+      toast.success(`تم إنشاء ${lessonTitles.length} درساً`);
       fetchLessons();
       onClose();
     } catch (e: any) {
-      toast.error(<T>Failed to generate.</T> as unknown as string, { id: toastId });
-    } finally { 
-      setLoading(false); 
+      toast.error("فشل التوليد: " + e.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
       <div className="w-full max-w-2xl bg-card border border-border rounded-3xl p-8 shadow-2xl relative">
         <button onClick={onClose} className="absolute right-6 top-6 p-2 text-muted-foreground hover:bg-secondary rounded-full transition-colors"><X size={18} /></button>
         <h2 className="text-2xl font-bold font-serif mb-2 flex items-center gap-2"><BrainCircuit className="text-primary"/> <T>AI Full Curriculum Generator</T></h2>
-        <p className="text-muted-foreground text-sm mb-6"><T>Select a book from Knowledge Base or upload a PDF directly.</T></p>
+        <p className="text-muted-foreground text-sm mb-6"><T>Upload a PDF book to generate a full curriculum.</T></p>
         
         <div className="space-y-5">
-          {/* اختيار كتاب من قاعدة المعرفة */}
-          <div>
-            <label className="block text-sm font-bold mb-2 text-foreground"><T>Select Reference Book</T></label>
-            <select 
-              value={selectedBook}
-              className="w-full bg-background text-foreground border border-border p-3 rounded-xl outline-none focus:border-primary cursor-pointer" 
-              onChange={e => {
-                setSelectedBook(e.target.value);
-                setSelectedFile(null); // نلغي الملف إذا اختار كتاب
-              }}
-            >
-              <option value="" disabled>-- <T>Select a book from Knowledge Base</T> --</option>
-              {books.map((b, i) => (
-                <option key={i} value={b.title}>
-                  {b.title}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* فاصل أو اختيار رفع ملف */}
-          <div className="flex items-center gap-4">
-            <div className="flex-1 border-t border-border"></div>
-            <span className="text-xs text-muted-foreground font-medium"><T>OR</T></span>
-            <div className="flex-1 border-t border-border"></div>
-          </div>
-
-          {/* رفع ملف PDF مباشرة */}
+          {/* رفع ملف PDF */}
           <div>
             <label className="block text-sm font-bold mb-2"><T>Upload PDF File</T></label>
             <input
@@ -151,10 +104,7 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
               accept=".pdf"
               onChange={e => {
                 const file = e.target.files?.[0];
-                if (file) {
-                  setSelectedFile(file);
-                  setSelectedBook(""); // نلغي الكتاب
-                }
+                if (file) setSelectedFile(file);
               }}
               className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer text-muted-foreground"
             />
@@ -178,7 +128,7 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
             <label className="block text-sm font-bold mb-2"><T>Additional AI Instructions</T></label>
             <textarea 
               rows={3} onChange={e => setInstructions(e.target.value)}
-              placeholder="e.g., Focus on grammar and Quranic vocabulary, make lessons interactive..."
+              placeholder="e.g., Focus on grammar and Quranic vocabulary..."
               className="w-full bg-background border border-border p-3 rounded-xl outline-none focus:border-primary"
             />
           </div>
@@ -186,7 +136,7 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
 
         <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-border">
           <button onClick={onClose} className="px-5 py-2 rounded-xl border border-border hover:bg-secondary text-sm font-semibold transition-colors"><T>Cancel</T></button>
-          <button onClick={handleGenerate} disabled={loading || (!selectedBook && !selectedFile)} className="px-6 py-2 rounded-xl bg-primary text-primary-foreground font-bold flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-md disabled:opacity-50">
+          <button onClick={handleGenerate} disabled={loading || !selectedFile} className="px-6 py-2 rounded-xl bg-primary text-primary-foreground font-bold flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-md disabled:opacity-50">
             {loading ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />} <T>Build Curriculum</T>
           </button>
         </div>
