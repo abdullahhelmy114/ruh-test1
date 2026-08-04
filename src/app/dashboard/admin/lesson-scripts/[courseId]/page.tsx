@@ -44,7 +44,7 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
   const handleGenerate = async () => {
     if (!selectedFile) return toast.error("يرجى اختيار ملف PDF");
     setLoading(true);
-    const toastId = toast.loading("جاري تحليل الكتاب وتوليد المنهج...");
+    const toastId = toast.loading("جاري تحليل الكتاب وبدء توليد المنهج...");
 
     try {
       const token = await user?.getIdToken();
@@ -53,17 +53,39 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
       formData.append("level", level);
       formData.append("instructions", instructions);
 
-      const res = await fetch("https://ai.ruhulqudus.net/generate-from-pdf", {
+      // 1. بدء المهمة واستلام task_id
+      const startRes = await fetch("https://ai.ruhulqudus.net/generate-from-pdf", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
+      const startData = await startRes.json();
+      if (!startData.success) throw new Error(startData.detail || "فشل بدء المهمة");
+      const taskId = startData.task_id;
 
-      const data = await res.json();
-      if (!data.success) throw new Error(data.detail || "فشل التوليد");
+      // 2. استطلاع النتيجة كل 5 ثوانٍ
+      toast.loading("جاري توليد المنهج في الخلفية... (قد يستغرق دقيقة أو أكثر)", { id: toastId });
+      const pollInterval = 5000;
+      const maxAttempts = 60; // 5 دقائق كحد أقصى
+      let attempts = 0;
+      let finalResult = null;
 
-      // إنشاء الدروس
-      const lessonTitles: string[] = data.titles;
+      while (attempts < maxAttempts) {
+        await new Promise(r => setTimeout(r, pollInterval));
+        const statusRes = await fetch(`https://ai.ruhulqudus.net/task-status/${taskId}`);
+        const statusData = await statusRes.json();
+        if (statusData.status === "completed") {
+          finalResult = statusData.result;
+          break;
+        } else if (statusData.status === "failed") {
+          throw new Error(statusData.result?.detail || "فشل المعالجة");
+        }
+        attempts++;
+      }
+      if (!finalResult) throw new Error("انتهت مهلة الانتظار");
+
+      // 3. إنشاء الدروس
+      const lessonTitles: string[] = finalResult.titles;
       for (const title of lessonTitles) {
         await fetch(`/api/admin/model-courses/${courseId}/lessons`, {
           method: "POST",
@@ -75,11 +97,11 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
         });
       }
 
-      toast.success(`تم إنشاء ${lessonTitles.length} درساً`);
+      toast.success(`تم إنشاء ${lessonTitles.length} درساً`, { id: toastId });
       fetchLessons();
       onClose();
     } catch (e: any) {
-      toast.error("فشل التوليد: " + e.message);
+      toast.error("فشل التوليد: " + e.message, { id: toastId });
     } finally {
       setLoading(false);
     }
