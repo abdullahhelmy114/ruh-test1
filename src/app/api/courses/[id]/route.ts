@@ -9,9 +9,17 @@ export async function GET(request: Request, { params }: { params: { id: string }
       LEFT JOIN categories cat ON c.category_id = cat.id
       WHERE c.id = ${params.id} AND c.is_published = true
     `;
+<<<<<<< HEAD
     if (!course) {
       return NextResponse.json({ error: 'الكورس غير موجود' }, { status: 404 });
     }
+=======
+    
+    if (!course) {
+      return NextResponse.json({ error: 'الكورس غير موجود' }, { status: 404 });
+    }
+    
+>>>>>>> 96489170d095dda59a97aa5505ba7df86f337f87
     return NextResponse.json({ course });
   } catch (error) {
     console.error('Course detail error:', error);
