@@ -382,16 +382,20 @@ function ManageCoursesTab() {
     fetchCourses();
   }, [user]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("حذف الكورس؟")) return;
-    if (!user) return;
-    const token = await user.getIdToken();
-    await fetch(`/api/admin/courses/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    fetchCourses();
-  };
+const handleDelete = async (id: string) => {
+  if (!confirm("حذف الكورس؟")) return;
+  if (!user) return;
+  const token = await user.getIdToken();
+  await fetch("/api/admin/courses/id", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ id }),
+  });
+  fetchCourses();
+};
 
   if (loading) {
     return (

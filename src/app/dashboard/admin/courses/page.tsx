@@ -29,7 +29,7 @@ export default function AdminCoursesPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("حذف الكورس؟")) return;
-    await fetch(`/api/admin/courses/${id}`, { method: "DELETE" });
+    await fetch(`/api/admin/courses/id`, { method: "DELETE" });
     fetchCourses();
   };
 
