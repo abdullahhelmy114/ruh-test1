@@ -4,7 +4,6 @@ import {
   Globe,
   GraduationCap,
   BookOpen,
-  Users,
   Award,
   ArrowRight,
   Library,
@@ -29,9 +28,9 @@ export const metadata: Metadata = {
   },
 };
 
+// 🛑 تم إخفاء المعلمين: حذف عنصر Teachers من قائمة الميزات
 const features = [
   { key: "Methodology", icon: BookOpen },
-  { key: "Teachers", icon: Users },
   { key: "Library", icon: Library },
   { key: "Gamified", icon: Gamepad2 },
   { key: "Community", icon: HeartHandshake },
@@ -140,7 +139,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ========== CTA ========== */}
+      {/* ========== CTA (تم إخفاء زر المعلم) ========== */}
       <section className="mx-auto max-w-4xl px-4 py-16 text-center md:px-8">
         <div className="glass rounded-3xl border border-border/50 bg-card p-8 md:p-12 shadow-elegant">
           <GraduationCap className="mx-auto h-12 w-12 text-gold" />
@@ -150,20 +149,13 @@ export default function AboutPage() {
           <p className="mt-3 max-w-xl mx-auto text-muted-foreground">
             <T>CTA Join Desc</T>
           </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <div className="mt-8 flex items-center justify-center">
             <Link
               href="/signup?role=student"
-              className="inline-flex items-center gap-2 rounded-full gradient-emerald px-6 py-3 text-sm font-semibold text-primary-foreground shadow-elegant transition hover:scale-[1.02]"
+              className="inline-flex items-center gap-2 rounded-full gradient-emerald px-8 py-3.5 text-lg font-semibold text-primary-foreground shadow-elegant transition hover:scale-[1.02]"
             >
               <T>CTA Student</T>
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/signup?role=teacher"
-              className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-black shadow-gold transition hover:scale-[1.02]"
-            >
-              <T>CTA Teacher</T>
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
         </div>

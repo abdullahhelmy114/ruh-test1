@@ -124,19 +124,9 @@ export function Navbar() {
     setMobileOpen(false);
   };
 
-  const dashboardLink =
-    role === "admin"
-      ? "/dashboard/admin"
-      : role === "teacher"
-      ? "/dashboard/teacher"
-      : "/dashboard/student";
-
-  const profileLink =
-    role === "admin"
-      ? "/profile/admin"
-      : role === "teacher"
-      ? "/profile/teacher"
-      : "/profile/student";
+  // ── تم إخفاء دور المعلم: أي مستخدم بدور "teacher" يُعامل كطالب ──
+  const dashboardLink = role === "admin" ? "/dashboard/admin" : "/dashboard/student";
+  const profileLink = role === "admin" ? "/profile/admin" : "/profile/student";
 
   const initial = user?.email ? user.email.charAt(0).toUpperCase() : "U";
 

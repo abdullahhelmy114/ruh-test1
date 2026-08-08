@@ -5,7 +5,7 @@ import { Mail } from "lucide-react";
 export function Footer() {
   return (
     <footer className="mt-24 border-t bg-card/40">
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-4 md:px-8">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-3 md:px-8">
         {/* Brand */}
         <div>
           <Link href="/">
@@ -42,30 +42,6 @@ export function Footer() {
             <li>
               <Link href="/dashboard/student" className="hover:text-foreground transition-colors">
                 <T>Assessments</T>
-              </Link>
-            </li>
-          </ul>
-        </div>
-
-        {/* Teach */}
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-widest text-gold">
-            <T>Teach</T>
-          </div>
-          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-            <li>
-              <Link href="/dashboard/teacher" className="hover:text-foreground transition-colors">
-                <T>Certification</T>
-              </Link>
-            </li>
-            <li>
-              <Link href="/dashboard/teacher/courses/new" className="hover:text-foreground transition-colors">
-                <T>Curriculum Tools</T>
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className="hover:text-foreground transition-colors">
-                <T>Affiliate Program</T>
               </Link>
             </li>
           </ul>

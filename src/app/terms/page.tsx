@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   },
 };
 
-// أقسام الشروط مع الأيقونات
+// أقسام الشروط مع الأيقونات – تم حذف قسم "Teacher and Third-Party Content"
 const sections = [
   { key: "Definitions", icon: FileText },
   { key: "Account Registration", icon: Users },
@@ -25,7 +25,6 @@ const sections = [
   { key: "Refund Policy", icon: FileCheck },
   { key: "User Conduct", icon: AlertTriangle },
   { key: "Intellectual Property", icon: Shield },
-  { key: "Teacher and Third-Party Content", icon: Users },
   { key: "Limitation of Liability", icon: AlertTriangle },
   { key: "Termination", icon: FileText },
   { key: "Changes to Terms", icon: FileText },
@@ -94,7 +93,7 @@ export default function TermsPage() {
         </div>
       </section>
 
-      {/* ========== CTA ========== */}
+      {/* ========== CTA (تم إخفاء زر المعلم) ========== */}
       <section className="mx-auto max-w-4xl px-4 pb-20 text-center md:px-8">
         <div className="glass rounded-3xl border border-border/50 bg-card p-8 md:p-12 shadow-elegant">
           <Shield className="mx-auto h-12 w-12 text-gold" />
@@ -104,20 +103,13 @@ export default function TermsPage() {
           <p className="mt-3 max-w-xl mx-auto text-muted-foreground">
             <T>Terms CTA Text</T>
           </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <div className="mt-8 flex items-center justify-center">
             <Link
               href="/signup?role=student"
-              className="inline-flex items-center gap-2 rounded-full gradient-emerald px-6 py-3 text-sm font-semibold text-primary-foreground shadow-elegant transition hover:scale-[1.02]"
+              className="inline-flex items-center gap-2 rounded-full gradient-emerald px-8 py-3.5 text-lg font-semibold text-primary-foreground shadow-elegant transition hover:scale-[1.02]"
             >
               <T>CTA Student</T>
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/signup?role=teacher"
-              className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-black shadow-gold transition hover:scale-[1.02]"
-            >
-              <T>CTA Teacher</T>
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
         </div>

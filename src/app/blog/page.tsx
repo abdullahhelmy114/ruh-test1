@@ -87,7 +87,7 @@ export default function BlogPage() {
     });
     setCommentText(prev => ({ ...prev, [postId]: "" }));
     setSubmittingComment(false);
-    fetchPosts(); // إعادة تحميل البوستات لتظهر التعليق الجديد
+    fetchPosts();
   };
 
   const handleToggleLike = async (postId: string) => {
@@ -225,16 +225,13 @@ export default function BlogPage() {
               </div>
             )}
 
-            {/* أزرار الانضمام لغير المسجلين */}
+            {/* أزرار الانضمام لغير المسجلين - تم إخفاء زر المعلم */}
             {!user && (
               <div className="text-center pt-2 border-t border-border">
                 <p className="text-xs text-muted-foreground mb-2"><T>Want to interact?</T></p>
                 <div className="flex justify-center gap-2">
                   <Link href="/signup?role=student" className="rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-1">
                     <T>Join as Student</T> <ArrowRight size={12} />
-                  </Link>
-                  <Link href="/signup?role=teacher" className="rounded-full bg-gold px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-gold/80 inline-flex items-center gap-1">
-                    <T>Join as Teacher</T> <ArrowRight size={12} />
                   </Link>
                 </div>
               </div>

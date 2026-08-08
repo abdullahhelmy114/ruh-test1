@@ -70,9 +70,6 @@ export default function BundlesPage() {
               <Link href="/signup?role=student" className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2">
                 <T>Join as Student</T> <ArrowRight size={16} />
               </Link>
-              <Link href="/signup?role=teacher" className="rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-gold/80 inline-flex items-center gap-2">
-                <T>Join as Teacher</T> <ArrowRight size={16} />
-              </Link>
             </div>
           </div>
         </div>
