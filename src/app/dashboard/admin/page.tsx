@@ -29,6 +29,7 @@ if (typeof window !== "undefined") {
 // ─── Types ─────────────────────────────────────────────
 type TabKey =
   | "overview"
+  | "manage-courses"
   | "teachers"
   | "courses"
   | "users"
@@ -50,6 +51,7 @@ type TabKey =
 
 const TABS = [
   { key: "overview", label: "Overview", icon: TrendingUp },
+  { key: "manage-courses", label: "Manage Courses", icon: BookOpen },
   { key: "teachers", label: "Teacher Verification", icon: ShieldCheck },
   { key: "courses", label: "Course Moderation", icon: BookOpen },
   { key: "users", label: "User Management", icon: Users },
@@ -173,6 +175,7 @@ export default function AdminDashboard() {
 
       <div className="mt-8">
         {tab === "overview" && <OverviewTab />}
+        {tab === "manage-courses" && <ManageCoursesTab />}
         {tab === "teachers" && <TeacherVerificationTab />}
         {tab === "courses" && <CourseModerationTab />}
         {tab === "users" && <UserManagementTab />}
@@ -350,6 +353,113 @@ function OverviewTab() {
   );
 }
 
+
+
+/* ─────────── Manage Courses Tab ─────────── */
+function ManageCoursesTab() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchCourses = async () => {
+    if (!user) return;
+    const token = await user.getIdToken();
+    try {
+      const res = await fetch("/api/admin/courses", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok) setCourses(data.courses || []);
+    } catch (err) {
+      console.error("Failed to fetch courses", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCourses();
+  }, [user]);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("حذف الكورس؟")) return;
+    if (!user) return;
+    const token = await user.getIdToken();
+    await fetch(`/api/admin/courses/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    fetchCourses();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="font-serif text-2xl"><T>Manage Courses</T></h2>
+        <button
+          onClick={() => router.push("/dashboard/admin/courses/new")}
+          className="rounded-full bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold inline-flex items-center gap-2"
+        >
+          <Plus size={16} /> <T>New Course</T>
+        </button>
+      </div>
+      {courses.length === 0 ? (
+        <div className="text-center py-20 text-muted-foreground">
+          <T>No courses yet</T>
+        </div>
+      ) : (
+        <div className="glass rounded-2xl overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-secondary/50">
+              <tr>
+                <th className="p-3 text-left"><T>Title</T></th>
+                <th className="p-3"><T>Category</T></th>
+                <th className="p-3"><T>Price</T></th>
+                <th className="p-3"><T>Published</T></th>
+                <th className="p-3"><T>Created</T></th>
+                <th className="p-3"><T>Actions</T></th>
+              </tr>
+            </thead>
+            <tbody>
+              {courses.map((c: any) => (
+                <tr key={c.id} className="border-t border-border">
+                  <td className="p-3 font-medium">{c.title}</td>
+                  <td className="p-3">{c.category_name || "—"}</td>
+                  <td className="p-3">${c.price}</td>
+                  <td className="p-3">{c.is_published ? "✅" : "❌"}</td>
+                  <td className="p-3">{new Date(c.created_at).toLocaleDateString()}</td>
+                  <td className="p-3 flex gap-2">
+                    <button
+                      onClick={() => router.push(`/dashboard/admin/courses/${c.id}/edit`)}
+                      className="p-1 rounded hover:bg-accent"
+                    >
+                      <Edit3 size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(c.id)}
+                      className="p-1 rounded hover:bg-destructive/10 text-destructive"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
 
 /* ─────────── Teacher Verification Tab ─────────── */
 function TeacherVerificationTab() {
