@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://ruhulqudus.net/sitemap.xml
