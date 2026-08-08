@@ -17,41 +17,18 @@ export async function POST(req: Request) {
     let paymentPrice = price;
     let paymentType = type;
 
-<<<<<<< HEAD
     if (type === 'course' && liveCourseId) {
       const [course] = await sql`
         SELECT title, price FROM courses WHERE id = ${liveCourseId}
-=======
-    // إذا لم يُرسل title و price، نجلبها من قاعدة البيانات حسب النوع
-    if (type === 'course' && liveCourseId) {
-      const [course] = await sql`
-        SELECT title, price FROM live_courses WHERE id = ${liveCourseId}
->>>>>>> 96489170d095dda59a97aa5505ba7df86f337f87
       `;
       if (!course) return NextResponse.json({ error: 'الكورس غير موجود' }, { status: 404 });
       paymentTitle = course.title;
       paymentPrice = Number(course.price);
       paymentType = 'course';
     } else if (type === 'bundle' && bundleId) {
-<<<<<<< HEAD
       // ... (بدون تغيير)
     } else if (type === 'subscription' && planId) {
       // ...
-=======
-      const [bundle] = await sql`
-        SELECT title, price FROM bundles WHERE id = ${bundleId}
-      `;
-      if (!bundle) return NextResponse.json({ error: 'الحزمة غير موجودة' }, { status: 404 });
-      paymentTitle = bundle.title;
-      paymentPrice = Number(bundle.price);
-      paymentType = 'bundle';
-    } else if (type === 'subscription' && planId) {
-      // يمكن جلبها من جدول subscription_plans مستقبلاً
-      // حالياً نستخدم القيم المرسلة
-      paymentType = 'subscription';
-    } else {
-      return NextResponse.json({ error: 'بيانات ناقصة' }, { status: 400 });
->>>>>>> 96489170d095dda59a97aa5505ba7df86f337f87
     }
 
     const paymentUrl = await createShopierPaymentLink({
@@ -65,10 +42,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ paymentUrl });
   } catch (error: any) {
-<<<<<<< HEAD
-=======
-    console.error('Shopier link error:', error);
->>>>>>> 96489170d095dda59a97aa5505ba7df86f337f87
     return NextResponse.json({ error: error.message || 'حدث خطأ' }, { status: 500 });
   }
 }
