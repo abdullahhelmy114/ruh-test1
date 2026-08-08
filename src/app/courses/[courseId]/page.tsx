@@ -30,7 +30,7 @@ export default function CourseDetailPage() {
   // جلب الكورس
   useEffect(() => {
     if (!params.courseId) return;
-    fetch(`/api/courses/${params.courseId}`)
+    fetch(`/api/courses/id?id=${params.courseId}`)
       .then((r) => r.json())
       .then((data) => {
         if (data.error) {

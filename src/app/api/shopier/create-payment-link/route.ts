@@ -17,7 +17,9 @@ export async function POST(req: Request) {
     let paymentPrice = price;
     let paymentType = type;
 
+    // إذا لم يُرسل title و price، نجلبها من قاعدة البيانات حسب النوع
     if (type === 'course' && liveCourseId) {
+      // تم التغيير هنا من live_courses إلى courses
       const [course] = await sql`
         SELECT title, price FROM courses WHERE id = ${liveCourseId}
       `;
@@ -26,9 +28,18 @@ export async function POST(req: Request) {
       paymentPrice = Number(course.price);
       paymentType = 'course';
     } else if (type === 'bundle' && bundleId) {
-      // ... (بدون تغيير)
+      const [bundle] = await sql`
+        SELECT title, price FROM bundles WHERE id = ${bundleId}
+      `;
+      if (!bundle) return NextResponse.json({ error: 'الحزمة غير موجودة' }, { status: 404 });
+      paymentTitle = bundle.title;
+      paymentPrice = Number(bundle.price);
+      paymentType = 'bundle';
     } else if (type === 'subscription' && planId) {
-      // ...
+      // يمكن جلبها من جدول subscription_plans مستقبلاً
+      paymentType = 'subscription';
+    } else {
+      return NextResponse.json({ error: 'بيانات ناقصة' }, { status: 400 });
     }
 
     const paymentUrl = await createShopierPaymentLink({
@@ -42,6 +53,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ paymentUrl });
   } catch (error: any) {
+    console.error('Shopier link error:', error);
     return NextResponse.json({ error: error.message || 'حدث خطأ' }, { status: 500 });
   }
 }
