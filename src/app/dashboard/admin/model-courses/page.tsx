@@ -78,7 +78,7 @@ export default function AdminModelCoursesPage() {
     setLoading(true);
     try {
       const token = await user.getIdToken();
-      const res = await fetch("/api/admin/model-courses", {
+      const res = await fetch("/api/admin/courses", {
         headers: { Authorization: `Bearer ${token}` },
         credentials: "include",
       });
@@ -106,7 +106,7 @@ export default function AdminModelCoursesPage() {
     setError("");
 
     const token = await user.getIdToken();
-    const res = await fetch("/api/admin/model-courses", {
+    const res = await fetch("/api/admin/courses", {
       method: "POST",
       credentials: "include",
       headers: {

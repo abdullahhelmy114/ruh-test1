@@ -1,8 +1,9 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Clock, Calendar, User } from "lucide-react";
+import { Clock, Calendar, User, Play } from "lucide-react";
 import { T } from "@/components/TranslatedText";
 
 interface Course {
@@ -20,16 +21,21 @@ interface Course {
   level?: string;
 }
 
-export function CourseCard({ course }: { course: Course }) {
-  const launchDate = course.launch_date ? new Date(course.launch_date) : null;
-  const isLaunched = !launchDate || launchDate <= new Date();
+// تحويل رابط يوتيوب إلى embed
+function getYouTubeEmbedUrl(url: string): string {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : "";
+}
+
+// عداد تنازلي
+function CountdownTimer({ targetDate }: { targetDate: string }) {
   const [timeLeft, setTimeLeft] = useState("");
 
-  // تحديث العد التنازلي كل دقيقة
   useEffect(() => {
-    if (!launchDate || isLaunched) return;
+    const launch = new Date(targetDate);
     const update = () => {
-      const diff = launchDate.getTime() - Date.now();
+      const diff = launch.getTime() - Date.now();
       if (diff <= 0) {
         setTimeLeft("");
         return;
@@ -42,12 +48,25 @@ export function CourseCard({ course }: { course: Course }) {
     update();
     const interval = setInterval(update, 60000);
     return () => clearInterval(interval);
-  }, [launchDate, isLaunched]);
+  }, [targetDate]);
+
+  if (!timeLeft) return null;
+  return (
+    <span className="text-xs text-[#D4742B] font-bold bg-[#D4742B]/10 px-2 py-0.5 rounded-full">
+      {timeLeft}
+    </span>
+  );
+}
+
+export function CourseCard({ course }: { course: Course }) {
+  const launchDate = course.launch_date ? new Date(course.launch_date) : null;
+  const isLaunched = !launchDate || launchDate <= new Date();
+  const embedUrl = course.intro_video_url ? getYouTubeEmbedUrl(course.intro_video_url) : "";
 
   return (
     <Link href={`/courses/${course.id}`} className="block group h-full">
       <div className="glass rounded-2xl overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer border border-border/50 h-full flex flex-col">
-        {/* صورة مصغرة - عرض كامل وارتفاع 200px */}
+        {/* صورة مصغرة أو فيديو */}
         <div className="relative w-full h-48 bg-gradient-to-br from-primary/20 to-accent/20">
           {course.thumbnail_url ? (
             <Image
@@ -55,10 +74,18 @@ export function CourseCard({ course }: { course: Course }) {
               alt={course.title}
               fill
               className="object-cover"
+              unoptimized
+            />
+          ) : embedUrl ? (
+            <iframe
+              src={embedUrl}
+              className="w-full h-full"
+              allowFullScreen
+              title={course.title}
             />
           ) : (
             <div className="flex items-center justify-center h-full text-primary/50">
-              <User size={48} />
+              <Play size={48} />
             </div>
           )}
           {/* شارة المستوى */}
@@ -69,13 +96,13 @@ export function CourseCard({ course }: { course: Course }) {
           )}
           {/* شارة "قادم" إذا لم ينطلق بعد */}
           {!isLaunched && launchDate && (
-            <span className="absolute top-2 right-2 bg-accent/90 text-white px-2 py-0.5 rounded-full text-xs font-bold">
+            <span className="absolute top-2 right-2 bg-[#D4742B]/90 text-white px-2 py-0.5 rounded-full text-xs font-bold">
               <T>قادم</T>
             </span>
           )}
         </div>
 
-        {/* محتوى البطاقة - عمودي */}
+        {/* محتوى البطاقة */}
         <div className="p-5 flex flex-col flex-1 space-y-3">
           {/* اسم الكورس والمقدم */}
           <div>
@@ -120,18 +147,14 @@ export function CourseCard({ course }: { course: Course }) {
                   day: "2-digit",
                 })}
               </span>
-              {timeLeft && (
-                <span className="text-accent font-medium text-xs bg-accent/10 px-2 py-0.5 rounded-full">
-                  {timeLeft}
-                </span>
-              )}
+              <CountdownTimer targetDate={course.launch_date!} />
             </div>
           )}
 
           {/* السعر وزر الشراء */}
           <div className="flex items-center justify-between mt-auto pt-3 border-t border-border/50">
             <div className="flex items-baseline gap-2">
-              <span className="text-xl font-bold text-accent">
+              <span className="text-xl font-bold text-[#D4742B]">
                 ${course.price}
               </span>
               {course.old_price && (
@@ -145,7 +168,6 @@ export function CourseCard({ course }: { course: Course }) {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                // لو أردت إضافة سلوك مختلف لزر الشراء من البطاقة
               }}
             >
               {isLaunched ? <T>شراء</T> : <T>تفاصيل</T>}

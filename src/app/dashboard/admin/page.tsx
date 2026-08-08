@@ -2004,7 +2004,7 @@ function ModelCoursesTab() {
   const fetchCourses = async () => {
     if (!user) return;
     const token = await user.getIdToken();
-    fetch("/api/admin/model-courses", {
+    fetch("/api/admin/courses", {
       headers: { Authorization: `Bearer ${token}` },
       credentials: "include",
     })
@@ -2023,7 +2023,7 @@ function ModelCoursesTab() {
     setSubmitting(true);
     setError("");
     const token = await user.getIdToken();
-    const res = await fetch("/api/admin/model-courses", {
+    const res = await fetch("/api/admin/courses", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -2111,7 +2111,7 @@ function ModelLessonsTab() {
   useEffect(() => {
     if (!user) return;
     user.getIdToken().then((token) =>
-      fetch("/api/admin/model-courses", {
+      fetch("/api/admin/courses", {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((r) => r.json())
@@ -2237,7 +2237,7 @@ function BundlesTab() {
     const token = await user.getIdToken();
     try {
       const [modelRes, bundleRes] = await Promise.all([
-        fetch("/api/admin/model-courses", {
+        fetch("/api/admin/courses", {
           headers: { Authorization: `Bearer ${token}` },
           credentials: "include",
         }),

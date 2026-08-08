@@ -68,7 +68,7 @@ export default function AdminBundlesPage() {
     try {
       const token = await user.getIdToken();
       const [modelRes, bundleRes] = await Promise.all([
-        fetch("/api/admin/model-courses", {
+        fetch("/api/admin/courses", {
           headers: { Authorization: `Bearer ${token}` },
           credentials: "include",
         }),
