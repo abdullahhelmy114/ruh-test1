@@ -66,7 +66,7 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
       // 2. استطلاع النتيجة كل 5 ثوانٍ
       toast.loading("جاري توليد المنهج في الخلفية... (قد يستغرق دقيقة أو أكثر)", { id: toastId });
       const pollInterval = 5000;
-      const maxAttempts = 60; // 5 دقائق كحد أقصى
+      const maxAttempts = 60;
       let attempts = 0;
       let finalResult = null;
 
@@ -87,7 +87,7 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
       // 3. إنشاء الدروس
       const lessonTitles: string[] = finalResult.titles;
       for (const title of lessonTitles) {
-        await fetch(`/api/admin/model-courses/${courseId}/lessons`, {
+        await fetch(`/api/admin/courses/${courseId}/lessons`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({ 
@@ -117,7 +117,6 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
         <p className="text-muted-foreground text-sm mb-6"><T>Upload a PDF book to generate a full curriculum.</T></p>
         
         <div className="space-y-5">
-          {/* رفع ملف PDF */}
           <div>
             <label className="block text-sm font-bold mb-2"><T>Upload PDF File</T></label>
             <input
@@ -133,7 +132,6 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
             {selectedFile && <p className="text-xs text-green-600 mt-1">📄 {selectedFile.name}</p>}
           </div>
 
-          {/* المستوى */}
           <div>
             <label className="block text-sm font-bold mb-2"><T>Target Level</T></label>
             <select className="w-full bg-background border border-border p-3 rounded-xl outline-none focus:border-primary" onChange={e => setLevel(e.target.value)} value={level}>
@@ -145,7 +143,6 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
             </select>
           </div>
 
-          {/* تعليمات إضافية */}
           <div>
             <label className="block text-sm font-bold mb-2"><T>Additional AI Instructions</T></label>
             <textarea 
@@ -205,10 +202,10 @@ export default function SmartLessonEditor() {
   const fetchLessons = () => {
     if (!user || !courseId) return;
     user.getIdToken().then((token) => {
-      fetch(`/api/admin/model-courses/${courseId}/lessons`, { headers: { Authorization: `Bearer ${token}` } })
+      fetch(`/api/admin/courses/${courseId}/lessons`, { headers: { Authorization: `Bearer ${token}` } })
         .then((r) => r.json())
         .then((data) => { setLessons(data.lessons || []); setLoading(false); })
-        .catch(() => { toast.error(<T>Failed to fetch lessons</T> as unknown as string); setLoading(false); });
+        .catch(() => { toast.error("Failed to fetch lessons"); setLoading(false); });
     });
   };
 
@@ -241,27 +238,29 @@ export default function SmartLessonEditor() {
   };
 
   const handleSave = async () => {
-    if (!script.title.trim()) return toast.error(<T>Please enter a lesson title</T> as unknown as string);
+    if (!script.title.trim()) return toast.error("Please enter a lesson title");
     setSaving(true);
     try {
       const token = await user?.getIdToken();
       const isNew = script.id === "new";
-      const url = isNew ? `/api/admin/model-courses/${courseId}/lessons` : `/api/admin/model-courses/${courseId}/lessons/${script.id}`;
-      
+      const url = isNew
+        ? `/api/admin/courses/${courseId}/lessons`
+        : `/api/admin/courses/${courseId}/lessons/${script.id}`;
+
       const res = await fetch(url, {
         method: isNew ? "POST" : "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ 
-          title: script.title, 
-          content: JSON.stringify({ html: script.contentHtml, audio: script.audioBlocks, quiz: script.quizBlocks })
+        body: JSON.stringify({
+          title: script.title,
+          content: JSON.stringify({ html: script.contentHtml, audio: script.audioBlocks, quiz: script.quizBlocks }),
         }),
       });
       if (res.ok) {
-        toast.success(<T>Lesson saved successfully</T> as unknown as string);
+        toast.success("Lesson saved successfully");
         fetchLessons();
         setView("list");
       }
-    } catch (e) { toast.error(<T>Failed to save</T> as unknown as string); }
+    } catch (e) { toast.error("Failed to save"); }
     finally { setSaving(false); }
   };
 
@@ -270,11 +269,12 @@ export default function SmartLessonEditor() {
     if (!user || !window.confirm("Are you sure you want to delete this lesson?")) return;
     try {
       const token = await user.getIdToken();
-      const res = await fetch(`/api/admin/model-courses/${courseId}/lessons/${lessonId}`, {
-        method: "DELETE", headers: { Authorization: `Bearer ${token}` },
+      const res = await fetch(`/api/admin/courses/${courseId}/lessons/${lessonId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) { toast.success(<T>Lesson deleted</T> as unknown as string); fetchLessons(); }
-    } catch (error) { toast.error(<T>Failed to delete</T> as unknown as string); }
+      if (res.ok) { toast.success("Lesson deleted"); fetchLessons(); }
+    } catch (error) { toast.error("Failed to delete"); }
   };
 
   const addAiQuiz = async () => {
@@ -352,7 +352,7 @@ export default function SmartLessonEditor() {
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
               <div>
                 <h1 className="text-3xl font-serif font-bold text-foreground"><T>Lesson & Script Management</T></h1>
-                <p className="text-muted-foreground mt-2"><T>Build the curriculum and arrange lessons for teachers.</T></p>
+                <p className="text-muted-foreground mt-2"><T>Build the curriculum and arrange lessons for the course.</T></p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <button onClick={() => setIsCurriculumOpen(true)} className="flex items-center gap-2 rounded-full bg-accent/20 text-accent-foreground px-6 py-3 font-bold hover:bg-accent/30 transition-all shadow-sm">
