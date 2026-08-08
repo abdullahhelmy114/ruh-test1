@@ -40,12 +40,18 @@ export default function NewCoursePage() {
   const [theme, setTheme] = useState("theme-1");
 
   useEffect(() => {
-    fetch("/api/categories").then(r => r.json()).then(d => setCategories(d.categories || []));
+    fetch("/api/categories")
+      .then(r => r.json())
+      .then(d => setCategories(d.categories || []));
   }, []);
 
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return;
-    await fetch("/api/admin/categories", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: newCategoryName }) });
+    await fetch("/api/admin/categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newCategoryName }),
+    });
     const { categories: updated } = await fetch("/api/categories").then(r => r.json());
     setCategories(updated);
     setNewCategoryName("");
@@ -59,11 +65,28 @@ export default function NewCoursePage() {
       const res = await fetch("/api/admin/courses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category_id: categoryId, title, level, description, intro_video_url: introVideoUrl, thumbnail_url: thumbnailUrl, price, old_price: oldPrice, launch_date: launchDate, course_duration: courseDuration, lesson_duration: lessonDuration, instructor_name: instructorName, theme }),
+        body: JSON.stringify({
+          category_id: categoryId,
+          title,
+          level,
+          description,
+          intro_video_url: introVideoUrl,
+          thumbnail_url: thumbnailUrl,
+          price,
+          old_price: oldPrice,
+          launch_date: launchDate,
+          course_duration: courseDuration,
+          lesson_duration: lessonDuration,
+          instructor_name: instructorName,
+          theme,
+          is_published: true, // ← ينشر الكورس تلقائياً
+        }),
       });
       if (res.ok) router.push("/dashboard/admin/courses");
       else setError("فشل إنشاء الكورس");
-    } catch { setError("خطأ في الشبكة"); }
+    } catch {
+      setError("خطأ في الشبكة");
+    }
     setLoading(false);
   };
 
@@ -77,11 +100,17 @@ export default function NewCoursePage() {
             <Label><T>الفئة</T></Label>
             <Select value={categoryId} onValueChange={setCategoryId}>
               <SelectTrigger><SelectValue placeholder="اختر فئة" /></SelectTrigger>
-              <SelectContent>{categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+              <SelectContent>
+                {categories.map(c => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
           <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
-            <DialogTrigger asChild><Button size="sm" variant="outline"><Plus size={16} /> <T>فئة جديدة</T></Button></DialogTrigger>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline"><Plus size={16} /> <T>فئة جديدة</T></Button>
+            </DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle><T>إضافة فئة</T></DialogTitle></DialogHeader>
               <Input value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} placeholder="اسم الفئة" />

@@ -59,7 +59,7 @@ export async function POST(req: Request) {
         ${values.category_id}, ${values.title}, ${values.level}, ${values.description},
         ${values.intro_video_url}, ${values.thumbnail_url}, ${values.price}, ${values.old_price},
         ${values.launch_date}, ${values.course_duration}, ${values.lesson_duration},
-        ${values.instructor_name}, ${values.theme}, false
+        ${values.instructor_name}, ${values.theme}, true
       )
     `;
 
