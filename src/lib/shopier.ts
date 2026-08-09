@@ -3,7 +3,7 @@ interface CreatePaymentLinkParams {
   bundleId?: string;
   planId?: string;
   title: string;
-  price: number;
+  price: number; // السعر بالليرة التركية
   type: 'course' | 'bundle' | 'subscription';
 }
 
@@ -20,11 +20,15 @@ export async function createShopierPaymentLink(params: CreatePaymentLinkParams):
     productId = `subscription_${params.planId}`;
   }
 
+  // الحقول المؤكدة والمطلوبة من Shopier API
   const formBody = new URLSearchParams({
     title: params.title,
     price: params.price.toFixed(2),
     currency: 'TRY',
     type: 'digital',
+    media: 'digital',
+    description: params.title,   // وصف افتراضي
+    category: 'Eğitim',          // فئة التعليم
     product_id: productId,
   });
 
