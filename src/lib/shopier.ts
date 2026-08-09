@@ -25,7 +25,7 @@ export async function createShopierPaymentLink(params: CreatePaymentLinkParams):
     price: params.price.toFixed(2),
     currency: 'TRY',
     type: 'digital',
-    media: [{ type: 'digital' }],           // ← مصفوفة
+    media: [],                        // ← مصفوفة فارغة لتجنب الخطأ
     description: params.title,
     category: 'Eğitim',
     product_id: productId,
