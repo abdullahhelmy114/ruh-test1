@@ -11,27 +11,26 @@ export async function createShopierPaymentLink(params: CreatePaymentLinkParams):
   const pat = process.env.SHOPIER_PAT;
   if (!pat) throw new Error('SHOPIER_PAT is not set');
 
-  let productId = '';
+  // بناء order_id فريد لتتبع الطلب
+  let orderId = '';
   if (params.type === 'course' && params.liveCourseId) {
-    productId = `course_${params.liveCourseId}`;
+    orderId = `course_${params.liveCourseId}`;
   } else if (params.type === 'bundle' && params.bundleId) {
-    productId = `bundle_${params.bundleId}`;
+    orderId = `bundle_${params.bundleId}`;
   } else if (params.type === 'subscription' && params.planId) {
-    productId = `subscription_${params.planId}`;
+    orderId = `subscription_${params.planId}`;
   }
 
   const body = JSON.stringify({
-    title: params.title,
-    price: params.price.toFixed(2),
+    product_name: params.title,
+    product_price: params.price.toFixed(2),
     currency: 'TRY',
-    type: 'digital',
-    media: [],                        // ← مصفوفة فارغة لتجنب الخطأ
-    description: params.title,
-    category: 'Eğitim',
-    product_id: productId,
+    order_id: orderId,
+    payment_method: 'credit_card',  // اختياري
+    // callback_url: `${process.env.COOLIFY_URL}/api/webhook/shopier`  // لو أردت لاحقًا
   });
 
-  const response = await fetch('https://api.shopier.com/v1/products', {
+  const response = await fetch('https://api.shopier.com/v1/checkout', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${pat}`,
@@ -46,5 +45,6 @@ export async function createShopierPaymentLink(params: CreatePaymentLinkParams):
   }
 
   const data = await response.json();
-  return data.product_url || `https://www.shopier.com/ShowProductNew.php?product_id=${data.product_id}`;
+  // ترجع payment_url عادة
+  return data.payment_url || data.checkout_url || `https://www.shopier.com/ShowProductNew.php?order_id=${orderId}`;
 }
