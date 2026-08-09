@@ -3,7 +3,7 @@ interface CreatePaymentLinkParams {
   bundleId?: string;
   planId?: string;
   title: string;
-  price: number; // بالليرة التركية
+  price: number;
   type: 'course' | 'bundle' | 'subscription';
 }
 
@@ -11,7 +11,6 @@ export async function createShopierPaymentLink(params: CreatePaymentLinkParams):
   const pat = process.env.SHOPIER_PAT;
   if (!pat) throw new Error('SHOPIER_PAT is not set');
 
-  // بناء معرّف مخصص لربط الكورس لاحقًا في webhook
   let productId = '';
   if (params.type === 'course' && params.liveCourseId) {
     productId = `course_${params.liveCourseId}`;
@@ -21,12 +20,12 @@ export async function createShopierPaymentLink(params: CreatePaymentLinkParams):
     productId = `subscription_${params.planId}`;
   }
 
-  // الحقول المطلوبة من Shopier API
   const formBody = new URLSearchParams({
-    title: params.title,               // جرب استخدام "title" بدلاً من "product_name"
-    price: params.price.toFixed(2),   // السعر
-    currency: 'TRY',                  // الليرة التركية
-    product_id: productId,           // معرّف المنتج المخصص
+    title: params.title,
+    price: params.price.toFixed(2),
+    currency: 'TRY',
+    type: 'digital',
+    product_id: productId,
   });
 
   const response = await fetch('https://api.shopier.com/v1/products', {
