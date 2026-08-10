@@ -11,23 +11,26 @@ export async function createShopierPaymentLink(params: CreatePaymentLinkParams):
   const pat = process.env.SHOPIER_PAT;
   if (!pat) throw new Error('SHOPIER_PAT is not set');
 
-  let productId = '';
+  // بناء order_id فريد
+  let orderId = '';
   if (params.type === 'course' && params.liveCourseId) {
-    productId = `course_${params.liveCourseId}`;
+    orderId = `course_${params.liveCourseId}`;
   } else if (params.type === 'bundle' && params.bundleId) {
-    productId = `bundle_${params.bundleId}`;
+    orderId = `bundle_${params.bundleId}`;
   } else if (params.type === 'subscription' && params.planId) {
-    productId = `subscription_${params.planId}`;
+    orderId = `subscription_${params.planId}`;
   }
 
+  // حقول البيع السريع الأساسية (بدون media أو شحن)
   const formBody = new URLSearchParams({
     product_name: params.title,
     product_price: params.price.toFixed(2),
     currency: 'TRY',
-    product_id: productId,
+    order_id: orderId,
+    // callback_url: `${process.env.COOLIFY_URL}/api/webhook/shopier`, // يمكن إضافته لاحقاً
   });
 
-  const response = await fetch('https://api.shopier.com/v0/products', {
+  const response = await fetch('https://api.shopier.com/v1/quick-sales', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${pat}`,
@@ -42,5 +45,5 @@ export async function createShopierPaymentLink(params: CreatePaymentLinkParams):
   }
 
   const data = await response.json();
-  return data.payment_url || data.product_url || `https://www.shopier.com/ShowProductNew.php?product_id=${data.product_id}`;
+  return data.payment_url || data.sale_url || `https://www.shopier.com/ShowProductNew.php?order_id=${orderId}`;
 }
