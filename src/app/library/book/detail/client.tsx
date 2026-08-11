@@ -8,7 +8,8 @@ import { T } from "@/components/TranslatedText";
 import { authFetch } from "@/lib/authFetch";
 import Link from "next/link";
 import HTMLFlipBook from "react-pageflip";
-import { Document, Page, pdfjs } from "react-pdf";
+import dynamic from "next/dynamic";
+import { pdfjs } from "react-pdf";
 import {
   ChevronLeft,
   ChevronRight,
@@ -27,6 +28,10 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 import { PageOverlay, type OverlayItem } from "@/components/reader/PageOverlay";
+
+// Dynamic imports for react-pdf components with SSR disabled
+const Document = dynamic(() => import("react-pdf").then((mod) => mod.Document), { ssr: false });
+const Page = dynamic(() => import("react-pdf").then((mod) => mod.Page), { ssr: false });
 
 // إعداد عامل PDF.js
 if (typeof window !== "undefined") {
