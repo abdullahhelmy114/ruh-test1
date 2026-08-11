@@ -29,13 +29,12 @@ import { toast } from "sonner";
 
 import { PageOverlay, type OverlayItem } from "@/components/reader/PageOverlay";
 
-// Dynamic imports for react-pdf components with SSR disabled
 const Document = dynamic(() => import("react-pdf").then((mod) => mod.Document), { ssr: false });
 const Page = dynamic(() => import("react-pdf").then((mod) => mod.Page), { ssr: false });
 
-// إعداد عامل PDF.js
+// إعداد العامل بشكل ثابت
 if (typeof window !== "undefined") {
-  pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+  pdfjs.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 }
 
 interface PageOverlayData extends OverlayItem {
@@ -71,7 +70,16 @@ export default function BookReaderClient() {
   const [overlays, setOverlays] = useState<PageOverlayData[]>([]);
   const [showAdminTools, setShowAdminTools] = useState(false);
 
-  // تحميل الكتاب والصلاحيات
+  // دالة تحويل رابط Google Drive إلى رابط تحميل مباشر
+  function getDirectDownloadUrl(url: string): string {
+    const match = url.match(/\/d\/([^/]+)\//) || url.match(/id=([^&]+)/);
+    if (match) {
+      const fileId = match[1];
+      return `https://drive.google.com/uc?export=download&id=${fileId}`;
+    }
+    return url;
+  }
+
   useEffect(() => {
     if (!user || !bookId) {
       setCheckingAccess(false);
@@ -100,7 +108,9 @@ export default function BookReaderClient() {
         if (!bookRes.ok) throw new Error("Book not found");
         const bookData = await bookRes.json();
         setBook(bookData.book);
-        setPdfUrl(bookData.book?.pdf_url || "");
+        // استخدام الرابط المباشر للتحميل
+        const directUrl = getDirectDownloadUrl(bookData.book?.pdf_url || "");
+        setPdfUrl(directUrl);
 
         const overlaysRes = await authFetch(`/api/library/page-overlay?bookId=${bookId}`);
         if (overlaysRes.ok) {
@@ -118,7 +128,6 @@ export default function BookReaderClient() {
     load();
   }, [user, bookId]);
 
-  // إعداد عدد الصفحات عند تحميل المستند بنجاح
   const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
   }, []);
