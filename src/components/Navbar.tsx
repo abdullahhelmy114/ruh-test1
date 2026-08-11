@@ -27,6 +27,7 @@ const baseLinks = [
   { to: "/marketplace", label: "Marketplace" },
   { to: "/bundles", label: "Bundles" },
   { to: "/certification", label: "Certification" },
+  { to: "/library", label: "library" },
   { to: "/quran", label: "Quran Irab" },
 ];
 
