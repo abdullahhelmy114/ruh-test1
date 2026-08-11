@@ -10,7 +10,7 @@ export async function GET(req: Request) {
   if (bookId) {
     try {
       const [book] = await sql`
-        SELECT id, title, author, description, cover_url, created_at
+        SELECT id, title, author, description, cover_url, pdf_url, created_at
         FROM library_books
         WHERE id = ${bookId}
       `;
@@ -36,7 +36,7 @@ export async function GET(req: Request) {
         console.warn("Could not fetch categories:", e);
       }
 
-      // جلب الصفحات
+      // جلب الصفحات (للتوافق مع النظام القديم – قد لا تكون ضرورية بعد التحويل للـ PDF المباشر)
       const pages = await sql`
         SELECT page_number, image_url
         FROM library_pages
@@ -64,7 +64,7 @@ export async function GET(req: Request) {
   // ---------- جلب قائمة الكتب ----------
   try {
     const books = await sql`
-      SELECT id, title, author, description, cover_url, created_at
+      SELECT id, title, author, description, cover_url, pdf_url, created_at
       FROM library_books
       ORDER BY created_at DESC
     `;
@@ -101,6 +101,7 @@ export async function GET(req: Request) {
       author: book.author,
       description: book.description,
       cover_url: book.cover_url,
+      pdf_url: book.pdf_url, // متوفر الآن
       year: null,
       pages_count: null,
       created_at: book.created_at,
