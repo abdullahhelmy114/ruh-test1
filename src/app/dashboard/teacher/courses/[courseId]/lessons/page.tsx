@@ -107,7 +107,7 @@ export default function ManageLessonsPage() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-3xl p-6 md:p-8 space-y-6">
         <div>
           <h1 className="font-serif text-2xl"><T>دروس الكورس (النموذجية)</T></h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             <T>قم بتفعيل الدروس بالترتيب المحدد من الأدمن</T>
           </p>
         </div>
@@ -120,7 +120,7 @@ export default function ManageLessonsPage() {
 
         <div className="space-y-3">
           {modelLessons.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-8">
+            <p className="text-sm text-muted-foreground text-center py-8">
               <T>لا توجد دروس نموذجية لهذا الكورس بعد.</T>
             </p>
           ) : (
@@ -130,12 +130,12 @@ export default function ManageLessonsPage() {
                 className="flex items-center justify-between rounded-2xl border bg-card p-4"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-500 font-mono w-6 text-center">
+                  <span className="text-xs text-muted-foreground font-mono w-6 text-center">
                     {index + 1}
                   </span>
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-900">{lesson.title}</h3>
-                    <p className="text-xs text-gray-500">
+                    <h3 className="text-sm font-semibold text-foreground">{lesson.title}</h3>
+                    <p className="text-xs text-muted-foreground">
                       {lesson.type} {lesson.duration_minutes && `· ${lesson.duration_minutes} دقيقة`}
                     </p>
                   </div>
@@ -160,7 +160,7 @@ export default function ManageLessonsPage() {
                     <button
                       onClick={() => handleActivate(lesson.id)}
                       disabled={activatingId === lesson.id}
-                      className="inline-flex items-center gap-1 text-xs bg-amber-100text-amber-700 rounded-full px-3 py-1.5 hover:bg-accent/90 disabled:opacity-50"
+                      className="inline-flex items-center gap-1 text-xs bg-accent text-accent-foreground rounded-full px-3 py-1.5 hover:bg-accent/90 disabled:opacity-50"
                     >
                       {activatingId === lesson.id ? (
                         <Loader2 size={14} className="animate-spin" />

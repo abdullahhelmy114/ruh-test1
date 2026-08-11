@@ -78,8 +78,8 @@ export default function LiveLessonPage() {
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center glass rounded-3xl p-12 max-w-md">
           <h1 className="font-serif text-2xl mb-3"><T>Unavailable</T></h1>
-          <p className="text-gray-500">{error || <T>The lesson does not exist</T>}</p>
-          <Link href="/" className="mt-6 inline-flex items-center gap-2 text-amber-700 hover:underline">
+          <p className="text-muted-foreground">{error || <T>The lesson does not exist</T>}</p>
+          <Link href="/" className="mt-6 inline-flex items-center gap-2 text-accent-foreground hover:underline">
             <ArrowLeft size={16} /> <T>Back to Home</T>
           </Link>
         </div>
@@ -90,14 +90,14 @@ export default function LiveLessonPage() {
   return (
     <div className={`min-h-screen bg-background ${fullscreen ? 'fixed inset-0 z-50' : ''}`}>
       {/* Top Bar */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 glass">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border glass">
         <div className="flex items-center gap-3">
           <Link href="/dashboard/teacher" className="p-2 rounded-full hover:bg-accent">
             <ArrowLeft size={18} />
           </Link>
           <div>
             <h1 className="font-serif text-lg">{lesson.title}</h1>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               {role === "teacher" || role === "admin" ? <T>Host</T> : <T>Attendee</T>}
             </p>
           </div>
@@ -132,9 +132,9 @@ export default function LiveLessonPage() {
           ) : (
             <div className="flex items-center justify-center h-full">
               <div className="text-center glass rounded-3xl p-12 max-w-md">
-                <Users className="mx-auto h-12 w-12 text-gray-500 mb-3" />
+                <Users className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
                 <h2 className="font-serif text-xl mb-2"><T>Unauthorized</T></h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   <T>You do not have permission to attend this lesson.</T>
                 </p>
               </div>
@@ -161,13 +161,13 @@ export default function LiveLessonPage() {
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: 300 }}
-            className="border-l border-gray-200 bg-card/50 backdrop-blur overflow-y-auto"
+            className="border-l border-border bg-card/50 backdrop-blur overflow-y-auto"
           >
             <div className="p-4">
               <h2 className="font-serif text-lg mb-3 flex items-center gap-2">
                 <MessageSquare size={16} /> <T>Chat & Notes</T>
               </h2>
-              <p className="text-xs text-gray-500 mb-4">
+              <p className="text-xs text-muted-foreground mb-4">
                 <T>Chat and notes will be activated later</T>
               </p>
               <div className="space-y-2">

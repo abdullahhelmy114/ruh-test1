@@ -48,7 +48,7 @@ export function ChatWidget({ roomId }: { roomId: string }) {
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
             {messages.map((m, i) => (
               <div key={i} className={`text-sm ${m.user === user?.email?.split("@")[0] ? "text-right" : ""}`}>
-                <span className="font-semibold text-amber-700">{m.user}</span>
+                <span className="font-semibold text-accent-foreground">{m.user}</span>
                 <div className="bg-accent/50 rounded-2xl px-3 py-1.5 inline-block max-w-[80%]">{m.message}</div>
               </div>
             ))}
@@ -56,11 +56,11 @@ export function ChatWidget({ roomId }: { roomId: string }) {
           </div>
           <div className="p-3 border-t flex gap-2">
             <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && sendMessage()} placeholder="Type..." className="flex-1 rounded-full border bg-background px-4 py-2 text-sm" />
-            <button onClick={sendMessage} className="rounded-full bg-amber-500 p-2 text-gray-900"><Send size={16} /></button>
+            <button onClick={sendMessage} className="rounded-full bg-gold p-2 text-foreground"><Send size={16} /></button>
           </div>
         </div>
       ) : (
-        <button onClick={() => setOpen(true)} className="rounded-full bg-amber-500 p-4 text-gray-900 shadow-elegant hover:bg-amber-400">
+        <button onClick={() => setOpen(true)} className="rounded-full bg-gold p-4 text-foreground shadow-elegant hover:bg-gold/80">
           <MessageCircle size={24} />
         </button>
       )}

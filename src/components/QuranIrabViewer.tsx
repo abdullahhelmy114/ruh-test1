@@ -210,7 +210,7 @@ export default function QuranIrabViewer() {
     return (
       <div className="text-center py-20 space-y-4">
         <h1 className="text-2xl font-bold text-destructive">رابط غير صالح</h1>
-        <p className="text-gray-500">تأكد من رقم السورة والآية.</p>
+        <p className="text-muted-foreground">تأكد من رقم السورة والآية.</p>
         <Link href="/quran" className="text-primary hover:underline">العودة لفهرس السور</Link>
       </div>
     );
@@ -240,14 +240,14 @@ export default function QuranIrabViewer() {
             <ChevronRight className="h-4 w-4 ml-1" /> <T>Previous</T>
           </Button>
           {ayah === 1 && surah > 1 && (
-            <Link href={`/quran/${surah - 1}/1`} className="text-sm text-gray-500 hover:underline self-center">
+            <Link href={`/quran/${surah - 1}/1`} className="text-sm text-muted-foreground hover:underline self-center">
               <T>Previous Surah</T>
             </Link>
           )}
         </div>
 
         <div className="text-center flex-1">
-          <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "Arial, sans-serif" }}>
+          <h2 className="text-xl font-bold text-foreground" style={{ fontFamily: "Arial, sans-serif" }}>
             {surahAyahTitle}
           </h2>
         </div>
@@ -291,7 +291,7 @@ export default function QuranIrabViewer() {
       </div>
 
       {/* عرض الآية */}
-      <div className="bg-card rounded-xl border border-gray-200 p-6 shadow-sm">
+      <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
         <div
           className="flex flex-wrap justify-center gap-3 text-3xl md:text-5xl leading-loose"
           style={{ fontFamily: "Arial, sans-serif" }}
@@ -322,7 +322,7 @@ export default function QuranIrabViewer() {
           })}
         </div>
         {showTranslation && translation && (
-          <div className="mt-4 text-sm text-gray-500 text-center border-t pt-3" style={{ fontFamily: "Calibri, sans-serif" }}>
+          <div className="mt-4 text-sm text-muted-foreground text-center border-t pt-3" style={{ fontFamily: "Calibri, sans-serif" }}>
             {translation}
           </div>
         )}
@@ -330,9 +330,9 @@ export default function QuranIrabViewer() {
 
       {/* عرض التفسير */}
       {showTafsir && tafsir && (
-        <div className="bg-card rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xl font-bold text-gray-900"><T>Tafsir</T></h3>
+            <h3 className="text-xl font-bold text-foreground"><T>Tafsir</T></h3>
             <Button variant="ghost" size="sm" onClick={() => setShowTafsir(false)}><T>Close</T></Button>
           </div>
           <p className="text-sm leading-relaxed" style={{ fontFamily: "Calibri, sans-serif" }}>{tafsir}</p>
@@ -340,27 +340,27 @@ export default function QuranIrabViewer() {
       )}
 
       {/* جدول التحليل */}
-      <div className="bg-card rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+      <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-base">
             <thead>
-              <tr className="bg-muted/50 border-b border-gray-200">
-                <th className="px-4 py-3 text-right text-gray-900" style={{ fontFamily: "Arial, sans-serif" }}>الكلمة</th>
-                <th className="px-4 py-3 text-right text-gray-900" style={{ fontFamily: "Arial, sans-serif" }}>
+              <tr className="bg-muted/50 border-b border-border">
+                <th className="px-4 py-3 text-right text-foreground" style={{ fontFamily: "Arial, sans-serif" }}>الكلمة</th>
+                <th className="px-4 py-3 text-right text-foreground" style={{ fontFamily: "Arial, sans-serif" }}>
                   تحليل النوع{" "}
-                  <button onClick={() => openHelp("type")} className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500/20 text-primary hover:bg-emerald-900/30 transition">
+                  <button onClick={() => openHelp("type")} className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/20 text-primary hover:bg-primary/30 transition">
                     <HelpCircle className="w-3 h-3" />
                   </button>
                 </th>
-                <th className="px-4 py-3 text-right text-gray-900" style={{ fontFamily: "Arial, sans-serif" }}>
+                <th className="px-4 py-3 text-right text-foreground" style={{ fontFamily: "Arial, sans-serif" }}>
                   الموقع الإعرابي{" "}
-                  <button onClick={() => openHelp("position")} className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500/20 text-primary hover:bg-emerald-900/30 transition">
+                  <button onClick={() => openHelp("position")} className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/20 text-primary hover:bg-primary/30 transition">
                     <HelpCircle className="w-3 h-3" />
                   </button>
                 </th>
-                <th className="px-4 py-3 text-right text-gray-900" style={{ fontFamily: "Arial, sans-serif" }}>
+                <th className="px-4 py-3 text-right text-foreground" style={{ fontFamily: "Arial, sans-serif" }}>
                   العلامة الإعرابية{" "}
-                  <button onClick={() => openHelp("sign")} className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500/20 text-primary hover:bg-emerald-900/30 transition">
+                  <button onClick={() => openHelp("sign")} className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/20 text-primary hover:bg-primary/30 transition">
                     <HelpCircle className="w-3 h-3" />
                   </button>
                 </th>
@@ -374,8 +374,8 @@ export default function QuranIrabViewer() {
                   <tr
                     key={wordIdx}
                     onClick={() => setSelectedWordIdx(wordIdx === selectedWordIdx ? null : wordIdx)}
-                    className={`border-b border-gray-200 cursor-pointer transition-all duration-300 ${
-                      isSelected ? 'bg-emerald-500/10' : 'hover:bg-muted/20'
+                    className={`border-b border-border cursor-pointer transition-all duration-300 ${
+                      isSelected ? 'bg-primary/10' : 'hover:bg-muted/20'
                     }`}
                   >
                     <td className="px-4 py-3 align-top">
@@ -449,7 +449,7 @@ export default function QuranIrabViewer() {
                 {words[selectedWordIdx].word}
               </h3>
             </div>
-            <div className="text-sm text-gray-900 leading-relaxed" style={{ fontFamily: "Calibri, sans-serif" }}>
+            <div className="text-sm text-foreground leading-relaxed" style={{ fontFamily: "Calibri, sans-serif" }}>
               {words[selectedWordIdx].components.map((comp, i) => (
                 <div key={i} className="mb-1" style={{ color: getWordColor(comp.text) }}>
                   {comp.text}: {comp.type} – {comp.position} – {comp.sign}
@@ -468,7 +468,7 @@ export default function QuranIrabViewer() {
 
       {/* نافذة المساعدة */}
       <Dialog open={helpDialogOpen} onOpenChange={setHelpDialogOpen}>
-        <DialogContent className="bg-card border-gray-200 text-gray-900">
+        <DialogContent className="bg-card border-border text-foreground">
           <DialogHeader>
             <DialogTitle className="text-xl"><T>Explanation</T></DialogTitle>
           </DialogHeader>

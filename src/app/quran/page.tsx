@@ -24,7 +24,7 @@ export default async function QuranSurahsPage() {
   return (
     <div className="min-h-screen bg-background py-10" dir="rtl">
       <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-gray-900 text-center mb-8">
+        <h1 className="text-3xl font-bold text-foreground text-center mb-8">
           <T>Quran Surahs Index</T>
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -32,23 +32,23 @@ export default async function QuranSurahsPage() {
             <Link
               key={surah.number}
               href={`/quran/${surah.number}/1`}
-              className="flex items-center gap-4 bg-card border border-gray-200 rounded-xl p-4 hover:bg-primary/5 transition group"
+              className="flex items-center gap-4 bg-card border border-border rounded-xl p-4 hover:bg-primary/5 transition group"
             >
-              <div className="shrink-0 w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-lg font-bold text-primary group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+              <div className="shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                 {surah.number}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-900 truncate">
+                <p className="font-semibold text-foreground truncate">
                   {surah.englishName}
                 </p>
-                <p className="text-sm text-gray-500 truncate font-arabic">
+                <p className="text-sm text-muted-foreground truncate font-arabic">
                   {surah.name}
                 </p>
-                <p className="text-xs text-gray-500/60 truncate">
+                <p className="text-xs text-muted-foreground/60 truncate">
                   {surah.englishNameTranslation} · {surah.numberOfAyahs} آيات
                 </p>
               </div>
-              <ChevronLeft className="h-5 w-5 text-gray-500/30 group-hover:text-primary transition-colors" />
+              <ChevronLeft className="h-5 w-5 text-muted-foreground/30 group-hover:text-primary transition-colors" />
             </Link>
           ))}
         </div>

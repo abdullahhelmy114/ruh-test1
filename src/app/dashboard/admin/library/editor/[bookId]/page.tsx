@@ -228,15 +228,15 @@ export default function BookEditorPage() {
                   className={`w-full flex items-center gap-3 rounded-lg border p-3 text-right transition ${
                     selectedPage === page.page_number
                       ? "border-primary bg-primary/5"
-                      : "border-gray-200 hover:bg-muted/50"
+                      : "border-border hover:bg-muted/50"
                   }`}
                 >
-                  <ImageIcon className="h-4 w-4 text-gray-500" />
+                  <ImageIcon className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">صفحة {page.page_number}</span>
                 </button>
               ))}
               {pages.length === 0 && (
-                <p className="text-sm text-gray-500">لا توجد صفحات بعد. قم بتحويل الـ PDF أولاً.</p>
+                <p className="text-sm text-muted-foreground">لا توجد صفحات بعد. قم بتحويل الـ PDF أولاً.</p>
               )}
             </div>
           </div>
@@ -281,7 +281,7 @@ export default function BookEditorPage() {
                   return (
                     <div
                       key={item.id}
-                      className="absolute flex cursor-pointer items-center justify-center border-2 border-dashed border-primary/50 bg-emerald-500/10 hover:bg-emerald-500/20"
+                      className="absolute flex cursor-pointer items-center justify-center border-2 border-dashed border-primary/50 bg-primary/10 hover:bg-primary/20"
                       style={{ left, top, width, height }}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -297,7 +297,7 @@ export default function BookEditorPage() {
               </div>
             </div>
           ) : (
-            <div className="flex h-full items-center justify-center rounded-xl border bg-card p-12 text-gray-500">
+            <div className="flex h-full items-center justify-center rounded-xl border bg-card p-12 text-muted-foreground">
               <p>اختر صفحة من القائمة لتحريرها</p>
             </div>
           )}
@@ -392,7 +392,7 @@ export default function BookEditorPage() {
                 />
               </div>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               أو انقر واسحب على الصفحة لتحديد الموضع.
             </p>
           </div>

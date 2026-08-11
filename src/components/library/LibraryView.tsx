@@ -78,7 +78,7 @@ export function LibraryView() {
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-center">
           <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-gray-500"><T>Loading</T></p>
+          <p className="text-muted-foreground"><T>Loading</T></p>
         </div>
       </div>
     );
@@ -89,23 +89,23 @@ export function LibraryView() {
       {/* شريط العنوان والتحكم */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold font-serif text-gray-900">
+          <h1 className="text-2xl font-bold font-serif text-foreground">
             <T>Ruhulqudus Library</T>
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             <T>Elegant shelves housing the most important Islamic books.</T>
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           {/* زر التبديل Grid / 3D */}
-          <div className="flex rounded-full border border-gray-200 bg-muted p-1">
+          <div className="flex rounded-full border border-border bg-muted p-1">
             <button
               onClick={() => setViewMode("3d")}
               className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition ${
                 viewMode === "3d"
-                  ? "bg-emerald-600 text-white shadow"
-                  : "text-gray-500 hover:text-gray-900"
+                  ? "bg-primary text-primary-foreground shadow"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Box className="h-3.5 w-3.5" /> 3D
@@ -114,8 +114,8 @@ export function LibraryView() {
               onClick={() => setViewMode("grid")}
               className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition ${
                 viewMode === "grid"
-                  ? "bg-emerald-600 text-white shadow"
-                  : "text-gray-500 hover:text-gray-900"
+                  ? "bg-primary text-primary-foreground shadow"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Grid3X3 className="h-3.5 w-3.5" /> <T>Grid</T>
@@ -138,7 +138,7 @@ export function LibraryView() {
       ) : (
         <Suspense
           fallback={
-            <div className="flex h-[70vh] items-center justify-center text-gray-500">
+            <div className="flex h-[70vh] items-center justify-center text-muted-foreground">
               <div className="text-center">
                 <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                 <p><T>Opening 3D Library…</T></p>
@@ -160,25 +160,25 @@ export function LibraryView() {
 
       {/* حوار الاشتراك (من النظام القديم، مع تحسين الشكل) */}
       <Dialog open={showSubscribeDialog} onOpenChange={setShowSubscribeDialog}>
-        <DialogContent className="bg-card border-gray-200 text-gray-900">
+        <DialogContent className="bg-card border-border text-foreground">
           <DialogHeader>
             <DialogTitle className="text-xl">
               <T>Subscribe to Library</T>
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <p className="text-gray-500">
+            <p className="text-muted-foreground">
               <T>Subscribe Description</T>
             </p>
             <div className="grid grid-cols-2 gap-4">
               <Button
                 variant="outline"
-                className="h-24 flex-col gap-2 border-primary/30 hover:bg-emerald-500/10"
+                className="h-24 flex-col gap-2 border-primary/30 hover:bg-primary/10"
                 onClick={() => handleMockPurchase("monthly")}
                 disabled={subscribing}
               >
                 <span className="text-lg font-bold">$9.99</span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-muted-foreground">
                   <T>Monthly</T>
                 </span>
               </Button>
@@ -189,7 +189,7 @@ export function LibraryView() {
                 disabled={subscribing}
               >
                 <span className="text-lg font-bold">$49.99</span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-muted-foreground">
                   <T>Lifetime</T>
                 </span>
               </Button>

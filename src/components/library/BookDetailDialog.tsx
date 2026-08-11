@@ -54,7 +54,7 @@ export function BookDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-panel border-amber-500/30 sm:max-w-lg">
+      <DialogContent className="glass-panel border-gold/30 sm:max-w-lg">
         <DialogHeader>
           {/* مسار التصنيفات */}
           {bookCategoryNames && (
@@ -67,14 +67,14 @@ export function BookDetailDialog({
           </DialogTitle>
 
           {book.author && (
-            <p className="text-gray-500 text-sm mt-1">
-              by <span className="text-gray-900 font-medium">{book.author}</span>
+            <p className="text-muted-foreground text-sm mt-1">
+              by <span className="text-foreground font-medium">{book.author}</span>
             </p>
           )}
 
           <DialogDescription className="pt-2 text-base leading-relaxed">
             {book.description || (
-              <span className="italic text-gray-500">
+              <span className="italic text-muted-foreground">
                 <T>No description available</T>
               </span>
             )}
@@ -86,7 +86,7 @@ export function BookDetailDialog({
 
         <div className="flex items-center justify-between gap-4">
           {book.year && (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               سنة النشر: {book.year}
             </p>
           )}
@@ -95,7 +95,7 @@ export function BookDetailDialog({
         <div className="flex items-center justify-between gap-4 mt-2">
           {canRead ? (
             <Button
-              className="bg-amber-100text-amber-700 hover:bg-accent/85 rounded-full w-full"
+              className="bg-accent text-accent-foreground hover:bg-accent/85 rounded-full w-full"
               onClick={handleRead}
             >
               <BookOpen className="h-4 w-4 ml-2" />
@@ -104,7 +104,7 @@ export function BookDetailDialog({
           ) : (
             <Button
               variant="outline"
-              className="border-amber-500/30 text-gold hover:bg-amber-500/10 rounded-full w-full"
+              className="border-gold/30 text-gold hover:bg-gold/10 rounded-full w-full"
               onClick={handleSubscribe}
             >
               <Lock className="h-4 w-4 ml-2" />

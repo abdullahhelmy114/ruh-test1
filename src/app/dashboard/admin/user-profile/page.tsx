@@ -73,7 +73,7 @@ function AdminUserProfileContent() {
 
   if (error || !profile) {
     return (
-      <div className="text-center py-20 text-gray-500">
+      <div className="text-center py-20 text-muted-foreground">
         <T>{error || "User not found"}</T>
       </div>
     );
@@ -83,7 +83,7 @@ function AdminUserProfileContent() {
     <div className="max-w-3xl mx-auto px-4 py-10">
       <Link
         href="/dashboard/admin"
-        className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6"
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
       >
         <ArrowLeft size={16} /> <T>Back to Users</T>
       </Link>
@@ -98,8 +98,8 @@ function AdminUserProfileContent() {
             <h1 className="font-serif text-2xl">
               {profile.first_name} {profile.last_name}
             </h1>
-            <p className="text-sm text-gray-500">{profile.email}</p>
-            <span className="inline-block mt-1 rounded-full bg-accent/30 dark:bg-amber-500/20 text-gold dark:text-gold px-3 py-0.5 text-xs font-semibold capitalize">
+            <p className="text-sm text-muted-foreground">{profile.email}</p>
+            <span className="inline-block mt-1 rounded-full bg-accent/30 dark:bg-gold/20 text-gold dark:text-gold px-3 py-0.5 text-xs font-semibold capitalize">
               {profile.role}
             </span>
           </div>
@@ -128,7 +128,7 @@ function AdminUserProfileContent() {
         {profile.interests && (
           <div className="pt-4 border-t">
             <h3 className="font-serif text-lg mb-2">Interests</h3>
-            <p className="text-sm text-gray-500">{profile.interests}</p>
+            <p className="text-sm text-muted-foreground">{profile.interests}</p>
           </div>
         )}
 
@@ -141,10 +141,10 @@ function AdminUserProfileContent() {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InfoRow icon={Mail} label="Telegram" value={profile.telegram || "—"} />
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-white/50">
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-background/50">
                   <BookOpen className="h-5 w-5 text-secondary-foreground mt-0.5" />
                   <div>
-                    <div className="text-xs text-gray-500">Social Links</div>
+                    <div className="text-xs text-muted-foreground">Social Links</div>
                     <div className="text-sm font-medium">
                       {(profile.social_links || []).map((s: any, i: number) => (
                         <div key={i}>
@@ -158,7 +158,7 @@ function AdminUserProfileContent() {
               <div className="mt-3 space-y-1">
                 {profile.bio && (
                   <div>
-                    <span className="text-xs text-gray-500">Bio:</span>
+                    <span className="text-xs text-muted-foreground">Bio:</span>
                     <p className="text-sm">{profile.bio}</p>
                   </div>
                 )}
@@ -177,7 +177,7 @@ function AdminUserProfileContent() {
 
             {profile.status === "pending" && (
               <div className="mt-6">
-                <Button onClick={approveTeacher} className="bg-emerald-600 hover:bg-emerald-700 text-primary-foreground">
+                <Button onClick={approveTeacher} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                   Approve Teacher
                 </Button>
               </div>
@@ -192,7 +192,7 @@ function AdminUserProfileContent() {
             {profile.role === "student" ? "Enrollments" : "Courses"}
           </h3>
           {enrollments.length === 0 ? (
-            <p className="text-sm text-gray-500">No records yet.</p>
+            <p className="text-sm text-muted-foreground">No records yet.</p>
           ) : (
             <ul className="space-y-1">
               {enrollments.map((e: any) => (
@@ -211,10 +211,10 @@ function AdminUserProfileContent() {
 // ============= مكون الصف الإضافي =============
 function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
   return (
-    <div className="flex items-start gap-3 p-3 rounded-xl bg-white/50">
+    <div className="flex items-start gap-3 p-3 rounded-xl bg-background/50">
       <Icon className="h-5 w-5 text-secondary-foreground mt-0.5" />
       <div>
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-muted-foreground">
           <T>{label}</T>
         </div>
         <div className="text-sm font-medium">{value}</div>

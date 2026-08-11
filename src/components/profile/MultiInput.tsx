@@ -24,7 +24,7 @@ export function MultiInput({
               initial={{ opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.85 }}
-              className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-primary dark:text-gold"
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary dark:text-gold"
             >
               {v}
               <button
@@ -44,12 +44,12 @@ export function MultiInput({
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
           placeholder={placeholder ?? "Add..."}
-          className="h-9 flex-1 bg-transparent text-sm outline-none placeholder:text-gray-500/60"
+          className="h-9 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
         />
         <button
           type="button"
           onClick={add}
-          className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-amber-500 text-gold-foreground transition hover:scale-105"
+          className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gold text-gold-foreground transition hover:scale-105"
         >
           <Plus size={14} />
         </button>

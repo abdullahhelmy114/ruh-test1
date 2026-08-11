@@ -67,18 +67,18 @@ export default function StudentDetailPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
-      <Link href="/dashboard/teacher/students" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6">
+      <Link href="/dashboard/teacher/students" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
         <ArrowLeft size={16} /> <T>Back to Students</T>
       </Link>
 
       <div className="glass rounded-3xl p-6 md:p-8 space-y-6">
         <div className="flex items-center gap-4">
-          <div className="grid h-16 w-16 place-items-center rounded-full bg-gradient-emerald text-white text-2xl font-bold">
+          <div className="grid h-16 w-16 place-items-center rounded-full bg-gradient-primary text-primary-foreground text-2xl font-bold">
             {student.full_name?.charAt(0) || "?"}
           </div>
           <div>
             <h1 className="font-serif text-2xl">{student.full_name}</h1>
-            <p className="text-sm text-gray-500 flex items-center gap-1"><Mail size={14} /> {student.email}</p>
+            <p className="text-sm text-muted-foreground flex items-center gap-1"><Mail size={14} /> {student.email}</p>
           </div>
         </div>
 
@@ -98,10 +98,10 @@ export default function StudentDetailPage() {
 
 function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
   return (
-    <div className="flex items-start gap-3 p-3 rounded-xl bg-white/50">
+    <div className="flex items-start gap-3 p-3 rounded-xl bg-background/50">
       <Icon className="h-5 w-5 text-secondary-foreground mt-0.5" />
       <div>
-        <div className="text-xs text-gray-500"><T>{label}</T></div>
+        <div className="text-xs text-muted-foreground"><T>{label}</T></div>
         <div className="text-sm font-medium">{value}</div>
       </div>
     </div>

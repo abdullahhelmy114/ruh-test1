@@ -33,15 +33,15 @@ export default function WishlistPage() {
 
   if (!user) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-gray-500">
-        <Link href="/login" className="text-amber-700"><T>Sign in to see your wishlist</T></Link>
+      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
+        <Link href="/login" className="text-accent-foreground"><T>Sign in to see your wishlist</T></Link>
       </div>
     );
   }
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
-      <Link href="/marketplace" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6">
+      <Link href="/marketplace" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
         <ArrowLeft size={16} /> <T>Back to Marketplace</T>
       </Link>
       <h1 className="font-serif text-3xl mb-6 flex items-center gap-2">
@@ -51,8 +51,8 @@ export default function WishlistPage() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div>
       ) : items.length === 0 ? (
-        <div className="text-center py-20 text-gray-500">
-          <Heart className="mx-auto h-12 w-12 mb-4 text-gray-500/50" />
+        <div className="text-center py-20 text-muted-foreground">
+          <Heart className="mx-auto h-12 w-12 mb-4 text-muted-foreground/50" />
           <p><T>Your wishlist is empty.</T></p>
         </div>
       ) : (
@@ -60,11 +60,11 @@ export default function WishlistPage() {
           {items.map((item: any) => (
             <div key={item.id} className="flex items-center justify-between glass rounded-2xl p-4">
               <div>
-                <Link href={`/courses/${item.course_id}`} className="font-medium hover:text-amber-700">{item.title}</Link>
-                <p className="text-xs text-gray-500"><T>by</T> {item.teacher_name} · {item.level}</p>
+                <Link href={`/courses/${item.course_id}`} className="font-medium hover:text-accent-foreground">{item.title}</Link>
+                <p className="text-xs text-muted-foreground"><T>by</T> {item.teacher_name} · {item.level}</p>
               </div>
               <div className="flex items-center gap-4">
-                <span className="font-bold text-amber-700">${item.price}</span>
+                <span className="font-bold text-accent-foreground">${item.price}</span>
                 <button onClick={() => removeItem(item.course_id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full">
                   <Heart size={16} className="fill-current" />
                 </button>

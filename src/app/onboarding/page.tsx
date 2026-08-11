@@ -60,12 +60,12 @@ export default function OnboardingPage() {
           <>
             <Globe className="mx-auto h-12 w-12 text-secondary-foreground mb-4" />
             <h1 className="font-serif text-2xl"><T>Welcome to Ruhulqudus Academy!</T></h1>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-muted-foreground">
               <T>Let's set up your profile to get started.</T>
             </p>
             <button
               onClick={() => setStep(2)}
-              className="mt-6 w-full rounded-full bg-amber-500 py-3 text-sm font-semibold text-gray-900"
+              className="mt-6 w-full rounded-full bg-gold py-3 text-sm font-semibold text-foreground"
             >
               <T>Get Started</T> <ArrowRight className="inline h-4 w-4" />
             </button>
@@ -76,19 +76,19 @@ export default function OnboardingPage() {
           <div className="space-y-5 text-left">
             <h2 className="font-serif text-xl text-center"><T>Tell us about yourself</T></h2>
             <div>
-              <label className="text-xs font-medium uppercase tracking-wider text-gray-500"><User className="inline h-3.5 w-3.5" /> <T>Bio</T></label>
+              <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground"><User className="inline h-3.5 w-3.5" /> <T>Bio</T></label>
               <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="A short introduction..." className="w-full mt-1 rounded-2xl border bg-background px-4 py-3 text-sm" rows={3} />
             </div>
             <div>
-              <label className="text-xs font-medium uppercase tracking-wider text-gray-500"><MapPin className="inline h-3.5 w-3.5" /> <T>Country</T></label>
+              <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground"><MapPin className="inline h-3.5 w-3.5" /> <T>Country</T></label>
               <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Your country" className="w-full mt-1 rounded-2xl border bg-background px-4 py-3 text-sm" />
             </div>
             <div>
-              <label className="text-xs font-medium uppercase tracking-wider text-gray-500"><BookOpen className="inline h-3.5 w-3.5" /> <T>Interests</T></label>
+              <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground"><BookOpen className="inline h-3.5 w-3.5" /> <T>Interests</T></label>
               <input value={interests} onChange={(e) => setInterests(e.target.value)} placeholder="e.g., Quran, Grammar, Conversation" className="w-full mt-1 rounded-2xl border bg-background px-4 py-3 text-sm" />
             </div>
             {error && <p className="text-sm text-red-500">{error}</p>}
-            <button onClick={handleComplete} disabled={saving} className="w-full rounded-full bg-primarypy-3 text-sm font-semibold text-white disabled:opacity-50">
+            <button onClick={handleComplete} disabled={saving} className="w-full rounded-full bg-primarypy-3 text-sm font-semibold text-primary-foreground disabled:opacity-50">
               {saving ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : <T>Complete Profile</T>}
             </button>
           </div>

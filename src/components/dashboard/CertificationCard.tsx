@@ -10,8 +10,8 @@ export function CertificationCard({ progress = 62 }: { progress?: number }) {
       animate={{ opacity: 1, y: 0 }}
       className="relative overflow-hidden rounded-3xl p-8 shadow-elegant border border-hero-border gradient-hero"
     >
-      <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-amber-500/20 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 -left-10 h-56 w-56 rounded-full bg-amber-500/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-gold/20 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -left-10 h-56 w-56 rounded-full bg-gold/10 blur-3xl" />
 
       <div className="relative z-10 grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
         <div>

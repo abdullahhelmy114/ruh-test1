@@ -100,10 +100,10 @@ export function AdminProfile() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="space-y-6">
         <header className="space-y-2">
           <p className="text-xs uppercase tracking-[0.3em] text-gold">Profile</p>
-          <h1 className="font-serif text-4xl font-semibold text-gray-900 sm:text-5xl">
+          <h1 className="font-serif text-4xl font-semibold text-foreground sm:text-5xl">
             Administrator <span className="gold-text">control</span>
           </h1>
-          <p dir="rtl" className="font-arabic text-sm text-gray-500">إدارة أكاديمية روح القدس</p>
+          <p dir="rtl" className="font-arabic text-sm text-muted-foreground">إدارة أكاديمية روح القدس</p>
         </header>
 
         <Section step={1} title="Identity" arabic="الهوية" icon={<Shield size={20} />}>
@@ -135,7 +135,7 @@ export function AdminProfile() {
         </Section>
 
         <div className="flex flex-col items-center justify-between gap-4 pt-4 sm:flex-row">
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             Profile completion: <span className="font-semibold text-primary dark:text-gold">{completion}%</span>
           </p>
           <SaveButton onClick={submit} state={save} />

@@ -26,9 +26,9 @@ export function TimeSlotPicker({ selected, onChange, date }: TimeSlotPickerProps
             onClick={() => onChange(value)}
             className={cn(
               "py-2 px-3 rounded-xl text-xs font-medium border transition-colors",
-              past && "text-gray-500/30 cursor-not-allowed border-gray-200",
+              past && "text-muted-foreground/30 cursor-not-allowed border-border",
               selected === value && "bg-primary! text-primary-foreground! border-primary! ring-2 ring-primary/50 ring-offset-1",
-              !past && selected !== value && "border-gray-200 hover:bg-accent"
+              !past && selected !== value && "border-border hover:bg-accent"
             )}
           >
             {value}

@@ -61,7 +61,7 @@ function ResetPasswordForm() {
       <div className="grid min-h-[calc(100vh-4rem)] place-items-center px-4">
         <div className="glass rounded-3xl p-8 text-center max-w-md">
           <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
-          <p className="text-gray-500"><T>{error}</T></p>
+          <p className="text-muted-foreground"><T>{error}</T></p>
         </div>
       </div>
     );
@@ -73,7 +73,7 @@ function ResetPasswordForm() {
         <div className="glass rounded-3xl p-8 md:p-10 shadow-elegant text-center max-w-md">
           <CheckCircle className="mx-auto h-12 w-12 text-primary mb-4" />
           <h1 className="font-serif text-2xl"><T>Password Reset!</T></h1>
-          <p className="mt-2 text-gray-500"><T>Redirecting to login...</T></p>
+          <p className="mt-2 text-muted-foreground"><T>Redirecting to login...</T></p>
         </div>
       </div>
     );
@@ -82,11 +82,11 @@ function ResetPasswordForm() {
   return (
     <div className="grid min-h-[calc(100vh-4rem)] place-items-center bg-background px-4 py-12">
       <div className="relative w-full max-w-md">
-        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-amber-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-gold/20 blur-3xl" />
         <div className="glass rounded-3xl p-8 md:p-10 shadow-elegant text-center">
           <Lock className="mx-auto h-12 w-12 text-secondary-foreground mb-4" />
           <h1 className="font-serif text-2xl"><T>New Password</T></h1>
-          <p className="mt-2 text-sm text-gray-500"><T>Enter your new password below.</T></p>
+          <p className="mt-2 text-sm text-muted-foreground"><T>Enter your new password below.</T></p>
           <form onSubmit={handleReset} className="mt-6 space-y-5">
             <input
               type="password"
@@ -95,13 +95,13 @@ function ResetPasswordForm() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full rounded-2xl border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full rounded-2xl border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-gold"
             />
             {error && <p className="text-sm text-red-500">{error}</p>}
             <button
               type="submit"
               disabled={loading || !password.trim()}
-              className="w-full rounded-full bg-amber-500 py-3 text-sm font-semibold text-gray-900 hover:bg-amber-400 disabled:opacity-50"
+              className="w-full rounded-full bg-gold py-3 text-sm font-semibold text-foreground hover:bg-gold/80 disabled:opacity-50"
             >
               {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : <T>Reset Password</T>}
             </button>

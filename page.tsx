@@ -117,7 +117,7 @@ export default function TeacherSignupStep2Page() {
   return (
     <div className="grid min-h-screen place-items-center bg-background px-4 py-12">
       <div className="relative w-full max-w-2xl">
-        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-amber-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-gold/20 blur-3xl" />
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -125,13 +125,13 @@ export default function TeacherSignupStep2Page() {
           className="glass overflow-hidden rounded-3xl bg-card p-8 shadow-elegant md:p-10"
         >
           <div className="mb-8 text-center">
-            <div className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-700">
+            <div className="text-xs font-semibold uppercase tracking-[0.3em] text-accent-foreground">
               <T>Ruhulqudus Academy</T>
             </div>
             <h1 className="mt-3 font-serif text-3xl md:text-4xl">
               <T>Showcase Your Expertise</T>
             </h1>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-muted-foreground">
               <T>Complete your profile to be reviewed by students</T>
             </p>
           </div>
@@ -214,7 +214,7 @@ export default function TeacherSignupStep2Page() {
                   />
                 </label>
                 {cvFileName && (
-                  <span className="text-xs text-gray-500 flex items-center gap-1">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
                     <Paperclip className="h-3 w-3" /> PDF
                   </span>
                 )}
@@ -253,7 +253,7 @@ export default function TeacherSignupStep2Page() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full rounded-full bg-gradient-gold py-3.5 text-sm font-semibold tracking-wide text-white shadow-elegant hover:scale-[1.01] transition-transform"
+              className="w-full rounded-full bg-gradient-gold py-3.5 text-sm font-semibold tracking-wide text-primary-foreground shadow-elegant hover:scale-[1.01] transition-transform"
             >
               {loading ? <T>Creating...</T> : <T>Complete Registration</T>}
             </Button>

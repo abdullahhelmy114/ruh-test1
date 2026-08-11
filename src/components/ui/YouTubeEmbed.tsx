@@ -27,7 +27,7 @@ export function YouTubeEmbed({ url, title, className }: YouTubeEmbedProps) {
   const videoId = extractYouTubeId(url);
   if (!videoId) {
     return (
-      <div className="rounded-2xl bg-muted p-6 text-center text-gray-500">
+      <div className="rounded-2xl bg-muted p-6 text-center text-muted-foreground">
         Invalid video URL
       </div>
     );

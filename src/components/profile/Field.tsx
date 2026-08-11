@@ -18,21 +18,21 @@ export function Field({
 }: Common & { children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label className="flex items-baseline justify-between gap-2 text-sm font-medium text-gray-900">
+      <label className="flex items-baseline justify-between gap-2 text-sm font-medium text-foreground">
         <span className="inline-flex items-center gap-2">
           {icon ? <span className="text-gold">{icon}</span> : null}
           {label}
           {required && <span className="text-gold">*</span>}
         </span>
         {arabic && (
-          <span dir="rtl" className="font-arabic text-xs text-gray-500">{arabic}</span>
+          <span dir="rtl" className="font-arabic text-xs text-muted-foreground">{arabic}</span>
         )}
       </label>
       <div
         dir={dir}
         className={cn(
           "field-glow group flex items-center rounded-xl border bg-background/40 px-3.5 transition",
-          "border-gray-200 focus-within:border-amber-500",
+          "border-border focus-within:border-gold",
           error && "border-destructive",
         )}
       >
@@ -52,7 +52,7 @@ export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
     <input
       ref={ref}
       className={cn(
-        "h-11 w-full bg-transparent text-sm outline-none placeholder:text-gray-500/60",
+        "h-11 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/60",
         className,
       )}
       {...p}
@@ -66,7 +66,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, React.TextareaHTML
     <textarea
       ref={ref}
       className={cn(
-        "min-h-24 w-full resize-none bg-transparent py-3 text-sm outline-none placeholder:text-gray-500/60",
+        "min-h-24 w-full resize-none bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground/60",
         className,
       )}
       {...p}

@@ -160,30 +160,30 @@ export default function AdminBundlesPage() {
       {/* رأس الصفحة */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-serif text-3xl font-bold text-gray-900">
+          <h1 className="font-serif text-3xl font-bold text-foreground">
             <T>إدارة الحزم</T>
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             <T>أنشئ حزماً من 3 كورسات نموذجية بسعر مخفض</T>
           </p>
         </div>
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-amber-100text-amber-700 hover:bg-accent/90 gap-2">
+            <Button className="bg-accent text-accent-foreground hover:bg-accent/90 gap-2">
               <Plus size={18} />
               <T>حزمة جديدة</T>
             </Button>
           </DialogTrigger>
 
-          <DialogContent className="bg-card border-gray-200 max-h-[90vh] overflow-y-auto">
+          <DialogContent className="bg-card border-border max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-gray-900 text-xl"><T>إنشاء حزمة</T></DialogTitle>
+              <DialogTitle className="text-foreground text-xl"><T>إنشاء حزمة</T></DialogTitle>
             </DialogHeader>
 
             <div className="space-y-4 mt-4">
               <div>
-                <label className="text-xs font-semibold uppercase text-gray-500"><T>عنوان الحزمة</T></label>
+                <label className="text-xs font-semibold uppercase text-muted-foreground"><T>عنوان الحزمة</T></label>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -192,7 +192,7 @@ export default function AdminBundlesPage() {
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold uppercase text-gray-500"><T>الوصف</T></label>
+                <label className="text-xs font-semibold uppercase text-muted-foreground"><T>الوصف</T></label>
                 <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -203,7 +203,7 @@ export default function AdminBundlesPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold uppercase text-gray-500"><T>السعر ($)</T></label>
+                  <label className="text-xs font-semibold uppercase text-muted-foreground"><T>السعر ($)</T></label>
                   <Input
                     type="number"
                     value={price}
@@ -226,18 +226,18 @@ export default function AdminBundlesPage() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold uppercase text-gray-500">
+                <label className="text-xs font-semibold uppercase text-muted-foreground">
                   <T>اختر 3 كورسات نموذجية</T> ({selectedCourses.length}/3)
                 </label>
-                <div className="mt-2 grid gap-2 max-h-48 overflow-y-auto border border-gray-200 rounded-xl p-2">
+                <div className="mt-2 grid gap-2 max-h-48 overflow-y-auto border border-border rounded-xl p-2">
                   {modelCourses.map(course => (
                     <div
                       key={course.id}
                       onClick={() => toggleCourse(course.id)}
                       className={`flex items-center justify-between rounded-lg p-2 cursor-pointer border transition ${
                         selectedCourses.includes(course.id)
-                          ? "bg-emerald-500/10 border-primary"
-                          : "hover:bg-emerald-100"
+                          ? "bg-primary/10 border-primary"
+                          : "hover:bg-secondary"
                       }`}
                     >
                       <span className="text-sm">{course.title} ({course.level})</span>
@@ -260,7 +260,7 @@ export default function AdminBundlesPage() {
               <Button
                 onClick={handleCreate}
                 disabled={submitting || !title.trim() || selectedCourses.length !== 3}
-                className="bg-emerald-600 text-white hover:bg-emerald-700 gap-2"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
               >
                 {submitting ? <Loader2 size={16} className="animate-spin" /> : <Package size={16} />}
                 <T>إنشاء الحزمة</T>
@@ -275,7 +275,7 @@ export default function AdminBundlesPage() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 bg-emerald-500/10 text-primary p-3 rounded-xl text-sm"
+          className="flex items-center gap-2 bg-primary/10 text-primary p-3 rounded-xl text-sm"
         >
           <CheckCircle2 size={16} /> <T>{successMsg}</T>
         </motion.div>
@@ -283,8 +283,8 @@ export default function AdminBundlesPage() {
 
       {/* قائمة الحزم الحالية */}
       {bundles.length === 0 ? (
-        <div className="text-center py-16 text-gray-500">
-          <Package className="mx-auto h-16 w-16 mb-4 text-amber-700/50" />
+        <div className="text-center py-16 text-muted-foreground">
+          <Package className="mx-auto h-16 w-16 mb-4 text-accent-foreground/50" />
           <p className="text-lg"><T>لا توجد حزم بعد</T></p>
           <p className="text-sm mt-2"><T>أنشئ أول حزمة من 3 كورسات نموذجية</T></p>
         </div>
@@ -293,11 +293,11 @@ export default function AdminBundlesPage() {
           {bundles.map(bundle => (
             <div key={bundle.id} className="glass rounded-2xl p-5 space-y-3">
               <div className="flex items-start justify-between">
-                <h3 className="font-semibold text-gray-900">{bundle.title}</h3>
+                <h3 className="font-semibold text-foreground">{bundle.title}</h3>
                 {bundle.featured && <Sparkles size={16} className="text-accent" />}
               </div>
               {bundle.description && (
-                <p className="text-xs text-gray-500">{bundle.description}</p>
+                <p className="text-xs text-muted-foreground">{bundle.description}</p>
               )}
               <p className="text-xl font-bold text-primary">${bundle.price}</p>
               <div className="flex flex-wrap gap-1">

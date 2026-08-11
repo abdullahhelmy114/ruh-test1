@@ -63,10 +63,14 @@ export default function HomePage() {
   const [stats, setStats] = useState({
     students: "12K+",
     completion: "98%",
-    experience: "20+",
+    experience: "30+",
   });
 
   useEffect(() => {
+    // Fetch real stats (example: from an API or static)
+    // يمكن استبدالها بقيم حقيقية من /api/stats إذا وُجدت
+    // تركناها ثابتة كمثال
+
     // Featured Courses
     fetch("/api/marketplace?limit=3")
       .then((r) => r.json())
@@ -94,10 +98,21 @@ export default function HomePage() {
 
   return (
     <div className="overflow-hidden">
-      {/* ─── Hero (تماماً كما في HTML المرجعي) ──────────────────────── */}
+      {/* ─── Hero (تصميم وهمي مطوّر) ──────────────────────── */}
       <section className="relative overflow-hidden">
+        {/* Ambient Radial Spotlight – يخرج من خلف كارت "اقرأ" ويمتد لحواف الصفحة */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-20"
+          style={{
+            background:
+              "radial-gradient(900px 700px at 70% 40%, var(--gold) / 15%, transparent 70%)",
+          }}
+        />
+
+        {/* Ambient Blurred Orbs – كرات ضبابية تكمل الإضاءة */}
         <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute -top-24 left-1/3 h-96 w-96 rounded-full bg-gold/20 blur-3xl" />
+          <div className="absolute -top-24 left-1/3 h-96 w-96 rounded-full bg-accent/20 blur-3xl" />
           <div className="absolute right-0 top-40 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
         </div>
 
@@ -108,17 +123,21 @@ export default function HomePage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <div className="text-xs uppercase tracking-[0.3em] text-gold ornament">
-              <T>Est. by Dr. Jehan Ali Ahmed</T>
-            </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+            <Sparkles className="h-3.5 w-3.5" />
+            <T>Est. by Dr. Jehan Ali Ahmed</T>
+          </div>
 
-            <h1 className="mt-5 font-serif text-5xl leading-[1.05] md:text-7xl">
+            <h1 className="mt-6 font-serif text-5xl font-bold leading-[1.1] tracking-tight md:text-7xl">
               <T>The art of</T>{" "}
-              <em className="text-gold not-italic">Arabic</em>,<br />
+              <span className="bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
+                Arabic
+              </span>
+              ,<br />
               <T>taught with reverence.</T>
             </h1>
 
-            <p className="mt-6 max-w-lg text-lg text-muted-foreground">
+            <p className="mt-6 max-w-lg text-lg leading-relaxed text-muted-foreground">
               <T>
                 An elite academy for those who seek mastery of the Arabic
                 language — classical, modern, and Quranic — through live
@@ -126,32 +145,36 @@ export default function HomePage() {
               </T>
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap items-center gap-4">
               <Link
                 href="/signup"
-                className="inline-flex items-center gap-2 rounded-full gradient-emerald px-6 py-3 text-sm font-semibold text-primary-foreground shadow-elegant transition hover:scale-[1.02]"
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-bold text-primary-foreground shadow-elegant transition hover:scale-105 hover:bg-primary/90"
               >
                 <T>Begin Your Journey</T>
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/marketplace"
-                className="inline-flex items-center gap-2 rounded-full border bg-card px-6 py-3 text-sm font-semibold transition hover:bg-accent"
+                className="inline-flex items-center gap-2 rounded-full border-2 border-primary/40 bg-background/50 px-7 py-3.5 text-sm font-semibold backdrop-blur-sm transition hover:border-primary hover:bg-primary/10"
               >
+                <Play className="h-4 w-4 text-secondary-foreground" />
                 <T>Browse Courses</T>
               </Link>
             </div>
 
             {/* Stats */}
-            <div className="mt-10 grid grid-cols-3 gap-6 border-t pt-6">
+            <div className="mt-10 grid grid-cols-3 gap-6 border-t border-border/50 pt-8">
               {[
-                { v: stats.students, l: "Students" },
-                { v: stats.completion, l: "Completion" },
-                { v: stats.experience, l: "Years Teaching" },
+                { v: stats.students, l: "Students", icon: Users },
+                { v: stats.completion, l: "Completion", icon: TrendingUp },
+                { v: stats.experience, l: "Years Exp.", icon: Calendar },
               ].map((s) => (
-                <div key={s.l}>
-                  <div className="font-serif text-2xl text-gold">{s.v}</div>
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                <div key={s.l} className="text-center">
+                  <s.icon className="mx-auto h-5 w-5 text-accent-foreground" />
+                  <div className="mt-1 font-serif text-2xl font-bold text-foreground">
+                    {s.v}
+                  </div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                     <T>{s.l}</T>
                   </div>
                 </div>
@@ -167,14 +190,14 @@ export default function HomePage() {
             className="relative"
           >
             <div className="absolute -inset-6 rounded-[2.5rem] bg-gold/20 blur-2xl" />
-            <div className="relative overflow-hidden rounded-[2.5rem] gradient-hero p-10 text-primary-foreground shadow-elegant">
+            <div className="relative overflow-hidden rounded-[2.5rem] bg-linear-to-br from-primary to-primary/90 p-10 text-primary-foreground shadow-elegant">
               <div
-                className="font-arabic text-right text-7xl leading-tight"
+                className="text-right text-7xl leading-tight text-primary-foreground md:text-8xl"
                 style={{ fontFamily: "Amiri, serif" }}
               >
                 ٱقْرَأْ
               </div>
-              <div className="mt-2 text-right text-sm text-gold">
+              <div className="mt-2 text-right text-sm text-accent">
                 <T>Read</T> · <T>The first command</T>
               </div>
 
@@ -184,11 +207,11 @@ export default function HomePage() {
                   { icon: <Users className="h-4 w-4" />, t: "Live Cohorts via Zoom" },
                   { icon: <BookOpen className="h-4 w-4" />, t: "A1 — C2 Curriculum" },
                 ].map((f) => (
-                  <div key={f.t} className="flex items-center gap-3 rounded-2xl bg-white/5 p-3 backdrop-blur">
-                    <div className="grid h-9 w-9 place-items-center rounded-xl bg-gold text-gold-foreground">
+                  <div key={f.t} className="flex items-center gap-3">
+                    <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent text-primary">
                       {f.icon}
                     </div>
-                    <span className="text-sm">
+                    <span className="text-sm text-primary-foreground/80">
                       <T>{f.t}</T>
                     </span>
                   </div>
@@ -202,7 +225,7 @@ export default function HomePage() {
       {/* ─── Pillars (ثلاثة أعمدة) ─────────────────────────── */}
       <section className="mx-auto max-w-7xl px-4 py-16 md:px-8">
         <div className="text-center">
-          <div className="text-xs uppercase tracking-[0.3em] text-gold ornament">
+          <div className="text-xs uppercase tracking-[0.3em] text-accent ornament">
             <T>The Academy</T>
           </div>
           <h2 className="mt-3 font-serif text-4xl">
@@ -233,15 +256,15 @@ export default function HomePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.1 }}
-              className="rounded-3xl border bg-card p-8 shadow-elegant"
+              className="group rounded-3xl border bg-card p-8 shadow-elegant transition-all hover:-translate-y-1 hover:shadow-elegant"
             >
-              <div className="grid h-12 w-12 place-items-center rounded-2xl gradient-emerald text-primary-foreground">
+              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-linear-to-br from-primary to-primary/80 text-primary-foreground shadow-elegant group-hover:scale-110 transition-transform">
                 {p.i}
               </div>
               <h3 className="mt-5 font-serif text-2xl">
                 <T>{p.t}</T>
               </h3>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 <T>{p.d}</T>
               </p>
             </motion.div>
@@ -254,7 +277,7 @@ export default function HomePage() {
         <section className="bg-muted/30 py-20">
           <div className="mx-auto max-w-7xl px-4 md:px-8">
             <motion.div {...fadeInUp} className="text-center">
-              <div className="text-xs font-bold uppercase tracking-[0.3em] text-gold">
+              <div className="text-xs font-bold uppercase tracking-[0.3em] text-accent-foreground">
                 <T>Featured Courses</T>
               </div>
               <h2 className="mt-3 font-serif text-4xl md:text-5xl">
@@ -270,10 +293,10 @@ export default function HomePage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: i * 0.1 }}
-                  className="group overflow-hidden rounded-3xl border bg-card shadow-elegant transition-all hover:-translate-y-1 hover:shadow-lg"
+                  className="group overflow-hidden rounded-3xl border bg-card shadow-elegant transition-all hover:-translate-y-1 hover:shadow-elegant"
                 >
                   <Link href={`/courses/${course.id}`}>
-                    <div className="h-40 bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center relative overflow-hidden">
+                    <div className="h-40 bg-linear-to-br from-primary to-primary/80 flex items-center justify-center relative overflow-hidden">
                       {course.image_url ? (
                         <Image
                           src={course.image_url}
@@ -284,14 +307,14 @@ export default function HomePage() {
                       ) : (
                         <BookOpen className="h-12 w-12 text-primary-foreground/30" />
                       )}
-                      <span className="absolute top-3 right-3 rounded-full bg-black/30 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm">
+                      <span className="absolute top-3 right-3 rounded-full bg-foreground/30 px-3 py-1 text-xs font-bold text-primary-foreground backdrop-blur-sm">
                         {course.level}
                       </span>
                     </div>
                   </Link>
                   <div className="p-5">
                     <Link href={`/courses/${course.id}`}>
-                      <h3 className="font-serif text-lg font-semibold hover:text-gold transition-colors line-clamp-1">
+                      <h3 className="font-serif text-lg font-semibold hover:text-accent-foreground transition-colors line-clamp-1">
                         {course.title}
                       </h3>
                     </Link>
@@ -299,12 +322,12 @@ export default function HomePage() {
                       <T>by</T> {course.teacher_name}
                     </p>
                     <div className="mt-3 flex items-center justify-between">
-                      <span className="font-serif text-2xl font-bold text-gold">
+                      <span className="font-serif text-2xl font-bold text-accent-foreground">
                         {course.price === 0 ? <T>Free</T> : `$${course.price}`}
                       </span>
                       <Link
                         href={`/courses/${course.id}`}
-                        className="rounded-full bg-gold px-4 py-1.5 text-xs font-semibold text-gold-foreground hover:bg-gold/90 transition"
+                        className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent/90 transition"
                       >
                         <T>Learn More</T>
                       </Link>
@@ -317,7 +340,7 @@ export default function HomePage() {
             <div className="mt-10 text-center">
               <Link
                 href="/marketplace"
-                className="inline-flex items-center gap-2 rounded-full border-2 border-primary/50 px-6 py-3 text-sm font-semibold text-primary hover:bg-primary/10 transition"
+                className="inline-flex items-center gap-2 rounded-full border-2 border-primary/50 px-6 py-3 text-sm font-semibold text-accent-foreground hover:bg-primary/10 transition"
               >
                 <T>View All Courses</T> <ChevronRight className="h-4 w-4" />
               </Link>
@@ -330,7 +353,7 @@ export default function HomePage() {
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <motion.div {...fadeInUp} className="text-center">
-            <div className="text-xs font-bold uppercase tracking-[0.3em] text-gold">
+            <div className="text-xs font-bold uppercase tracking-[0.3em] text-accent-foreground">
               <T>Bundles</T>
             </div>
             <h2 className="mt-3 font-serif text-4xl md:text-5xl">
@@ -347,9 +370,9 @@ export default function HomePage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: i * 0.1 }}
-                  className="group overflow-hidden rounded-3xl border bg-card shadow-elegant transition-all hover:-translate-y-1 hover:shadow-lg"
+                  className="group overflow-hidden rounded-3xl border bg-card shadow-elegant transition-all hover:-translate-y-1 hover:shadow-elegant"
                 >
-                  <div className="h-40 bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                  <div className="h-40 bg-linear-to-br from-accent to-accent/80 flex items-center justify-center">
                     <PackageOpen className="h-16 w-16 text-primary-foreground/40" />
                   </div>
                   <div className="p-5">
@@ -358,12 +381,12 @@ export default function HomePage() {
                       {bundle.description}
                     </p>
                     <div className="mt-3 flex items-center justify-between">
-                      <span className="font-serif text-2xl font-bold text-gold">
+                      <span className="font-serif text-2xl font-bold text-accent-foreground">
                         ${bundle.price}
                       </span>
                       <Link
                         href="/bundles"
-                        className="rounded-full bg-gold px-4 py-1.5 text-xs font-semibold text-gold-foreground hover:bg-gold/90 transition"
+                        className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent/90 transition"
                       >
                         <T>View</T>
                       </Link>
@@ -373,13 +396,13 @@ export default function HomePage() {
               ))
             ) : (
               <div className="md:col-span-3 flex flex-col items-center justify-center py-12 text-center">
-                <PackageOpen className="h-16 w-16 text-muted-foreground/50 mb-4" />
+                <PackageOpen className="h-16 w-16 text-accent-foreground/50 mb-4" />
                 <p className="text-muted-foreground text-lg">
                   <T>No bundles available yet.</T>
                 </p>
                 <Link
                   href="/bundles"
-                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground hover:bg-gold/90 transition"
+                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/90 transition"
                 >
                   <T>Explore Bundles</T> <ChevronRight className="h-4 w-4" />
                 </Link>
@@ -393,7 +416,7 @@ export default function HomePage() {
       <section className="py-20 bg-muted/30">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <motion.div {...fadeInUp} className="text-center">
-            <div className="text-xs font-bold uppercase tracking-[0.3em] text-gold">
+            <div className="text-xs font-bold uppercase tracking-[0.3em] text-accent-foreground">
               <T>Certification</T>
             </div>
             <h2 className="mt-3 font-serif text-4xl md:text-5xl">
@@ -420,7 +443,7 @@ export default function HomePage() {
                     key={idx}
                     className="flex items-start gap-3 rounded-2xl bg-card p-4 shadow-elegant"
                   >
-                    <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/20 text-primary">
+                    <div className="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-primary">
                       {item.icon}
                     </div>
                     <span className="text-sm font-medium">
@@ -439,7 +462,7 @@ export default function HomePage() {
               className="flex-1 text-center"
             >
               <div className="inline-block rounded-3xl border-2 border-primary/30 bg-card p-8 shadow-elegant">
-                <GraduationCap className="mx-auto h-16 w-16 text-primary" />
+                <GraduationCap className="mx-auto h-16 w-16 text-secondary-foreground" />
                 <h3 className="mt-4 font-serif text-2xl font-bold">
                   <T>Your Path to Certification</T>
                 </h3>
@@ -453,7 +476,7 @@ export default function HomePage() {
                 </p>
                 <Link
                   href="/certification"
-                  className="mt-6 inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground shadow-elegant hover:bg-gold/90 transition"
+                  className="mt-6 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground shadow-elegant hover:bg-accent/90 transition"
                 >
                   <T>Learn More</T> <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -468,7 +491,7 @@ export default function HomePage() {
         <section className="py-20">
           <div className="mx-auto max-w-7xl px-4 md:px-8">
             <motion.div {...fadeInUp} className="text-center">
-              <div className="text-xs font-bold uppercase tracking-[0.3em] text-gold">
+              <div className="text-xs font-bold uppercase tracking-[0.3em] text-accent-foreground">
                 <T>From Our Blog</T>
               </div>
               <h2 className="mt-3 font-serif text-4xl md:text-5xl">
@@ -484,7 +507,7 @@ export default function HomePage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: i * 0.1 }}
-                  className="group overflow-hidden rounded-3xl border bg-card shadow-elegant transition-all hover:-translate-y-1 hover:shadow-lg"
+                  className="group overflow-hidden rounded-3xl border bg-card shadow-elegant transition-all hover:-translate-y-1 hover:shadow-elegant"
                 >
                   {post.image_url && (
                     <div className="h-40 relative overflow-hidden">
@@ -507,7 +530,7 @@ export default function HomePage() {
                       </span>
                     </div>
                     <Link href={`/blog/${post.id}`}>
-                      <h3 className="mt-2 font-serif text-lg font-semibold hover:text-gold transition-colors line-clamp-2">
+                      <h3 className="mt-2 font-serif text-lg font-semibold hover:text-accent-foreground transition-colors line-clamp-2">
                         {post.title}
                       </h3>
                     </Link>
@@ -522,7 +545,7 @@ export default function HomePage() {
             <div className="mt-10 text-center">
               <Link
                 href="/blog"
-                className="inline-flex items-center gap-2 rounded-full border-2 border-primary/50 px-6 py-3 text-sm font-semibold text-primary hover:bg-primary/10 transition"
+                className="inline-flex items-center gap-2 rounded-full border-2 border-primary/50 px-6 py-3 text-sm font-semibold text-accent-foreground hover:bg-primary/10 transition"
               >
                 <T>Read More Posts</T> <ChevronRight className="h-4 w-4" />
               </Link>
@@ -532,10 +555,10 @@ export default function HomePage() {
       )}
 
       {/* ─── Testimonials ────────────────────────────────── */}
-      <section className="bg-gradient-to-br from-primary/5 to-gold/5 py-20">
+      <section className="bg-linear-to-br from-accent/5 to-primary/5 py-20">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <motion.div {...fadeInUp} className="text-center">
-            <div className="text-xs font-bold uppercase tracking-[0.3em] text-gold">
+            <div className="text-xs font-bold uppercase tracking-[0.3em] text-accent-foreground">
               <T>Testimonials</T>
             </div>
             <h2 className="mt-3 font-serif text-4xl md:text-5xl">
@@ -553,7 +576,7 @@ export default function HomePage() {
                 transition={{ duration: 0.4, delay: i * 0.1 }}
                 className="rounded-3xl border bg-card p-6 shadow-elegant"
               >
-                <div className="flex gap-1 text-gold">
+                <div className="flex gap-1 text-secondary-foreground">
                   {[...Array(5)].map((_, j) => (
                     <Star key={j} className="h-4 w-4 fill-current" />
                   ))}
@@ -562,7 +585,7 @@ export default function HomePage() {
                   &quot;<T>{t.text}</T>&quot;
                 </p>
                 <div className="mt-4 flex items-center gap-3 border-t border-border/50 pt-4">
-                  <div className="grid h-10 w-10 place-items-center rounded-full gradient-emerald text-primary-foreground font-bold text-sm">
+                  <div className="grid h-10 w-10 place-items-center rounded-full bg-linear-to-br from-primary to-primary/80 text-primary-foreground font-bold text-sm">
                     {t.avatar}
                   </div>
                   <div>
@@ -578,28 +601,47 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── Final CTA (نفس تصميم HTML المرجعي) ────────────── */}
-      <section className="mx-auto max-w-7xl px-4 pb-20 md:px-8">
-        <div className="relative overflow-hidden rounded-3xl gradient-hero p-10 text-primary-foreground shadow-elegant md:p-16">
-          <Sparkles className="absolute right-10 top-10 h-8 w-8 text-gold" />
-          <div className="relative max-w-2xl">
-            <h2 className="font-serif text-4xl md:text-5xl">
-              <T>A tradition of excellence, now at your fingertips.</T>
-            </h2>
-            <p className="mt-4 text-primary-foreground/80">
-              <T>
-                Whether you&apos;re beginning your first letter or refining your
-                scholarly voice, the Academy welcomes you.
-              </T>
-            </p>
-            <Link
-              href="/signup"
-              className="mt-8 inline-flex items-center gap-2 rounded-full gradient-gold px-6 py-3 text-sm font-semibold text-gold-foreground shadow-gold"
-            >
-              <T>Enroll Today</T>
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+      {/* ─── Final CTA (نفس روح التصميم الوهمي) ────────────── */}
+      <section className="py-20">
+        <div className="mx-auto max-w-4xl px-4 text-center md:px-8">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="relative overflow-hidden rounded-[3rem] bg-linear-to-br from-primary to-primary/90 p-10 shadow-elegant md:p-16"
+          >
+            <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-accent/20 blur-3xl" />
+            <div className="absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-background/10 blur-2xl" />
+            <div className="relative z-10">
+              <GraduationCap className="mx-auto h-12 w-12 text-accent" />
+              <h2 className="mt-6 font-serif text-4xl font-bold text-primary-foreground md:text-5xl">
+                <T>
+                  A tradition of excellence, now at your fingertips.
+                </T>
+              </h2>
+              <p className="mt-4 text-lg text-primary-foreground/70">
+                <T>
+                  Whether you&apos;re beginning your first letter or refining your
+                  scholarly voice, the Academy welcomes you.
+                </T>
+              </p>
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center gap-2 rounded-full bg-accent px-8 py-4 text-sm font-bold text-accent-foreground shadow-elegant transition hover:scale-105 hover:bg-accent/90"
+                >
+                  <T>Enroll Today</T> <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/marketplace"
+                  className="inline-flex items-center gap-2 rounded-full border-2 border-primary/30 px-8 py-4 text-sm font-semibold text-primary-foreground backdrop-blur-sm transition hover:bg-background/10"
+                >
+                  <T>Explore Courses</T>
+                </Link>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
     </div>

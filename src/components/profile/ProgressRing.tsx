@@ -32,8 +32,8 @@ export function ProgressRing({ value, size = 120 }: { value: number; size?: numb
         </defs>
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-serif text-3xl font-semibold text-gray-900">{value}%</span>
-        <span className="text-[10px] uppercase tracking-widest text-gray-500">Complete</span>
+        <span className="font-serif text-3xl font-semibold text-foreground">{value}%</span>
+        <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Complete</span>
       </div>
     </div>
   );

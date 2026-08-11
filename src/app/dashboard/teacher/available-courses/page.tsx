@@ -78,7 +78,7 @@ export default function AvailableCoursesPage() {
 
   if (loading) {
     return (
-      <div className="container p-6 text-center text-gray-500">
+      <div className="container p-6 text-center text-muted-foreground">
         جارٍ تحميل الكورسات المتاحة...
       </div>
     );
@@ -88,25 +88,25 @@ export default function AvailableCoursesPage() {
     <div className="container p-6 space-y-10">
       {/* عنوان الصفحة */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">الكورسات المتاحة للتدريس</h1>
-        <p className="mt-1 text-gray-500">
+        <h1 className="text-3xl font-bold text-foreground">الكورسات المتاحة للتدريس</h1>
+        <p className="mt-1 text-muted-foreground">
           تصفح الكورسات النموذجية المعتمدة وقدّم طلباً لتدريس ما يناسبك
         </p>
       </div>
 
       {/* شبكة الكورسات المتاحة */}
       <section>
-        <h2 className="text-2xl font-semibold text-gray-900 mb-5">
+        <h2 className="text-2xl font-semibold text-foreground mb-5">
           الكورسات المتاحة ({courses.length})
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map((course) => (
             <Card
               key={course.id}
-              className="bg-card border-gray-200 transition-shadow hover:shadow-elegant"
+              className="bg-card border-border transition-shadow hover:shadow-elegant"
             >
               <CardHeader>
-                <CardTitle className="text-lg font-bold text-gray-900">
+                <CardTitle className="text-lg font-bold text-foreground">
                   {course.title}
                 </CardTitle>
                 <div className="flex flex-wrap gap-2 mt-2">
@@ -115,14 +115,14 @@ export default function AvailableCoursesPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   السعر الأساسي:{" "}
-                  <span className="font-medium text-gray-900">
+                  <span className="font-medium text-foreground">
                     ${course.base_price}
                   </span>
                 </p>
                 {course.steps_count != null && (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     عدد خطوات السيناريو: {course.steps_count}
                   </p>
                 )}
@@ -130,7 +130,7 @@ export default function AvailableCoursesPage() {
                 {course.teacher_status === "active" ? (
                   <Badge
                     variant="default"
-                    className="bg-emerald-800 text-white text-sm"
+                    className="bg-primary/80 text-primary-foreground text-sm"
                   >
                     تقوم بتدريسه حالياً
                   </Badge>
@@ -141,7 +141,7 @@ export default function AvailableCoursesPage() {
                 ) : (
                   <Button
                     onClick={() => handleApply(course.id)}
-                    className="w-full bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                   >
                     طلب تدريس هذا الكورس
                   </Button>
@@ -151,7 +151,7 @@ export default function AvailableCoursesPage() {
           ))}
 
           {courses.length === 0 && (
-            <div className="col-span-full text-center py-12 text-gray-500">
+            <div className="col-span-full text-center py-12 text-muted-foreground">
               لا توجد كورسات متاحة حالياً للتدريس
             </div>
           )}
@@ -160,14 +160,14 @@ export default function AvailableCoursesPage() {
 
       {/* قسم الطلبات المعلقة */}
       <section>
-        <h2 className="text-2xl font-semibold text-gray-900 mb-5">
+        <h2 className="text-2xl font-semibold text-foreground mb-5">
           طلباتي المعلقة ({applications.length})
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {applications.map((app) => (
             <Card
               key={app.id}
-              className="bg-emerald-100/30 border-gray-200 backdrop-blur-sm"
+              className="bg-secondary/30 border-border backdrop-blur-sm"
             >
               <CardHeader>
                 <CardTitle className="text-lg font-semibold">
@@ -182,7 +182,7 @@ export default function AvailableCoursesPage() {
                 <Badge variant="secondary" className="mb-2">
                   بانتظار الموافقة
                 </Badge>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   قُدِّم في{" "}
                   {new Date(app.applied_at).toLocaleDateString("ar", {
                     year: "numeric",
@@ -195,7 +195,7 @@ export default function AvailableCoursesPage() {
           ))}
 
           {applications.length === 0 && (
-            <div className="col-span-full text-center py-8 text-gray-500">
+            <div className="col-span-full text-center py-8 text-muted-foreground">
               ليس لديك أي طلبات معلقة حالياً
             </div>
           )}

@@ -49,7 +49,7 @@ export function ForumSection({ gender }: { gender: 'male' | 'female' }) {
     fetchQuestions();
   };
 
-  if (loading) return <div className="text-gray-500">جار التحميل...</div>;
+  if (loading) return <div className="text-muted-foreground">جار التحميل...</div>;
 
   return (
     <div>
@@ -57,14 +57,14 @@ export function ForumSection({ gender }: { gender: 'male' | 'female' }) {
         <Button
           onClick={() => setSort(sort === 'latest' ? 'votes' : 'latest')}
           variant="outline"
-          className="border-gray-200"
+          className="border-border"
         >
           {sort === 'latest' ? 'الأكثر تصويتاً' : 'الأحدث'}
         </Button>
         <AskQuestionDialog gender={gender} onSuccess={fetchQuestions} />
       </div>
       {questions.length === 0 ? (
-        <p className="text-gray-500">لا توجد أسئلة بعد.</p>
+        <p className="text-muted-foreground">لا توجد أسئلة بعد.</p>
       ) : (
         <div className="space-y-3">
           {questions.map((q) => (
@@ -84,7 +84,7 @@ function QuestionCard({
   onVote: (questionId: string, voteType: 'upvote' | 'downvote') => void;
 }) {
   return (
-    <Card className="bg-card border-gray-200 hover:border-primary/30 transition-colors">
+    <Card className="bg-card border-border hover:border-primary/30 transition-colors">
       <CardContent className="p-4 flex gap-3">
         <div className="flex flex-col items-center space-y-1">
           <Button
@@ -92,12 +92,12 @@ function QuestionCard({
             size="icon"
             onClick={() => onVote(question.id, 'upvote')}
             className={`h-8 w-8 ${
-              question.userVote === 'upvote' ? 'text-primary' : 'text-gray-500'
+              question.userVote === 'upvote' ? 'text-primary' : 'text-muted-foreground'
             }`}
           >
             <ChevronUp className="h-4 w-4" />
           </Button>
-          <span className="text-sm font-medium text-gray-900">
+          <span className="text-sm font-medium text-foreground">
             {question.upvotes - question.downvotes}
           </span>
           <Button
@@ -105,21 +105,21 @@ function QuestionCard({
             size="icon"
             onClick={() => onVote(question.id, 'downvote')}
             className={`h-8 w-8 ${
-              question.userVote === 'downvote' ? 'text-primary' : 'text-gray-500'
+              question.userVote === 'downvote' ? 'text-primary' : 'text-muted-foreground'
             }`}
           >
             <ChevronDown className="h-4 w-4" />
           </Button>
         </div>
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-900">{question.title}</h3>
+          <h3 className="font-semibold text-foreground">{question.title}</h3>
           <p className="text-secondary-foreground text-sm mt-1 line-clamp-2">
             {question.content}
           </p>
-          <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+          <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
             <Avatar className="h-6 w-6">
               <AvatarImage src={question.userAvatar} />
-              <AvatarFallback className="bg-emerald-500/10 text-primary">
+              <AvatarFallback className="bg-primary/10 text-primary">
                 {question.userName?.[0]}
               </AvatarFallback>
             </Avatar>
@@ -167,32 +167,32 @@ function AskQuestionDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-emerald-600 text-white hover:bg-emerald-700">
+        <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
           <Plus className="w-4 h-4 mr-2" /> اطرح سؤالاً
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-card border-gray-200">
+      <DialogContent className="bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="text-gray-900">طرح سؤال جديد</DialogTitle>
+          <DialogTitle className="text-foreground">طرح سؤال جديد</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <Input
             placeholder="عنوان السؤال"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="bg-muted border-gray-200"
+            className="bg-muted border-border"
           />
           <Textarea
             placeholder="نص السؤال..."
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="bg-muted border-gray-200"
+            className="bg-muted border-border"
             rows={5}
           />
           <Button
             onClick={handleSubmit}
             disabled={submitting || !title.trim() || !content.trim()}
-            className="bg-emerald-600 text-white hover:bg-emerald-700"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             {submitting ? 'جاري الإرسال...' : 'إرسال'}
           </Button>

@@ -51,7 +51,7 @@ export function CalendarPicker({ selected, onChange, minDate, maxDate }: Calenda
         </div>
         <button onClick={nextMonth} className="p-1 rounded-full hover:bg-accent"><ChevronRight size={16} /></button>
       </div>
-      <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-500 mb-1">
+      <div className="grid grid-cols-7 gap-1 text-center text-xs text-muted-foreground mb-1">
         {["Su","Mo","Tu","We","Th","Fr","Sa"].map(d => <div key={d}>{d}</div>)}
       </div>
       <div className="grid grid-cols-7 gap-1">
@@ -67,7 +67,7 @@ export function CalendarPicker({ selected, onChange, minDate, maxDate }: Calenda
               onClick={() => !disabled && onChange(new Date(viewYear, viewMonth, day))}
               className={cn(
                 "h-9 w-9 rounded-full text-sm transition-colors",
-                disabled && "text-gray-500/30 cursor-not-allowed",
+                disabled && "text-muted-foreground/30 cursor-not-allowed",
                 selectedDay && "bg-primary! text-primary-foreground! ring-2 ring-primary/50 ring-offset-1",
                 !disabled && !selectedDay && "hover:bg-accent"
               )}

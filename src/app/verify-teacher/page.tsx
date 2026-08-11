@@ -70,7 +70,7 @@ function VerifyTeacherContent() {
 
   return (
     <main className="grid min-h-screen place-items-center bg-background px-4 py-12 relative overflow-hidden">
-      <div aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 -z-10 h-[500px] w-[500px] rounded-full bg-amber-500/10 blur-[120px]" />
+      <div aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 -z-10 h-[500px] w-[500px] rounded-full bg-gold/10 blur-[120px]" />
       
       <div className="relative w-full max-w-lg">
         <motion.div
@@ -81,8 +81,8 @@ function VerifyTeacherContent() {
             <>
               <Mail className="mx-auto h-14 w-14 text-gold mb-6" />
               <h1 className="font-serif text-3xl text-primary mb-2"><T>Verify Your Account</T></h1>
-              <p className="text-sm text-gray-500 mb-8">
-                <T>We sent a verification code to</T> <strong className="text-gray-900">{email}</strong>
+              <p className="text-sm text-muted-foreground mb-8">
+                <T>We sent a verification code to</T> <strong className="text-foreground">{email}</strong>
               </p>
 
               <div className="flex justify-center mb-8" onPaste={handlePaste}>
@@ -95,9 +95,9 @@ function VerifyTeacherContent() {
                   {digits.map((digit, idx) => (
                     <div
                       key={idx} onClick={() => hiddenInputRef.current?.focus()}
-                      className={`h-14 w-10 sm:h-16 sm:w-12 rounded-xl bg-background text-center text-2xl font-bold text-gray-900 outline-none ring-1 transition-all cursor-text flex items-center justify-center ${
-                        digit ? "ring-amber-500 shadow-sm" : "ring-primary/20"
-                      } focus-within:ring-2 focus-within:ring-amber-500`}
+                      className={`h-14 w-10 sm:h-16 sm:w-12 rounded-xl bg-background text-center text-2xl font-bold text-foreground outline-none ring-1 transition-all cursor-text flex items-center justify-center ${
+                        digit ? "ring-gold shadow-sm" : "ring-primary/20"
+                      } focus-within:ring-2 focus-within:ring-gold`}
                     >
                       {digit}
                     </div>
@@ -113,7 +113,7 @@ function VerifyTeacherContent() {
 
               <Button
                 onClick={handleSubmit} disabled={loading || digits.some((d) => d === "")}
-                className="w-full rounded-full bg-amber-500 hover:bg-amber-500/90 py-6 text-base font-semibold text-white shadow-gold"
+                className="w-full rounded-full bg-gold hover:bg-gold/90 py-6 text-base font-semibold text-primary-foreground shadow-gold"
               >
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <T>Verify Application</T>}
               </Button>
@@ -122,10 +122,10 @@ function VerifyTeacherContent() {
             <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-6">
               <CheckCircle className="mx-auto h-16 w-16 text-primary" />
               <h2 className="text-3xl font-serif text-primary"><T>Application Submitted!</T></h2>
-              <p className="text-gray-500 leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed">
                 <T>Your application has been received and will be reviewed shortly. We will contact you soon.</T>
               </p>
-              <Button onClick={() => router.push("/")} className="w-full rounded-full bg-emerald-600 hover:bg-emerald-700 text-white py-6 font-semibold">
+              <Button onClick={() => router.push("/")} className="w-full rounded-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 font-semibold">
                 <T>Back to Home</T>
               </Button>
             </motion.div>

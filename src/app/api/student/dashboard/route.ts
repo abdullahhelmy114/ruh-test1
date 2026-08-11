@@ -2,24 +2,20 @@ export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
-import { verifyIdToken } from '@/lib/firebase/server';
 
 export async function GET(request: Request) {
-  // 1. التحقق من التوكن واستخراج uid
-  const user = await verifyIdToken(request);
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  const uid = user.uid;
+  const { searchParams } = new URL(request.url);
+  const uid = searchParams.get('uid');
+  if (!uid) return NextResponse.json({ error: 'Missing uid' }, { status: 400 });
 
   try {
     // بيانات المستخدم الأساسية من profiles
-    const [profile] = await sql`
+    const [user] = await sql`
       SELECT full_name, email FROM profiles WHERE firebase_uid = ${uid} AND role = 'student'
     `;
-    if (!profile) return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+    if (!user) return NextResponse.json({ error: 'Student not found' }, { status: 404 });
 
-    const firstName = profile.full_name?.split(' ')[0] || profile.email?.split('@')[0] || 'Student';
+    const firstName = user.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'Student';
 
     // دوال مساعدة لجلب البيانات بأمان
     const safeQuery = async (queryFn: () => Promise<any>, fallback: any = []) => {

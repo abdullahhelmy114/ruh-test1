@@ -39,11 +39,11 @@ export default function AdminCoursesPage() {
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="font-serif text-3xl"><T>الكورسات</T></h1>
-        <Link href="/dashboard/admin/courses/new" className="bg-emerald-600 text-white rounded-full px-4 py-2 flex items-center gap-2"><Plus size={18} /> <T>كورس جديد</T></Link>
+        <Link href="/dashboard/admin/courses/new" className="bg-primary text-primary-foreground rounded-full px-4 py-2 flex items-center gap-2"><Plus size={18} /> <T>كورس جديد</T></Link>
       </div>
       <div className="glass rounded-2xl overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-emerald-100/50">
+          <thead className="bg-secondary/50">
             <tr>
               <th className="p-3 text-left"><T>العنوان</T></th>
               <th className="p-3"><T>الفئة</T></th>
@@ -55,7 +55,7 @@ export default function AdminCoursesPage() {
           </thead>
           <tbody>
             {courses.map(c => (
-              <tr key={c.id} className="border-t border-gray-200">
+              <tr key={c.id} className="border-t border-border">
                 <td className="p-3 font-medium">{c.title}</td>
                 <td className="p-3">{c.category_name}</td>
                 <td className="p-3">${c.price}</td>

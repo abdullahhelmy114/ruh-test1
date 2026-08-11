@@ -95,17 +95,17 @@ export default function AdminApplicationsPage() {
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
       <div>
-        <h1 className="font-serif text-3xl font-bold text-gray-900">
+        <h1 className="font-serif text-3xl font-bold text-foreground">
           <T>طلبات التدريس المعلقة</T>
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           <T>مراجعة طلبات المعلمين لتدريس الكورسات النموذجية واعتمادها</T>
         </p>
       </div>
 
       {applications.length === 0 ? (
-        <div className="text-center py-20 text-gray-500">
-          <FileSearch className="mx-auto h-16 w-16 mb-4 text-amber-700/50" />
+        <div className="text-center py-20 text-muted-foreground">
+          <FileSearch className="mx-auto h-16 w-16 mb-4 text-accent-foreground/50" />
           <p className="text-lg font-serif"><T>لا توجد طلبات معلقة</T></p>
           <p className="text-sm mt-2"><T>عندما يتقدم المعلمون بطلبات تدريس، ستظهر هنا للمراجعة.</T></p>
         </div>
@@ -113,7 +113,7 @@ export default function AdminApplicationsPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card rounded-3xl border border-gray-200 shadow-elegant overflow-hidden"
+          className="bg-card rounded-3xl border border-border shadow-elegant overflow-hidden"
         >
           <Table>
             <TableHeader>
@@ -130,9 +130,9 @@ export default function AdminApplicationsPage() {
               {applications.map((app) => (
                 <TableRow key={app.id}>
                   <TableCell>
-                    <span className="font-medium text-gray-900">{app.teacher_name}</span>
+                    <span className="font-medium text-foreground">{app.teacher_name}</span>
                     <br />
-                    <span className="text-xs text-gray-500">{app.teacher_email}</span>
+                    <span className="text-xs text-muted-foreground">{app.teacher_email}</span>
                   </TableCell>
                   <TableCell className="font-medium">{app.course_title}</TableCell>
                   <TableCell>
@@ -142,10 +142,10 @@ export default function AdminApplicationsPage() {
                     {app.category ? (
                       <Badge variant="outline" className="text-xs">{app.category}</Badge>
                     ) : (
-                      <span className="text-xs text-gray-500">—</span>
+                      <span className="text-xs text-muted-foreground">—</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-xs text-gray-500">
+                  <TableCell className="text-xs text-muted-foreground">
                     {new Date(app.applied_at).toLocaleDateString("ar-EG")}
                   </TableCell>
                   <TableCell className="text-center">
@@ -153,7 +153,7 @@ export default function AdminApplicationsPage() {
                       onClick={() => handleApprove(app.id)}
                       disabled={approvingId === app.id}
                       size="sm"
-                      className="bg-emerald-600 text-white hover:bg-emerald-700 gap-1"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1"
                     >
                       {approvingId === app.id ? (
                         <Loader2 size={14} className="animate-spin" />

@@ -165,12 +165,12 @@ function BookMesh({
       {hovered && (
         <Html position={[0, height / 2 + 0.34, depth / 2]} center distanceFactor={9}>
           <div className="glass-panel pointer-events-none w-60 rounded-xl px-4 py-3 text-center">
-            <p className="font-display text-xl leading-tight text-gray-900">{book.title}</p>
+            <p className="font-display text-xl leading-tight text-foreground">{book.title}</p>
             <p className="font-arabic mt-0.5 text-base text-gold">{book.author || ""}</p>
             <p className="mt-1 text-[10px] tracking-[0.2em] text-accent uppercase">
               {book.author || "Ruhulqudus"}
             </p>
-            <p className="mt-1.5 line-clamp-3 text-[11px] leading-snug text-gray-500">
+            <p className="mt-1.5 line-clamp-3 text-[11px] leading-snug text-muted-foreground">
               {book.description || ""}
             </p>
           </div>
@@ -223,7 +223,7 @@ function GlassShelf({
       {/* nameplate */}
       <Html position={[-SHELF_WIDTH / 2 - 1.1, 0.75, 0.3]} center distanceFactor={9}>
         <div className="glass-panel w-40 rounded-xl px-3 py-2 text-center">
-          <p className="font-display text-gray-900 text-xl leading-tight">{row.label}</p>
+          <p className="font-display text-foreground text-xl leading-tight">{row.label}</p>
           <p className="font-arabic text-gold mt-0.5 text-base leading-tight">{row.labelAr}</p>
         </div>
       </Html>

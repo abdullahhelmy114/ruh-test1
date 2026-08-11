@@ -21,7 +21,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 
-// روابط ثابتة
+// روابط ثابتة (بدون Quran Study أو Blog)
 const baseLinks = [
   { to: "/", label: "Home" },
   { to: "/marketplace", label: "Marketplace" },
@@ -125,51 +125,52 @@ export function Navbar() {
     setMobileOpen(false);
   };
 
+  // ── تم إخفاء دور المعلم: أي مستخدم بدور "teacher" يُعامل كطالب ──
   const dashboardLink = role === "admin" ? "/dashboard/admin" : "/dashboard/student";
   const profileLink = role === "admin" ? "/profile/admin" : "/profile/student";
 
   const initial = user?.email ? user.email.charAt(0).toUpperCase() : "U";
 
   return (
-    <header className="sticky top-0 z-40 glass border-b border-gray-200">
+    <header className="sticky top-0 z-40 glass border-b">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-8">
         {/* Logo + Hamburger */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden grid h-10 w-10 place-items-center rounded-full border border-gray-200 bg-white transition-colors hover:bg-gray-50"
+            className="md:hidden grid h-10 w-10 place-items-center rounded-full border border-border bg-card transition-colors hover:bg-accent"
           >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
           <Link href="/" className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-full gradient-emerald shadow-elegant p-1.5">
+            <div className="grid h-10 w-10 place-items-center rounded-full gradient-primary shadow-elegant p-1.5">
               <picture>
                 <source srcSet="/light.svg" media="(prefers-color-scheme: light)" />
                 <source srcSet="/dark.svg" media="(prefers-color-scheme: dark)" />
-                <img src="/light.svg" alt="Ruhulqudus" className="h-full w-full object-contain" />
+              <img src="/light.svg" alt="Ruhulqudus" className="h-full w-full object-contain" />
               </picture>
             </div>
             <div className="leading-tight">
-              <div className="font-serif text-lg font-semibold text-gray-900">
+              <div className="font-serif text-lg font-semibold text-foreground">
                 <T>Ruhulqudus</T>
               </div>
-              <div className="text-[10px] uppercase tracking-[0.2em] text-emerald-700">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-foreground">
                 <T>Academy</T>
+                </div>
               </div>
-            </div>
-          </Link>
+            </Link>
         </div>
 
-        {/* Navigation (desktop) – أخضر زمردي × ذهبي */}
+        {/* Navigation (desktop) – هوية كريمي × كحلي */}
         <nav className="hidden md:flex items-center gap-1">
           {links.map((l) => (
             <Link
               key={l.to}
               href={l.to}
               className={cn(
-                "rounded-full px-4 py-2 text-sm transition-colors hover:bg-amber-100 hover:text-amber-700",
-                pathname === l.to && "bg-amber-100 text-amber-700 font-medium"
+                "rounded-full px-4 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
+                pathname === l.to && "bg-accent text-accent-foreground"
               )}
             >
               <T>{l.label}</T>
@@ -181,8 +182,8 @@ export function Navbar() {
             <Link
               href="/community"
               className={cn(
-                "rounded-full px-4 py-2 text-sm transition-colors hover:bg-amber-100 hover:text-amber-700",
-                pathname === "/community" && "bg-amber-100 text-amber-700 font-medium"
+                "rounded-full px-4 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
+                pathname === "/community" && "bg-accent text-accent-foreground"
               )}
             >
               <Users className="w-4 h-4 mr-1 inline" />
@@ -194,7 +195,7 @@ export function Navbar() {
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
-                  "rounded-full px-4 py-2 text-sm transition-colors hover:bg-amber-100 hover:text-amber-700 flex items-center gap-1",
+                  "rounded-full px-4 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground flex items-center gap-1",
                   "focus:outline-none"
                 )}
               >
@@ -202,14 +203,14 @@ export function Navbar() {
                 <ChevronDown className="h-3.5 w-3.5" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 rounded-xl border border-gray-200 bg-white p-2 shadow-elegant">
+            <DropdownMenuContent align="end" className="w-48 rounded-xl border bg-card p-2 shadow-elegant">
               {moreLinks.map((l) => {
                 const Icon = l.icon;
                 return (
                   <DropdownMenuItem key={l.to} asChild>
                     <Link
                       href={l.to}
-                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-amber-100 hover:text-amber-700"
+                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
                     >
                       <Icon className="h-4 w-4" />
                       <T>{l.label}</T>
@@ -228,32 +229,32 @@ export function Navbar() {
           {user && !notificationsEnabled && (
             <button
               onClick={enableNotifications}
-              className="grid h-10 w-10 place-items-center rounded-full border border-gray-200 bg-white transition-colors hover:bg-gray-50"
+              className="grid h-10 w-10 place-items-center rounded-full border border-border bg-card transition-colors hover:bg-accent"
               title="Enable Notifications"
             >
-              <BellOff className="h-4 w-4 text-gray-500" />
+              <BellOff className="h-4 w-4 text-muted-foreground" />
             </button>
           )}
 
           <div className="relative">
             <button
               onClick={() => setNotifOpen(!notifOpen)}
-              className="relative grid h-10 w-10 place-items-center rounded-full border border-gray-200 bg-white transition-colors hover:bg-gray-50"
+              className="relative grid h-10 w-10 place-items-center rounded-full border border-border bg-card transition-colors hover:bg-accent"
             >
               <Bell className="h-4 w-4" />
               {notifications.filter(n => !n.read).length > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white">
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
                   {notifications.filter(n => !n.read).length > 9 ? '9+' : notifications.filter(n => !n.read).length}
                 </span>
               )}
             </button>
             {notifOpen && (
-              <div className="absolute right-0 mt-2 w-72 max-h-96 overflow-y-auto rounded-2xl border border-gray-200 bg-white p-2 shadow-elegant z-50">
-                <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
+              <div className="absolute right-0 mt-2 w-72 max-h-96 overflow-y-auto rounded-2xl border bg-card p-2 shadow-elegant z-50">
+                <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   <T>Notifications</T>
                 </div>
                 {notifications.length === 0 ? (
-                  <p className="px-3 py-4 text-sm text-center text-gray-500">
+                  <p className="px-3 py-4 text-sm text-center text-muted-foreground">
                     <T>No notifications yet</T>
                   </p>
                 ) : (
@@ -262,14 +263,14 @@ export function Navbar() {
                       key={n.id}
                       href={n.link || '#'}
                       onClick={() => setNotifOpen(false)}
-                      className={`block rounded-xl px-3 py-2.5 text-sm transition-colors hover:bg-amber-100 ${
-                        !n.read ? 'border-l-2 border-l-amber-500 bg-amber-50' : ''
+                      className={`block rounded-xl px-3 py-2.5 text-sm transition-colors hover:bg-accent ${
+                        !n.read ? 'border-l-2 border-l-accent bg-accent/10' : ''
                       }`}
                     >
-                      <p className={!n.read ? 'font-medium text-gray-900' : 'text-gray-500'}>
+                      <p className={!n.read ? 'font-medium text-foreground' : 'text-muted-foreground'}>
                         {n.message}
                       </p>
-                      <p className="text-[10px] text-gray-500 mt-0.5">
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
                         {new Date(n.created_at).toLocaleString()}
                       </p>
                     </Link>
@@ -281,11 +282,11 @@ export function Navbar() {
 
           <Link
             href="/messages"
-            className="relative grid h-10 w-10 place-items-center rounded-full border border-gray-200 bg-white transition-colors hover:bg-gray-50"
+            className="relative grid h-10 w-10 place-items-center rounded-full border border-border bg-card transition-colors hover:bg-accent"
           >
             <Mail className="h-4 w-4" />
             {unreadMessages > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white">
+              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-secondary-foreground">
                 {unreadMessages > 9 ? "9+" : unreadMessages}
               </span>
             )}
@@ -294,46 +295,46 @@ export function Navbar() {
           <button
             onClick={toggle}
             aria-label="Toggle theme"
-            className="grid h-10 w-10 place-items-center rounded-full border border-gray-200 bg-white transition-colors hover:bg-amber-100 hover:text-amber-700"
+            className="grid h-10 w-10 place-items-center rounded-full border border-border bg-card transition-colors hover:bg-accent hover:text-accent-foreground"
           >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
           {isLoading ? (
-            <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
+            <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
           ) : user ? (
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="flex items-center gap-2 rounded-full border border-gray-200 bg-white p-1 pr-3 transition hover:bg-amber-100 hover:text-amber-700"
+                className="flex items-center gap-2 rounded-full border border-border bg-card p-1 pr-3 transition hover:bg-accent hover:text-accent-foreground"
               >
-                <div className="grid h-8 w-8 place-items-center rounded-full gradient-emerald text-sm font-bold text-white">
+                <div className="grid h-8 w-8 place-items-center rounded-full gradient-primary text-sm font-bold text-primary-foreground">
                   {initial}
                 </div>
-                <ChevronDown className="h-4 w-4 text-gray-500" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </button>
               {menuOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-xl border border-gray-200 bg-white p-2 shadow-elegant">
-                  <div className="px-3 py-2 text-xs text-gray-500">{user.email}</div>
+                <div className="absolute right-0 mt-2 w-56 rounded-xl border bg-card p-2 shadow-elegant">
+                  <div className="px-3 py-2 text-xs text-muted-foreground">{user.email}</div>
                   <hr className="my-1" />
-                  <Link href={dashboardLink} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-amber-100 hover:text-amber-700">
+                  <Link href={dashboardLink} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground">
                     <LayoutDashboard className="h-4 w-4" /> <T>Dashboard</T>
                   </Link>
-                  <Link href={profileLink} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-amber-100 hover:text-amber-700">
+                  <Link href={profileLink} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground">
                     <User className="h-4 w-4" /> <T>Profile</T>
                   </Link>
-                  <Link href="/wishlist" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-amber-100 hover:text-amber-700">
+                  <Link href="/wishlist" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground">
                     <Heart className="h-4 w-4" /> <T>Wishlist</T>
                   </Link>
-                  <Link href="/cart" onClick={() => setMenuOpen(false)} className="flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-amber-100 hover:text-amber-700">
+                  <Link href="/cart" onClick={() => setMenuOpen(false)} className="flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground">
                     <span className="flex items-center gap-2"><ShoppingCart className="h-4 w-4" /> <T>Cart</T></span>
                     {cartCount > 0 && (
-                      <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">{cartCount}</span>
+                      <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">{cartCount}</span>
                     )}
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-emerald-700 hover:bg-amber-100"
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary hover:bg-accent"
                   >
                     <LogOut className="h-4 w-4" /> <T>Sign out</T>
                   </button>
@@ -344,13 +345,13 @@ export function Navbar() {
             <>
               <Link
                 href="/login"
-                className="hidden rounded-full bg-emerald-600 px-5 py-2 text-sm font-medium text-white shadow-elegant transition-transform hover:scale-[1.02] sm:inline-flex hover:bg-emerald-700"
+                className="hidden rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground shadow-elegant transition-transform hover:scale-[1.02] sm:inline-flex"
               >
                 <T>Sign in</T>
               </Link>
               <Link
                 href="/signup"
-                className="hidden rounded-full bg-amber-500 px-5 py-2 text-sm font-medium text-black shadow-elegant transition-transform hover:scale-[1.02] sm:inline-flex hover:bg-amber-400"
+                className="hidden rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground shadow-elegant transition-transform hover:scale-[1.02] sm:inline-flex"
               >
                 <T>Sign up</T>
               </Link>
@@ -361,15 +362,15 @@ export function Navbar() {
         {/* Mobile right side */}
         <div className="flex md:hidden items-center gap-1">
           <LanguageSwitcher />
-          <button onClick={toggle} className="grid h-10 w-10 place-items-center rounded-full border border-gray-200 bg-white">
+          <button onClick={toggle} className="grid h-10 w-10 place-items-center rounded-full border border-border bg-card">
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
           {user ? (
-            <div className="grid h-8 w-8 place-items-center rounded-full gradient-emerald text-sm font-bold text-white">
+            <div className="grid h-8 w-8 place-items-center rounded-full gradient-primary text-sm font-bold text-primary-foreground">
               {initial}
             </div>
           ) : (
-            <Link href="/login" className="rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white">
+            <Link href="/login" className="rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
               <T>Sign in</T>
             </Link>
           )}
@@ -379,29 +380,29 @@ export function Navbar() {
       {/* Mobile Drawer */}
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
-          <div className="absolute right-0 top-0 h-full w-72 max-w-[85vw] bg-white shadow-elegant p-6 overflow-y-auto animate-slide-in-right">
+          <div className="absolute inset-0 bg-foreground/50" onClick={() => setMobileOpen(false)} />
+          <div className="absolute right-0 top-0 h-full w-72 max-w-[85vw] bg-card shadow-elegant p-6 overflow-y-auto animate-slide-in-right">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="font-serif text-xl text-gray-900"><T>Menu</T></h3>
-              <button onClick={() => setMobileOpen(false)} className="p-2 rounded-full hover:bg-gray-100">
+              <h3 className="font-serif text-xl text-foreground"><T>Menu</T></h3>
+              <button onClick={() => setMobileOpen(false)} className="p-2 rounded-full hover:bg-accent">
                 <X size={20} />
               </button>
             </div>
 
             <nav className="space-y-2">
               {links.map(l => (
-                <Link key={l.to} href={l.to} onClick={() => setMobileOpen(false)} className="block rounded-xl px-4 py-3 text-base font-medium hover:bg-amber-100 hover:text-amber-700 text-gray-900">
+                <Link key={l.to} href={l.to} onClick={() => setMobileOpen(false)} className="block rounded-xl px-4 py-3 text-base font-medium hover:bg-accent">
                   <T>{l.label}</T>
                 </Link>
               ))}
               {role === "student" && (
-                <Link href="/community" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-4 py-3 text-base font-medium hover:bg-amber-100 hover:text-amber-700 text-gray-900">
+                <Link href="/community" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-4 py-3 text-base font-medium hover:bg-accent">
                   <Users className="h-5 w-5" />
                   <T>Community</T>
                 </Link>
               )}
               {moreLinks.map(l => (
-                <Link key={l.to} href={l.to} onClick={() => setMobileOpen(false)} className="block rounded-xl px-4 py-3 text-base font-medium hover:bg-amber-100 hover:text-amber-700 text-gray-900">
+                <Link key={l.to} href={l.to} onClick={() => setMobileOpen(false)} className="block rounded-xl px-4 py-3 text-base font-medium hover:bg-accent">
                   <T>{l.label}</T>
                 </Link>
               ))}
@@ -411,29 +412,29 @@ export function Navbar() {
 
             {user ? (
               <div className="space-y-2">
-                <p className="text-xs text-gray-500 px-4">{user.email}</p>
-                <Link href={dashboardLink} onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-4 py-3 hover:bg-amber-100 hover:text-amber-700 text-gray-900">
+                <p className="text-xs text-muted-foreground px-4">{user.email}</p>
+                <Link href={dashboardLink} onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-4 py-3 hover:bg-accent">
                   <LayoutDashboard className="h-5 w-5" /> <T>Dashboard</T>
                 </Link>
-                <Link href={profileLink} onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-4 py-3 hover:bg-amber-100 hover:text-amber-700 text-gray-900">
+                <Link href={profileLink} onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-4 py-3 hover:bg-accent">
                   <User className="h-5 w-5" /> <T>Profile</T>
                 </Link>
-                <Link href="/wishlist" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-4 py-3 hover:bg-amber-100 hover:text-amber-700 text-gray-900">
+                <Link href="/wishlist" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-4 py-3 hover:bg-accent">
                   <Heart className="h-5 w-5" /> <T>Wishlist</T>
                 </Link>
-                <Link href="/cart" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-4 py-3 hover:bg-amber-100 hover:text-amber-700 text-gray-900">
+                <Link href="/cart" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-4 py-3 hover:bg-accent">
                   <ShoppingCart className="h-5 w-5" /> <T>Cart</T>
                 </Link>
-                <button onClick={handleLogout} className="flex w-full items-center gap-2 rounded-xl px-4 py-3 text-emerald-700 hover:bg-amber-100">
+                <button onClick={handleLogout} className="flex w-full items-center gap-2 rounded-xl px-4 py-3 text-primary hover:bg-accent">
                   <LogOut className="h-5 w-5" /> <T>Sign out</T>
                 </button>
               </div>
             ) : (
               <div className="space-y-2 px-4">
-                <Link href="/login" onClick={() => setMobileOpen(false)} className="block w-full rounded-full bg-emerald-600 px-4 py-2.5 text-center text-sm font-medium text-white">
+                <Link href="/login" onClick={() => setMobileOpen(false)} className="block w-full rounded-full bg-primary px-4 py-2.5 text-center text-sm font-medium text-primary-foreground">
                   <T>Sign in</T>
                 </Link>
-                <Link href="/signup" onClick={() => setMobileOpen(false)} className="block w-full rounded-full bg-amber-500 px-4 py-2.5 text-center text-sm font-medium text-black">
+                <Link href="/signup" onClick={() => setMobileOpen(false)} className="block w-full rounded-full border px-4 py-2.5 text-center text-sm font-medium">
                   <T>Sign up</T>
                 </Link>
               </div>

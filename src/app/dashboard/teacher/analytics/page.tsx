@@ -50,7 +50,7 @@ export default function TeacherAnalyticsPage() {
     <div className="mx-auto max-w-7xl px-4 py-10 md:px-8 space-y-8">
       <div>
         <h1 className="font-serif text-3xl"><T>Analytics Dashboard</T></h1>
-        <p className="text-gray-500 text-sm mt-1"><T>Track your performance and earnings</T></p>
+        <p className="text-muted-foreground text-sm mt-1"><T>Track your performance and earnings</T></p>
       </div>
 
       {/* بطاقات الإحصائيات */}
@@ -66,7 +66,7 @@ export default function TeacherAnalyticsPage() {
             <div key={s.label} className="glass rounded-2xl p-4 flex items-center gap-4">
               <Icon className={`h-8 w-8 ${s.color}`} />
               <div>
-                <div className="text-xs text-gray-500"><T>{s.label}</T></div>
+                <div className="text-xs text-muted-foreground"><T>{s.label}</T></div>
                 <div className="font-serif text-2xl font-bold">{s.value}</div>
               </div>
             </div>
@@ -110,7 +110,7 @@ export default function TeacherAnalyticsPage() {
       <div className="glass rounded-3xl p-6 text-center">
         <h3 className="font-serif text-xl mb-2"><T>Overall Completion Rate</T></h3>
         <div className="text-5xl font-bold text-primary">{data.completionRate}%</div>
-        <p className="text-sm text-gray-500 mt-1"><T>of your students finish courses</T></p>
+        <p className="text-sm text-muted-foreground mt-1"><T>of your students finish courses</T></p>
       </div>
     </div>
   );

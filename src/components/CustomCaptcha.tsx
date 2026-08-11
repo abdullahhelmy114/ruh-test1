@@ -73,10 +73,10 @@ export function CustomCaptcha({ onVerify }: CustomCaptchaProps) {
           className={cn(
             "relative overflow-hidden rounded-2xl border p-5",
             status === "success"
-              ? "border-primary/30 bg-emerald-100/5"
+              ? "border-primary/30 bg-secondary/5"
               : status === "error"
               ? "border-red-500/30 bg-red-500/5"
-              : "border-gray-200/50 bg-card/30 glass"
+              : "border-border/50 bg-card/30 glass"
           )}
         >
           <div className="pointer-events-none absolute inset-0 -z-10">
@@ -84,10 +84,10 @@ export function CustomCaptcha({ onVerify }: CustomCaptchaProps) {
               className={cn(
                 "absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl",
                 status === "success"
-                  ? "bg-emerald-1000/20"
+                  ? "bg-secondary0/20"
                   : status === "error"
                   ? "bg-red-500/20"
-                  : "bg-amber-500/10"
+                  : "bg-gold/10"
               )}
             />
           </div>
@@ -95,22 +95,22 @@ export function CustomCaptcha({ onVerify }: CustomCaptchaProps) {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-secondary-foreground" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 <T>Human Verification</T>
               </span>
             </div>
             <button
               onClick={refreshCaptcha}
-              className="p-1 rounded-full hover:bg-amber-100transition-colors"
+              className="p-1 rounded-full hover:bg-accent transition-colors"
               title="Refresh captcha"
             >
-              <RefreshCw className="h-4 w-4 text-gray-500" />
+              <RefreshCw className="h-4 w-4 text-muted-foreground" />
             </button>
           </div>
 
           <div className="mb-4 text-center select-none">
             <div className="inline-block rounded-xl bg-muted/50 px-6 py-3">
-              <span className="text-2xl font-mono font-bold tracking-widest text-gray-900 select-none">
+              <span className="text-2xl font-mono font-bold tracking-widest text-foreground select-none">
                 {captcha.question.split("").map((char, i) => (
                   <span
                     key={i}
@@ -151,7 +151,7 @@ export function CustomCaptcha({ onVerify }: CustomCaptchaProps) {
                   ? "border-primary ring-2 ring-primary/20"
                   : status === "error"
                   ? "border-red-500 ring-2 ring-red-500/20 animate-shake"
-                  : "border-gray-200 focus:ring-2 focus:ring-amber-500/30"
+                  : "border-border focus:ring-2 focus:ring-gold/30"
               )}
               disabled={status === "success"}
             />
@@ -162,7 +162,7 @@ export function CustomCaptcha({ onVerify }: CustomCaptchaProps) {
                 "rounded-xl px-5 py-2.5 text-sm font-semibold transition-all disabled:opacity-50",
                 status === "success"
                   ? "bg-primarytext-primary-foreground"
-                  : "bg-amber-500 text-gray-900 hover:bg-amber-400"
+                  : "bg-gold text-foreground hover:bg-gold/80"
               )}
             >
               {status === "success" ? (

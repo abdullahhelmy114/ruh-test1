@@ -43,24 +43,24 @@ export function AchievementsWall({ gender }: { gender: 'male' | 'female' }) {
     fetchPosts();
   };
 
-  if (loading) return <div className="text-gray-500">جار التحميل...</div>;
+  if (loading) return <div className="text-muted-foreground">جار التحميل...</div>;
 
   return (
     <div className="space-y-4">
       {posts.map((post) => (
-        <Card key={post.id} className="bg-card border-gray-200">
+        <Card key={post.id} className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
               <Avatar className="h-10 w-10 border-2 border-primary/20">
                 <AvatarImage src={post.userAvatar} />
-                <AvatarFallback className="bg-emerald-500/10 text-primary">
+                <AvatarFallback className="bg-primary/10 text-primary">
                   {post.userName?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="flex justify-between">
-                  <p className="font-semibold text-gray-900">{post.userName}</p>
-                  <span className="text-xs text-gray-500">
+                  <p className="font-semibold text-foreground">{post.userName}</p>
+                  <span className="text-xs text-muted-foreground">
                     {new Date(post.createdAt).toLocaleDateString('ar')}
                   </span>
                 </div>
@@ -70,7 +70,7 @@ export function AchievementsWall({ gender }: { gender: 'male' | 'female' }) {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleLike(post.id)}
-                    className="text-gray-500 hover:text-primary"
+                    className="text-muted-foreground hover:text-primary"
                   >
                     <Heart
                       className={`w-4 h-4 mr-1 ${
@@ -113,7 +113,7 @@ function CommentTrigger({
         variant="ghost"
         size="sm"
         onClick={() => setOpen(!open)}
-        className="text-gray-500 hover:text-primary"
+        className="text-muted-foreground hover:text-primary"
       >
         <MessageCircle className="w-4 h-4 mr-1" />
         {commentsCount}
@@ -124,7 +124,7 @@ function CommentTrigger({
             placeholder="أضف تعليقاً..."
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            className="bg-muted border-gray-200"
+            className="bg-muted border-border"
           />
           <Button
             size="sm"
@@ -133,7 +133,7 @@ function CommentTrigger({
               setComment('');
               setOpen(false);
             }}
-            className="bg-emerald-600 text-white hover:bg-emerald-700"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <Send className="w-4 h-4 mr-1" /> إرسال
           </Button>

@@ -15,7 +15,7 @@ export default function Theme1({ variant, course }: Props) {
     <div style={{ backgroundColor: styles.bg, fontFamily: styles.font }} className="min-h-screen">
       <div className="max-w-4xl mx-auto p-6">
         <h1 style={{ color: styles.primary }} className="text-4xl font-bold">{course.title}</h1>
-        <p className="text-gray-500 mt-2">{course.description}</p>
+        <p className="text-muted-foreground mt-2">{course.description}</p>
         {/* أضف Hero, Sidebar حسب التصميم */}
       </div>
     </div>

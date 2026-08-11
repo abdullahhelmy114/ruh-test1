@@ -156,19 +156,19 @@ const onSubmit = async (data: TeacherSignupStep2Data) => {
 
   return (
     <main className="min-h-screen bg-background px-4 py-8 sm:py-12 relative overflow-hidden flex items-center justify-center">
-      <div aria-hidden="true" className="pointer-events-none absolute top-0 left-0 -z-10 h-[400px] w-[400px] sm:h-[600px] sm:w-[600px] rounded-full bg-emerald-500/10 blur-[120px]" />
+      <div aria-hidden="true" className="pointer-events-none absolute top-0 left-0 -z-10 h-[400px] w-[400px] sm:h-[600px] sm:w-[600px] rounded-full bg-primary/10 blur-[120px]" />
 
       <div className="w-full max-w-3xl">
         {/* Progress Bar */}
         <nav aria-label="Progress" className="mb-8 flex items-center justify-center gap-2 sm:gap-4">
           <div className="flex items-center gap-2 opacity-50">
-            <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-emerald-600 text-primary-foreground">
+            <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
               <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
           </div>
           <div className="h-[2px] w-8 sm:w-16 bg-primary" />
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-amber-500 text-white font-bold shadow-gold text-sm">2</div>
+            <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-gold text-primary-foreground font-bold shadow-gold text-sm">2</div>
             <span className="text-xs sm:text-sm font-bold text-gold"><T>Expertise</T></span>
           </div>
         </nav>
@@ -180,7 +180,7 @@ const onSubmit = async (data: TeacherSignupStep2Data) => {
         >
           <header className="mb-8 sm:mb-10 text-center">
             <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl text-primary mb-2 sm:mb-3"><T>Showcase Your Expertise</T></h1>
-            <p className="text-sm sm:text-base text-gray-500"><T>Help students understand your teaching philosophy.</T></p>
+            <p className="text-sm sm:text-base text-muted-foreground"><T>Help students understand your teaching philosophy.</T></p>
           </header>
 
           {error && (
@@ -202,25 +202,25 @@ const onSubmit = async (data: TeacherSignupStep2Data) => {
                 
                 <FormField control={form.control} name="telegram" render={({ field }) => (
                   <FormItem>
-                    <Label className="text-sm text-gray-900"><T>Telegram Username</T> *</Label>
-                    <FormControl><Input dir="ltr" placeholder="@username" {...field} className="bg-card text-gray-900 focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10" /></FormControl>
+                    <Label className="text-sm text-foreground"><T>Telegram Username</T> *</Label>
+                    <FormControl><Input dir="ltr" placeholder="@username" {...field} className="bg-card text-foreground focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10" /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
 
                 <div className="space-y-3 pt-2">
-                  <Label className="text-sm text-gray-900"><T>Other Profiles (Optional)</T></Label>
+                  <Label className="text-sm text-foreground"><T>Other Profiles (Optional)</T></Label>
                   <AnimatePresence>
                     {fields.map((field, index) => (
                       <motion.div key={field.id} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0 }} className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-start">
                         <FormField control={form.control} name={`socialLinks.${index}.platform`} render={({ field }) => (
-                          <FormItem className="w-full sm:flex-1"><FormControl><Input placeholder="LinkedIn" {...field} className="bg-card text-gray-900 focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10 w-full" /></FormControl><FormMessage/></FormItem>
+                          <FormItem className="w-full sm:flex-1"><FormControl><Input placeholder="LinkedIn" {...field} className="bg-card text-foreground focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10 w-full" /></FormControl><FormMessage/></FormItem>
                         )} />
                         <div className="flex w-full sm:flex-[1.5] gap-2 items-center">
                           <FormField control={form.control} name={`socialLinks.${index}.url`} render={({ field }) => (
-                            <FormItem className="w-full"><FormControl><Input type="url" dir="ltr" placeholder="https://..." {...field} className="bg-card text-gray-900 focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10 w-full" /></FormControl><FormMessage/></FormItem>
+                            <FormItem className="w-full"><FormControl><Input type="url" dir="ltr" placeholder="https://..." {...field} className="bg-card text-foreground focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10 w-full" /></FormControl><FormMessage/></FormItem>
                           )} />
-                          <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="shrink-0 text-gray-500 hover:text-destructive" aria-label="Remove link"><X className="h-4 w-4" /></Button>
+                          <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="shrink-0 text-muted-foreground hover:text-destructive" aria-label="Remove link"><X className="h-4 w-4" /></Button>
                         </div>
                       </motion.div>
                     ))}
@@ -234,14 +234,14 @@ const onSubmit = async (data: TeacherSignupStep2Data) => {
               <motion.section variants={itemVariants} className="space-y-2">
                 <FormField control={form.control} name="bio" render={({ field }) => (
                   <FormItem>
-                    <Label className="flex justify-between items-end text-sm text-gray-900">
+                    <Label className="flex justify-between items-end text-sm text-foreground">
                       <span><T>Professional Bio</T> *</span>
                       <span className={cn("text-xs transition-colors", (watchBio?.length || 0) < 50 ? "text-destructive" : "text-primary")}>
                         {watchBio?.length || 0} / 50 min chars
                       </span>
                     </Label>
                     <FormControl>
-                      <Textarea placeholder="Tell students about your teaching philosophy..." className="min-h-[120px] bg-card resize-y text-gray-900 focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10" {...field} />
+                      <Textarea placeholder="Tell students about your teaching philosophy..." className="min-h-[120px] bg-card resize-y text-foreground focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -251,12 +251,12 @@ const onSubmit = async (data: TeacherSignupStep2Data) => {
               <motion.section variants={itemVariants} className="grid sm:grid-cols-2 gap-4 sm:gap-6 pt-2 sm:pt-4">
                 <FormField control={form.control} name="cvFile" render={({ field }) => (
                   <FormItem>
-                    <Label className="text-sm text-gray-900"><T>CV Upload</T> (PDF) *</Label>
+                    <Label className="text-sm text-foreground"><T>CV Upload</T> (PDF) *</Label>
                     <div 
                       onDragEnter={(e) => handleDrag(e, "cv", true)} onDragLeave={(e) => handleDrag(e, "cv", false)} onDragOver={(e) => handleDrag(e, "cv", true)} onDrop={(e) => handleDrop(e, "cv")}
                       className={cn(
                         "relative mt-2 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-4 sm:p-6 text-center transition-all cursor-pointer bg-card",
-                        dragActive.cv ? "border-amber-500 bg-amber-500/10" : watchCv ? "border-primary/50 bg-emerald-500/10" : "border-primary/30 hover:border-amber-500 hover:bg-muted/50"
+                        dragActive.cv ? "border-gold bg-gold/10" : watchCv ? "border-primary/50 bg-primary/10" : "border-primary/30 hover:border-gold hover:bg-muted/50"
                       )}
                     >
                       <input type="file" accept=".pdf" className="absolute inset-0 z-50 w-full h-full opacity-0 cursor-pointer" aria-label="Upload CV" onChange={(e) => handleFileChange(e, "cv")} />
@@ -266,7 +266,7 @@ const onSubmit = async (data: TeacherSignupStep2Data) => {
                           <span className="text-xs sm:text-sm font-medium line-clamp-1 px-2">{watchCv.name}</span>
                         </div>
                       ) : (
-                        <div className="flex flex-col items-center text-gray-500">
+                        <div className="flex flex-col items-center text-muted-foreground">
                           <div className="mb-2 sm:mb-3 rounded-full bg-background p-2 sm:p-3 shadow-sm ring-1 ring-primary/10"><UploadCloud className="h-5 w-5 sm:h-6 sm:w-6 text-gold" /></div>
                           <p className="text-xs sm:text-sm font-medium"><T>Click or drag CV here</T></p>
                         </div>
@@ -278,12 +278,12 @@ const onSubmit = async (data: TeacherSignupStep2Data) => {
 
                 <FormField control={form.control} name="introVideo" render={({ field }) => (
                   <FormItem>
-                    <Label className="text-sm text-gray-900"><T>Intro Video</T> (Optional)</Label>
+                    <Label className="text-sm text-foreground"><T>Intro Video</T> (Optional)</Label>
                     <div 
                       onDragEnter={(e) => handleDrag(e, "video", true)} onDragLeave={(e) => handleDrag(e, "video", false)} onDragOver={(e) => handleDrag(e, "video", true)} onDrop={(e) => handleDrop(e, "video")}
                       className={cn(
                         "relative mt-2 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-4 sm:p-6 text-center transition-all cursor-pointer bg-card",
-                        dragActive.video ? "border-amber-500 bg-amber-500/10" : watchVideo ? "border-primary/50 bg-emerald-500/10" : "border-primary/30 hover:border-amber-500 hover:bg-muted/50"
+                        dragActive.video ? "border-gold bg-gold/10" : watchVideo ? "border-primary/50 bg-primary/10" : "border-primary/30 hover:border-gold hover:bg-muted/50"
                       )}
                     >
                       <input type="file" accept="video/mp4,video/quicktime,video/webm" className="absolute inset-0 z-50 w-full h-full opacity-0 cursor-pointer" aria-label="Upload Video" onChange={(e) => handleFileChange(e, "video")} />
@@ -293,7 +293,7 @@ const onSubmit = async (data: TeacherSignupStep2Data) => {
                           <span className="text-xs sm:text-sm font-medium line-clamp-1 px-2">{watchVideo.name}</span>
                         </div>
                       ) : (
-                        <div className="flex flex-col items-center text-gray-500">
+                        <div className="flex flex-col items-center text-muted-foreground">
                           <div className="mb-2 sm:mb-3 rounded-full bg-background p-2 sm:p-3 shadow-sm ring-1 ring-primary/10"><Video className="h-5 w-5 sm:h-6 sm:w-6 text-primary" /></div>
                           <p className="text-xs sm:text-sm font-medium"><T>Click or drag Video</T></p>
                         </div>
@@ -305,7 +305,7 @@ const onSubmit = async (data: TeacherSignupStep2Data) => {
               </motion.section>
 
               <motion.div variants={itemVariants} className="pt-2 sm:pt-6">
-                <Button type="submit" disabled={loading} className="w-full rounded-full bg-amber-500 text-white py-5 sm:py-6 text-sm sm:text-base font-semibold shadow-gold hover:bg-amber-400 hover:scale-[1.01] transition-all">
+                <Button type="submit" disabled={loading} className="w-full rounded-full bg-gold text-primary-foreground py-5 sm:py-6 text-sm sm:text-base font-semibold shadow-gold hover:bg-gold/80 hover:scale-[1.01] transition-all">
                   {loading ? (
                     <><Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" /><T>Submitting Application...</T></>
                   ) : (

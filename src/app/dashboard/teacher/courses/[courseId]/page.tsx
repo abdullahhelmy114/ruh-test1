@@ -67,7 +67,7 @@ export default function CourseDetailPage() {
 
   if (loading) {
     return (
-      <div className="container p-6 text-center text-gray-500">
+      <div className="container p-6 text-center text-muted-foreground">
         جارٍ تحميل الكورس...
       </div>
     );
@@ -75,7 +75,7 @@ export default function CourseDetailPage() {
 
   if (!course) {
     return (
-      <div className="container p-6 text-center text-gray-500">
+      <div className="container p-6 text-center text-muted-foreground">
         الكورس غير موجود أو ليس لديك صلاحية الوصول إليه.
       </div>
     );
@@ -86,7 +86,7 @@ export default function CourseDetailPage() {
       {/* رأس الصفحة */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{course.title}</h1>
+          <h1 className="text-3xl font-bold text-foreground">{course.title}</h1>
           <div className="flex flex-wrap gap-2 mt-2">
             <Badge variant="secondary">{course.category}</Badge>
             <Badge variant="outline">{course.level}</Badge>
@@ -94,7 +94,7 @@ export default function CourseDetailPage() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-emerald-600 text-white hover:bg-emerald-700 transition-colors">
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
               إضافة حصة جديدة
             </Button>
           </DialogTrigger>
@@ -111,19 +111,19 @@ export default function CourseDetailPage() {
       </div>
 
       {/* بطاقة السيناريو التعليمي */}
-      <Card className="bg-card border-gray-200">
+      <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-xl">السيناريو التعليمي</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="prose prose-sm max-w-none text-gray-900/80 whitespace-pre-wrap leading-relaxed">
+          <div className="prose prose-sm max-w-none text-foreground/80 whitespace-pre-wrap leading-relaxed">
             {course.scenario || course.model_scenario || "لا يوجد سيناريو مرفق بعد."}
           </div>
         </CardContent>
       </Card>
 
       {/* بطاقة الحصص */}
-      <Card className="bg-card border-gray-200">
+      <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-xl">
             الحصص ({course.lessons?.length || 0})
@@ -131,7 +131,7 @@ export default function CourseDetailPage() {
         </CardHeader>
         <CardContent>
           {!course.lessons || course.lessons.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               لم تُضف أي حصص بعد. ابدأ بإضافة أول حصة.
             </div>
           ) : (
@@ -139,20 +139,20 @@ export default function CourseDetailPage() {
               {course.lessons.map((lesson, idx) => (
                 <div
                   key={lesson.id}
-                  className="flex items-center gap-4 p-4 rounded-lg bg-emerald-100/20 border border-gray-200 hover:bg-emerald-100/30 transition-colors"
+                  className="flex items-center gap-4 p-4 rounded-lg bg-secondary/20 border border-border hover:bg-secondary/30 transition-colors"
                 >
                   <div className="shrink-0">
                     {lesson.type === "zoom" ? (
                       <Video className="h-6 w-6 text-primary" />
                     ) : (
-                      <MonitorPlay className="h-6 w-6 text-gray-500" />
+                      <MonitorPlay className="h-6 w-6 text-muted-foreground" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-foreground">
                       حصة {idx + 1}: {lesson.type === "zoom" ? "زوم مباشر" : "مسجلة"}
                     </p>
-                    <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                    <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                       <CalendarDays className="h-4 w-4" />
                       {new Date(lesson.scheduled_at).toLocaleString("ar", {
                         year: "numeric",
@@ -163,13 +163,13 @@ export default function CourseDetailPage() {
                       })}
                     </p>
                     {lesson.scenario && (
-                      <p className="text-xs text-gray-500 mt-1 truncate">
+                      <p className="text-xs text-muted-foreground mt-1 truncate">
                         السيناريو: {lesson.scenario.substring(0, 100)}
                         {lesson.scenario.length > 100 ? "..." : ""}
                       </p>
                     )}
                     {lesson.teacher_notes && (
-                      <p className="text-xs text-gray-500/70 mt-0.5 truncate">
+                      <p className="text-xs text-muted-foreground/70 mt-0.5 truncate">
                         ملاحظات: {lesson.teacher_notes.substring(0, 80)}
                       </p>
                     )}
@@ -178,7 +178,7 @@ export default function CourseDetailPage() {
                     variant={lesson.status === "completed" ? "default" : "outline"}
                     className={
                       lesson.status === "completed"
-                        ? "bg-emerald-800 text-primary-foreground"
+                        ? "bg-primary/80 text-primary-foreground"
                         : ""
                     }
                   >

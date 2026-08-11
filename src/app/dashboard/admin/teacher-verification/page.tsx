@@ -57,7 +57,7 @@ export default function TeacherVerificationPage() {
     <div className="space-y-4">
       <h2 className="font-serif text-2xl">Pending Teacher Applications</h2>
       {apps.length === 0 ? (
-        <div className="rounded-3xl border bg-card p-12 text-center text-gray-500">
+        <div className="rounded-3xl border bg-card p-12 text-center text-muted-foreground">
           No pending applications
         </div>
       ) : (
@@ -70,7 +70,7 @@ export default function TeacherVerificationPage() {
               <h3 className="font-serif text-lg">
                 {app.first_name} {app.last_name}
               </h3>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 {app.email} · {app.country_of_residence} · {app.nationality}
               </p>
             </div>
@@ -94,7 +94,7 @@ export default function TeacherVerificationPage() {
               </span>
             </div>
             {app.bio && (
-              <p className="text-xs text-gray-500 italic">
+              <p className="text-xs text-muted-foreground italic">
                 &quot;{app.bio}&quot;
               </p>
             )}
@@ -103,7 +103,7 @@ export default function TeacherVerificationPage() {
                 <a
                   href={app.cv_url}
                   target="_blank"
-                  className="text-amber-700 underline inline-flex items-center gap-1"
+                  className="text-accent-foreground underline inline-flex items-center gap-1"
                 >
                   <ExternalLink size={12} /> View CV
                 </a>
@@ -112,7 +112,7 @@ export default function TeacherVerificationPage() {
                 <a
                   href={app.intro_video_url}
                   target="_blank"
-                  className="text-amber-700 underline inline-flex items-center gap-1"
+                  className="text-accent-foreground underline inline-flex items-center gap-1"
                 >
                   <Video size={12} /> Intro Video
                 </a>
@@ -137,7 +137,7 @@ export default function TeacherVerificationPage() {
               </button>
               <button
                 onClick={() => handleApprove(app.uid)}
-                className="px-3 py-1 rounded-full bg-emerald-600 text-white text-xs"
+                className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs"
               >
                 Approve
               </button>

@@ -34,15 +34,15 @@ export default function CartPage() {
 
   if (!user) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-gray-500">
-        <Link href="/login" className="text-amber-700"><T>Sign in to view your cart</T></Link>
+      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
+        <Link href="/login" className="text-accent-foreground"><T>Sign in to view your cart</T></Link>
       </div>
     );
   }
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
-      <Link href="/marketplace" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6">
+      <Link href="/marketplace" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
         <ArrowLeft size={16} /> <T>Back to Marketplace</T>
       </Link>
       <h1 className="font-serif text-3xl mb-6 flex items-center gap-2">
@@ -52,7 +52,7 @@ export default function CartPage() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div>
       ) : items.length === 0 ? (
-        <div className="text-center py-20 text-gray-500">
+        <div className="text-center py-20 text-muted-foreground">
           <ShoppingCart className="mx-auto h-12 w-12 mb-4 text-secondary-foreground/50" />
           <p><T>Your cart is empty.</T></p>
         </div>
@@ -61,20 +61,20 @@ export default function CartPage() {
           {items.map((item: any) => (
             <div key={item.id} className="flex items-center justify-between glass rounded-2xl p-4">
               <div className="flex items-center gap-4">
-                <div className="h-16 w-16 rounded-xl bg-gradient-emerald flex items-center justify-center overflow-hidden">
+                <div className="h-16 w-16 rounded-xl bg-gradient-primary flex items-center justify-center overflow-hidden">
                   {item.image_url ? (
                     <Image src={item.image_url} alt={item.title} width={64} height={64} className="object-cover" />
                   ) : (
-                    <ShoppingCart className="h-6 w-6 text-white/50" />
+                    <ShoppingCart className="h-6 w-6 text-primary-foreground/50" />
                   )}
                 </div>
                 <div>
-                  <Link href={`/courses/${item.course_id}`} className="font-medium hover:text-amber-700">{item.title}</Link>
-                  <p className="text-xs text-gray-500"><T>by</T> {item.teacher_name} · {item.level}</p>
+                  <Link href={`/courses/${item.course_id}`} className="font-medium hover:text-accent-foreground">{item.title}</Link>
+                  <p className="text-xs text-muted-foreground"><T>by</T> {item.teacher_name} · {item.level}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <span className="font-bold text-amber-700">${item.price}</span>
+                <span className="font-bold text-accent-foreground">${item.price}</span>
                 <button onClick={() => removeItem(item.course_id)} className="p-2 rounded-full hover:bg-red-50 text-red-500">
                   <Trash2 size={16} />
                 </button>
@@ -82,7 +82,7 @@ export default function CartPage() {
             </div>
           ))}
           <div className="text-right mt-4">
-            <button className="rounded-full bg-amber-500 px-8 py-3 text-sm font-semibold text-gray-900 hover:bg-amber-400">
+            <button className="rounded-full bg-gold px-8 py-3 text-sm font-semibold text-foreground hover:bg-gold/80">
               <T>Checkout</T>
             </button>
           </div>

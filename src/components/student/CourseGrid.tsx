@@ -148,11 +148,11 @@ export function CourseGrid() {
           className="glass rounded-2xl p-4 text-center"
         >
           <ShieldCheck className="inline h-5 w-5 text-primary mr-2" />
-          <span className="text-gray-900 font-medium">
+          <span className="text-foreground font-medium">
             <T>{`You are subscribed! You can choose ${remainingSlots} courses for free`}</T>
           </span>
           {subscription && (
-            <span className="text-gray-500 text-sm ml-2">
+            <span className="text-muted-foreground text-sm ml-2">
               <T>{`(Expires on ${new Date(subscription.expires_at).toLocaleDateString("en-US")})`}</T>
             </span>
           )}
@@ -183,10 +183,10 @@ export function CourseGrid() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="group overflow-hidden rounded-3xl border border-gray-200 bg-card shadow-elegant transition hover:-translate-y-1"
+              className="group overflow-hidden rounded-3xl border border-border bg-card shadow-elegant transition hover:-translate-y-1"
             >
               {/* Header with gradient */}
-              <div className="relative h-32 bg-gradient-emerald">
+              <div className="relative h-32 bg-gradient-primary">
                 <div
                   className="absolute inset-0 opacity-20"
                   style={{
@@ -194,7 +194,7 @@ export function CourseGrid() {
                   }}
                 />
                 {/* Course type */}
-                <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs text-white backdrop-blur">
+                <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs text-primary-foreground backdrop-blur">
                   {c.type === "Live Online" ? (
                     <Video className="h-3 w-3" />
                   ) : (
@@ -203,7 +203,7 @@ export function CourseGrid() {
                   {c.type}
                 </div>
                 {/* Level */}
-                <div className="absolute right-4 top-4 rounded-full bg-amber-100px-2.5 py-1 text-xs font-bold text-amber-700">
+                <div className="absolute right-4 top-4 rounded-full bg-accent px-2.5 py-1 text-xs font-bold text-accent-foreground">
                   {c.level}
                 </div>
                 {/* Price */}
@@ -214,8 +214,8 @@ export function CourseGrid() {
 
               {/* Card content */}
               <div className="p-5 space-y-3">
-                <h3 className="font-serif text-lg leading-snug text-gray-900">{c.title}</h3>
-                <div className="flex items-center justify-between text-xs text-gray-500">
+                <h3 className="font-serif text-lg leading-snug text-foreground">{c.title}</h3>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span className="inline-flex items-center gap-1">
                     <Star className="h-3 w-3 fill-accent text-accent" /> {c.rating}
                   </span>
@@ -228,7 +228,7 @@ export function CourseGrid() {
                 {alreadyChosen ? (
                   <button
                     disabled
-                    className="mt-4 w-full rounded-full bg-emerald-100 text-secondary-foreground py-2.5 text-xs font-semibold flex items-center justify-center gap-2"
+                    className="mt-4 w-full rounded-full bg-secondary text-secondary-foreground py-2.5 text-xs font-semibold flex items-center justify-center gap-2"
                   >
                     <CheckCircle size={14} />
                     <T>Added</T>
@@ -237,7 +237,7 @@ export function CourseGrid() {
                   <button
                     onClick={() => handleChooseCourse(c.id)}
                     disabled={isChoosing}
-                    className="mt-4 w-full rounded-full bg-amber-100text-amber-700 py-2.5 text-xs font-semibold hover:bg-accent/90 disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="mt-4 w-full rounded-full bg-accent text-accent-foreground py-2.5 text-xs font-semibold hover:bg-accent/90 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {isChoosing ? (
                       <Loader2 size={14} className="animate-spin" />
@@ -249,7 +249,7 @@ export function CourseGrid() {
                     {user ? (
                       <button
                         onClick={() => handleBuy(c)}
-                        className="w-full rounded-full bg-amber-100py-2.5 text-xs font-semibold text-amber-700 transition hover:bg-accent/90 flex items-center justify-center gap-2"
+                        className="w-full rounded-full bg-accent py-2.5 text-xs font-semibold text-accent-foreground transition hover:bg-accent/90 flex items-center justify-center gap-2"
                       >
                         <CreditCard size={14} />
                         <T>Buy Now</T>
@@ -257,7 +257,7 @@ export function CourseGrid() {
                     ) : (
                       <button
                         onClick={() => router.push("/login")}
-                        className="w-full rounded-full bg-emerald-600 py-2.5 text-xs font-semibold text-white transition"
+                        className="w-full rounded-full bg-primary py-2.5 text-xs font-semibold text-primary-foreground transition"
                       >
                         <T>Login to Purchase</T>
                       </button>
@@ -266,7 +266,7 @@ export function CourseGrid() {
                 ) : (
                   <button
                     onClick={() => router.push(`/courses/${c.id}`)}
-                    className="mt-4 w-full rounded-full bg-emerald-600 py-2.5 text-xs font-semibold text-white transition"
+                    className="mt-4 w-full rounded-full bg-primary py-2.5 text-xs font-semibold text-primary-foreground transition"
                   >
                     <T>Enroll for Free</T>
                   </button>
