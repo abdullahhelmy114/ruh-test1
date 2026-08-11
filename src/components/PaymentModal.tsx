@@ -17,7 +17,7 @@ export function PaymentModal({ isOpen, onClose, courseTitle, userEmail }: Paymen
   if (!isOpen) return null;
 
   // ⚠️ قم بتغيير هذا إلى رقم IBAN الحقيقي الخاص بك
-  const IBAN = "IBAN NUMARA";
+  const IBAN = "TR60 0020 5000 0962 1626 4000 01";
 
   // ⚠️ رقم الواتساب (بصيغة دولية بدون + أو 00)
   const WHATSAPP_NUMBER = "905518998716";
