@@ -1,10 +1,15 @@
-// app/api/admin/library/books/convert/route.ts
+// src/app/api/admin/library/books/convert/route.ts
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
 import { getServerSession } from "@/lib/auth";
 import { uploadFileToGoogleDrive, driveUrlToCdnUrl } from "@/lib/google-drive";
+import { exec } from "child_process";
+import { promisify } from "util";
+import fs from "fs";
+import path from "path";
 import sharp from "sharp";
-import { fromBuffer } from "pdf2pic";
+
+const execPromise = promisify(exec);
 
 export async function POST(req: Request) {
   const session = await getServerSession(req);
@@ -22,40 +27,41 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "PDF not found" }, { status: 404 });
   }
 
+  const tempDir = path.join("/tmp", bookId);
   try {
     // جلب PDF من الرابط
     const pdfResponse = await fetch(book.pdf_url);
     if (!pdfResponse.ok) throw new Error("Failed to fetch PDF");
     const pdfBuffer = Buffer.from(await pdfResponse.arrayBuffer());
+    const pdfPath = path.join(tempDir, "book.pdf");
 
-    // تحويل PDF إلى صور PNG مؤقتة
-    const options = {
-      density: 150, // جودة عالية
-      saveFilename: bookId,
-      savePath: "/tmp",
-      format: "png",
-      width: 800,
-      height: 1100,
-    };
+    fs.mkdirSync(tempDir, { recursive: true });
+    fs.writeFileSync(pdfPath, pdfBuffer);
 
-    const converter = fromBuffer(pdfBuffer, options);
-    const result = await converter.bulk(-1); // كل الصفحات
+    // تحويل PDF إلى صور PNG باستخدام pdftoppm (أفضل للعربية)
+    // -r 300: دقة عالية للصور الممسوحة
+    // -png: إخراج PNG
+    // -scale-to-x 800 -scale-to-y 1100: تغيير الحجم
+    await execPromise(
+      `pdftoppm -r 300 -png -scale-to-x 800 -scale-to-y 1100 "${pdfPath}" "${tempDir}/page"`
+    );
 
-    if (!result || !Array.isArray(result)) {
-      throw new Error("Conversion failed");
-    }
+    // قراءة جميع الصور الناتجة (page-1.png, page-2.png, ...)
+    const files = fs.readdirSync(tempDir).filter(f => f.endsWith(".png")).sort((a, b) => {
+      const numA = parseInt(a.match(/\d+/)?.[0] || "0");
+      const numB = parseInt(b.match(/\d+/)?.[0] || "0");
+      return numA - numB;
+    });
 
-    const fs = require("fs");
     const pages = [];
 
-    for (let i = 0; i < result.length; i++) {
-      const page = result[i];
-      if (!page || !page.path) continue;
-
-      // قراءة الصورة المحولة وضغطها إلى WebP
-      const pageBuffer = fs.readFileSync(page.path);
+    for (let i = 0; i < files.length; i++) {
+      const filePath = path.join(tempDir, files[i]);
+      const pageBuffer = fs.readFileSync(filePath);
+      
+      // ضغط إلى WebP لتوفير المساحة
       const webpBuffer = await sharp(pageBuffer)
-        .webp({ quality: 80 }) // ضغط جيد مع جودة عالية
+        .webp({ quality: 80 })
         .toBuffer();
 
       // رفع الصورة إلى Google Drive
@@ -73,7 +79,7 @@ export async function POST(req: Request) {
       });
 
       // حذف الملف المؤقت
-      fs.unlinkSync(page.path);
+      fs.unlinkSync(filePath);
     }
 
     // تخزين الصفحات في قاعدة البيانات
@@ -85,16 +91,17 @@ export async function POST(req: Request) {
           ON CONFLICT (book_id, page_number) DO UPDATE SET image_url = ${page.image_url}
         `;
       }
-
-      // تحديث عدد صفحات الكتاب
-      await sql`
-        UPDATE library_books SET pages_count = ${pages.length} WHERE id = ${bookId}
-      `;
+      await sql`UPDATE library_books SET pages_count = ${pages.length} WHERE id = ${bookId}`;
     }
+
+    // تنظيف المجلد المؤقت
+    fs.rmSync(tempDir, { recursive: true, force: true });
 
     return NextResponse.json({ success: true, pages_count: pages.length });
   } catch (error) {
     console.error("Conversion failed:", error);
+    // تنظيف في حال الخطأ
+    if (fs.existsSync(tempDir)) fs.rmSync(tempDir, { recursive: true, force: true });
     return NextResponse.json({ error: "Conversion failed" }, { status: 500 });
   }
 }
