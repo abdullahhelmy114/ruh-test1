@@ -44,7 +44,7 @@ export function BookDetailDialog({
 
   const handleRead = () => {
     onOpenChange(false);
-    router.push(`/library/book/${book.id}`);
+    router.push(`/library/book/detail?id=${book.id}`);
   };
 
   const handleSubscribe = () => {

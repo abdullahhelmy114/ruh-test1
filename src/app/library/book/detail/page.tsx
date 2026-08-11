@@ -1,8 +1,8 @@
-// src/app/library/book/[id]/page.tsx
+// src/app/library/book/detail/page.tsx
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/AuthProvider";
 import { T } from "@/components/TranslatedText";
 import { authFetch } from "@/lib/authFetch";
@@ -27,57 +27,45 @@ import { toast } from "sonner";
 
 import { PageOverlay, type OverlayItem } from "@/components/reader/PageOverlay";
 
-// ── أنواع ──────────────────────────────────────────
 interface PageData {
   page_number: number;
   image_url: string;
 }
 
-// واجهة محلية: تراكب مع رقم الصفحة (لتخزين البيانات القادمة من API)
 interface PageOverlayData extends OverlayItem {
   page_number: number;
 }
 
-// ── مكون قارئ الكتاب ──────────────────────────────
 export default function BookReaderPage() {
-  const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
+  const bookId = searchParams.get("id") || "";
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
 
-  // بيانات الكتاب
   const [book, setBook] = useState<any>(null);
   const [pages, setPages] = useState<PageData[]>([]);
   const [loadingBook, setLoadingBook] = useState(true);
 
-  // الصلاحيات
-  const [role, setRole] = useState<
-    "admin" | "student" | "teacher" | "organization" | "guest"
-  >("guest");
+  const [role, setRole] = useState<"admin" | "student" | "teacher" | "organization" | "guest">("guest");
   const [checkingAccess, setCheckingAccess] = useState(true);
 
-  // حالة القارئ
   const [currentPage, setCurrentPage] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [fullscreen, setFullscreen] = useState(false);
   const flipBookRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // أدوات الرسم
-  const [drawMode, setDrawMode] = useState<
-    "none" | "pen" | "highlighter" | "eraser"
-  >("none");
+  const [drawMode, setDrawMode] = useState<"none" | "pen" | "highlighter" | "eraser">("none");
   const [penColor, setPenColor] = useState("#000000");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
 
-  // التراكبات (تخزن مع page_number)
   const [overlays, setOverlays] = useState<PageOverlayData[]>([]);
   const [showAdminTools, setShowAdminTools] = useState(false);
 
-  // تحميل الكتاب والصلاحيات
   useEffect(() => {
-    if (!user || !params.id) {
+    if (!user || !bookId) {
       setCheckingAccess(false);
       setLoadingBook(false);
       return;
@@ -85,39 +73,28 @@ export default function BookReaderPage() {
 
     const load = async () => {
       try {
-        // 1. التحقق من الصلاحية
         const accessRes = await authFetch("/api/library/access");
         const accessData = await accessRes.json();
 
-        if (accessData.isAdmin) {
-          setRole("admin");
-        } else if (accessData.role === "student") {
-          setRole("student");
-        } else if (accessData.role === "teacher") {
-          setRole("teacher");
-        } else if (accessData.role === "organization") {
-          setRole("organization");
-        } else if (accessData.hasAccess) {
-          setRole("student"); // اشتراك مدفوع يعامل كطالب (قراءة + رسم)
-        } else {
+        if (accessData.isAdmin) setRole("admin");
+        else if (accessData.role === "student") setRole("student");
+        else if (accessData.role === "teacher") setRole("teacher");
+        else if (accessData.role === "organization") setRole("organization");
+        else if (accessData.hasAccess) setRole("student");
+        else {
           setRole("guest");
           setCheckingAccess(false);
           setLoadingBook(false);
           return;
         }
 
-        // 2. جلب الكتاب والصفحات
-        const bookRes = await authFetch(`/api/library/books/${params.id}`);
+        const bookRes = await authFetch(`/api/library/books?id=${bookId}`);
         if (!bookRes.ok) throw new Error("Book not found");
         const bookData = await bookRes.json();
-
         setBook(bookData.book);
         setPages(bookData.pages || []);
 
-        // 3. جلب التراكبات (للجميع)
-        const overlaysRes = await authFetch(
-          `/api/library/page-overlay/${params.id}`
-        );
+        const overlaysRes = await authFetch(`/api/library/page-overlay?bookId=${bookId}`);
         if (overlaysRes.ok) {
           const overlaysData = await overlaysRes.json();
           setOverlays(overlaysData.overlays || []);
@@ -131,7 +108,7 @@ export default function BookReaderPage() {
     };
 
     load();
-  }, [user, params.id]);
+  }, [user, bookId]);
 
   // الحماية من النسخ
   useEffect(() => {
@@ -239,7 +216,7 @@ export default function BookReaderPage() {
       await authFetch("/api/library/annotations", {
         method: "POST",
         body: JSON.stringify({
-          book_id: params.id,
+          book_id: bookId,
           page_number: currentPage + 1,
           data: dataUrl,
         }),

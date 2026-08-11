@@ -36,7 +36,7 @@ export function LibraryView() {
     (book: Book) => {
       if (isAdmin || hasAccess) {
         // يمكنه القراءة مباشرة
-        router.push(`/library/book/${book.id}`);
+        router.push(`/library/book/detail?id=${book.id}`);
       } else {
         setSelectedBook(book);
         setDetailOpen(true);
