@@ -28,9 +28,6 @@ interface CourseData {
   lessons: Lesson[];
 }
 
-/* ─────────────────────────────────────────────
-   مكون الشهادة / الاختبار النهائي للكورس
-   ───────────────────────────────────────────── */
 function CourseCompletionSection({
   courseId,
   courseTitle,
@@ -55,7 +52,7 @@ function CourseCompletionSection({
   if (loadingExam) {
     return (
       <div className="glass rounded-2xl p-6 text-center">
-        <Loader2 className="animate-spin mx-auto h-6 w-6 text-emerald-600" />
+        <Loader2 className="animate-spin mx-auto h-6 w-6 text-primary" />
       </div>
     );
   }
@@ -63,12 +60,16 @@ function CourseCompletionSection({
   if (hasExam) {
     return (
       <div className="glass rounded-2xl p-6 text-center space-y-4">
-        <HelpCircle className="mx-auto h-10 w-10 text-emerald-700" />
-        <h3 className="font-serif text-xl text-gray-900"><T>Final Exam Required</T></h3>
-        <p className="text-gray-500"><T>You must pass the final exam to earn your certificate.</T></p>
+        <HelpCircle className="mx-auto h-10 w-10 text-accent-foreground" />
+        <h3 className="font-serif text-xl text-foreground">
+          <T>Final Exam Required</T>
+        </h3>
+        <p className="text-muted-foreground">
+          <T>You must pass the final exam to earn your certificate.</T>
+        </p>
         <Link
           href={`/dashboard/student/exam/${courseId}`}
-          className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-6 py-3 text-sm font-semibold text-black hover:bg-amber-400"
+          className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/80"
         >
           <T>Take Final Exam</T>
         </Link>
@@ -78,9 +79,13 @@ function CourseCompletionSection({
 
   return (
     <div className="glass rounded-2xl p-6 text-center space-y-4">
-      <CheckCircle className="mx-auto h-10 w-10 text-emerald-600" />
-      <h3 className="font-serif text-xl text-gray-900"><T>Congratulations!</T></h3>
-      <p className="text-gray-500"><T>You have completed all lessons.</T></p>
+      <CheckCircle className="mx-auto h-10 w-10 text-primary" />
+      <h3 className="font-serif text-xl text-foreground">
+        <T>Congratulations!</T>
+      </h3>
+      <p className="text-muted-foreground">
+        <T>You have completed all lessons.</T>
+      </p>
       <CertificateButton
         studentName={studentName}
         courseName={courseTitle}
@@ -90,9 +95,6 @@ function CourseCompletionSection({
   );
 }
 
-/* ─────────────────────────────────────────────
-   مكون الاختبار للدرس الواحد (QuizSection)
-   ───────────────────────────────────────────── */
 function QuizSection({ lessonId }: { lessonId: string }) {
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,8 +111,8 @@ function QuizSection({ lessonId }: { lessonId: string }) {
 
   return (
     <div className="glass rounded-2xl p-5 space-y-3">
-      <h3 className="font-serif text-lg flex items-center gap-2 text-gray-900">
-        <HelpCircle className="h-5 w-5 text-emerald-700" />
+      <h3 className="font-serif text-lg flex items-center gap-2 text-foreground">
+        <HelpCircle className="h-5 w-5 text-accent-foreground" />
         <T>Lesson Quiz</T>
       </h3>
       <QuizPlayer quizzes={quizzes} />
@@ -118,11 +120,9 @@ function QuizSection({ lessonId }: { lessonId: string }) {
   );
 }
 
-/* ─────────────────────────────────────────────
-   الصفحة الرئيسية
-   ───────────────────────────────────────────── */
 export default function CoursePlayerPage() {
-  const { courseId } = useParams<{ courseId: string }>();
+  const params = useParams<{ courseId: string }>();
+  const courseId = params.courseId as string;
   const { user } = useAuth();
   const router = useRouter();
   const [data, setData] = useState<CourseData | null>(null);
@@ -160,35 +160,28 @@ export default function CoursePlayerPage() {
     setCompleting(false);
   };
 
-  if (loading)
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-emerald-600" />
-      </div>
-    );
-  if (!data)
-    return (
-      <div className="flex min-h-screen items-center justify-center text-gray-500">
-        <T>Course not found</T>
-      </div>
-    );
+  if (loading) return (
+    <div className="flex min-h-screen items-center justify-center">
+      <Loader2 className="h-10 w-10 animate-spin text-primary" />
+    </div>
+  );
+  if (!data) return (
+    <div className="flex min-h-screen items-center justify-center text-muted-foreground">
+      <T>Course not found</T>
+    </div>
+  );
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 p-4 md:p-8 min-h-screen">
+    <div className="flex flex-col lg:flex-row gap-6 p-4 md:p-8 min-h-screen bg-background">
       {/* Sidebar */}
       <aside className="w-full lg:w-80 shrink-0 glass rounded-3xl p-5 shadow-elegant max-h-[85vh] overflow-y-auto">
-        <Link
-          href="/dashboard/student"
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-4"
-        >
+        <Link href="/dashboard/student" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4">
           <ArrowLeft size={16} /> <T>Back to Dashboard</T>
         </Link>
-        <h2 className="font-serif text-xl flex items-center gap-2 text-gray-900">
-          <BookOpen className="h-5 w-5 text-emerald-700" /> {data.course.title}
+        <h2 className="font-serif text-xl flex items-center gap-2 text-foreground">
+          <BookOpen className="h-5 w-5 text-accent-foreground" /> {data.course.title}
         </h2>
-        <p className="text-xs text-gray-500 mt-1">
-          <T>Level</T> {data.course.level}
-        </p>
+        <p className="text-xs text-muted-foreground mt-1"><T>Level</T> {data.course.level}</p>
         <div className="mt-4 space-y-2">
           {data.lessons.map((lesson, i) => (
             <button
@@ -196,42 +189,37 @@ export default function CoursePlayerPage() {
               onClick={() => setCurrentLesson(lesson)}
               className={`w-full text-left p-3 rounded-xl text-sm transition flex items-center gap-3 ${
                 currentLesson?.id === lesson.id
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-primary text-primary-foreground"
                   : lesson.completed
-                  ? "bg-emerald-100 text-gray-900"
-                  : "hover:bg-amber-100 text-gray-900"
+                  ? "bg-secondary text-secondary-foreground"
+                  : "hover:bg-accent text-foreground"
               }`}
             >
               <span className="shrink-0 w-6 h-6 rounded-full border border-current flex items-center justify-center text-xs">
-                {lesson.completed ? (
-                  <CheckCircle size={14} className="text-emerald-600" />
-                ) : (
-                  i + 1
-                )}
+                {lesson.completed ? <CheckCircle size={14} /> : i + 1}
               </span>
               <span className="truncate">{lesson.title}</span>
             </button>
           ))}
         </div>
 
-        {/* Final Exam – داخل الشريط الجانبي */}
-        <div className="mt-4 pt-4 border-t border-gray-200/50">
+        <div className="mt-4 pt-4 border-t border-border/50">
           {allCompleted ? (
             <Link
               href={`/dashboard/student/exam/${courseId}`}
-              className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 transition w-full"
+              className="flex items-center gap-3 p-3 rounded-xl bg-accent/10 border border-accent/30 hover:bg-accent/20 transition w-full"
             >
-              <span className="shrink-0 w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center text-xs text-black font-bold">?</span>
-              <span className="text-sm font-medium text-amber-700"><T>Final Exam</T></span>
+              <span className="shrink-0 w-6 h-6 rounded-full bg-accent flex items-center justify-center text-xs text-accent-foreground font-bold">?</span>
+              <span className="text-sm font-medium text-accent-foreground"><T>Final Exam</T></span>
             </Link>
           ) : (
             <button
               onClick={() => alert("Please complete all lessons before taking the exam.")}
-              className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-gray-200/50 opacity-60 cursor-not-allowed w-full"
+              className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border/50 opacity-60 cursor-not-allowed w-full"
             >
-              <span className="shrink-0 w-6 h-6 rounded-full border border-gray-400 flex items-center justify-center text-xs">!</span>
-              <span className="text-sm text-gray-500"><T>Final Exam</T></span>
-              <span className="ml-auto text-[10px] text-gray-500"><T>Locked</T></span>
+              <span className="shrink-0 w-6 h-6 rounded-full border border-border flex items-center justify-center text-xs">!</span>
+              <span className="text-sm text-muted-foreground"><T>Final Exam</T></span>
+              <span className="ml-auto text-[10px] text-muted-foreground"><T>Locked</T></span>
             </button>
           )}
         </div>
@@ -240,12 +228,7 @@ export default function CoursePlayerPage() {
       {/* Main Player */}
       <main className="flex-1 space-y-6">
         {currentLesson ? (
-          <motion.div
-            key={currentLesson.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
+          <motion.div key={currentLesson.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             {currentLesson.recording_url && (
               <div className="rounded-3xl overflow-hidden shadow-elegant">
                 <YouTubeEmbed url={currentLesson.recording_url} title={currentLesson.title} />
@@ -253,8 +236,8 @@ export default function CoursePlayerPage() {
             )}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="font-serif text-2xl md:text-3xl text-gray-900">{currentLesson.title}</h1>
-                <p className="text-sm text-gray-500 mt-1">
+                <h1 className="font-serif text-2xl md:text-3xl text-foreground">{currentLesson.title}</h1>
+                <p className="text-sm text-muted-foreground mt-1">
                   {currentLesson.type === "zoom" ? <T>Live Session</T> : <T>Recorded Lesson</T>}
                 </p>
               </div>
@@ -263,25 +246,21 @@ export default function CoursePlayerPage() {
                 disabled={currentLesson.completed || completing}
                 className={`inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition ${
                   currentLesson.completed
-                    ? "bg-emerald-100 text-emerald-700 cursor-default"
-                    : "bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+                    ? "bg-secondary text-secondary-foreground cursor-default"
+                    : "bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 }`}
               >
                 {currentLesson.completed ? (
-                  <>
-                    <CheckCircle size={18} /> <T>Completed</T>
-                  </>
+                  <><CheckCircle size={18} /> <T>Completed</T></>
                 ) : (
-                  <>
-                    <Play size={18} /> <T>Mark as Complete</T>
-                  </>
+                  <><Play size={18} /> <T>Mark as Complete</T></>
                 )}
               </button>
             </div>
             {currentLesson.files && currentLesson.files.length > 0 && (
               <div className="glass rounded-2xl p-5">
-                <h3 className="font-serif text-lg mb-3 flex items-center gap-2 text-gray-900">
-                  <FileText className="h-5 w-5 text-emerald-700" /> <T>Lesson Resources</T>
+                <h3 className="font-serif text-lg mb-3 flex items-center gap-2 text-foreground">
+                  <FileText className="h-5 w-5 text-accent-foreground" /> <T>Lesson Resources</T>
                 </h3>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {currentLesson.files.map((file, i) => (
@@ -290,10 +269,10 @@ export default function CoursePlayerPage() {
                       href={file.file_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-3 hover:bg-amber-100 transition"
+                      className="flex items-center justify-between rounded-xl border border-border bg-background p-3 hover:bg-accent transition"
                     >
                       <span className="text-sm truncate">{file.file_name}</span>
-                      <Download size={16} className="text-gray-500 shrink-0 ml-2" />
+                      <Download size={16} className="text-muted-foreground shrink-0 ml-2" />
                     </a>
                   ))}
                 </div>
@@ -302,7 +281,7 @@ export default function CoursePlayerPage() {
             <QuizSection lessonId={currentLesson.id} />
           </motion.div>
         ) : (
-          <div className="flex items-center justify-center h-64 text-gray-500">
+          <div className="flex items-center justify-center h-64 text-muted-foreground">
             <T>Select a lesson to start learning</T>
           </div>
         )}
