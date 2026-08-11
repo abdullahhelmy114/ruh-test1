@@ -1,4 +1,4 @@
-// app/api/admin/library/books/route.ts
+// src/app/api/admin/library/books/route.ts
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
 import { getServerSession } from "@/lib/auth";
@@ -17,6 +17,7 @@ export async function POST(req: Request) {
     const description = (formData.get("description") as string) || "";
     const coverFile = formData.get("cover") as File | null;
     const pdfFile = formData.get("pdf") as File | null;
+    const categoriesRaw = formData.get("categories") as string | null;
 
     if (!title) {
       return NextResponse.json({ error: "Book title is required" }, { status: 400 });
@@ -36,12 +37,31 @@ export async function POST(req: Request) {
       const driveUrl = await uploadFileToGoogleDrive(buffer, pdfFile.name, pdfFile.type || "application/pdf");
       pdfUrl = driveUrlToCdnUrl(driveUrl);
     }
+
     // إدراج الكتاب في قاعدة البيانات
     const [book] = await sql`
       INSERT INTO library_books (title, author, description, cover_url, pdf_url)
       VALUES (${title}, ${author}, ${description}, ${coverUrl}, ${pdfUrl})
       RETURNING id
     `;
+
+    // ربط التصنيفات إذا وجدت
+    if (categoriesRaw) {
+      try {
+        const categoryIds: string[] = JSON.parse(categoriesRaw);
+        if (Array.isArray(categoryIds) && categoryIds.length > 0) {
+          for (const categoryId of categoryIds) {
+            await sql`
+              INSERT INTO book_categories (book_id, category_id)
+              VALUES (${book.id}, ${categoryId})
+              ON CONFLICT DO NOTHING
+            `;
+          }
+        }
+      } catch (parseError) {
+        console.warn("Failed to parse categories JSON:", parseError);
+      }
+    }
 
     return NextResponse.json({ success: true, bookId: book.id });
   } catch (error) {
