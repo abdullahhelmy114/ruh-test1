@@ -17,7 +17,7 @@ export function CourseCalendar({ canJoin = true }: { canJoin?: boolean }) {
           </div>
           <h3 className="mt-1 font-serif text-2xl">Upcoming Zoom Calendar</h3>
         </div>
-        <button className="hidden rounded-full border px-4 py-2 text-xs font-medium hover:bg-accent md:inline-flex">
+        <button className="hidden rounded-full border px-4 py-2 text-xs font-medium hover:bg-amber-100md:inline-flex">
           View Month
         </button>
       </div>
@@ -26,7 +26,7 @@ export function CourseCalendar({ canJoin = true }: { canJoin?: boolean }) {
         {sessions.map((s, i) => (
           <div
             key={i}
-            className="group flex items-center gap-4 rounded-2xl border bg-background p-4 transition hover:border-gold/40 hover:shadow-goldold"
+            className="group flex items-center gap-4 rounded-2xl border bg-background p-4 transition hover:border-amber-500/40 hover:shadow-goldold"
           >
             <div className="grid h-14 w-14 flex-none place-items-center rounded-2xl gradient-primary text-primary-foreground">
               <div className="text-center leading-tight">
@@ -36,9 +36,9 @@ export function CourseCalendar({ canJoin = true }: { canJoin?: boolean }) {
             </div>
             <div className="min-w-0 flex-1">
               <div className="truncate font-medium">{s.topic}</div>
-              <div className="mt-0.5 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+              <div className="mt-0.5 flex flex-wrap items-center gap-3 text-xs text-gray-500">
                 <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {s.time}</span>
-                <span className="rounded-full bg-accent px-2 py-0.5">Level {s.level}</span>
+                <span className="rounded-full bg-amber-100px-2 py-0.5">Level {s.level}</span>
                 <a className="inline-flex items-center gap-1 text-gold hover:underline">
                   <BookOpen className="h-3 w-3" /> Curriculum Planner
                 </a>
@@ -46,7 +46,7 @@ export function CourseCalendar({ canJoin = true }: { canJoin?: boolean }) {
             </div>
             <button
               disabled={!canJoin || !s.joinable}
-              className="inline-flex flex-none items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex flex-none items-center gap-1.5 rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Video className="h-3.5 w-3.5" /> Join Zoom
             </button>

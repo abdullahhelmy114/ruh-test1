@@ -114,10 +114,10 @@ export default function LessonCreationDialog({
   };
 
   return (
-    <DialogContent className="sm:max-w-lg bg-card text-foreground border-border">
+    <DialogContent className="sm:max-w-lg bg-card text-gray-900 border-gray-200">
       <DialogHeader>
         <DialogTitle className="text-2xl font-bold">إضافة حصة جديدة</DialogTitle>
-        <DialogDescription className="text-muted-foreground">
+        <DialogDescription className="text-gray-500">
           حدد نوع الحصة والتاريخ والوقت. سيتم التحقق من الشروط تلقائياً.
         </DialogDescription>
       </DialogHeader>
@@ -161,7 +161,7 @@ export default function LessonCreationDialog({
                         variant="outline"
                         className={cn(
                           "w-full justify-start text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          !field.value && "text-gray-500"
                         )}
                       >
                         <CalendarIcon className="ml-2 h-4 w-4" />
@@ -244,7 +244,7 @@ export default function LessonCreationDialog({
             <Button
               type="submit"
               disabled={submitting}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              className="bg-emerald-600 text-white hover:bg-emerald-700"
             >
               {submitting ? "جارٍ الحفظ..." : "إضافة الحصة"}
             </Button>

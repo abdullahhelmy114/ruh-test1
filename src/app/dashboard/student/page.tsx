@@ -82,20 +82,20 @@ export default function StudentDashboard() {
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-10 md:px-8 min-h-screen bg-background">
       {/* Banner */}
-      <div className="relative overflow-hidden rounded-4xl border border-border bg-card p-8 shadow-elegant flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+      <div className="relative overflow-hidden rounded-4xl border border-gray-200 bg-card p-8 shadow-elegant flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div className="absolute -top-16 -right-16 h-32 w-32 rounded-full bg-accent/10 blur-3xl" />
         <div className="relative z-10">
-          <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent-foreground">
+          <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-700">
             <T>السلام عليكم</T>
           </div>
-          <h1 className="mt-1 font-serif text-3xl md:text-4xl text-foreground">
+          <h1 className="mt-1 font-serif text-3xl md:text-4xl text-gray-900">
             <T>مرحباً بعودتك،</T> {data.firstName}
           </h1>
-          <p className="mt-2 text-sm italic text-muted-foreground">
+          <p className="mt-2 text-sm italic text-gray-500">
             <T>واصل من حيث توقفت — كل كلمة انتصار.</T>
           </p>
         </div>
-        <div className="flex items-center gap-3 rounded-full border border-accent/20 bg-background/50 px-5 py-2.5 text-sm font-semibold">
+        <div className="flex items-center gap-3 rounded-full border border-accent/20 bg-white/50 px-5 py-2.5 text-sm font-semibold">
           <Trophy className="h-5 w-5 text-accent" />
           {data.streak}
           <T>-أيام متتالية</T>
@@ -110,8 +110,8 @@ export default function StudentDashboard() {
           className="live-sessions glass rounded-3xl p-6"
         >
           <div className="flex items-center gap-2 mb-4">
-            <Video className="h-5 w-5 text-accent-foreground" />
-            <h2 className="font-serif text-xl text-foreground">
+            <Video className="h-5 w-5 text-amber-700" />
+            <h2 className="font-serif text-xl text-gray-900">
               <T>جلسات مباشرة قادمة</T>
             </h2>
           </div>
@@ -121,14 +121,14 @@ export default function StudentDashboard() {
               return (
                 <div
                   key={s.id}
-                  className="flex items-center justify-between bg-background/50 rounded-2xl p-4 border"
+                  className="flex items-center justify-between bg-white/50 rounded-2xl p-4 border"
                 >
                   <div>
-                    <h3 className="font-serif text-sm font-semibold text-foreground">{s.title}</h3>
-                    <p className="text-xs text-muted-foreground">
+                    <h3 className="font-serif text-sm font-semibold text-gray-900">{s.title}</h3>
+                    <p className="text-xs text-gray-500">
                       {s.course_title} · {s.teacher_name}
                     </p>
-                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-1">
+                    <div className="flex items-center gap-1 text-[10px] text-gray-500 mt-1">
                       <Clock size={12} />
                       {new Date(s.scheduled_at).toLocaleString("ar-EG", {
                         dateStyle: "medium",
@@ -140,8 +140,8 @@ export default function StudentDashboard() {
                     href={`/live/${s.id}`}
                     className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition ${
                       joinable
-                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                        : "bg-muted text-muted-foreground pointer-events-none"
+                        ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                        : "bg-muted text-gray-500 pointer-events-none"
                     }`}
                   >
                     {joinable ? (
@@ -166,16 +166,16 @@ export default function StudentDashboard() {
         <div className="space-y-10 lg:col-span-2">
           {/* My Courses */}
           <section className="your-courses">
-            <div className="mb-1 text-[10px] font-bold uppercase tracking-[0.25em] text-accent-foreground">
+            <div className="mb-1 text-[10px] font-bold uppercase tracking-[0.25em] text-amber-700">
               <T>كورساتي</T>
             </div>
-            <h2 className="font-serif text-2xl text-foreground">
+            <h2 className="font-serif text-2xl text-gray-900">
               <T>الكورسات المسجل بها</T>
             </h2>
             <div className="mt-4 space-y-4">
               {data.enrolledCourses.length === 0 ? (
-                <div className="rounded-4xl border bg-card p-8 text-center text-muted-foreground">
-                  <BookOpen className="mx-auto h-8 w-8 text-accent-foreground/50 mb-3" />
+                <div className="rounded-4xl border bg-card p-8 text-center text-gray-500">
+                  <BookOpen className="mx-auto h-8 w-8 text-amber-700/50 mb-3" />
                   <p>
                     <T>لم تلتحق بأي كورس بعد.</T>
                   </p>
@@ -189,8 +189,8 @@ export default function StudentDashboard() {
               ) : (
                 data.enrolledCourses.map(c => (
                   <div key={c.id} className="rounded-3xl border bg-card p-5 shadow-elegant">
-                    <h3 className="font-serif text-lg text-foreground">{c.title}</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-serif text-lg text-gray-900">{c.title}</h3>
+                    <p className="text-sm text-gray-500">
                       <T>المستوى</T> {c.level} · <T>المعلم</T>: {c.teacher_name}
                     </p>
                     <div className="mt-2 flex items-center gap-2">
@@ -202,7 +202,7 @@ export default function StudentDashboard() {
                           }}
                         />
                       </div>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-gray-500">
                         {c.completed_lessons}/{c.total_lessons}
                       </span>
                     </div>
@@ -221,10 +221,10 @@ export default function StudentDashboard() {
           {/* Completed Courses */}
           {data.completedCourses?.length > 0 && (
             <section>
-              <div className="mb-1 text-[10px] font-bold uppercase tracking-[0.25em] text-accent-foreground">
+              <div className="mb-1 text-[10px] font-bold uppercase tracking-[0.25em] text-amber-700">
                 <T>إنجازاتك</T>
               </div>
-              <h2 className="font-serif text-2xl text-foreground">
+              <h2 className="font-serif text-2xl text-gray-900">
                 <T>مكتملة</T>
               </h2>
               <div className="mt-4 space-y-3">
@@ -233,12 +233,12 @@ export default function StudentDashboard() {
                     key={c.title}
                     className="flex items-center gap-3 rounded-2xl border bg-card p-4"
                   >
-                    <div className="grid h-10 w-10 place-items-center rounded-xl bg-accent/20 text-accent-foreground">
+                    <div className="grid h-10 w-10 place-items-center rounded-xl bg-accent/20 text-amber-700">
                       <Award className="h-5 w-5" />
                     </div>
                     <div className="flex-1">
                       <div className="font-serif text-sm">{c.title}</div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-xs text-gray-500">
                         <T>أكملت</T> {c.date}
                       </div>
                     </div>
@@ -247,7 +247,7 @@ export default function StudentDashboard() {
                         onClick={() =>
                           setSelectedRecording({ url: c.recording_url!, title: c.title })
                         }
-                        className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground flex items-center gap-1"
+                        className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-medium text-white flex items-center gap-1"
                       >
                         <Play size={12} /> <T>مشاهدة</T>
                       </button>
@@ -263,42 +263,42 @@ export default function StudentDashboard() {
         <div className="space-y-8">
           {/* Stats */}
           <div className="rounded-4xl border bg-card p-6 shadow-elegant">
-            <div className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+            <div className="text-xs font-semibold uppercase tracking-widest text-amber-700">
               <T>إحصائيات</T>
             </div>
             <div className="mt-4 space-y-3">
               <div className="flex justify-between">
-                <span className="text-muted-foreground"><T>الكورسات</T></span>
-                <span className="font-semibold text-foreground">{data.enrolledCourses.length}</span>
+                <span className="text-gray-500"><T>الكورسات</T></span>
+                <span className="font-semibold text-gray-900">{data.enrolledCourses.length}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground"><T>مكتملة</T></span>
-                <span className="font-semibold text-foreground">{data.completedCourses.length}</span>
+                <span className="text-gray-500"><T>مكتملة</T></span>
+                <span className="font-semibold text-gray-900">{data.completedCourses.length}</span>
               </div>
             </div>
           </div>
 
           {/* Referral */}
           <div className="rounded-4xl border bg-card p-6 shadow-elegant">
-            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent-foreground">
+            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-700">
               <T>الإحالات</T>
             </div>
-            <h3 className="mt-2 font-serif text-xl text-foreground">
+            <h3 className="mt-2 font-serif text-xl text-gray-900">
               <T>شارك الأكاديمية</T>
             </h3>
-            <p className="mt-2 text-xs text-muted-foreground">
+            <p className="mt-2 text-xs text-gray-500">
               <T>اربح أرصدة عن كل صديق ينضم.</T>
             </p>
             <div className="mt-5 flex items-center gap-2 rounded-xl border bg-background p-2 text-xs">
               <code className="flex-1 truncate px-2">{data.referral.code}</code>
-              <button className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+              <button className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-600 text-primary-foreground">
                 <Copy size={14} />
               </button>
             </div>
             <div className="mt-6 grid grid-cols-2 gap-4 text-center">
               <div className="rounded-2xl border bg-background p-4">
                 <div className="font-serif text-2xl">{data.referral.count}</div>
-                <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <div className="text-[10px] font-semibold uppercase tracking-widest text-gray-500">
                   <T>إحالات</T>
                 </div>
               </div>
@@ -306,7 +306,7 @@ export default function StudentDashboard() {
                 <div className="font-serif text-2xl text-primary">
                   ${data.referral.credits}
                 </div>
-                <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <div className="text-[10px] font-semibold uppercase tracking-widest text-gray-500">
                   <T>أرصدة</T>
                 </div>
               </div>
@@ -315,7 +315,7 @@ export default function StudentDashboard() {
 
           <Link
             href="/marketplace"
-            className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-accent/40 bg-accent/5 p-4 text-sm font-bold text-accent-foreground hover:bg-accent/10"
+            className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-accent/40 bg-accent/5 p-4 text-sm font-bold text-amber-700 hover:bg-accent/10"
           >
             <T>استكشف السوق ←</T>
           </Link>
@@ -334,7 +334,7 @@ export default function StudentDashboard() {
               <h3 className="font-serif text-lg">{selectedRecording.title}</h3>
               <button
                 onClick={() => setSelectedRecording(null)}
-                className="text-sm text-muted-foreground hover:underline"
+                className="text-sm text-gray-500 hover:underline"
               >
                 <T>إغلاق</T>
               </button>

@@ -91,7 +91,7 @@ export function AIChatBubble() {
                   <div className="text-[10px] uppercase tracking-widest opacity-70">Always here to help</div>
                 </div>
               </div>
-              <button onClick={() => setOpen(false)} className="rounded-full p-1 hover:bg-background/10">
+              <button onClick={() => setOpen(false)} className="rounded-full p-1 hover:bg-white/10">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -102,8 +102,8 @@ export function AIChatBubble() {
                   <div
                     className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
                       m.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-foreground"
+                        ? "bg-emerald-600 text-primary-foreground"
+                        : "bg-muted text-gray-900"
                     }`}
                   >
                     {m.text}
@@ -148,9 +148,9 @@ export function AIChatBubble() {
         whileTap={{ scale: 0.95 }}
         onClick={() => setOpen((o) => !o)}
         aria-label="Open AI Assistant"
-        className="fixed bottom-6 right-6 z-50 grid h-16 w-16 place-items-center rounded-full gradient-primary shadow-elegant ring-4 ring-gold/30"
+        className="fixed bottom-6 right-6 z-50 grid h-16 w-16 place-items-center rounded-full gradient-primary shadow-elegant ring-4 ring-amber-500/30"
       >
-        <span className="absolute inset-0 animate-ping rounded-full bg-gold/20" />
+        <span className="absolute inset-0 animate-ping rounded-full bg-amber-500/20" />
         <Brain className="relative h-7 w-7 text-primary-foreground" />
       </motion.button>
     </>

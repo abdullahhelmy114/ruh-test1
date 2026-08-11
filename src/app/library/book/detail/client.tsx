@@ -242,7 +242,7 @@ export default function BookReaderClient() {
       <div className="flex h-screen items-center justify-center bg-background">
         <div className="text-center">
           <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-muted-foreground"><T>Loading</T></p>
+          <p className="text-gray-500"><T>Loading</T></p>
         </div>
       </div>
     );
@@ -251,7 +251,7 @@ export default function BookReaderClient() {
   if (!user) {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-4 bg-background">
-        <p className="text-lg text-muted-foreground"><T>Login Required</T></p>
+        <p className="text-lg text-gray-500"><T>Login Required</T></p>
         <Link href="/login"><Button><T>Login</T></Button></Link>
       </div>
     );
@@ -260,7 +260,7 @@ export default function BookReaderClient() {
   if (role === "guest") {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-4 bg-background">
-        <p className="text-lg text-muted-foreground"><T>Book No Access</T></p>
+        <p className="text-lg text-gray-500"><T>Book No Access</T></p>
         <Link href="/library"><Button variant="outline"><T>Back to Library</T></Button></Link>
       </div>
     );
@@ -269,7 +269,7 @@ export default function BookReaderClient() {
   if (!pdfUrl) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
-        <p className="text-lg text-muted-foreground"><T>Book No Pages Available</T></p>
+        <p className="text-lg text-gray-500"><T>Book No Pages Available</T></p>
       </div>
     );
   }
@@ -281,7 +281,7 @@ export default function BookReaderClient() {
   return (
     <div ref={containerRef} className="min-h-screen bg-background flex flex-col items-center justify-center p-2 md:p-4 select-none" dir="rtl">
       {/* شريط الأدوات */}
-      <div className="flex flex-wrap items-center justify-center gap-2 mb-3 bg-card/80 backdrop-blur-md border border-border rounded-xl p-2 shadow-lg z-10">
+      <div className="flex flex-wrap items-center justify-center gap-2 mb-3 bg-card/80 backdrop-blur-md border border-gray-200 rounded-xl p-2 shadow-lg z-10">
         <Button variant="ghost" size="icon" onClick={prevPage}><ChevronRight size={20} /></Button>
         <span className="text-sm font-medium min-w-[60px] text-center tabular-nums">{currentPage + 1} / {numPages || '?'}</span>
         <Button variant="ghost" size="icon" onClick={nextPage}><ChevronLeft size={20} /></Button>
@@ -307,7 +307,7 @@ export default function BookReaderClient() {
       </div>
 
       {showAdminTools && role === "admin" && (
-        <div className="flex flex-wrap gap-2 mb-3 bg-card/90 backdrop-blur-md border border-border rounded-xl p-3 shadow-lg z-10">
+        <div className="flex flex-wrap gap-2 mb-3 bg-card/90 backdrop-blur-md border border-gray-200 rounded-xl p-3 shadow-lg z-10">
           <Button variant="outline" size="sm" onClick={() => alert("إضافة فيديو - قيد التطوير")}><Video size={16} className="ml-1" /> فيديو</Button>
           <Button variant="outline" size="sm" onClick={() => alert("إضافة صوت - قيد التطوير")}><Music size={16} className="ml-1" /> صوت</Button>
           <Button variant="outline" size="sm" onClick={() => alert("إضافة اختبار - قيد التطوير")}><HelpCircle size={16} className="ml-1" /> اختبار</Button>
@@ -315,7 +315,7 @@ export default function BookReaderClient() {
       )}
 
       <div className="relative flex justify-center items-center transition-transform duration-200 ease-out" style={{ transform: `scale(${zoom})`, transformOrigin: "center" }}>
-        <Document file={pdfUrl} onLoadSuccess={onDocumentLoadSuccess} loading={<div className="text-muted-foreground">تحميل الكتاب...</div>}>
+        <Document file={pdfUrl} onLoadSuccess={onDocumentLoadSuccess} loading={<div className="text-gray-500">تحميل الكتاب...</div>}>
           {numPages > 0 && (
             <HTMLFlipBook
               width={400}
@@ -372,7 +372,7 @@ export default function BookReaderClient() {
         </Document>
       </div>
 
-      <div className="mt-3 text-xs text-muted-foreground text-center">
+      <div className="mt-3 text-xs text-gray-500 text-center">
         {role === "admin" && <T>Admin mode: full access</T>}
         {(role === "student" || role === "teacher") && <T>Use the drawing tools to annotate</T>}
         {role === "organization" && <T>Organization access: read only</T>}

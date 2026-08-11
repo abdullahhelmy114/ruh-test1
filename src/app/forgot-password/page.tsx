@@ -37,7 +37,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="grid min-h-[calc(100vh-4rem)] place-items-center bg-background px-4 py-12">
       <div className="relative w-full max-w-md">
-        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-gold/20 blur-3xl" />
+        <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] bg-amber-500/20 blur-3xl" />
 
         <AnimatePresence mode="wait">
           {sent ? (
@@ -50,15 +50,15 @@ export default function ForgotPasswordPage() {
             >
               <CheckCircle className="mx-auto h-14 w-14 text-primary mb-4" />
               <h1 className="font-serif text-2xl"><T>Check Your Email</T></h1>
-              <p className="mt-3 text-sm text-muted-foreground">
+              <p className="mt-3 text-sm text-gray-500">
                 <T>We have sent a password reset link to your email address.</T>
               </p>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 text-sm text-gray-500">
                 <T>Please check your inbox (and spam folder) and follow the link to reset your password.</T>
               </p>
               <Link
                 href="/login"
-                className="mt-6 inline-flex items-center gap-2 text-accent-foreground hover:underline font-medium"
+                className="mt-6 inline-flex items-center gap-2 text-amber-700 hover:underline font-medium"
               >
                 <ArrowLeft size={16} /> <T>Back to Sign In</T>
               </Link>
@@ -72,18 +72,18 @@ export default function ForgotPasswordPage() {
               className="glass overflow-hidden rounded-3xl bg-card p-8 shadow-elegant md:p-10"
             >
               <div className="mb-6 text-center">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gold/10 mb-4">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/10 mb-4">
                   <Mail className="h-7 w-7 text-secondary-foreground" />
                 </div>
                 <h1 className="font-serif text-2xl md:text-3xl"><T>Forgot Password?</T></h1>
-                <p className="mt-2 text-sm text-muted-foreground">
+                <p className="mt-2 text-sm text-gray-500">
                   <T>No worries! Enter your email and we'll send you a reset link.</T>
                 </p>
               </div>
 
               <form onSubmit={handleReset} className="space-y-5">
                 <div>
-                  <label htmlFor="reset-email" className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  <label htmlFor="reset-email" className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-gray-500">
                     <Mail className="mr-1 inline h-3.5 w-3.5 text-gold" /> <T>Email</T>
                   </label>
                   <input
@@ -94,7 +94,7 @@ export default function ForgotPasswordPage() {
                     autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-2xl border bg-background px-4 py-3 text-sm outline-none ring-ring/30 transition focus:ring-2 focus:ring-gold"
+                    className="w-full rounded-2xl border bg-background px-4 py-3 text-sm outline-none ring-ring/30 transition focus:ring-2 focus:ring-amber-500"
                     dir="ltr"
                     placeholder="you@example.com"
                   />
@@ -109,7 +109,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={loading || !email.trim()}
-                  className="w-full rounded-full bg-gold py-3.5 text-sm font-semibold text-foreground shadow-elegant hover:bg-gold/80 disabled:opacity-50 transition flex items-center justify-center gap-2"
+                  className="w-full rounded-full bg-amber-500 py-3.5 text-sm font-semibold text-gray-900 shadow-elegant hover:bg-amber-400 disabled:opacity-50 transition flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -125,7 +125,7 @@ export default function ForgotPasswordPage() {
               <div className="mt-6 text-center">
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors"
                 >
                   <ArrowLeft size={16} /> <T>Back to Sign In</T>
                 </Link>

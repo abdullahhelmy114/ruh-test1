@@ -33,7 +33,7 @@ export default function AdminLayout({
           <h1 className="text-3xl font-bold text-destructive mb-4">
             غير مصرح
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-gray-500">
             هذا الحساب لا يمتلك صلاحية الوصول إلى لوحة التحكم.
           </p>
         </div>

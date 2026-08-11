@@ -168,10 +168,10 @@ export function TeacherProfile() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="space-y-6">
         <header className="space-y-2">
           <p className="text-xs uppercase tracking-[0.3em] text-gold">Profile</p>
-          <h1 className="font-serif text-4xl font-semibold text-foreground sm:text-5xl">
+          <h1 className="font-serif text-4xl font-semibold text-gray-900 sm:text-5xl">
             Showcase your <span className="gold-text">expertise</span>
           </h1>
-          <p dir="rtl" className="font-arabic text-sm text-muted-foreground">أكمل ملفك الشخصي ليطلع عليه الطلاب</p>
+          <p dir="rtl" className="font-arabic text-sm text-gray-500">أكمل ملفك الشخصي ليطلع عليه الطلاب</p>
         </header>
 
         <Section step={1} title="Identity" arabic="الهوية" icon={<IdCard size={20} />}>
@@ -232,21 +232,21 @@ export function TeacherProfile() {
               <Textarea className="profile-bio" value={s.bio} onChange={(e) => set("bio", e.target.value)} placeholder="Tell students about your teaching philosophy, qualifications, and experience..." maxLength={800} />
             </Field>
             <div className="profile-cv">
-              <p className="mb-2 text-sm font-medium text-foreground">
-                CV Upload <span dir="rtl" className="font-arabic text-xs text-muted-foreground">(السيرة الذاتية)</span>
+              <p className="mb-2 text-sm font-medium text-gray-900">
+                CV Upload <span dir="rtl" className="font-arabic text-xs text-gray-500">(السيرة الذاتية)</span>
               </p>
               {s.cv ? (
                 <a href={s.cv} target="_blank" className="text-sm text-blue-600 underline">{s.cv}</a>
               ) : (
-                <button type="button" onClick={() => cvRef.current?.click()} className="group flex w-full items-center justify-between rounded-2xl border border-dashed border-gold/40 bg-background/30 px-5 py-6 text-left transition hover:border-gold hover:bg-gold/5">
+                <button type="button" onClick={() => cvRef.current?.click()} className="group flex w-full items-center justify-between rounded-2xl border border-dashed border-amber-500/40 bg-background/30 px-5 py-6 text-left transition hover:border-amber-500 hover:bg-amber-500/5">
                   <div className="flex items-center gap-4">
-                    <span className="grid h-12 w-12 place-items-center rounded-xl bg-gold/15 text-gold"><FileText size={20} /></span>
+                    <span className="grid h-12 w-12 place-items-center rounded-xl bg-amber-500/15 text-gold"><FileText size={20} /></span>
                     <div>
-                      <p className="text-sm font-medium text-foreground">Drop your CV (PDF) or click to browse</p>
-                      <p className="text-xs text-muted-foreground">PDF · max 10 MB</p>
+                      <p className="text-sm font-medium text-gray-900">Drop your CV (PDF) or click to browse</p>
+                      <p className="text-xs text-gray-500">PDF · max 10 MB</p>
                     </div>
                   </div>
-                  <Upload size={16} className="text-muted-foreground transition group-hover:text-gold" />
+                  <Upload size={16} className="text-gray-500 transition group-hover:text-gold" />
                 </button>
               )}
               <input ref={cvRef} type="file" accept="application/pdf" className="hidden" onChange={(e) => set("cv", e.target.files?.[0]?.name ?? null)} />
@@ -255,7 +255,7 @@ export function TeacherProfile() {
         </Section>
 
         <div className="flex flex-col items-center justify-between gap-4 pt-4 sm:flex-row">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-gray-500">
             Profile completion: <span className="font-semibold text-primary dark:text-gold">{completion}%</span>
           </p>
           <div className="profile-save-btn">

@@ -14,7 +14,7 @@ export function QuizPlayer({ quizzes, onComplete }: QuizPlayerProps) {
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
 
-  if (!quizzes.length) return <p className="text-muted-foreground"><T>No quiz for this lesson.</T></p>;
+  if (!quizzes.length) return <p className="text-gray-500"><T>No quiz for this lesson.</T></p>;
   const q = quizzes[current];
 
   const handleAnswer = (index: number) => {
@@ -42,7 +42,7 @@ export function QuizPlayer({ quizzes, onComplete }: QuizPlayerProps) {
 
   return (
     <div className="glass rounded-3xl p-6 space-y-4">
-      <div className="flex justify-between text-xs text-muted-foreground">
+      <div className="flex justify-between text-xs text-gray-500">
         <span>{current + 1}/{quizzes.length}</span>
         <span><T>Score</T>: {score}</span>
       </div>
@@ -58,10 +58,10 @@ export function QuizPlayer({ quizzes, onComplete }: QuizPlayerProps) {
                 ? "hover:bg-accent"
                 : selected === i
                 ? i === q.correct
-                  ? "bg-secondary border-primary dark:bg-primary/70/30"
+                  ? "bg-emerald-100 border-primary dark:bg-primary/70/30"
                   : "bg-red-100 border-red-500 dark:bg-red-900/30"
                 : i === q.correct
-                ? "bg-secondary border-secondary dark:bg-primary/70/20"
+                ? "bg-emerald-100 border-secondary dark:bg-primary/70/20"
                 : "opacity-50"
             }`}
           >

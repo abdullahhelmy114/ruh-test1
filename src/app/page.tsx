@@ -113,7 +113,7 @@ export default function HomePage() {
         {/* Ambient Blurred Orbs – كرات ضبابية تكمل الإضاءة */}
         <div className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute -top-24 left-1/3 h-96 w-96 rounded-full bg-accent/20 blur-3xl" />
-          <div className="absolute right-0 top-40 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
+          <div className="absolute right-0 top-40 h-96 w-96 rounded-full bg-emerald-500/20 blur-3xl" />
         </div>
 
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-20 md:grid-cols-2 md:px-8 md:py-28">
@@ -123,7 +123,7 @@ export default function HomePage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
           >
-          <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+          <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-amber-700">
             <Sparkles className="h-3.5 w-3.5" />
             <T>Est. by Dr. Jehan Ali Ahmed</T>
           </div>
@@ -137,7 +137,7 @@ export default function HomePage() {
               <T>taught with reverence.</T>
             </h1>
 
-            <p className="mt-6 max-w-lg text-lg leading-relaxed text-muted-foreground">
+            <p className="mt-6 max-w-lg text-lg leading-relaxed text-gray-500">
               <T>
                 An elite academy for those who seek mastery of the Arabic
                 language — classical, modern, and Quranic — through live
@@ -148,14 +148,14 @@ export default function HomePage() {
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <Link
                 href="/signup"
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-bold text-primary-foreground shadow-elegant transition hover:scale-105 hover:bg-primary/90"
+                className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-7 py-3.5 text-sm font-bold text-white shadow-elegant transition hover:scale-105 hover:bg-emerald-700"
               >
                 <T>Begin Your Journey</T>
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/marketplace"
-                className="inline-flex items-center gap-2 rounded-full border-2 border-primary/40 bg-background/50 px-7 py-3.5 text-sm font-semibold backdrop-blur-sm transition hover:border-primary hover:bg-primary/10"
+                className="inline-flex items-center gap-2 rounded-full border-2 border-primary/40 bg-white/50 px-7 py-3.5 text-sm font-semibold backdrop-blur-sm transition hover:border-primary hover:bg-emerald-500/10"
               >
                 <Play className="h-4 w-4 text-secondary-foreground" />
                 <T>Browse Courses</T>
@@ -163,18 +163,18 @@ export default function HomePage() {
             </div>
 
             {/* Stats */}
-            <div className="mt-10 grid grid-cols-3 gap-6 border-t border-border/50 pt-8">
+            <div className="mt-10 grid grid-cols-3 gap-6 border-t border-gray-200/50 pt-8">
               {[
                 { v: stats.students, l: "Students", icon: Users },
                 { v: stats.completion, l: "Completion", icon: TrendingUp },
                 { v: stats.experience, l: "Years Exp.", icon: Calendar },
               ].map((s) => (
                 <div key={s.l} className="text-center">
-                  <s.icon className="mx-auto h-5 w-5 text-accent-foreground" />
-                  <div className="mt-1 font-serif text-2xl font-bold text-foreground">
+                  <s.icon className="mx-auto h-5 w-5 text-amber-700" />
+                  <div className="mt-1 font-serif text-2xl font-bold text-gray-900">
                     {s.v}
                   </div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-500">
                     <T>{s.l}</T>
                   </div>
                 </div>
@@ -189,10 +189,10 @@ export default function HomePage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative"
           >
-            <div className="absolute -inset-6 rounded-[2.5rem] bg-gold/20 blur-2xl" />
-            <div className="relative overflow-hidden rounded-[2.5rem] bg-linear-to-br from-primary to-primary/90 p-10 text-primary-foreground shadow-elegant">
+            <div className="absolute -inset-6 rounded-[2.5rem] bg-amber-500/20 blur-2xl" />
+            <div className="relative overflow-hidden rounded-[2.5rem] bg-linear-to-br from-primary to-primary/90 p-10 text-white shadow-elegant">
               <div
-                className="text-right text-7xl leading-tight text-primary-foreground md:text-8xl"
+                className="text-right text-7xl leading-tight text-white md:text-8xl"
                 style={{ fontFamily: "Amiri, serif" }}
               >
                 ٱقْرَأْ
@@ -208,7 +208,7 @@ export default function HomePage() {
                   { icon: <BookOpen className="h-4 w-4" />, t: "A1 — C2 Curriculum" },
                 ].map((f) => (
                   <div key={f.t} className="flex items-center gap-3">
-                    <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent text-primary">
+                    <div className="grid h-9 w-9 place-items-center rounded-xl bg-amber-100text-primary">
                       {f.icon}
                     </div>
                     <span className="text-sm text-primary-foreground/80">
@@ -258,13 +258,13 @@ export default function HomePage() {
               transition={{ duration: 0.4, delay: i * 0.1 }}
               className="group rounded-3xl border bg-card p-8 shadow-elegant transition-all hover:-translate-y-1 hover:shadow-elegant"
             >
-              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-linear-to-br from-primary to-primary/80 text-primary-foreground shadow-elegant group-hover:scale-110 transition-transform">
+              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-linear-to-br from-primary to-primary/80 text-white shadow-elegant group-hover:scale-110 transition-transform">
                 {p.i}
               </div>
               <h3 className="mt-5 font-serif text-2xl">
                 <T>{p.t}</T>
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              <p className="mt-2 text-sm leading-relaxed text-gray-500">
                 <T>{p.d}</T>
               </p>
             </motion.div>
@@ -277,7 +277,7 @@ export default function HomePage() {
         <section className="bg-muted/30 py-20">
           <div className="mx-auto max-w-7xl px-4 md:px-8">
             <motion.div {...fadeInUp} className="text-center">
-              <div className="text-xs font-bold uppercase tracking-[0.3em] text-accent-foreground">
+              <div className="text-xs font-bold uppercase tracking-[0.3em] text-amber-700">
                 <T>Featured Courses</T>
               </div>
               <h2 className="mt-3 font-serif text-4xl md:text-5xl">
@@ -305,29 +305,29 @@ export default function HomePage() {
                           className="object-cover transition-transform duration-500 group-hover:scale-110"
                         />
                       ) : (
-                        <BookOpen className="h-12 w-12 text-primary-foreground/30" />
+                        <BookOpen className="h-12 w-12 text-white/50" />
                       )}
-                      <span className="absolute top-3 right-3 rounded-full bg-foreground/30 px-3 py-1 text-xs font-bold text-primary-foreground backdrop-blur-sm">
+                      <span className="absolute top-3 right-3 rounded-full bg-black/30 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm">
                         {course.level}
                       </span>
                     </div>
                   </Link>
                   <div className="p-5">
                     <Link href={`/courses/${course.id}`}>
-                      <h3 className="font-serif text-lg font-semibold hover:text-accent-foreground transition-colors line-clamp-1">
+                      <h3 className="font-serif text-lg font-semibold hover:text-amber-700 transition-colors line-clamp-1">
                         {course.title}
                       </h3>
                     </Link>
-                    <p className="mt-1 text-xs text-muted-foreground">
+                    <p className="mt-1 text-xs text-gray-500">
                       <T>by</T> {course.teacher_name}
                     </p>
                     <div className="mt-3 flex items-center justify-between">
-                      <span className="font-serif text-2xl font-bold text-accent-foreground">
+                      <span className="font-serif text-2xl font-bold text-amber-700">
                         {course.price === 0 ? <T>Free</T> : `$${course.price}`}
                       </span>
                       <Link
                         href={`/courses/${course.id}`}
-                        className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent/90 transition"
+                        className="rounded-full bg-amber-100px-4 py-1.5 text-xs font-semibold text-amber-700 hover:bg-accent/90 transition"
                       >
                         <T>Learn More</T>
                       </Link>
@@ -340,7 +340,7 @@ export default function HomePage() {
             <div className="mt-10 text-center">
               <Link
                 href="/marketplace"
-                className="inline-flex items-center gap-2 rounded-full border-2 border-primary/50 px-6 py-3 text-sm font-semibold text-accent-foreground hover:bg-primary/10 transition"
+                className="inline-flex items-center gap-2 rounded-full border-2 border-primary/50 px-6 py-3 text-sm font-semibold text-amber-700 hover:bg-emerald-500/10 transition"
               >
                 <T>View All Courses</T> <ChevronRight className="h-4 w-4" />
               </Link>
@@ -353,7 +353,7 @@ export default function HomePage() {
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <motion.div {...fadeInUp} className="text-center">
-            <div className="text-xs font-bold uppercase tracking-[0.3em] text-accent-foreground">
+            <div className="text-xs font-bold uppercase tracking-[0.3em] text-amber-700">
               <T>Bundles</T>
             </div>
             <h2 className="mt-3 font-serif text-4xl md:text-5xl">
@@ -377,16 +377,16 @@ export default function HomePage() {
                   </div>
                   <div className="p-5">
                     <h3 className="font-serif text-lg font-semibold">{bundle.name}</h3>
-                    <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                    <p className="mt-1 text-xs text-gray-500 line-clamp-2">
                       {bundle.description}
                     </p>
                     <div className="mt-3 flex items-center justify-between">
-                      <span className="font-serif text-2xl font-bold text-accent-foreground">
+                      <span className="font-serif text-2xl font-bold text-amber-700">
                         ${bundle.price}
                       </span>
                       <Link
                         href="/bundles"
-                        className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent/90 transition"
+                        className="rounded-full bg-amber-100px-4 py-1.5 text-xs font-semibold text-amber-700 hover:bg-accent/90 transition"
                       >
                         <T>View</T>
                       </Link>
@@ -396,13 +396,13 @@ export default function HomePage() {
               ))
             ) : (
               <div className="md:col-span-3 flex flex-col items-center justify-center py-12 text-center">
-                <PackageOpen className="h-16 w-16 text-accent-foreground/50 mb-4" />
-                <p className="text-muted-foreground text-lg">
+                <PackageOpen className="h-16 w-16 text-amber-700/50 mb-4" />
+                <p className="text-gray-500 text-lg">
                   <T>No bundles available yet.</T>
                 </p>
                 <Link
                   href="/bundles"
-                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/90 transition"
+                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-amber-100px-6 py-3 text-sm font-semibold text-amber-700 hover:bg-accent/90 transition"
                 >
                   <T>Explore Bundles</T> <ChevronRight className="h-4 w-4" />
                 </Link>
@@ -416,7 +416,7 @@ export default function HomePage() {
       <section className="py-20 bg-muted/30">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <motion.div {...fadeInUp} className="text-center">
-            <div className="text-xs font-bold uppercase tracking-[0.3em] text-accent-foreground">
+            <div className="text-xs font-bold uppercase tracking-[0.3em] text-amber-700">
               <T>Certification</T>
             </div>
             <h2 className="mt-3 font-serif text-4xl md:text-5xl">
@@ -443,7 +443,7 @@ export default function HomePage() {
                     key={idx}
                     className="flex items-start gap-3 rounded-2xl bg-card p-4 shadow-elegant"
                   >
-                    <div className="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-primary">
+                    <div className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-100 text-primary">
                       {item.icon}
                     </div>
                     <span className="text-sm font-medium">
@@ -466,7 +466,7 @@ export default function HomePage() {
                 <h3 className="mt-4 font-serif text-2xl font-bold">
                   <T>Your Path to Certification</T>
                 </h3>
-                <p className="mt-2 text-sm text-muted-foreground">
+                <p className="mt-2 text-sm text-gray-500">
                   {certification?.description || (
                     <T>
                       Complete our program and earn a certificate to teach
@@ -476,7 +476,7 @@ export default function HomePage() {
                 </p>
                 <Link
                   href="/certification"
-                  className="mt-6 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground shadow-elegant hover:bg-accent/90 transition"
+                  className="mt-6 inline-flex items-center gap-2 rounded-full bg-amber-100px-6 py-3 text-sm font-semibold text-amber-700 shadow-elegant hover:bg-accent/90 transition"
                 >
                   <T>Learn More</T> <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -491,7 +491,7 @@ export default function HomePage() {
         <section className="py-20">
           <div className="mx-auto max-w-7xl px-4 md:px-8">
             <motion.div {...fadeInUp} className="text-center">
-              <div className="text-xs font-bold uppercase tracking-[0.3em] text-accent-foreground">
+              <div className="text-xs font-bold uppercase tracking-[0.3em] text-amber-700">
                 <T>From Our Blog</T>
               </div>
               <h2 className="mt-3 font-serif text-4xl md:text-5xl">
@@ -520,7 +520,7 @@ export default function HomePage() {
                     </div>
                   )}
                   <div className="p-5">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
                       <Calendar className="h-3.5 w-3.5" />
                       {new Date(post.created_at).toLocaleDateString()}
                       <span className="flex items-center gap-1 ml-auto">
@@ -530,11 +530,11 @@ export default function HomePage() {
                       </span>
                     </div>
                     <Link href={`/blog/${post.id}`}>
-                      <h3 className="mt-2 font-serif text-lg font-semibold hover:text-accent-foreground transition-colors line-clamp-2">
+                      <h3 className="mt-2 font-serif text-lg font-semibold hover:text-amber-700 transition-colors line-clamp-2">
                         {post.title}
                       </h3>
                     </Link>
-                    <p className="mt-2 text-xs text-muted-foreground line-clamp-2">
+                    <p className="mt-2 text-xs text-gray-500 line-clamp-2">
                       {post.excerpt}
                     </p>
                   </div>
@@ -545,7 +545,7 @@ export default function HomePage() {
             <div className="mt-10 text-center">
               <Link
                 href="/blog"
-                className="inline-flex items-center gap-2 rounded-full border-2 border-primary/50 px-6 py-3 text-sm font-semibold text-accent-foreground hover:bg-primary/10 transition"
+                className="inline-flex items-center gap-2 rounded-full border-2 border-primary/50 px-6 py-3 text-sm font-semibold text-amber-700 hover:bg-emerald-500/10 transition"
               >
                 <T>Read More Posts</T> <ChevronRight className="h-4 w-4" />
               </Link>
@@ -558,7 +558,7 @@ export default function HomePage() {
       <section className="bg-linear-to-br from-accent/5 to-primary/5 py-20">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <motion.div {...fadeInUp} className="text-center">
-            <div className="text-xs font-bold uppercase tracking-[0.3em] text-accent-foreground">
+            <div className="text-xs font-bold uppercase tracking-[0.3em] text-amber-700">
               <T>Testimonials</T>
             </div>
             <h2 className="mt-3 font-serif text-4xl md:text-5xl">
@@ -581,16 +581,16 @@ export default function HomePage() {
                     <Star key={j} className="h-4 w-4 fill-current" />
                   ))}
                 </div>
-                <p className="mt-4 text-sm italic leading-relaxed text-muted-foreground">
+                <p className="mt-4 text-sm italic leading-relaxed text-gray-500">
                   &quot;<T>{t.text}</T>&quot;
                 </p>
-                <div className="mt-4 flex items-center gap-3 border-t border-border/50 pt-4">
-                  <div className="grid h-10 w-10 place-items-center rounded-full bg-linear-to-br from-primary to-primary/80 text-primary-foreground font-bold text-sm">
+                <div className="mt-4 flex items-center gap-3 border-t border-gray-200/50 pt-4">
+                  <div className="grid h-10 w-10 place-items-center rounded-full bg-linear-to-br from-primary to-primary/80 text-white font-bold text-sm">
                     {t.avatar}
                   </div>
                   <div>
                     <p className="text-sm font-medium">{t.name}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-gray-500">
                       <T>{t.role}</T>
                     </p>
                   </div>
@@ -612,10 +612,10 @@ export default function HomePage() {
             className="relative overflow-hidden rounded-[3rem] bg-linear-to-br from-primary to-primary/90 p-10 shadow-elegant md:p-16"
           >
             <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-accent/20 blur-3xl" />
-            <div className="absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-background/10 blur-2xl" />
+            <div className="absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
             <div className="relative z-10">
               <GraduationCap className="mx-auto h-12 w-12 text-accent" />
-              <h2 className="mt-6 font-serif text-4xl font-bold text-primary-foreground md:text-5xl">
+              <h2 className="mt-6 font-serif text-4xl font-bold text-white md:text-5xl">
                 <T>
                   A tradition of excellence, now at your fingertips.
                 </T>
@@ -629,13 +629,13 @@ export default function HomePage() {
               <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
                 <Link
                   href="/signup"
-                  className="inline-flex items-center gap-2 rounded-full bg-accent px-8 py-4 text-sm font-bold text-accent-foreground shadow-elegant transition hover:scale-105 hover:bg-accent/90"
+                  className="inline-flex items-center gap-2 rounded-full bg-amber-100px-8 py-4 text-sm font-bold text-amber-700 shadow-elegant transition hover:scale-105 hover:bg-accent/90"
                 >
                   <T>Enroll Today</T> <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/marketplace"
-                  className="inline-flex items-center gap-2 rounded-full border-2 border-primary/30 px-8 py-4 text-sm font-semibold text-primary-foreground backdrop-blur-sm transition hover:bg-background/10"
+                  className="inline-flex items-center gap-2 rounded-full border-2 border-primary/30 px-8 py-4 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/10"
                 >
                   <T>Explore Courses</T>
                 </Link>

@@ -31,7 +31,7 @@ export function AvatarCard({
     >
       <div className="relative">
         <div className="absolute -inset-2 rounded-full bg-linear-to-tr from-primary via-gold to-primary opacity-70 blur-md" />
-        <div className="relative h-32 w-32 overflow-hidden rounded-full border-2 border-gold/40 bg-muted">
+        <div className="relative h-32 w-32 overflow-hidden rounded-full border-2 border-amber-500/40 bg-muted">
           {avatar ? (
             <img src={avatar} alt={name} className="h-full w-full object-cover" />
           ) : (
@@ -43,7 +43,7 @@ export function AvatarCard({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-gold text-gold-foreground shadow-elegant transition hover:scale-110"
+          className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-amber-500 text-gold-foreground shadow-elegant transition hover:scale-110"
           aria-label="Upload avatar"
         >
           <Camera size={15} />
@@ -58,29 +58,29 @@ export function AvatarCard({
       </div>
 
       <div>
-        <h2 className="font-serif text-2xl font-semibold text-foreground">{name}</h2>
-        <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-xs">
+        <h2 className="font-serif text-2xl font-semibold text-gray-900">{name}</h2>
+        <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs">
           <Shield size={12} className="text-gold" />
           <span className="font-medium text-primary dark:text-gold">{role}</span>
         </div>
-        <p className="mt-3 inline-flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+        <p className="mt-3 inline-flex items-center justify-center gap-1.5 text-xs text-gray-500">
           <Mail size={12} /> {email}
         </p>
       </div>
 
       <div className="flex flex-col items-center gap-2">
         <ProgressRing value={completion} />
-        <p className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+        <p className="inline-flex items-center gap-1 text-xs text-gray-500">
           <Sparkles size={12} className="text-gold" /> Profile completion
         </p>
       </div>
 
       {stats && stats.length > 0 && (
-        <div className="grid w-full grid-cols-2 gap-3 border-t border-border/60 pt-6">
+        <div className="grid w-full grid-cols-2 gap-3 border-t border-gray-200/60 pt-6">
           {stats.map((s) => (
             <div key={s.label} className="text-center">
-              <p className="font-serif text-xl font-semibold text-foreground">{s.value}</p>
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{s.label}</p>
+              <p className="font-serif text-xl font-semibold text-gray-900">{s.value}</p>
+              <p className="text-[10px] uppercase tracking-widest text-gray-500">{s.label}</p>
             </div>
           ))}
         </div>

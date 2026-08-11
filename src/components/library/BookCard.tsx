@@ -46,7 +46,7 @@ export function BookCard({ book, onClick }: BookCardProps) {
   return (
     <button
       onClick={onClick}
-      className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card text-right shadow-md transition-all hover:-translate-y-1 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      className="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-card text-right shadow-md transition-all hover:-translate-y-1 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
       {/* الغلاف */}
       <div
@@ -70,14 +70,14 @@ export function BookCard({ book, onClick }: BookCardProps) {
                 <div className="mt-1 text-xs opacity-80">{book.author}</div>
               )}
             </div>
-            <div className="absolute right-0 top-0 h-full w-1.5 bg-foreground/30" />
+            <div className="absolute right-0 top-0 h-full w-1.5 bg-black/30" />
           </>
         )}
       </div>
 
       {/* شريط المعلومات السفلي */}
       <div className="flex items-center justify-between gap-2 px-3 py-2.5">
-        <span className="text-[11px] text-muted-foreground">
+        <span className="text-[11px] text-gray-500">
           {book.year || ""}
         </span>
         {canRead ? (
@@ -85,7 +85,7 @@ export function BookCard({ book, onClick }: BookCardProps) {
             <BookOpen className="h-3.5 w-3.5" /> <T>Read</T>
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-500">
             <BookOpen className="h-3.5 w-3.5" /> <T>Preview</T>
           </span>
         )}

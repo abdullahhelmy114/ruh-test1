@@ -32,7 +32,7 @@ export function StarRating({ rating, onChange, readonly = false, size = 20 }: St
             className={`${
               star <= displayRating
                 ? "fill-gold text-accent"
-                : "fill-none text-muted-foreground/40"
+                : "fill-none text-gray-500/40"
             }`}
           />
         </button>

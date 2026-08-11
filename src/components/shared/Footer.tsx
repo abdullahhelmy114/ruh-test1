@@ -13,7 +13,7 @@ export function Footer() {
               <T>Ruhulqudus Academy</T>
             </h3>
           </Link>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-sm text-gray-500">
             <T>An elite digital institution for the Arabic language, founded by Dr. Jehan Ali Ziad.</T>
           </p>
         </div>
@@ -23,24 +23,24 @@ export function Footer() {
           <div className="text-xs font-semibold uppercase tracking-widest text-gold">
             <T>Learn</T>
           </div>
-          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+          <ul className="mt-3 space-y-2 text-sm text-gray-500">
             <li>
-              <Link href="/marketplace" className="hover:text-foreground transition-colors">
+              <Link href="/marketplace" className="hover:text-gray-900 transition-colors">
                 <T>Courses</T>
               </Link>
             </li>
             <li>
-              <Link href="/marketplace" className="hover:text-foreground transition-colors">
+              <Link href="/marketplace" className="hover:text-gray-900 transition-colors">
                 <T>Bundles</T>
               </Link>
             </li>
             <li>
-              <Link href="/dashboard/student" className="hover:text-foreground transition-colors">
+              <Link href="/dashboard/student" className="hover:text-gray-900 transition-colors">
                 <T>Live Classes</T>
               </Link>
             </li>
             <li>
-              <Link href="/dashboard/student" className="hover:text-foreground transition-colors">
+              <Link href="/dashboard/student" className="hover:text-gray-900 transition-colors">
                 <T>Assessments</T>
               </Link>
             </li>
@@ -52,20 +52,20 @@ export function Footer() {
           <div className="text-xs font-semibold uppercase tracking-widest text-gold">
             <T>Academy</T>
           </div>
-          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+          <ul className="mt-3 space-y-2 text-sm text-gray-500">
             <li>
-              <Link href="#" className="hover:text-foreground transition-colors">
+              <Link href="#" className="hover:text-gray-900 transition-colors">
                 <T>About Dr. Jehan</T>
               </Link>
             </li>
             <li>
-              <Link href="/community" className="hover:text-foreground transition-colors">
+              <Link href="/community" className="hover:text-gray-900 transition-colors">
                 <T>Community</T>
               </Link>
             </li>
             <li className="flex items-center gap-1">
               <Mail size={12} className="text-secondary-foreground" />
-              <a href="mailto:info@ruhulqudus.com" className="hover:text-foreground transition-colors">
+              <a href="mailto:info@ruhulqudus.com" className="hover:text-gray-900 transition-colors">
                 <T>Contact</T>
               </a>
             </li>
@@ -74,12 +74,12 @@ export function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div className="border-t py-6 text-center text-xs text-muted-foreground space-x-4">
+      <div className="border-t py-6 text-center text-xs text-gray-500 space-x-4">
         <span>© {new Date().getFullYear()} <T>Ruhulqudus Academy</T>. <T>All rights reserved</T>.</span>
-        <Link href="/privacy" className="hover:text-foreground transition-colors">
+        <Link href="/privacy" className="hover:text-gray-900 transition-colors">
           <T>Privacy Policy</T>
         </Link>
-        <Link href="/terms" className="hover:text-foreground transition-colors">
+        <Link href="/terms" className="hover:text-gray-900 transition-colors">
           <T>Terms of Service</T>
         </Link>
       </div>

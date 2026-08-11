@@ -12,21 +12,21 @@ export function CommunityTabs({ gender }: { gender: 'male' | 'female' }) {
       <TabsList className="grid w-full max-w-lg grid-cols-3 mb-8 bg-muted rounded-lg">
         <TabsTrigger
           value="achievements"
-          className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          className="data-[state=active]:bg-emerald-600 data-[state=active]:text-primary-foreground"
         >
           <Trophy className="w-4 h-4 mr-2" />
           حائط الإنجازات
         </TabsTrigger>
         <TabsTrigger
           value="forum"
-          className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          className="data-[state=active]:bg-emerald-600 data-[state=active]:text-primary-foreground"
         >
           <HelpCircle className="w-4 h-4 mr-2" />
           المنتدى
         </TabsTrigger>
         <TabsTrigger
           value="challenges"
-          className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          className="data-[state=active]:bg-emerald-600 data-[state=active]:text-primary-foreground"
         >
           <Trophy className="w-4 h-4 mr-2" />
           التحديات

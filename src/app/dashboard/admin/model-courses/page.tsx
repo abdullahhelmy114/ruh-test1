@@ -175,30 +175,30 @@ export default function AdminModelCoursesPage() {
       {/* رأس الصفحة */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-serif text-3xl font-bold text-foreground">
+          <h1 className="font-serif text-3xl font-bold text-gray-900">
             <T>الكورسات النموذجية</T>
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-gray-500 mt-1">
             <T>إدارة النماذج المعتمدة التي يمكن للمعلمين طلب تدريسها</T>
           </p>
         </div>
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+            <Button className="bg-emerald-600 text-white hover:bg-emerald-700 gap-2">
               <Plus size={18} />
               <T>نموذج جديد</T>
             </Button>
           </DialogTrigger>
 
-          <DialogContent className="bg-card border-border max-h-[90vh] overflow-y-auto">
+          <DialogContent className="bg-card border-gray-200 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-foreground text-xl"><T>إنشاء نموذج كورس</T></DialogTitle>
+              <DialogTitle className="text-gray-900 text-xl"><T>إنشاء نموذج كورس</T></DialogTitle>
             </DialogHeader>
 
             <div className="space-y-4 mt-4">
               <div>
-                <label className="text-xs font-semibold uppercase text-muted-foreground"><T>اسم الكورس</T></label>
+                <label className="text-xs font-semibold uppercase text-gray-500"><T>اسم الكورس</T></label>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -209,7 +209,7 @@ export default function AdminModelCoursesPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold uppercase text-muted-foreground"><T>المستوى</T></label>
+                  <label className="text-xs font-semibold uppercase text-gray-500"><T>المستوى</T></label>
                   <Select value={level} onValueChange={setLevel}>
                     <SelectTrigger className="mt-1">
                       <SelectValue />
@@ -223,7 +223,7 @@ export default function AdminModelCoursesPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold uppercase text-muted-foreground"><T>السعر ($)</T></label>
+                  <label className="text-xs font-semibold uppercase text-gray-500"><T>السعر ($)</T></label>
                   <Input
                     type="number"
                     value={price}
@@ -235,7 +235,7 @@ export default function AdminModelCoursesPage() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold uppercase text-muted-foreground"><T>التصنيف</T></label>
+                <label className="text-xs font-semibold uppercase text-gray-500"><T>التصنيف</T></label>
                 <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="اختر تصنيفاً (اختياري)" />
@@ -249,7 +249,7 @@ export default function AdminModelCoursesPage() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold uppercase text-muted-foreground"><T>الوصف</T></label>
+                <label className="text-xs font-semibold uppercase text-gray-500"><T>الوصف</T></label>
                 <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -260,7 +260,7 @@ export default function AdminModelCoursesPage() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold uppercase text-muted-foreground"><T>السيناريو التعليمي</T></label>
+                <label className="text-xs font-semibold uppercase text-gray-500"><T>السيناريو التعليمي</T></label>
                 <Textarea
                   value={scenario}
                   onChange={(e) => setScenario(e.target.value)}
@@ -281,7 +281,7 @@ export default function AdminModelCoursesPage() {
               <Button
                 onClick={handleCreate}
                 disabled={submitting || !title.trim()}
-                className="bg-accent text-accent-foreground hover:bg-accent/90"
+                className="bg-amber-100text-amber-700 hover:bg-accent/90"
               >
                 {submitting ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
                 <T>إنشاء</T>
@@ -296,7 +296,7 @@ export default function AdminModelCoursesPage() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 bg-primary/10 text-primary p-3 rounded-xl text-sm"
+          className="flex items-center gap-2 bg-emerald-500/10 text-primary p-3 rounded-xl text-sm"
         >
           <CheckCircle2 size={16} /> <T>{successMsg}</T>
         </motion.div>
@@ -304,30 +304,30 @@ export default function AdminModelCoursesPage() {
 
       {/* مربع البحث */}
       <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="ابحث عن نموذج..."
-          className="w-full rounded-full border border-border bg-background pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/50"
+          className="w-full rounded-full border border-gray-200 bg-background pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/50"
         />
       </div>
 
       {/* شبكة النماذج */}
       {filtered.length === 0 ? (
-        <div className="text-center py-20 text-muted-foreground">
-          <BookOpen className="mx-auto h-16 w-16 mb-4 text-accent-foreground/50" />
+        <div className="text-center py-20 text-gray-500">
+          <BookOpen className="mx-auto h-16 w-16 mb-4 text-amber-700/50" />
           <p className="text-lg font-serif"><T>لا توجد نماذج بعد</T></p>
           <p className="text-sm mt-2"><T>اضغط على "نموذج جديد" لإضافة أول كورس نموذجي</T></p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map((course) => (
-            <Card key={course.id} className="bg-card border-border hover:border-primary/30 transition">
+            <Card key={course.id} className="bg-card border-gray-200 hover:border-primary/30 transition">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-lg font-semibold text-foreground">{course.title}</CardTitle>
+                    <CardTitle className="text-lg font-semibold text-gray-900">{course.title}</CardTitle>
                     <CardDescription className="mt-1">
                       {course.description?.slice(0, 80) || <T>لا يوجد وصف</T>}
                     </CardDescription>
@@ -336,7 +336,7 @@ export default function AdminModelCoursesPage() {
                 <div className="flex flex-wrap gap-1.5 mt-3">
                   <Badge variant="secondary" className="text-xs">{course.level}</Badge>
                   {course.category && <Badge variant="outline" className="text-xs">{course.category}</Badge>}
-                  <Badge className="text-xs bg-primary/10 text-primary">${course.price}</Badge>
+                  <Badge className="text-xs bg-emerald-500/10 text-primary">${course.price}</Badge>
                 </div>
               </CardHeader>
               <CardContent className="flex items-center justify-between gap-2">
@@ -344,7 +344,7 @@ export default function AdminModelCoursesPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => router.push(`/dashboard/admin/model-courses/${course.id}/lessons`)}
-                  className="text-muted-foreground hover:text-foreground gap-1"
+                  className="text-gray-500 hover:text-gray-900 gap-1"
                 >
                   <Settings size={15} />
                   <T>الدروس النموذجية</T>

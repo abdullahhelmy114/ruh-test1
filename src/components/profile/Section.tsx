@@ -25,21 +25,21 @@ export function Section({
       >
         <div className="flex items-center gap-4">
           {step !== undefined && (
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground font-serif text-sm">
+            <span className="grid h-9 w-9 place-items-center rounded-full bg-emerald-600 text-white font-serif text-sm">
               {step}
             </span>
           )}
           <span className="text-gold">{icon}</span>
           <div>
-            <h3 className="font-serif text-lg font-semibold leading-tight text-foreground">{title}</h3>
+            <h3 className="font-serif text-lg font-semibold leading-tight text-gray-900">{title}</h3>
             {arabic && (
-              <p dir="rtl" className="font-arabic text-xs text-muted-foreground">{arabic}</p>
+              <p dir="rtl" className="font-arabic text-xs text-gray-500">{arabic}</p>
             )}
           </div>
         </div>
         <ChevronDown
           size={18}
-          className={cn("text-muted-foreground transition-transform", open && "rotate-180")}
+          className={cn("text-gray-500 transition-transform", open && "rotate-180")}
         />
       </button>
       <AnimatePresence initial={false}>
@@ -50,7 +50,7 @@ export function Section({
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
           >
-            <div className="border-t border-border/60 px-6 py-6">{children}</div>
+            <div className="border-t border-gray-200/60 px-6 py-6">{children}</div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -63,36 +63,36 @@ function AdvancedCountdown({ targetDate }: { targetDate: string }) {
       </div>
 
       {/* Countdown digits */}
-      <div className="flex items-center justify-center gap-3 text-2xl font-bold tabular-nums text-foreground">
+      <div className="flex items-center justify-center gap-3 text-2xl font-bold tabular-nums text-gray-900">
         <div className="flex flex-col items-center">
           <span className="bg-accent/10 text-accent px-2 py-1 rounded-lg min-w-[3rem] text-center">{days.toString().padStart(2, "0")}</span>
-          <span className="text-[10px] text-muted-foreground mt-1">Days</span>
+          <span className="text-[10px] text-gray-500 mt-1">Days</span>
         </div>
-        <span className="text-muted-foreground">:</span>
+        <span className="text-gray-500">:</span>
         <div className="flex flex-col items-center">
           <span className="bg-accent/10 text-accent px-2 py-1 rounded-lg min-w-[3rem] text-center">{hours.toString().padStart(2, "0")}</span>
-          <span className="text-[10px] text-muted-foreground mt-1">Hrs</span>
+          <span className="text-[10px] text-gray-500 mt-1">Hrs</span>
         </div>
-        <span className="text-muted-foreground">:</span>
+        <span className="text-gray-500">:</span>
         <div className="flex flex-col items-center">
           <span className="bg-accent/10 text-accent px-2 py-1 rounded-lg min-w-[3rem] text-center">{minutes.toString().padStart(2, "0")}</span>
-          <span className="text-[10px] text-muted-foreground mt-1">Min</span>
+          <span className="text-[10px] text-gray-500 mt-1">Min</span>
         </div>
-        <span className="text-muted-foreground">:</span>
+        <span className="text-gray-500">:</span>
         <div className="flex flex-col items-center">
           <span className="bg-accent/10 text-accent px-2 py-1 rounded-lg min-w-[3rem] text-center">{seconds.toString().padStart(2, "0")}</span>
-          <span className="text-[10px] text-muted-foreground mt-1">Sec</span>
+          <span className="text-[10px] text-gray-500 mt-1">Sec</span>
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
+      <div className="w-full h-2 bg-emerald-100 rounded-full overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-accent to-primary transition-all duration-1000 ease-linear rounded-full"
           style={{ width: `${progress}%` }}
         />
       </div>
-      <p className="text-[10px] text-muted-foreground text-center">
+      <p className="text-[10px] text-gray-500 text-center">
         {launch.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
       </p>
     </div>
@@ -120,7 +120,7 @@ export function CourseCard({ course }: { course: Course }) {
   return (
     <>
       <Link href={`/courses/${course.id}`} className="block group h-full">
-        <div className="glass rounded-2xl overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer border border-border/50 h-full flex flex-col">
+        <div className="glass rounded-2xl overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer border border-gray-200/50 h-full flex flex-col">
 
           {/* ─── Thumbnail / Video Section ─── */}
           <div className="relative w-full h-48 bg-gradient-to-br from-primary/20 to-accent/20">
@@ -153,13 +153,13 @@ export function CourseCard({ course }: { course: Course }) {
             )}
             {/* Level badge */}
             {course.level && (
-              <span className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-0.5 rounded-full text-xs font-bold">
+              <span className="absolute top-2 left-2 bg-emerald-600 text-white px-2 py-0.5 rounded-full text-xs font-bold">
                 {course.level}
               </span>
             )}
             {/* Upcoming badge */}
             {!isLaunched && launchDate && (
-              <span className="absolute top-2 right-2 bg-accent text-accent-foreground px-2 py-0.5 rounded-full text-xs font-bold">
+              <span className="absolute top-2 right-2 bg-amber-100text-amber-700 px-2 py-0.5 rounded-full text-xs font-bold">
                 <T>Upcoming</T>
               </span>
             )}
@@ -169,8 +169,8 @@ export function CourseCard({ course }: { course: Course }) {
           <div className="p-5 flex flex-col flex-1 space-y-4">
             {/* Title & Instructor */}
             <div>
-              <h3 className="font-bold text-xl leading-tight text-foreground line-clamp-2">{course.title}</h3>
-              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+              <h3 className="font-bold text-xl leading-tight text-gray-900 line-clamp-2">{course.title}</h3>
+              <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                 <User size={14} />
                 {course.instructor_name || "Dr. Jehan Ali Ziad"}
               </p>
@@ -178,11 +178,11 @@ export function CourseCard({ course }: { course: Course }) {
 
             {/* Description */}
             {course.description && (
-              <p className="text-sm text-muted-foreground line-clamp-3">{course.description}</p>
+              <p className="text-sm text-gray-500 line-clamp-3">{course.description}</p>
             )}
 
             {/* Meta info */}
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
               {course.course_duration && (
                 <span className="flex items-center gap-1">
                   <Calendar size={14} /> {course.course_duration}
@@ -201,20 +201,20 @@ export function CourseCard({ course }: { course: Course }) {
             )}
 
             {/* Footer: Price & Action */}
-            <div className="flex items-center justify-between mt-auto pt-3 border-t border-border/50">
+            <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-200/50">
               <div className="flex items-baseline gap-2">
                 <span className="text-xl font-bold text-primary">
                   ${course.price}
                 </span>
                 {course.old_price && (
-                  <span className="text-sm text-muted-foreground line-through">
+                  <span className="text-sm text-gray-500 line-through">
                     ${course.old_price}
                   </span>
                 )}
               </div>
               <button
                 onClick={handleBuy}
-                className="rounded-full bg-primary text-primary-foreground px-4 py-1.5 text-xs font-semibold hover:bg-primary/90 transition flex items-center gap-1"
+                className="rounded-full bg-emerald-600 text-white px-4 py-1.5 text-xs font-semibold hover:bg-emerald-700 transition flex items-center gap-1"
               >
                 <CreditCard size={14} />
                 {isLaunched ? <T>Buy Now</T> : <T>Details</T>}

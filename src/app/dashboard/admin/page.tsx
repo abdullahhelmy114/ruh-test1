@@ -108,7 +108,7 @@ export default function AdminDashboard() {
   if (!user)
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Link href="/login" className="text-accent-foreground">
+        <Link href="/login" className="text-amber-700">
           <T>تسجيل الدخول</T>
         </Link>
       </div>
@@ -132,19 +132,19 @@ export default function AdminDashboard() {
             <Crown className="h-6 w-6 text-primary-foreground" />
           </div>
           <div>
-            <div className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+            <div className="text-xs font-semibold uppercase tracking-widest text-amber-700">
               <T>Management Suite</T>
             </div>
             <h1 className="font-serif text-3xl">
               <T>Admin Control Panel</T>
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-gray-500">
               <T>Oversee the entire Ruhulqudus Academy ecosystem.</T>
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2 text-xs">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 font-medium text-primary">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 font-medium text-primary">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" />{" "}
             <T>All systems operational</T>
           </span>
@@ -163,8 +163,8 @@ export default function AdminDashboard() {
               className={cn(
                 "inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all",
                 active
-                  ? "bg-linear-to-r from-primary to-primary/80 text-primary-foreground shadow-elegant"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  ? "bg-linear-to-r from-primary to-primary/80 text-white shadow-elegant"
+                  : "text-gray-500 hover:bg-amber-100hover:text-amber-700"
               )}
             >
               <Icon className="h-4 w-4" /> <T>{t.label}</T>
@@ -301,7 +301,7 @@ function OverviewTab() {
                   </div>
                 </div>
                 <div className="mt-4 font-serif text-3xl">{s.value}</div>
-                <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                <div className="text-xs uppercase tracking-wider text-gray-500">
                   <T>{s.label}</T>
                 </div>
               </div>
@@ -340,7 +340,7 @@ function OverviewTab() {
                     <Icon className="h-4 w-4 text-primary" />{" "}
                     <T>{item.label}</T>
                   </div>
-                  <span className="rounded-full bg-accent/20 px-2.5 py-0.5 text-xs font-bold text-accent-foreground">
+                  <span className="rounded-full bg-accent/20 px-2.5 py-0.5 text-xs font-bold text-amber-700">
                     {item.count}
                   </span>
                 </li>
@@ -411,19 +411,19 @@ const handleDelete = async (id: string) => {
         <h2 className="font-serif text-2xl"><T>Manage Courses</T></h2>
         <button
           onClick={() => router.push("/dashboard/admin/courses/new")}
-          className="rounded-full bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold inline-flex items-center gap-2"
+          className="rounded-full bg-emerald-600 text-white px-4 py-2 text-sm font-semibold inline-flex items-center gap-2"
         >
           <Plus size={16} /> <T>New Course</T>
         </button>
       </div>
       {courses.length === 0 ? (
-        <div className="text-center py-20 text-muted-foreground">
+        <div className="text-center py-20 text-gray-500">
           <T>No courses yet</T>
         </div>
       ) : (
         <div className="glass rounded-2xl overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-secondary/50">
+            <thead className="bg-emerald-100/50">
               <tr>
                 <th className="p-3 text-left"><T>Title</T></th>
                 <th className="p-3"><T>Category</T></th>
@@ -435,7 +435,7 @@ const handleDelete = async (id: string) => {
             </thead>
             <tbody>
               {courses.map((c: any) => (
-                <tr key={c.id} className="border-t border-border">
+                <tr key={c.id} className="border-t border-gray-200">
                   <td className="p-3 font-medium">{c.title}</td>
                   <td className="p-3">{c.category_name || "—"}</td>
                   <td className="p-3">${c.price}</td>
@@ -552,7 +552,7 @@ function TeacherVerificationTab() {
       </h2>
       
       {applications.length === 0 ? (
-        <div className="rounded-3xl border bg-card p-12 text-center text-muted-foreground shadow-elegant">
+        <div className="rounded-3xl border bg-card p-12 text-center text-gray-500 shadow-elegant">
           <T>No pending applications</T>
         </div>
       ) : (
@@ -560,15 +560,15 @@ function TeacherVerificationTab() {
           {applications.map((app) => (
             <div key={app.uid} className="rounded-3xl border bg-card p-5 shadow-elegant space-y-4 transition-all hover:shadow-md">
               <div>
-                <h3 className="font-serif text-lg font-semibold text-foreground">
+                <h3 className="font-serif text-lg font-semibold text-gray-900">
                   {app.first_name} {app.last_name}
                 </h3>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-500 mt-1">
                   {app.email} · {app.country_of_residence} · {app.nationality}
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm bg-secondary/30 p-3 rounded-2xl">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm bg-emerald-100/30 p-3 rounded-2xl">
                 <span><strong>WhatsApp:</strong> {app.whatsapp || "—"}</span>
                 <span><strong>Telegram:</strong> {app.telegram || "—"}</span>
                 <span><strong>Gender:</strong> {app.gender || "—"}</span>
@@ -576,7 +576,7 @@ function TeacherVerificationTab() {
               </div>
 
               {app.bio && (
-                <p className="text-sm text-muted-foreground italic bg-background p-3 rounded-xl border">
+                <p className="text-sm text-gray-500 italic bg-background p-3 rounded-xl border">
                   "{app.bio}"
                 </p>
               )}
@@ -586,7 +586,7 @@ function TeacherVerificationTab() {
                 <button
                   onClick={() => window.open(app.cv_url, "_blank", "noopener,noreferrer")}
                   disabled={!app.cv_url}
-                  className="inline-flex items-center gap-1.5 text-accent-foreground underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-1.5 text-amber-700 underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed"
                 >
                   <ExternalLink size={14} /> <T>View CV</T>
                 </button>
@@ -594,7 +594,7 @@ function TeacherVerificationTab() {
                 {app.intro_video_url && (
                   <button
                     onClick={() => window.open(app.intro_video_url, "_blank", "noopener,noreferrer")}
-                    className="inline-flex items-center gap-1.5 text-accent-foreground underline"
+                    className="inline-flex items-center gap-1.5 text-amber-700 underline"
                   >
                     <Video size={14} /> <T>Intro Video</T>
                   </button>
@@ -621,7 +621,7 @@ function TeacherVerificationTab() {
                 <button
                   onClick={() => handleApprove(app.uid)}
                   disabled={approvingId === app.uid}
-                  className="flex items-center gap-2 px-6 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-6 py-2 rounded-full bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50"
                 >
                   {approvingId === app.uid && <Loader2 size={14} className="animate-spin" />}
                   <T>Approve</T>
@@ -727,7 +727,7 @@ function CourseModerationTab() {
         <T>Course & Lesson Moderation</T>
       </h2>
       {totalPending === 0 ? (
-        <div className="rounded-3xl border bg-card p-12 text-center text-muted-foreground">
+        <div className="rounded-3xl border bg-card p-12 text-center text-gray-500">
           <T>No pending courses or lessons</T>
         </div>
       ) : (
@@ -746,11 +746,11 @@ function CourseModerationTab() {
                   >
                     <div>
                       <h4 className="font-medium">{c.title}</h4>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-gray-500">
                         <T>by</T> {c.teacher_name} · <T>Level</T> {c.level} · $
                         {c.price}
                       </p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                      <p className="text-[10px] text-gray-500 mt-0.5">
                         <T>Submitted</T>{" "}
                         {new Date(c.created_at).toLocaleString()}
                       </p>
@@ -764,7 +764,7 @@ function CourseModerationTab() {
                       </button>
                       <button
                         onClick={() => handleCourseAction(c.id, "published")}
-                        className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs"
+                        className="px-3 py-1 rounded-full bg-emerald-600 text-white text-xs"
                       >
                         <T>Publish</T>
                       </button>
@@ -789,10 +789,10 @@ function CourseModerationTab() {
                   >
                     <div>
                       <h4 className="font-medium">{l.title}</h4>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-gray-500">
                         <T>Course</T>: {l.course_title} · <T>Type</T>: {l.type}
                       </p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                      <p className="text-[10px] text-gray-500 mt-0.5">
                         <T>Submitted</T>{" "}
                         {new Date(l.created_at).toLocaleString()}
                       </p>
@@ -806,7 +806,7 @@ function CourseModerationTab() {
                       </button>
                       <button
                         onClick={() => handleLessonAction(l.id, "approved")}
-                        className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs"
+                        className="px-3 py-1 rounded-full bg-emerald-600 text-white text-xs"
                       >
                         <T>Approve</T>
                       </button>
@@ -908,7 +908,7 @@ function UserManagementTab() {
           <T>User Management</T>
         </h2>
         <div className="relative w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
           <input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -944,7 +944,7 @@ function UserManagementTab() {
               <td className="px-5 py-4">
                 {u.full_name}
                 <br />
-                <span className="text-xs text-muted-foreground">{u.email}</span>
+                <span className="text-xs text-gray-500">{u.email}</span>
               </td>
               <td>{u.role}</td>
               <td>{u.status}</td>
@@ -972,7 +972,7 @@ function UserManagementTab() {
                     className={`px-2 py-1 rounded-full text-xs ${
                       u.status === "Active"
                         ? "bg-destructive/10 text-destructive"
-                        : "bg-primary/10 text-primary"
+                        : "bg-emerald-500/10 text-primary"
                     }`}
                   >
                     {u.status === "Active" ? <T>Ban</T> : <T>Unban</T>}
@@ -993,10 +993,10 @@ function UserManagementTab() {
 
       {/* Modals */}
       {showProfile && selectedUser && (
-        <div className="fixed inset-0 z-50 bg-foreground/50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-card rounded-3xl p-6 max-w-md w-full shadow-elegant space-y-3">
             <h3 className="font-serif text-xl">{selectedUser.full_name}</h3>
-            <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
+            <p className="text-sm text-gray-500">{selectedUser.email}</p>
             <p className="text-sm">
               <T>Role</T>: {selectedUser.role}
             </p>
@@ -1018,7 +1018,7 @@ function UserManagementTab() {
       )}
 
       {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 bg-foreground/50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-card rounded-3xl p-6 max-w-sm w-full shadow-elegant text-center space-y-4">
             <Trash2 className="mx-auto h-10 w-10 text-destructive" />
             <p className="font-medium">
@@ -1043,7 +1043,7 @@ function UserManagementTab() {
       )}
 
       {showMessageModal && (
-        <div className="fixed inset-0 z-50 bg-foreground/50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-card rounded-3xl p-6 max-w-md w-full shadow-elegant space-y-4">
             <h3 className="font-serif text-xl">
               <T>Send Message to</T> {showMessageModal.full_name}
@@ -1065,7 +1065,7 @@ function UserManagementTab() {
               <button
                 onClick={handleSendMessage}
                 disabled={sending}
-                className="rounded-full bg-primary text-primary-foreground px-4 py-2 text-sm disabled:opacity-50"
+                className="rounded-full bg-emerald-600 text-white px-4 py-2 text-sm disabled:opacity-50"
               >
                 {sending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -1177,7 +1177,7 @@ function CouponsTab() {
         />
         <button
           onClick={handleCreate}
-          className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground"
+          className="rounded-full bg-amber-100px-4 py-2 text-sm font-semibold text-amber-700"
         >
           <T>Create</T>
         </button>
@@ -1190,15 +1190,15 @@ function CouponsTab() {
             className="flex items-center justify-between glass rounded-2xl p-4"
           >
             <div>
-              <span className="font-bold text-accent-foreground">{c.code}</span>
-              <span className="ml-4 text-sm text-muted-foreground">
+              <span className="font-bold text-amber-700">{c.code}</span>
+              <span className="ml-4 text-sm text-gray-500">
                 <T>Discount</T>: {c.discount_percent}%
               </span>
-              <span className="ml-4 text-sm text-muted-foreground">
+              <span className="ml-4 text-sm text-gray-500">
                 <T>Used</T>: {c.current_uses}/{c.max_uses || "∞"}
               </span>
               {c.valid_until && (
-                <span className="ml-4 text-sm text-muted-foreground">
+                <span className="ml-4 text-sm text-gray-500">
                   <T>Until</T>:{" "}
                   {new Date(c.valid_until).toLocaleDateString()}
                 </span>
@@ -1347,7 +1347,7 @@ function QuizzesTab() {
           ))}
           <button
             onClick={handleAdd}
-            className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground"
+            className="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-primary-foreground"
           >
             <T>Add Question</T>
           </button>
@@ -1362,7 +1362,7 @@ function QuizzesTab() {
           >
             <div>
               <p className="font-medium">{q.question}</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-gray-500">
                 <T>Correct</T>: {q.options[q.correct]}
               </p>
             </div>
@@ -1493,12 +1493,12 @@ function MessagingTab() {
                 onClick={() => setSelectedUser(u)}
                 className={`w-full text-left rounded-2xl border p-3 text-sm transition ${
                   selectedUser?.id === u.id
-                    ? "bg-primary/10 border-primary"
+                    ? "bg-emerald-500/10 border-primary"
                     : "hover:bg-accent"
                 }`}
               >
                 {u.full_name}{" "}
-                <span className="text-muted-foreground">({u.email})</span>
+                <span className="text-gray-500">({u.email})</span>
               </button>
             ))}
           </div>
@@ -1519,7 +1519,7 @@ function MessagingTab() {
               <button
                 onClick={handleSend}
                 disabled={sending}
-                className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                className="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white disabled:opacity-50"
               >
                 {sending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -1531,7 +1531,7 @@ function MessagingTab() {
               </button>
             </div>
           ) : (
-            <div className="text-center text-muted-foreground py-12">
+            <div className="text-center text-gray-500 py-12">
               <T>Select a user to send a message</T>
             </div>
           )}
@@ -1598,7 +1598,7 @@ function NotificationsTab() {
         <button
           onClick={handleSend}
           disabled={sending}
-          className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+          className="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white disabled:opacity-50"
         >
           {sending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -1694,7 +1694,7 @@ function AIConfigurationTab() {
         </div>
         <button
           onClick={handleSave}
-          className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground"
+          className="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-primary-foreground"
         >
           <T>Save Configuration</T>
         </button>
@@ -1752,7 +1752,7 @@ function SiteSettingsTab() {
             />
           </button>
         </div>
-        <button className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground mt-4">
+        <button className="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white mt-4">
           <T>Save Settings</T>
         </button>
       </div>
@@ -1814,7 +1814,7 @@ function MarketingTab() {
         <button
           onClick={handleExport}
           disabled={exporting || students.length === 0}
-          className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+          className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
         >
           <Download size={16} />{" "}
           {exporting ? "Exporting…" : "Export Emails"}
@@ -1827,7 +1827,7 @@ function MarketingTab() {
             onClick={() => setFilter(f)}
             className={`rounded-full px-4 py-1.5 text-sm font-medium ${
               filter === f
-                ? "bg-primary text-primary-foreground"
+                ? "bg-emerald-600 text-primary-foreground"
                 : "bg-card border hover:bg-accent"
             }`}
           >
@@ -1856,7 +1856,7 @@ function MarketingTab() {
             <div key={s.uid} className="glass rounded-2xl p-4 flex justify-between">
               <div>
                 <p className="font-medium">{s.full_name}</p>
-                <p className="text-xs text-muted-foreground">{s.email}</p>
+                <p className="text-xs text-gray-500">{s.email}</p>
               </div>
             </div>
           ))}
@@ -1934,7 +1934,7 @@ function PagesTab() {
                 onClick={() => setSelectedSlug(p.slug)}
                 className={`w-full text-left rounded-xl px-4 py-2.5 text-sm transition ${
                   selectedSlug === p.slug
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-emerald-600 text-primary-foreground"
                     : "hover:bg-accent"
                 }`}
               >
@@ -1969,7 +1969,7 @@ function PagesTab() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground"
+              className="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-primary-foreground"
             >
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -2072,7 +2072,7 @@ function ModelCoursesTab() {
     <div className="space-y-6">
       <h2 className="font-serif text-2xl"><T>Model Courses</T></h2>
       {successMsg && (
-        <div className="flex items-center gap-2 bg-primary/10 text-primary p-3 rounded-xl text-sm">
+        <div className="flex items-center gap-2 bg-emerald-500/10 text-primary p-3 rounded-xl text-sm">
           <CheckCircle2 size={16} /> <T>{successMsg}</T>
         </div>
       )}
@@ -2082,7 +2082,7 @@ function ModelCoursesTab() {
           {["A1","A2","B1","B2","C1","C2"].map(l => <option key={l} value={l}>{l}</option>)}
         </select>
         <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} placeholder="Price" className="rounded-full border bg-background px-4 py-2 text-sm" />
-        <button onClick={handleCreate} disabled={submitting} className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
+        <button onClick={handleCreate} disabled={submitting} className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
           {submitting ? <Loader2 size={14} className="animate-spin" /> : <><Plus size={14} /> <T>Create</T></>}
         </button>
       </div>
@@ -2091,7 +2091,7 @@ function ModelCoursesTab() {
           <div key={c.id} className="flex items-center justify-between glass rounded-2xl p-4">
             <div>
               <span className="font-bold">{c.title}</span>
-              <span className="ml-4 text-sm text-muted-foreground">{c.level} · ${c.price}</span>
+              <span className="ml-4 text-sm text-gray-500">{c.level} · ${c.price}</span>
             </div>
             <button onClick={() => handleDelete(c.id)} className="text-destructive text-sm"><Trash2 size={16} /></button>
           </div>
@@ -2129,8 +2129,8 @@ function ModelLessonsTab() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div>
-        <h2 className="font-serif text-2xl text-foreground"><T>Manage Scripts and Lessons</T></h2>
-        <p className="text-muted-foreground mt-1 text-sm"><T>Select a course to enter the workspace and manage lessons.</T></p>
+        <h2 className="font-serif text-2xl text-gray-900"><T>Manage Scripts and Lessons</T></h2>
+        <p className="text-gray-500 mt-1 text-sm"><T>Select a course to enter the workspace and manage lessons.</T></p>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -2138,13 +2138,13 @@ function ModelLessonsTab() {
           <div 
             key={c.id} 
             onClick={() => router.push(`/dashboard/admin/lesson-scripts/${c.id}`)}
-            className="group cursor-pointer glass rounded-2xl p-6 transition-all hover:shadow-elegant hover:border-primary border border-border flex justify-between items-center"
+            className="group cursor-pointer glass rounded-2xl p-6 transition-all hover:shadow-elegant hover:border-primary border border-gray-200 flex justify-between items-center"
           >
             <div>
-              <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">{c.title}</h3>
-              <p className="text-sm text-muted-foreground mt-2">{c.level} · {c.category}</p>
+              <h3 className="font-bold text-lg text-gray-900 group-hover:text-primary transition-colors">{c.title}</h3>
+              <p className="text-sm text-gray-500 mt-2">{c.level} · {c.category}</p>
             </div>
-            <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+            <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
               <ArrowUpRight size={20} />
             </div>
           </div>
@@ -2196,21 +2196,21 @@ function KnowledgeBaseTab() {
     <div className="space-y-6 animate-in fade-in max-w-3xl">
       <div>
         <h2 className="font-serif text-2xl flex items-center gap-2"><BrainCircuit className="text-primary" /> <T>AI Knowledge Base</T></h2>
-        <p className="text-muted-foreground mt-2 text-sm"><T>Upload books directly to Gemini. No chunking, no limits. Full contextual understanding.</T></p>
+        <p className="text-gray-500 mt-2 text-sm"><T>Upload books directly to Gemini. No chunking, no limits. Full contextual understanding.</T></p>
       </div>
       
-      <div className="glass rounded-[2rem] border border-border p-8 shadow-xl space-y-6">
+      <div className="glass rounded-[2rem] border border-gray-200 p-8 shadow-xl space-y-6">
         <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Book Title" className="w-full text-base bg-background border rounded-xl px-4 py-3 outline-none focus:border-primary" />
 
-        <div className="border-2 border-dashed rounded-xl p-8 text-center border-border hover:border-primary/50">
+        <div className="border-2 border-dashed rounded-xl p-8 text-center border-gray-200 hover:border-primary/50">
           <input type="file" accept=".pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} className="hidden" id="pdf-upload" />
           <label htmlFor="pdf-upload" className="cursor-pointer flex flex-col items-center gap-3">
-            <div className="p-3 rounded-full bg-secondary"><Book size={24} /></div>
+            <div className="p-3 rounded-full bg-emerald-100"><Book size={24} /></div>
             {file ? <span className="font-bold text-primary">{file.name}</span> : <span><T>Select PDF</T></span>}
           </label>
         </div>
 
-        <button onClick={handleUpload} disabled={uploading || !file || !title} className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 disabled:opacity-50">
+        <button onClick={handleUpload} disabled={uploading || !file || !title} className="w-full py-4 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 disabled:opacity-50">
           {uploading ? <T>Processing with Gemini...</T> : <T>Upload to AI Brain</T>}
         </button>
       </div>
@@ -2321,7 +2321,7 @@ function BundlesTab() {
         <T>Bundles</T>
       </h2>
       {successMsg && (
-        <div className="flex items-center gap-2 bg-primary/10 text-primary p-3 rounded-xl text-sm">
+        <div className="flex items-center gap-2 bg-emerald-500/10 text-primary p-3 rounded-xl text-sm">
           <CheckCircle2 size={16} /> <T>{successMsg}</T>
         </div>
       )}
@@ -2346,7 +2346,7 @@ function BundlesTab() {
           <button
             onClick={handleCreate}
             disabled={submitting || selectedCourses.length !== 3}
-            className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+            className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
           >
             {submitting ? (
               <Loader2 size={14} className="animate-spin" />
@@ -2358,18 +2358,18 @@ function BundlesTab() {
           </button>
         </div>
         <div>
-          <label className="text-xs font-semibold uppercase text-muted-foreground">
+          <label className="text-xs font-semibold uppercase text-gray-500">
             <T>Select 3 Model Courses</T> ({selectedCourses.length}/3)
           </label>
-          <div className="mt-2 grid gap-2 max-h-48 overflow-y-auto border border-border rounded-xl p-2">
+          <div className="mt-2 grid gap-2 max-h-48 overflow-y-auto border border-gray-200 rounded-xl p-2">
             {modelCourses.map((course) => (
               <div
                 key={course.id}
                 onClick={() => toggleCourse(course.id)}
                 className={`flex items-center justify-between rounded-lg p-2 cursor-pointer border transition ${
                   selectedCourses.includes(course.id)
-                    ? "bg-primary/10 border-primary"
-                    : "hover:bg-secondary"
+                    ? "bg-emerald-500/10 border-primary"
+                    : "hover:bg-emerald-100"
                 }`}
               >
                 <span className="text-sm">
@@ -2396,7 +2396,7 @@ function BundlesTab() {
                 return (
                   <span
                     key={id}
-                    className="text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full"
+                    className="text-xs bg-emerald-100 text-secondary-foreground px-2 py-0.5 rounded-full"
                   >
                     {course?.title || id.slice(0, 8)}
                   </span>
@@ -2471,7 +2471,7 @@ function ApplicationsTab() {
     <div className="space-y-6">
       <h2 className="font-serif text-2xl"><T>Teaching Requests</T></h2>
       {applications.length === 0 ? (
-        <div className="rounded-3xl border bg-card p-12 text-center text-muted-foreground">
+        <div className="rounded-3xl border bg-card p-12 text-center text-gray-500">
           <T>No pending applications</T>
         </div>
       ) : (
@@ -2480,13 +2480,13 @@ function ApplicationsTab() {
             <div key={app.id} className="glass rounded-2xl p-4 flex items-center justify-between">
               <div>
                 <span className="font-bold">{app.teacher_name}</span>
-                <span className="mx-4 text-sm text-muted-foreground">{app.course_title}</span>
-                <span className="text-xs text-muted-foreground">{app.level}</span>
+                <span className="mx-4 text-sm text-gray-500">{app.course_title}</span>
+                <span className="text-xs text-gray-500">{app.level}</span>
               </div>
               <button
                 onClick={() => handleApprove(app.id)}
                 disabled={approvingId === app.id}
-                className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1"
+                className="rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-1"
               >
                 {approvingId === app.id ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
                 <T>Approve</T>

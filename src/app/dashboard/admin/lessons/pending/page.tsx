@@ -86,19 +86,19 @@ export default function PendingLessonsPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/dashboard/admin" className="p-2 rounded-full hover:bg-accent transition">
+        <Link href="/dashboard/admin" className="p-2 rounded-full hover:bg-amber-100transition">
           <ArrowLeft size={18} />
         </Link>
         <div>
           <h1 className="font-serif text-2xl">Pending Lessons</h1>
-          <p className="text-sm text-muted-foreground">{lessons.length} lessons awaiting review</p>
+          <p className="text-sm text-gray-500">{lessons.length} lessons awaiting review</p>
         </div>
       </div>
 
       {lessons.length === 0 ? (
         <div className="glass rounded-3xl p-12 text-center">
-          <Clock className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
-          <p className="text-muted-foreground">No pending lessons</p>
+          <Clock className="mx-auto h-12 w-12 text-gray-500 mb-3" />
+          <p className="text-gray-500">No pending lessons</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -120,18 +120,18 @@ export default function PendingLessonsPage() {
                   </div>
                   <div>
                     <h3 className="font-serif text-lg">{lesson.title}</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="text-xs text-gray-500 mt-0.5">
                       Course: {lesson.course_title} · Type: {lesson.type === "zoom" ? "Live Zoom" : "Recorded"}
                     </p>
                     {lesson.scheduled_at && (
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="text-xs text-gray-500 mt-0.5">
                         Scheduled: {new Date(lesson.scheduled_at).toLocaleString("en-US", {
                           dateStyle: "medium",
                           timeStyle: "short",
                         })}
                       </p>
                     )}
-                    <p className="text-[10px] text-muted-foreground mt-1">
+                    <p className="text-[10px] text-gray-500 mt-1">
                       Submitted: {new Date(lesson.created_at).toLocaleString()}
                     </p>
                     {lesson.recording_url && (
@@ -153,7 +153,7 @@ export default function PendingLessonsPage() {
                   <button
                     onClick={() => handleAction(lesson.id, "approved")}
                     disabled={actionId === lesson.id}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-gradient-primary px-4 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-gradient-emerald px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
                   >
                     {actionId === lesson.id ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />

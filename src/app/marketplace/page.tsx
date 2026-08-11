@@ -70,10 +70,10 @@ export default function MarketplacePage() {
               <Sparkles size={14} />
               <T>Ruhulqudus Academy</T>
             </div>
-            <h1 className="font-serif text-4xl md:text-6xl font-bold text-foreground">
+            <h1 className="font-serif text-4xl md:text-6xl font-bold text-gray-900">
               <T>Explore Our Courses</T>
             </h1>
-            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
               <T>Master the Arabic language and Quran with expertly crafted courses designed for every level.</T>
             </p>
           </motion.div>
@@ -87,17 +87,17 @@ export default function MarketplacePage() {
           >
             <div className="glass rounded-2xl p-2 flex items-center gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search courses..."
-                  className="w-full rounded-xl bg-transparent pl-12 pr-4 py-3 text-sm outline-none placeholder:text-muted-foreground"
+                  className="w-full rounded-xl bg-transparent pl-12 pr-4 py-3 text-sm outline-none placeholder:text-gray-500"
                 />
               </div>
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`p-3 rounded-xl transition-colors ${showFilters ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary text-muted-foreground'}`}
+                className={`p-3 rounded-xl transition-colors ${showFilters ? 'bg-emerald-600 text-primary-foreground' : 'hover:bg-emerald-100 text-gray-500'}`}
               >
                 <SlidersHorizontal size={18} />
               </button>
@@ -113,11 +113,11 @@ export default function MarketplacePage() {
                   className="overflow-hidden"
                 >
                   <div className="glass mt-2 rounded-2xl p-4 flex flex-wrap items-center gap-3">
-                    <span className="text-sm font-medium text-muted-foreground"><T>Level:</T></span>
+                    <span className="text-sm font-medium text-gray-500"><T>Level:</T></span>
                     <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => setSelectedLevel("")}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${!selectedLevel ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'}`}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${!selectedLevel ? 'bg-emerald-600 text-primary-foreground' : 'bg-emerald-100 text-gray-500 hover:text-gray-900'}`}
                       >
                         <T>All</T>
                       </button>
@@ -125,7 +125,7 @@ export default function MarketplacePage() {
                         <button
                           key={l}
                           onClick={() => setSelectedLevel(l)}
-                          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${selectedLevel === l ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'}`}
+                          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${selectedLevel === l ? 'bg-emerald-600 text-primary-foreground' : 'bg-emerald-100 text-gray-500 hover:text-gray-900'}`}
                         >
                           {l}
                         </button>
@@ -154,7 +154,7 @@ export default function MarketplacePage() {
         {/* Results count */}
         {!loading && (
           <div className="flex items-center justify-between mb-6">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-gray-500">
               {courses.length > 0 ? (
                 <T>{`Showing ${courses.length} course${courses.length > 1 ? 's' : ''}`}</T>
               ) : (
@@ -179,11 +179,11 @@ export default function MarketplacePage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center py-20"
           >
-            <BookOpen className="mx-auto h-16 w-16 text-muted-foreground/40 mb-4" />
-            <h3 className="text-xl font-semibold text-foreground mb-2">
+            <BookOpen className="mx-auto h-16 w-16 text-gray-500/40 mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
               <T>No courses available</T>
             </h3>
-            <p className="text-muted-foreground">
+            <p className="text-gray-500">
               <T>Try adjusting your filters or check back later for new courses.</T>
             </p>
           </motion.div>

@@ -58,11 +58,11 @@ export default function PublicTeacherPage() {
   }, [params.uid]);
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div>;
-  if (error || !teacher) return <div className="text-center py-20 text-muted-foreground"><T>Teacher not found</T></div>;
+  if (error || !teacher) return <div className="text-center py-20 text-gray-500"><T>Teacher not found</T></div>;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10 md:px-8">
-      <button onClick={() => router.back()} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
+      <button onClick={() => router.back()} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6">
         <ArrowLeft size={16} /> <T>Back</T>
       </button>
 
@@ -79,7 +79,7 @@ export default function PublicTeacherPage() {
           <div className="space-y-3 flex-1">
             <div>
               <h1 className="font-serif text-3xl">{teacher.full_name}</h1>
-              <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+              <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
                 <Mail size={14} /> {teacher.email}
               </p>
             </div>
@@ -91,7 +91,7 @@ export default function PublicTeacherPage() {
               {teacher.age && <InfoBadge label={`${teacher.age} yrs`} icon={<Calendar size={12} />} />}
             </div>
             {teacher.bio && (
-              <p className="text-sm text-muted-foreground leading-relaxed mt-2">{teacher.bio}</p>
+              <p className="text-sm text-gray-500 leading-relaxed mt-2">{teacher.bio}</p>
             )}
           </div>
         </div>
@@ -103,7 +103,7 @@ export default function PublicTeacherPage() {
           <T>Courses by this teacher</T> ({courses.length})
         </h2>
         {courses.length === 0 ? (
-          <div className="text-center py-10 text-muted-foreground">
+          <div className="text-center py-10 text-gray-500">
             <BookOpen className="mx-auto h-12 w-12 mb-3 text-secondary-foreground/50" />
             <p><T>No courses published yet.</T></p>
           </div>
@@ -115,20 +115,20 @@ export default function PublicTeacherPage() {
                 href={`/courses/${course.id}`}
                 className="glass rounded-2xl p-4 hover:shadow-elegant transition-shadow block"
               >
-                <div className="h-32 bg-gradient-primary rounded-xl flex items-center justify-center mb-3 overflow-hidden">
+                <div className="h-32 bg-gradient-emerald rounded-xl flex items-center justify-center mb-3 overflow-hidden">
                   {course.image_url ? (
                     <Image src={course.image_url} alt={course.title} width={200} height={128} className="object-cover w-full h-full" />
                   ) : (
-                    <BookOpen className="h-10 w-10 text-primary-foreground/30" />
+                    <BookOpen className="h-10 w-10 text-white/50" />
                   )}
                 </div>
                 <h3 className="font-serif text-lg">{course.title}</h3>
                 <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs bg-gold/10 text-accent-foreground px-2 py-0.5 rounded-full">{course.level}</span>
-                  <span className="font-bold text-accent-foreground">{course.price === 0 ? <T>Free</T> : `$${course.price}`}</span>
+                  <span className="text-xs bg-amber-500/10 text-amber-700 px-2 py-0.5 rounded-full">{course.level}</span>
+                  <span className="font-bold text-amber-700">{course.price === 0 ? <T>Free</T> : `$${course.price}`}</span>
                 </div>
                 {course.description && (
-                  <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{course.description}</p>
+                  <p className="text-xs text-gray-500 mt-2 line-clamp-2">{course.description}</p>
                 )}
               </Link>
             ))}
@@ -141,7 +141,7 @@ export default function PublicTeacherPage() {
 
 function InfoBadge({ label, icon }: { label: string; icon?: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] bg-background/50 px-2 py-1 rounded-full">
+    <span className="inline-flex items-center gap-1 text-[10px] bg-white/50 px-2 py-1 rounded-full">
       {icon}
       {label}
     </span>

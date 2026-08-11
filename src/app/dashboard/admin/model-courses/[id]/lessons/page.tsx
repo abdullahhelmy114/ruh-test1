@@ -191,7 +191,7 @@ export default function AdminModelLessonsPage() {
       <Button
         variant="ghost"
         onClick={() => router.push("/dashboard/admin/model-courses")}
-        className="text-muted-foreground hover:text-foreground gap-2"
+        className="text-gray-500 hover:text-gray-900 gap-2"
       >
         <ArrowLeft size={16} />
         <T>العودة إلى النماذج</T>
@@ -200,11 +200,11 @@ export default function AdminModelLessonsPage() {
       {/* رأس الصفحة */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-serif text-2xl font-bold text-foreground">
+          <h1 className="font-serif text-2xl font-bold text-gray-900">
             <T>الدروس النموذجية</T>
           </h1>
           {course && (
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-gray-500 mt-1">
               {course.title}
             </p>
           )}
@@ -212,20 +212,20 @@ export default function AdminModelLessonsPage() {
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+            <Button className="bg-emerald-600 text-white hover:bg-emerald-700 gap-2">
               <Plus size={18} />
               <T>إضافة درس</T>
             </Button>
           </DialogTrigger>
 
-          <DialogContent className="bg-card border-border">
+          <DialogContent className="bg-card border-gray-200">
             <DialogHeader>
-              <DialogTitle className="text-foreground"><T>إضافة درس نموذجي</T></DialogTitle>
+              <DialogTitle className="text-gray-900"><T>إضافة درس نموذجي</T></DialogTitle>
             </DialogHeader>
 
             <div className="space-y-4 mt-4">
               <div>
-                <label className="text-xs font-semibold uppercase text-muted-foreground"><T>عنوان الدرس</T></label>
+                <label className="text-xs font-semibold uppercase text-gray-500"><T>عنوان الدرس</T></label>
                 <Input
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
@@ -236,7 +236,7 @@ export default function AdminModelLessonsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold uppercase text-muted-foreground"><T>النوع</T></label>
+                  <label className="text-xs font-semibold uppercase text-gray-500"><T>النوع</T></label>
                   <Select value={newType} onValueChange={setNewType}>
                     <SelectTrigger className="mt-1">
                       <SelectValue />
@@ -254,7 +254,7 @@ export default function AdminModelLessonsPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold uppercase text-muted-foreground"><T>المدة (دقيقة)</T></label>
+                  <label className="text-xs font-semibold uppercase text-gray-500"><T>المدة (دقيقة)</T></label>
                   <Input
                     type="number"
                     value={newDuration}
@@ -266,14 +266,14 @@ export default function AdminModelLessonsPage() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold uppercase text-muted-foreground"><T>رابط السكريبت (PDF)</T></label>
+                <label className="text-xs font-semibold uppercase text-gray-500"><T>رابط السكريبت (PDF)</T></label>
                 <Input
                   value={newScriptUrl}
                   onChange={(e) => setNewScriptUrl(e.target.value)}
                   placeholder="https://..."
                   className="mt-1"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-500 mt-1">
                   <T>رابط اختياري لملف PDF يحتوي على سكريبت الدرس</T>
                 </p>
               </div>
@@ -289,7 +289,7 @@ export default function AdminModelLessonsPage() {
               <Button
                 onClick={handleAddLesson}
                 disabled={saving || !newTitle.trim()}
-                className="bg-accent text-accent-foreground hover:bg-accent/90"
+                className="bg-amber-100text-amber-700 hover:bg-accent/90"
               >
                 {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                 <T>حفظ</T>
@@ -301,7 +301,7 @@ export default function AdminModelLessonsPage() {
 
       {/* رسائل الخطأ والنجاح */}
       {success && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-primary/10 text-primary p-3 rounded-xl text-sm">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-emerald-500/10 text-primary p-3 rounded-xl text-sm">
           <T>{success}</T>
         </motion.div>
       )}
@@ -313,8 +313,8 @@ export default function AdminModelLessonsPage() {
 
       {/* قائمة الدروس مع إعادة الترتيب */}
       {lessons.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground">
-          <BookOpen className="mx-auto h-12 w-12 mb-3 text-muted-foreground/50" />
+        <div className="text-center py-16 text-gray-500">
+          <BookOpen className="mx-auto h-12 w-12 mb-3 text-gray-500/50" />
           <p><T>لا توجد دروس نموذجية بعد</T></p>
           <p className="text-sm mt-1"><T>أضف الدروس التي سيدرسها المعلم بالترتيب</T></p>
         </div>
@@ -333,16 +333,16 @@ export default function AdminModelLessonsPage() {
                   layout
                   className="glass rounded-xl p-4 flex items-center gap-3 group hover:bg-card/80 transition"
                 >
-                  <div className="cursor-grab text-muted-foreground hover:text-foreground">
+                  <div className="cursor-grab text-gray-500 hover:text-gray-900">
                     <GripVertical size={18} />
                   </div>
-                  <span className="text-sm text-muted-foreground font-mono w-6 text-center">
+                  <span className="text-sm text-gray-500 font-mono w-6 text-center">
                     {index + 1}
                   </span>
-                  <TypeIcon size={18} className="text-accent-foreground" />
+                  <TypeIcon size={18} className="text-amber-700" />
                   <div className="flex-1">
-                    <p className="font-medium text-foreground text-sm">{lesson.title}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="font-medium text-gray-900 text-sm">{lesson.title}</p>
+                    <p className="text-xs text-gray-500">
                       {lesson.type} · {lesson.duration_minutes || "—"} دقيقة
                     </p>
                   </div>
@@ -351,7 +351,7 @@ export default function AdminModelLessonsPage() {
                       href={lesson.script_pdf_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1.5 text-xs rounded-full bg-primary/10 text-primary hover:bg-primary/20"
+                      className="p-1.5 text-xs rounded-full bg-emerald-500/10 text-primary hover:bg-emerald-500/20"
                       title="عرض السكريبت"
                     >
                       <Eye size={14} />
@@ -361,7 +361,7 @@ export default function AdminModelLessonsPage() {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleDeleteLesson(lesson.id)}
-                    className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition"
+                    className="text-gray-500 hover:text-destructive opacity-0 group-hover:opacity-100 transition"
                   >
                     <Trash2 size={15} />
                   </Button>

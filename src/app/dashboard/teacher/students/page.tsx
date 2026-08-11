@@ -55,12 +55,12 @@ export default function TeacherStudentsPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
-      <Link href="/dashboard/teacher" className="text-sm text-muted-foreground hover:text-foreground mb-4 inline-block">
+      <Link href="/dashboard/teacher" className="text-sm text-gray-500 hover:text-gray-900 mb-4 inline-block">
         ← <T>Back to Dashboard</T>
       </Link>
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-serif text-3xl"><T>My Students</T></h1>
-        <Link href="/dashboard/teacher/marketing" className="rounded-full bg-gold px-4 py-2 text-sm font-semibold text-foreground">
+        <Link href="/dashboard/teacher/marketing" className="rounded-full bg-amber-500 px-4 py-2 text-sm font-semibold text-gray-900">
           <Filter size={16} className="inline mr-1" /> <T>Advanced Filters</T>
         </Link>
       </div>
@@ -76,7 +76,7 @@ export default function TeacherStudentsPage() {
             key={f.key}
             onClick={() => setFilter(f.key)}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
-              filter === f.key ? "bg-primary text-primary-foreground" : "bg-card border hover:bg-accent"
+              filter === f.key ? "bg-emerald-600 text-primary-foreground" : "bg-card border hover:bg-accent"
             }`}
           >
             <T>{f.label}</T>
@@ -86,7 +86,7 @@ export default function TeacherStudentsPage() {
           <button
             onClick={() => setFilter("certificate-level")}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
-              filter === "certificate-level" ? "bg-primary text-primary-foreground" : "bg-card border hover:bg-accent"
+              filter === "certificate-level" ? "bg-emerald-600 text-primary-foreground" : "bg-card border hover:bg-accent"
             }`}
           >
             <T>Certificate Level</T>
@@ -101,7 +101,7 @@ export default function TeacherStudentsPage() {
 
       {/* قائمة الطلاب */}
       {students.length === 0 ? (
-        <div className="text-center py-20 text-muted-foreground">
+        <div className="text-center py-20 text-gray-500">
           <Users className="mx-auto h-12 w-12 mb-4 text-secondary-foreground/50" />
           <p><T>No students found.</T></p>
         </div>
@@ -111,10 +111,10 @@ export default function TeacherStudentsPage() {
             <div key={s.uid} className="glass rounded-2xl p-4 flex items-start justify-between">
               <div>
                 <h3 className="font-medium">{s.full_name}</h3>
-                <p className="text-xs text-muted-foreground mt-1">{s.email}</p>
+                <p className="text-xs text-gray-500 mt-1">{s.email}</p>
                 <div className="flex flex-wrap gap-1 mt-2">
-                  {s.nationality && <span className="text-[10px] bg-gold/10 text-accent-foreground px-2 py-0.5 rounded-full">{s.nationality}</span>}
-                  {s.residence && <span className="text-[10px] bg-secondary/10 text-primary px-2 py-0.5 rounded-full">{s.residence}</span>}
+                  {s.nationality && <span className="text-[10px] bg-amber-500/10 text-amber-700 px-2 py-0.5 rounded-full">{s.nationality}</span>}
+                  {s.residence && <span className="text-[10px] bg-emerald-100/10 text-primary px-2 py-0.5 rounded-full">{s.residence}</span>}
                   {s.native_language && <span className="text-[10px] bg-blue-50/10 text-blue-600 px-2 py-0.5 rounded-full">{s.native_language}</span>}
                 </div>
               </div>

@@ -165,7 +165,7 @@ export default function NewCoursePage() {
           <Label><T>ثيم صفحة الهبوط</T></Label>
           <RadioGroup value={theme} onValueChange={setTheme} className="grid grid-cols-2 gap-3 mt-2">
             {THEMES.map(t => (
-              <label key={t.value} className={`flex items-center gap-3 rounded-2xl border p-4 cursor-pointer transition ${theme === t.value ? 'border-primary bg-primary/5' : 'border-border'}`}>
+              <label key={t.value} className={`flex items-center gap-3 rounded-2xl border p-4 cursor-pointer transition ${theme === t.value ? 'border-primary bg-primary/5' : 'border-gray-200'}`}>
                 <RadioGroupItem value={t.value} id={t.value} />
                 <div><p className="font-medium text-sm"><T>{t.label}</T></p></div>
               </label>
@@ -174,7 +174,7 @@ export default function NewCoursePage() {
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
-        <Button onClick={handleSubmit} disabled={loading} className="w-full rounded-full bg-primary text-primary-foreground py-6 text-base">
+        <Button onClick={handleSubmit} disabled={loading} className="w-full rounded-full bg-emerald-600 text-white py-6 text-base">
           {loading ? <Loader2 className="animate-spin mx-auto" /> : <T>نشر الكورس</T>}
         </Button>
       </div>

@@ -69,7 +69,7 @@ export default function CourseDetailPage() {
   // كورس غير موجود
   if (!course) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
+      <div className="flex min-h-screen items-center justify-center text-gray-500">
         <T>Course not found</T>
       </div>
     );
@@ -80,12 +80,12 @@ export default function CourseDetailPage() {
     <>
       {/* Breadcrumb (اختياري) */}
       <div className="mx-auto max-w-6xl px-4 md:px-8 pt-6">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Link href="/" className="hover:text-foreground"><T>Home</T></Link>
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <Link href="/" className="hover:text-gray-900"><T>Home</T></Link>
           <ChevronRight size={14} />
-          <Link href="/marketplace" className="hover:text-foreground"><T>Marketplace</T></Link>
+          <Link href="/marketplace" className="hover:text-gray-900"><T>Marketplace</T></Link>
           <ChevronRight size={14} />
-          <span className="text-foreground">{course.title}</span>
+          <span className="text-gray-900">{course.title}</span>
         </div>
       </div>
 
@@ -143,26 +143,26 @@ function ReviewsSection({ courseId }: { courseId: string }) {
   return (
     <div className="space-y-6 mt-12">
       <div className="flex items-center gap-3">
-        <h2 className="font-serif text-2xl text-foreground"><T>Reviews</T></h2>
+        <h2 className="font-serif text-2xl text-gray-900"><T>Reviews</T></h2>
         <StarRating rating={average} readonly size={18} />
-        <span className="text-sm text-muted-foreground">({count})</span>
+        <span className="text-sm text-gray-500">({count})</span>
       </div>
 
       {user && (
         <div className="glass rounded-2xl p-4 space-y-3">
-          <p className="text-sm font-medium text-foreground"><T>Your Rating</T></p>
+          <p className="text-sm font-medium text-gray-900"><T>Your Rating</T></p>
           <StarRating rating={myRating} onChange={setMyRating} size={24} />
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             rows={2}
             placeholder="Add a comment (optional)"
-            className="w-full rounded-xl border border-border bg-background px-4 py-2 text-sm resize-none text-foreground placeholder:text-muted-foreground"
+            className="w-full rounded-xl border border-gray-200 bg-background px-4 py-2 text-sm resize-none text-gray-900 placeholder:text-gray-500"
           />
           <button
             onClick={handleSubmitReview}
             disabled={submitting || !myRating}
-            className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+            className="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white disabled:opacity-50"
           >
             {submitting ? (
               <Loader2 size={16} className="animate-spin mx-auto" />
@@ -174,19 +174,19 @@ function ReviewsSection({ courseId }: { courseId: string }) {
       )}
 
       {reviews.length === 0 ? (
-        <p className="text-sm text-muted-foreground"><T>No reviews yet.</T></p>
+        <p className="text-sm text-gray-500"><T>No reviews yet.</T></p>
       ) : (
         <div className="space-y-3">
           {reviews.map((r) => (
             <div key={r.id} className="glass rounded-2xl p-4">
               <div className="flex items-center justify-between">
-                <span className="font-medium text-foreground">{r.user_name}</span>
+                <span className="font-medium text-gray-900">{r.user_name}</span>
                 <StarRating rating={r.rating} readonly size={14} />
               </div>
               {r.comment && (
-                <p className="mt-2 text-sm text-muted-foreground">{r.comment}</p>
+                <p className="mt-2 text-sm text-gray-500">{r.comment}</p>
               )}
-              <p className="text-[10px] text-muted-foreground mt-1">
+              <p className="text-[10px] text-gray-500 mt-1">
                 {new Date(r.created_at).toLocaleDateString()}
               </p>
             </div>

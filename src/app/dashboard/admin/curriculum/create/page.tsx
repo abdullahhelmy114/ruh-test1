@@ -159,7 +159,7 @@ export default function CreateModelCourse() {
                 placeholder='[{"step":"تحية الطالب", "type":"text"}, {"step":"عرض الآية", "type":"video", "url":""}]'
                 className="font-mono text-sm"
               />
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-gray-500 mt-1">
                 استخدم صيغة JSON لخطوات الدرس. مثال: <br />
                 <code>{`[{"step": "مقدمة", "type": "text"}, {"step": "عرض فيديو", "type": "video", "url": "..."}]`}</code>
               </p>
@@ -168,7 +168,7 @@ export default function CreateModelCourse() {
             {/* قسم رفع ملف PDF لتوليد المنهج تلقائياً */}
             <div className="border-t pt-4">
               <Label className="text-base font-semibold">📄 توليد دروس من كتاب PDF (اختياري)</Label>
-              <p className="text-sm text-muted-foreground mb-2">
+              <p className="text-sm text-gray-500 mb-2">
                 بعد إنشاء الكورس، سيتم تحليل الكتاب وإنشاء الدروس تلقائياً.
               </p>
               <Input

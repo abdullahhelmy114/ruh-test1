@@ -6,26 +6,26 @@ export default function TeacherDashboardLayout({ children }: { children: ReactNo
   return (
     <div className="flex min-h-screen bg-background">
       {/* شريط جانبي بسيط مع الألوان الجديدة */}
-      <aside className="w-64 bg-card border-l border-border p-4 space-y-6">
-        <h2 className="text-lg font-bold text-foreground">لوحة المعلم</h2>
+      <aside className="w-64 bg-card border-l border-gray-200 p-4 space-y-6">
+        <h2 className="text-lg font-bold text-gray-900">لوحة المعلم</h2>
         <nav className="space-y-2">
           <Link
             href="/dashboard/teacher"
-            className="flex items-center gap-2 p-2 rounded-md text-foreground hover:bg-secondary transition-colors"
+            className="flex items-center gap-2 p-2 rounded-md text-gray-900 hover:bg-emerald-100 transition-colors"
           >
             <Layers className="h-5 w-5" />
             الرئيسية
           </Link>
           <Link
             href="/dashboard/teacher/available-courses"
-            className="flex items-center gap-2 p-2 rounded-md text-foreground hover:bg-secondary transition-colors"
+            className="flex items-center gap-2 p-2 rounded-md text-gray-900 hover:bg-emerald-100 transition-colors"
           >
             <BookOpen className="h-5 w-5" />
             الكورسات المتاحة
           </Link>
           <Link
             href="/dashboard/teacher/courses"
-            className="flex items-center gap-2 p-2 rounded-md text-foreground hover:bg-secondary transition-colors"
+            className="flex items-center gap-2 p-2 rounded-md text-gray-900 hover:bg-emerald-100 transition-colors"
           >
             <Clock className="h-5 w-5" />
             كورساتي النشطة

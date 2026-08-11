@@ -19,7 +19,7 @@ export default async function CommunityPage() {
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-foreground mb-6">المجتمع</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">المجتمع</h1>
       <CommunityTabs gender={user.gender as 'male' | 'female'} />
     </main>
   );

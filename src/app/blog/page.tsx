@@ -122,7 +122,7 @@ export default function BlogPage() {
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="font-serif text-4xl"><T>Blog</T></h1>
-        <p className="mt-2 text-muted-foreground"><T>News, tips, and updates from the Academy.</T></p>
+        <p className="mt-2 text-gray-500"><T>News, tips, and updates from the Academy.</T></p>
       </div>
 
       {/* زر إضافة بوست للأدمن */}
@@ -130,7 +130,7 @@ export default function BlogPage() {
         <div className="text-right">
           <button
             onClick={() => setShowNewPost(true)}
-            className="rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-gold/80 inline-flex items-center gap-2"
+            className="rounded-full bg-amber-500 px-5 py-2.5 text-sm font-semibold text-gray-900 hover:bg-amber-400 inline-flex items-center gap-2"
           >
             <Plus size={16} /> <T>New Post</T>
           </button>
@@ -139,7 +139,7 @@ export default function BlogPage() {
 
       {/* نافذة إضافة بوست */}
       {showNewPost && (
-        <div className="fixed inset-0 z-50 bg-foreground/50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-card rounded-3xl p-6 max-w-lg w-full shadow-elegant space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="font-serif text-2xl"><T>New Post</T></h2>
@@ -148,7 +148,7 @@ export default function BlogPage() {
             <input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Title" className="w-full rounded-2xl border bg-background px-4 py-3 text-sm" />
             <textarea value={newContent} onChange={e => setNewContent(e.target.value)} rows={5} placeholder="Content" className="w-full rounded-2xl border bg-background px-4 py-3 text-sm" />
             <input value={newImageUrl} onChange={e => setNewImageUrl(e.target.value)} placeholder="Image URL (optional)" className="w-full rounded-2xl border bg-background px-4 py-3 text-sm" />
-            <button onClick={handleCreatePost} className="w-full rounded-full bg-gold py-3 text-sm font-semibold text-foreground"><T>Publish</T></button>
+            <button onClick={handleCreatePost} className="w-full rounded-full bg-amber-500 py-3 text-sm font-semibold text-gray-900"><T>Publish</T></button>
           </div>
         </div>
       )}
@@ -157,7 +157,7 @@ export default function BlogPage() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div>
       ) : posts.length === 0 ? (
-        <div className="text-center py-20 text-muted-foreground">
+        <div className="text-center py-20 text-gray-500">
           <p><T>No posts yet.</T></p>
         </div>
       ) : (
@@ -178,32 +178,32 @@ export default function BlogPage() {
                 <Image src={post.image_url} alt={post.title} width={600} height={300} className="w-full object-cover max-h-96" />
               </div>
             )}
-            <p className="text-muted-foreground leading-relaxed">{post.content}</p>
-            <p className="text-xs text-muted-foreground">{new Date(post.created_at).toLocaleString()}</p>
+            <p className="text-gray-500 leading-relaxed">{post.content}</p>
+            <p className="text-xs text-gray-500">{new Date(post.created_at).toLocaleString()}</p>
 
             {/* ✅ التعليقات تظهر دائماً */}
             {post.comments && post.comments.length > 0 && (
-              <div className="space-y-3 pt-2 border-t border-border/50">
+              <div className="space-y-3 pt-2 border-t border-gray-200/50">
                 {post.comments.map(c => (
                   <div key={c.id} className="flex items-start gap-2 text-sm">
-                    <span className="font-medium text-accent-foreground">{c.user_name}</span>
-                    <span className="text-muted-foreground">{c.comment}</span>
-                    <span className="text-[10px] text-muted-foreground ml-auto">{new Date(c.created_at).toLocaleDateString()}</span>
+                    <span className="font-medium text-amber-700">{c.user_name}</span>
+                    <span className="text-gray-500">{c.comment}</span>
+                    <span className="text-[10px] text-gray-500 ml-auto">{new Date(c.created_at).toLocaleDateString()}</span>
                   </div>
                 ))}
               </div>
             )}
 
             {/* الإعجاب والتعليقات */}
-            <div className="flex items-center gap-6 pt-3 border-t border-border">
+            <div className="flex items-center gap-6 pt-3 border-t border-gray-200">
               <button
                 onClick={() => handleToggleLike(post.id)}
-                className={`inline-flex items-center gap-1.5 text-sm transition ${isLikedByUser(post) ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'}`}
+                className={`inline-flex items-center gap-1.5 text-sm transition ${isLikedByUser(post) ? 'text-red-500' : 'text-gray-500 hover:text-red-500'}`}
               >
                 <Heart size={18} className={isLikedByUser(post) ? 'fill-current' : ''} />
                 {post.likes_count}
               </button>
-              <div className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+              <div className="inline-flex items-center gap-1.5 text-sm text-gray-500">
                 <MessageCircle size={18} />
                 {post.comments_count}
               </div>
@@ -216,10 +216,10 @@ export default function BlogPage() {
                   value={commentText[post.id] || ""}
                   onChange={e => setCommentText(prev => ({ ...prev, [post.id]: e.target.value }))}
                   placeholder="Add a comment..."
-                  className="flex-1 rounded-full border bg-background px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-gold/50"
+                  className="flex-1 rounded-full border bg-background px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-500/50"
                   onKeyDown={e => { if (e.key === 'Enter') handleAddComment(post.id); }}
                 />
-                <button onClick={() => handleAddComment(post.id)} disabled={submittingComment} className="p-2 rounded-full bg-gold text-foreground hover:bg-gold/80 disabled:opacity-50">
+                <button onClick={() => handleAddComment(post.id)} disabled={submittingComment} className="p-2 rounded-full bg-amber-500 text-gray-900 hover:bg-amber-400 disabled:opacity-50">
                   <Send size={16} />
                 </button>
               </div>
@@ -227,10 +227,10 @@ export default function BlogPage() {
 
             {/* أزرار الانضمام لغير المسجلين - تم إخفاء زر المعلم */}
             {!user && (
-              <div className="text-center pt-2 border-t border-border">
-                <p className="text-xs text-muted-foreground mb-2"><T>Want to interact?</T></p>
+              <div className="text-center pt-2 border-t border-gray-200">
+                <p className="text-xs text-gray-500 mb-2"><T>Want to interact?</T></p>
                 <div className="flex justify-center gap-2">
-                  <Link href="/signup?role=student" className="rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-1">
+                  <Link href="/signup?role=student" className="rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 inline-flex items-center gap-1">
                     <T>Join as Student</T> <ArrowRight size={12} />
                   </Link>
                 </div>

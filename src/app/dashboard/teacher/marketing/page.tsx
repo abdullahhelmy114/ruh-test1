@@ -84,13 +84,13 @@ export default function MarketingPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
-      <Link href="/dashboard/teacher" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4">
+      <Link href="/dashboard/teacher" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-4">
         <ArrowLeft size={16} /> <T>Back to Dashboard</T>
       </Link>
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-serif text-3xl"><T>Marketing Tools</T></h1>
         <button onClick={handleExport} disabled={exporting || students.length === 0}
-          className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50 inline-flex items-center gap-2">
+          className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 inline-flex items-center gap-2">
           <Download size={16} /> {exporting ? <T>Exporting…</T> : <T>Export Emails</T>}
         </button>
       </div>
@@ -100,7 +100,7 @@ export default function MarketingPage() {
         {filters.map(f => (
           <button key={f.key} onClick={() => setSelectedFilter(f.key)}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
-              selectedFilter === f.key ? "bg-primary text-primary-foreground" : "bg-card border hover:bg-accent"
+              selectedFilter === f.key ? "bg-emerald-600 text-primary-foreground" : "bg-card border hover:bg-accent"
             }`}>
             <T>{f.label}</T>
           </button>
@@ -116,22 +116,22 @@ export default function MarketingPage() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="animate-spin" /></div>
       ) : students.length === 0 ? (
-        <div className="text-center py-20 text-muted-foreground">
+        <div className="text-center py-20 text-gray-500">
           <Users className="mx-auto h-12 w-12 mb-4 text-secondary-foreground/50" />
           <p><T>No students match this filter.</T></p>
         </div>
       ) : (
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">{students.length} <T>students found</T></p>
+          <p className="text-sm text-gray-500">{students.length} <T>students found</T></p>
           {students.map(s => (
             <div key={s.uid} className="glass rounded-2xl p-4 flex items-center justify-between">
               <div>
                 <h3 className="font-medium">{s.full_name}</h3>
-                <p className="text-xs text-muted-foreground flex items-center gap-1"><Mail size={14} /> {s.email}</p>
+                <p className="text-xs text-gray-500 flex items-center gap-1"><Mail size={14} /> {s.email}</p>
               </div>
               <div className="flex flex-wrap gap-1">
-                {s.nationality && <span className="text-[10px] bg-gold/10 text-accent-foreground px-2 py-0.5 rounded-full">{s.nationality}</span>}
-                {s.residence && <span className="text-[10px] bg-secondary/10 text-primary px-2 py-0.5 rounded-full">{s.residence}</span>}
+                {s.nationality && <span className="text-[10px] bg-amber-500/10 text-amber-700 px-2 py-0.5 rounded-full">{s.nationality}</span>}
+                {s.residence && <span className="text-[10px] bg-emerald-100/10 text-primary px-2 py-0.5 rounded-full">{s.residence}</span>}
               </div>
             </div>
           ))}

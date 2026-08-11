@@ -51,7 +51,7 @@ export function GridBookshelf({ onBookClick }: GridBookshelfProps) {
   // عرض التحميل
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+      <div className="flex flex-col items-center justify-center py-20 text-gray-500">
         <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         <p><T>Loading</T></p>
       </div>
@@ -63,12 +63,12 @@ export function GridBookshelf({ onBookClick }: GridBookshelfProps) {
       {/* شريط البحث وأزرار التصنيفات */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
           <Input
             placeholder="ابحث عن كتاب أو مؤلف..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-full border border-input bg-background pl-4 pr-10 py-2 text-sm placeholder:text-muted-foreground focus:border-primary"
+            className="w-full rounded-full border border-input bg-background pl-4 pr-10 py-2 text-sm placeholder:text-gray-500 focus:border-primary"
             dir="rtl"
           />
         </div>
@@ -98,7 +98,7 @@ export function GridBookshelf({ onBookClick }: GridBookshelfProps) {
 
       {/* الشبكة */}
       {filteredBooks.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+        <div className="flex flex-col items-center justify-center py-20 text-gray-500">
           <BookOpen className="h-16 w-16 mb-4 opacity-30" />
           <p className="text-lg"><T>No Books Available Yet</T></p>
         </div>

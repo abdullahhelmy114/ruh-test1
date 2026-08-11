@@ -89,7 +89,7 @@ function VerifyEmailContent() {
   return (
     <main className="grid min-h-screen place-items-center bg-background px-4 py-12 relative overflow-hidden">
       {/* Ambient Lights */}
-      <div aria-hidden="true" className="pointer-events-none absolute top-0 left-0 -z-10 h-[500px] w-[500px] rounded-full bg-primary/10 blur-[120px]" />
+      <div aria-hidden="true" className="pointer-events-none absolute top-0 left-0 -z-10 h-[500px] w-[500px] rounded-full bg-emerald-500/10 blur-[120px]" />
       
       <div className="relative w-full max-w-lg">
         <motion.div 
@@ -100,14 +100,14 @@ function VerifyEmailContent() {
             <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-4">
               <ShieldCheck className="mx-auto h-16 w-16 text-primary" />
               <h1 className="font-serif text-3xl text-primary"><T>Email Verified!</T></h1>
-              <p className="text-muted-foreground"><T>Redirecting to your dashboard...</T></p>
+              <p className="text-gray-500"><T>Redirecting to your dashboard...</T></p>
             </motion.div>
           ) : (
             <>
               <Mail className="mx-auto h-14 w-14 text-primary/80 mb-6" />
               <h1 className="font-serif text-3xl text-primary mb-2"><T>Check Your Email</T></h1>
-              <p className="text-sm text-muted-foreground mb-8">
-                <T>We sent a 6-digit code to</T> <strong className="text-foreground">{email}</strong>
+              <p className="text-sm text-gray-500 mb-8">
+                <T>We sent a 6-digit code to</T> <strong className="text-gray-900">{email}</strong>
               </p>
 
               <div className="flex justify-center mb-8" onPaste={handlePaste}>
@@ -120,7 +120,7 @@ function VerifyEmailContent() {
                   {digits.map((digit, idx) => (
                     <div
                       key={idx} onClick={() => hiddenInputRef.current?.focus()}
-                      className={`h-14 w-10 sm:h-16 sm:w-12 rounded-xl bg-background text-center text-2xl font-bold text-foreground outline-none ring-1 transition-all cursor-text flex items-center justify-center ${
+                      className={`h-14 w-10 sm:h-16 sm:w-12 rounded-xl bg-background text-center text-2xl font-bold text-gray-900 outline-none ring-1 transition-all cursor-text flex items-center justify-center ${
                         digit ? "ring-primary shadow-sm" : "ring-primary/20"
                       } focus-within:ring-2 focus-within:ring-primary`}
                     >
@@ -138,14 +138,14 @@ function VerifyEmailContent() {
 
               <Button
                 onClick={handleSubmit} disabled={loading || digits.some((d) => d === "")}
-                className="w-full rounded-full bg-primary hover:bg-primary/90 py-6 text-base font-semibold text-primary-foreground shadow-elegant"
+                className="w-full rounded-full bg-emerald-600 hover:bg-emerald-700 py-6 text-base font-semibold text-white shadow-elegant"
               >
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <T>Verify Account</T>}
               </Button>
 
               <div className="mt-6 flex flex-col items-center gap-4">
                 <ResendVerificationButton />
-                <Link href="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/login" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors">
                   <ArrowLeft className="h-4 w-4" /> <T>Back to Sign In</T>
                 </Link>
               </div>

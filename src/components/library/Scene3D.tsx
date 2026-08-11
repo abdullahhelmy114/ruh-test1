@@ -15,7 +15,7 @@ const GlassLibraryScene = dynamic(() => import("./GlassLibraryScene"), {
     <div className="flex h-[70vh] items-center justify-center">
       <div className="text-center">
         <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        <p className="text-muted-foreground">
+        <p className="text-gray-500">
           <T>Opening 3D Library…</T>
         </p>
       </div>
@@ -87,7 +87,7 @@ export default function Scene3D({ onBookClick }: Scene3DProps) {
 
   if (loading || rows.length === 0) {
     return (
-      <div className="flex h-[70vh] items-center justify-center text-muted-foreground">
+      <div className="flex h-[70vh] items-center justify-center text-gray-500">
         <div className="text-center">
           <BookOpen className="mx-auto h-12 w-12 opacity-30" />
           <p className="mt-4 text-lg">
@@ -99,13 +99,13 @@ export default function Scene3D({ onBookClick }: Scene3DProps) {
   }
 
   return (
-    <div className="relative h-[80vh] w-full overflow-hidden rounded-2xl border border-border bg-background">
+    <div className="relative h-[80vh] w-full overflow-hidden rounded-2xl border border-gray-200 bg-background">
       {/* أزرار التنقل */}
       {current > 0 && (
         <button
           onClick={() => go(-1)}
           aria-label="Previous shelves"
-          className="glass-panel absolute left-4 top-1/2 z-20 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full text-foreground"
+          className="glass-panel absolute left-4 top-1/2 z-20 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full text-gray-900"
         >
           <ChevronLeft className="h-6 w-6" />
         </button>
@@ -114,7 +114,7 @@ export default function Scene3D({ onBookClick }: Scene3DProps) {
         <button
           onClick={() => go(1)}
           aria-label="Next shelves"
-          className="glass-panel absolute right-4 top-1/2 z-20 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full text-foreground"
+          className="glass-panel absolute right-4 top-1/2 z-20 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full text-gray-900"
         >
           <ChevronRight className="h-6 w-6" />
         </button>
@@ -135,7 +135,7 @@ export default function Scene3D({ onBookClick }: Scene3DProps) {
             <span
               key={i}
               className={`h-1.5 rounded-full transition-all ${
-                i === current ? "w-6 bg-accent" : "w-1.5 bg-gold/30"
+                i === current ? "w-6 bg-accent" : "w-1.5 bg-amber-500/30"
               }`}
             />
           ))}

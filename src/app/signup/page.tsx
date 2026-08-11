@@ -29,7 +29,7 @@ export default function SignupRolePage() {
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-primary">
             <T>Join Our Community</T>
           </h1>
-          <p className="mt-3 sm:mt-4 text-base sm:text-lg text-muted-foreground max-w-xl mx-auto px-4">
+          <p className="mt-3 sm:mt-4 text-base sm:text-lg text-gray-500 max-w-xl mx-auto px-4">
             <T>Access hundreds of Arabic courses and live sessions with the best curriculum.</T>
           </p>
         </motion.header>
@@ -42,15 +42,15 @@ export default function SignupRolePage() {
           className="glass rounded-3xl p-6 sm:p-8 border border-primary/10 shadow-elegant flex flex-col hover:border-primary/30 transition-all duration-300 bg-card group"
         >
           <header className="flex items-center gap-4 mb-6">
-            <div className="p-3.5 rounded-2xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+            <div className="p-3.5 rounded-2xl bg-emerald-500/10 text-primary group-hover:bg-emerald-600 group-hover:text-white transition-colors">
               <BookOpen className="h-7 w-7" />
             </div>
-            <h2 className="text-2xl font-bold font-serif text-foreground">
+            <h2 className="text-2xl font-bold font-serif text-gray-900">
               <T>Student</T>
             </h2>
           </header>
 
-          <ul className="space-y-4 mb-8 text-muted-foreground flex-1">
+          <ul className="space-y-4 mb-8 text-gray-500 flex-1">
             <li className="flex items-start gap-3">
               <span className="text-primary mt-0.5">✓</span>
               <span className="text-sm"><T>Access to hundreds of Arabic courses</T></span>
@@ -71,7 +71,7 @@ export default function SignupRolePage() {
 
           <Button
             onClick={() => router.push("/signup/student")}
-            className="w-full rounded-full bg-primary text-primary-foreground hover:bg-primary/90 py-6 text-base font-semibold shadow-elegant transition-transform hover:scale-[1.02]"
+            className="w-full rounded-full bg-emerald-600 text-white hover:bg-emerald-700 py-6 text-base font-semibold shadow-elegant transition-transform hover:scale-[1.02]"
           >
             <T>Join as Student</T>
             <ArrowRight className="ml-2 h-5 w-5" />
@@ -85,7 +85,7 @@ export default function SignupRolePage() {
           transition={{ delay: 0.4 }}
           className="mt-8 text-center"
         >
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500">
             <T>Already have an account?</T>{" "}
             <Link href="/login" className="font-semibold text-primary hover:text-gold hover:underline underline-offset-4 transition-colors">
               <T>Sign in</T>

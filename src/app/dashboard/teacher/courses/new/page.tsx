@@ -75,13 +75,13 @@ export default function ApplyTeachingPage() {
       >
         <div>
           <h1 className="font-serif text-2xl"><T>طلب تدريس كورس</T></h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-gray-500 mt-1">
             <T>اختر أحد الكورسات النموذجية المعتمدة لتقديم طلب تدريسها.</T>
           </p>
         </div>
 
         <div>
-          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
             <T>الكورس النموذجي</T>
           </label>
           <select
@@ -104,7 +104,7 @@ export default function ApplyTeachingPage() {
           </div>
         )}
         {success && (
-          <div className="rounded-xl bg-primary/10 p-3 text-sm text-primary">
+          <div className="rounded-xl bg-emerald-500/10 p-3 text-sm text-primary">
             <T>{success}</T>
           </div>
         )}
@@ -112,7 +112,7 @@ export default function ApplyTeachingPage() {
         <button
           onClick={handleSubmit}
           disabled={submitting || !selectedModelId}
-          className="w-full rounded-full bg-accent py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/90 disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full rounded-full bg-amber-100py-3 text-sm font-semibold text-amber-700 hover:bg-accent/90 disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {submitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
           <T>تقديم الطلب</T>

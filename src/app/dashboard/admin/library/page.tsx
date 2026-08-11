@@ -383,7 +383,7 @@ export default function AdminLibraryPage() {
     selectedIds: string[];
     onChange: (ids: string[]) => void;
   }) => (
-    <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border border-border rounded-xl p-3">
+    <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border border-gray-200 rounded-xl p-3">
       {categories.map((cat) => (
         <label key={cat.id} className="flex items-center gap-2 text-sm cursor-pointer">
           <input
@@ -402,7 +402,7 @@ export default function AdminLibraryPage() {
         </label>
       ))}
       {categories.length === 0 && (
-        <p className="text-xs text-muted-foreground col-span-2">
+        <p className="text-xs text-gray-500 col-span-2">
           <T>No categories available</T>
         </p>
       )}
@@ -414,7 +414,7 @@ export default function AdminLibraryPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 text-center text-muted-foreground">
+      <div className="p-6 text-center text-gray-500">
         <Loader2 className="mx-auto animate-spin h-8 w-8" />
         <T>Loading</T>
       </div>
@@ -488,7 +488,7 @@ export default function AdminLibraryPage() {
                   </div>
                 </div>
                 <div className="flex gap-4">
-                  <Button type="submit" disabled={uploading} className="bg-primary text-primary-foreground">
+                  <Button type="submit" disabled={uploading} className="bg-emerald-600 text-primary-foreground">
                     {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <T>Add Book</T>}
                   </Button>
                   <Button type="button" variant="outline" onClick={() => setBulkDialogOpen(true)}>
@@ -505,7 +505,7 @@ export default function AdminLibraryPage() {
             </CardHeader>
             <CardContent>
               {books.length === 0 ? (
-                <p className="text-muted-foreground text-center"><T>No Books Available Yet</T></p>
+                <p className="text-gray-500 text-center"><T>No Books Available Yet</T></p>
               ) : (
                 <Table>
                   <TableHeader>
@@ -578,20 +578,20 @@ export default function AdminLibraryPage() {
 
           {/* حوار الرفع المجمع */}
           <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
-            <DialogContent className="bg-card border-border text-foreground">
+            <DialogContent className="bg-card border-gray-200 text-gray-900">
               <DialogHeader>
                 <DialogTitle className="text-xl"><T>Bulk Upload</T></DialogTitle>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <Label><T>Select PDF Files</T></Label>
                 <Input type="file" accept=".pdf" multiple onChange={(e) => setBulkFiles(e.target.files)} />
-                {bulkFiles && <p className="text-sm text-muted-foreground">تم اختيار {bulkFiles.length} ملف</p>}
+                {bulkFiles && <p className="text-sm text-gray-500">تم اختيار {bulkFiles.length} ملف</p>}
               </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={() => setBulkDialogOpen(false)}>
                   <T>Cancel</T>
                 </Button>
-                <Button onClick={handleBulkUpload} disabled={bulkUploading} className="bg-primary text-primary-foreground">
+                <Button onClick={handleBulkUpload} disabled={bulkUploading} className="bg-emerald-600 text-primary-foreground">
                   {bulkUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <T>Upload Files</T>}
                 </Button>
               </DialogFooter>
@@ -600,7 +600,7 @@ export default function AdminLibraryPage() {
 
           {/* حوار تعديل الكتاب */}
           <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-            <DialogContent className="bg-card border-border text-foreground sm:max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogContent className="bg-card border-gray-200 text-gray-900 sm:max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-xl"><T>Edit Book</T></DialogTitle>
               </DialogHeader>
@@ -633,7 +633,7 @@ export default function AdminLibraryPage() {
                 <Button variant="ghost" onClick={() => setEditDialogOpen(false)}>
                   <T>Cancel</T>
                 </Button>
-                <Button onClick={handleEditSave} disabled={editSaving} className="bg-primary text-primary-foreground">
+                <Button onClick={handleEditSave} disabled={editSaving} className="bg-emerald-600 text-primary-foreground">
                   {editSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <T>Save Changes</T>}
                 </Button>
               </DialogFooter>
@@ -654,7 +654,7 @@ export default function AdminLibraryPage() {
             </CardHeader>
             <CardContent>
               {categories.length === 0 ? (
-                <p className="text-muted-foreground text-center"><T>No categories yet</T></p>
+                <p className="text-gray-500 text-center"><T>No categories yet</T></p>
               ) : (
                 <Table>
                   <TableHeader>
@@ -693,7 +693,7 @@ export default function AdminLibraryPage() {
 
           {/* حوار إضافة/تعديل تصنيف */}
           <Dialog open={catDialogOpen} onOpenChange={setCatDialogOpen}>
-            <DialogContent className="bg-card border-border text-foreground">
+            <DialogContent className="bg-card border-gray-200 text-gray-900">
               <DialogHeader>
                 <DialogTitle className="text-xl">
                   {editingCategory ? <T>Edit Category</T> : <T>Add Category</T>}
@@ -719,7 +719,7 @@ export default function AdminLibraryPage() {
                 <div>
                   <Label><T>Parent Category</T></Label>
                   <select
-                    className="w-full border border-input bg-background px-3 py-2 rounded-md text-foreground"
+                    className="w-full border border-input bg-background px-3 py-2 rounded-md text-gray-900"
                     value={catParentId}
                     onChange={(e) => setCatParentId(e.target.value)}
                   >
@@ -738,7 +738,7 @@ export default function AdminLibraryPage() {
                 <Button variant="ghost" onClick={() => setCatDialogOpen(false)}>
                   <T>Cancel</T>
                 </Button>
-                <Button onClick={saveCategory} disabled={catSaving} className="bg-primary text-primary-foreground">
+                <Button onClick={saveCategory} disabled={catSaving} className="bg-emerald-600 text-primary-foreground">
                   {catSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : editingCategory ? <T>Update</T> : <T>Add</T>}
                 </Button>
               </DialogFooter>

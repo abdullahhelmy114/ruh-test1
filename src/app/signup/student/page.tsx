@@ -89,7 +89,7 @@ export default function StudentSignupPage() {
   return (
     <main className="min-h-screen bg-background px-4 py-8 sm:py-12 relative overflow-hidden flex items-center justify-center">
       {/* Ambient Lighting */}
-      <div aria-hidden="true" className="pointer-events-none absolute top-0 right-0 -z-10 h-[400px] w-[400px] sm:h-[600px] sm:w-[600px] rounded-full bg-primary/10 blur-[120px]" />
+      <div aria-hidden="true" className="pointer-events-none absolute top-0 right-0 -z-10 h-[400px] w-[400px] sm:h-[600px] sm:w-[600px] rounded-full bg-emerald-500/10 blur-[120px]" />
       <div aria-hidden="true" className="pointer-events-none absolute bottom-0 left-0 -z-10 h-[400px] w-[400px] sm:h-[600px] sm:w-[600px] rounded-full bg-primary/5 blur-[120px]" />
 
       <div className="w-full max-w-3xl">
@@ -104,7 +104,7 @@ export default function StudentSignupPage() {
             <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl text-primary mb-2 sm:mb-3">
               <T>Begin Your Journey</T>
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
+            <p className="text-sm sm:text-base text-gray-500">
               <T>Join an elite community devoted to the Arabic language</T>
             </p>
           </header>
@@ -128,27 +128,27 @@ export default function StudentSignupPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                   <FormField control={form.control} name="firstName" render={({ field }) => (
                     <FormItem>
-                      <Label className="text-sm text-foreground"><T>First Name</T> *</Label>
-                      <FormControl><Input autoComplete="given-name" {...field} className="bg-card text-foreground focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10" /></FormControl>
+                      <Label className="text-sm text-gray-900"><T>First Name</T> *</Label>
+                      <FormControl><Input autoComplete="given-name" {...field} className="bg-card text-gray-900 focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10" /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="lastName" render={({ field }) => (
                     <FormItem>
-                      <Label className="text-sm text-foreground"><T>Last Name</T> *</Label>
-                      <FormControl><Input autoComplete="family-name" {...field} className="bg-card text-foreground focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10" /></FormControl>
+                      <Label className="text-sm text-gray-900"><T>Last Name</T> *</Label>
+                      <FormControl><Input autoComplete="family-name" {...field} className="bg-card text-gray-900 focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10" /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="gender" render={({ field }) => (
                     <FormItem>
-                      <Label className="text-sm text-foreground"><T>Gender</T> *</Label>
+                      <Label className="text-sm text-gray-900"><T>Gender</T> *</Label>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger className="bg-card text-foreground focus:ring-primary border-none shadow-sm ring-1 ring-primary/10"><SelectValue placeholder="Select…" /></SelectTrigger>
+                          <SelectTrigger className="bg-card text-gray-900 focus:ring-primary border-none shadow-sm ring-1 ring-primary/10"><SelectValue placeholder="Select…" /></SelectTrigger>
                         </FormControl>
-                        <SelectContent className="bg-card text-foreground shadow-elegant z-50 border-none ring-1 ring-primary/10">
-                          {GENDERS.map((g) => (<SelectItem key={g.value} value={g.value} className="focus:bg-primary/10 cursor-pointer"><T>{g.label}</T></SelectItem>))}
+                        <SelectContent className="bg-card text-gray-900 shadow-elegant z-50 border-none ring-1 ring-primary/10">
+                          {GENDERS.map((g) => (<SelectItem key={g.value} value={g.value} className="focus:bg-emerald-500/10 cursor-pointer"><T>{g.label}</T></SelectItem>))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -166,14 +166,14 @@ export default function StudentSignupPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-5">
                   <FormField control={form.control} name="countryOfResidence" render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <Label className="text-sm text-foreground mb-1"><T>Country of Residence</T> *</Label>
+                      <Label className="text-sm text-gray-900 mb-1"><T>Country of Residence</T> *</Label>
                       <FormControl><CountryCombobox value={field.value} onChange={field.onChange} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="nationality" render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <Label className="text-sm text-foreground mb-1"><T>Nationality</T> *</Label>
+                      <Label className="text-sm text-gray-900 mb-1"><T>Nationality</T> *</Label>
                       <FormControl><CountryCombobox value={field.value} onChange={field.onChange} /></FormControl>
                       <FormMessage />
                     </FormItem>
@@ -181,7 +181,7 @@ export default function StudentSignupPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <Label className="text-sm font-medium text-foreground"><T>Languages Spoken</T> *</Label>
+                  <Label className="text-sm font-medium text-gray-900"><T>Languages Spoken</T> *</Label>
                   <AnimatePresence>
                     {fields.map((field, index) => (
                       <motion.div 
@@ -201,15 +201,15 @@ export default function StudentSignupPage() {
                           <FormField control={form.control} name={`languages.${index}.proficiency`} render={({ field: profField }) => (
                             <FormItem className="w-full">
                               <Select onValueChange={profField.onChange} defaultValue={profField.value}>
-                                <FormControl><SelectTrigger className="bg-card text-foreground focus:ring-primary border-none shadow-sm ring-1 ring-primary/10"><SelectValue /></SelectTrigger></FormControl>
-                                <SelectContent className="bg-card text-foreground shadow-elegant z-50 border-none ring-1 ring-primary/10">
-                                  {PROFICIENCY_LEVELS.map((p) => (<SelectItem key={p.value} value={p.value} className="focus:bg-primary/10 cursor-pointer"><T>{p.label}</T></SelectItem>))}
+                                <FormControl><SelectTrigger className="bg-card text-gray-900 focus:ring-primary border-none shadow-sm ring-1 ring-primary/10"><SelectValue /></SelectTrigger></FormControl>
+                                <SelectContent className="bg-card text-gray-900 shadow-elegant z-50 border-none ring-1 ring-primary/10">
+                                  {PROFICIENCY_LEVELS.map((p) => (<SelectItem key={p.value} value={p.value} className="focus:bg-emerald-500/10 cursor-pointer"><T>{p.label}</T></SelectItem>))}
                                 </SelectContent>
                               </Select>
                             </FormItem>
                           )} />
                           {fields.length > 1 && (
-                            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-muted-foreground hover:text-destructive shrink-0" aria-label="Remove language">
+                            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-gray-500 hover:text-destructive shrink-0" aria-label="Remove language">
                               <X className="h-4 w-4" />
                             </Button>
                           )}
@@ -232,29 +232,29 @@ export default function StudentSignupPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                   <FormField control={form.control} name="email" render={({ field }) => (
                     <FormItem>
-                      <Label className="flex items-center gap-2 text-sm text-foreground"><Mail className="h-3.5 w-3.5 text-primary/70"/> <T>Email</T> *</Label>
-                      <FormControl><Input type="email" autoComplete="email" dir="ltr" {...field} className="bg-card text-foreground focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10" /></FormControl>
+                      <Label className="flex items-center gap-2 text-sm text-gray-900"><Mail className="h-3.5 w-3.5 text-primary/70"/> <T>Email</T> *</Label>
+                      <FormControl><Input type="email" autoComplete="email" dir="ltr" {...field} className="bg-card text-gray-900 focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10" /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="whatsapp" render={({ field }) => (
                     <FormItem>
-                      <Label className="flex items-center gap-2 text-sm text-foreground"><Phone className="h-3.5 w-3.5 text-primary/70"/> <T>WhatsApp Number</T> *</Label>
-                      <FormControl><Input type="tel" autoComplete="tel" dir="ltr" placeholder="+20 100..." {...field} className="bg-card text-foreground focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10" /></FormControl>
+                      <Label className="flex items-center gap-2 text-sm text-gray-900"><Phone className="h-3.5 w-3.5 text-primary/70"/> <T>WhatsApp Number</T> *</Label>
+                      <FormControl><Input type="tel" autoComplete="tel" dir="ltr" placeholder="+20 100..." {...field} className="bg-card text-gray-900 focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10" /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="password" render={({ field }) => (
                     <FormItem>
-                      <Label className="flex items-center gap-2 text-sm text-foreground"><Lock className="h-3.5 w-3.5 text-primary/70"/> <T>Password</T> *</Label>
-                      <FormControl><Input type="password" autoComplete="new-password" dir="ltr" {...field} className="bg-card text-foreground focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10" /></FormControl>
+                      <Label className="flex items-center gap-2 text-sm text-gray-900"><Lock className="h-3.5 w-3.5 text-primary/70"/> <T>Password</T> *</Label>
+                      <FormControl><Input type="password" autoComplete="new-password" dir="ltr" {...field} className="bg-card text-gray-900 focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10" /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="confirmPassword" render={({ field }) => (
                     <FormItem>
-                      <Label className="flex items-center gap-2 text-sm text-foreground"><Lock className="h-3.5 w-3.5 text-primary/70"/> <T>Confirm Password</T> *</Label>
-                      <FormControl><Input type="password" autoComplete="new-password" dir="ltr" {...field} className="bg-card text-foreground focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10" /></FormControl>
+                      <Label className="flex items-center gap-2 text-sm text-gray-900"><Lock className="h-3.5 w-3.5 text-primary/70"/> <T>Confirm Password</T> *</Label>
+                      <FormControl><Input type="password" autoComplete="new-password" dir="ltr" {...field} className="bg-card text-gray-900 focus-visible:ring-primary border-none shadow-sm ring-1 ring-primary/10" /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
@@ -269,7 +269,7 @@ export default function StudentSignupPage() {
                       <CustomCaptcha onVerify={onVerifyCaptcha} />
                     </motion.div>
                   ) : (
-                    <Button type="submit" disabled={loading} className="w-full rounded-full bg-primary text-primary-foreground hover:bg-primary/90 py-6 text-base font-semibold shadow-elegant hover:scale-[1.01] transition-all">
+                    <Button type="submit" disabled={loading} className="w-full rounded-full bg-emerald-600 text-white hover:bg-emerald-700 py-6 text-base font-semibold shadow-elegant hover:scale-[1.01] transition-all">
                       {loading ? (
                         <><Loader2 className="mr-2 h-5 w-5 animate-spin" /><T>Creating Account...</T></>
                       ) : (
@@ -281,7 +281,7 @@ export default function StudentSignupPage() {
               </motion.div>
 
               <footer className="text-center mt-6">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-500">
                   <T>Already enrolled?</T>{" "}
                   <Link href="/login" className="font-semibold text-primary hover:underline underline-offset-4">
                     <T>Sign in</T>
