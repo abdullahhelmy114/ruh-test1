@@ -1,2 +1,2 @@
 [phases.setup]
-aptPkgs = ["poppler-utils", "fonts-arabeyes", "fontconfig"]
+aptPkgs = ["fontconfig", "fonts-noto-core", "poppler-utils"]
