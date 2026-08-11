@@ -5,11 +5,11 @@ import { sql } from "@/lib/db/client";
 export async function GET() {
   try {
     // 1. جلب جميع الكتب
-    const books = await sql`
-      SELECT id, title, author, description, cover_url, year, pages_count, created_at
-      FROM library_books
-      ORDER BY created_at DESC
-    `;
+ const books = await sql`
+  SELECT id, title, author, description, cover_url, category, created_at
+  FROM library_books
+  ORDER BY created_at DESC
+`;
 
     // 2. جلب التصنيفات لكل كتاب
     const bookIds = books.map((b) => b.id);
@@ -37,12 +37,13 @@ export async function GET() {
     }
 
     // 3. دمج النتائج
-    const result = books.map((book) => ({
-      ...book,
-      categories: categoriesByBook[book.id] || [],
-      // حقل category القديم (للتوافق المؤقت) – يأخذ slug أول تصنيف
-      category: categoriesByBook[book.id]?.[0]?.slug || null,
-    }));
+const result = books.map((book) => ({
+  ...book,
+  year: null, // لم يُضف بعد
+  pages_count: null,
+  categories: categoriesByBook[book.id] || [],
+  category: categoriesByBook[book.id]?.[0]?.slug || book.category || null,
+}));
 
     return NextResponse.json({ books: result });
   } catch (error) {

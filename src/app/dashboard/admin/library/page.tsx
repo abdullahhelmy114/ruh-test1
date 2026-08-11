@@ -30,7 +30,9 @@ import {
   Trash2,
   ImageIcon,
   Tag,
+  FileEdit,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // ── أنواع ────────────────────────────────────────
 interface Book {
@@ -56,6 +58,8 @@ interface Category {
 
 // ── المكون الرئيسي ──────────────────────────────
 export default function AdminLibraryPage() {
+  const router = useRouter();
+
   // التبويب النشط
   const [tab, setTab] = useState<"books" | "categories">("books");
 
@@ -148,7 +152,6 @@ export default function AdminLibraryPage() {
     formData.append("title", title);
     formData.append("author", author);
     formData.append("description", description);
-    // إرسال التصنيفات المختارة
     formData.append("categories", JSON.stringify(addCategoryIds));
     if (coverFile) formData.append("cover", coverFile);
     if (pdfFile) formData.append("pdf", pdfFile);
@@ -216,7 +219,6 @@ export default function AdminLibraryPage() {
     setEditAuthor(book.author || "");
     setEditDescription(book.description || "");
     setEditCoverFile(null);
-    // تجهيز التصنيفات الحالية للكتاب
     const bookCats = book.categories?.map((c) => c.id) || [];
     setEditCategoryIds(bookCats);
     setEditDialogOpen(true);
@@ -467,7 +469,6 @@ export default function AdminLibraryPage() {
                   <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
                 </div>
 
-                {/* اختيار التصنيفات أثناء الإضافة */}
                 <div>
                   <Label><T>Categories</T></Label>
                   <CategoryCheckboxes
@@ -531,6 +532,7 @@ export default function AdminLibraryPage() {
                         <TableCell>{new Date(book.created_at).toLocaleDateString("ar-EG")}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex gap-2 justify-end">
+                            {/* تحويل PDF إلى صور */}
                             <Button
                               variant="ghost"
                               size="sm"
@@ -544,9 +546,23 @@ export default function AdminLibraryPage() {
                                 <ImageIcon className="h-4 w-4" />
                               )}
                             </Button>
+
+                            {/* تعديل البيانات الوصفية */}
                             <Button variant="ghost" size="sm" onClick={() => handleEditClick(book)}>
                               <Pencil className="h-4 w-4" />
                             </Button>
+
+                            {/* ✨ محرر المحتوى التفاعلي ✨ */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => router.push(`/dashboard/admin/library/editor/${book.id}`)}
+                              title="Edit Content"
+                            >
+                              <FileEdit className="h-4 w-4 text-blue-500" />
+                            </Button>
+
+                            {/* حذف الكتاب */}
                             <Button variant="ghost" size="sm" onClick={() => handleDeleteBook(book.id)}>
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
