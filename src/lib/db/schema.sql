@@ -157,22 +157,6 @@ CREATE TABLE IF NOT EXISTS subscription_courses (
 );
 
 -- =============================================
--- المشتريات (بدون PayPal – مع Shopier)
--- =============================================
-CREATE TABLE IF NOT EXISTS purchases (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_uid UUID NOT NULL REFERENCES profiles(firebase_uid),
-  type TEXT NOT NULL CHECK (type IN ('course', 'bundle', 'subscription')),
-  course_id UUID REFERENCES live_courses(id),
-  bundle_id UUID REFERENCES bundles(id),
-  subscription_id UUID REFERENCES subscriptions(id),
-  amount NUMERIC(10,2) NOT NULL,
-  shopier_product_id TEXT,          -- تم الاستبدال
-  status TEXT DEFAULT 'completed',
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- =============================================
 -- تفاصيل الكورسات داخل كل عملية شراء
 -- =============================================
 CREATE TABLE IF NOT EXISTS purchase_courses (

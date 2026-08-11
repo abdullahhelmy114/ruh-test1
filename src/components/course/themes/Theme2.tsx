@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useAuth } from "@/lib/firebase/AuthProvider";
 import { Loader2, CreditCard, Clock, BookOpen, Calendar, Sparkles } from "lucide-react";
 import { T } from "@/components/TranslatedText";
+import { PaymentModal } from "@/components/PaymentModal";
 
 interface ThemeProps {
   variant: "adult" | "kids";
@@ -29,13 +30,16 @@ export default function Theme2({ variant, course }: ThemeProps) {
   const router = useRouter();
   const [enrolling, setEnrolling] = useState(false);
   const [message, setMessage] = useState("");
+  const [showPayment, setShowPayment] = useState(false);
 
   const isKids = variant === "kids";
 
   const colors = {
     primary: isKids ? "#FF6F00" : "#FF8A65",
     accent: isKids ? "#FFAB40" : "#FF7043",
-    bg: isKids ? "linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%)" : "linear-gradient(135deg, #FDFBF7 0%, #FBE9E7 100%)",
+    bg: isKids
+      ? "linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%)"
+      : "linear-gradient(135deg, #FDFBF7 0%, #FBE9E7 100%)",
     card: "rgba(255,255,255,0.9)",
     text: isKids ? "#4E342E" : "#3E2723",
     muted: isKids ? "#8D6E63" : "#6D4C41",
@@ -44,28 +48,12 @@ export default function Theme2({ variant, course }: ThemeProps) {
     shadow: "0 8px 32px rgba(255,138,101,0.15)",
   };
 
-  const handleBuy = async () => {
-    if (!user) { router.push("/login"); return; }
-    setEnrolling(true);
-    setMessage("");
-    try {
-      const res = await fetch("/api/shopier/create-payment-link", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ liveCourseId: course.id }),
-      });
-      const data = await res.json();
-      if (data.paymentUrl) {
-        window.open(data.paymentUrl, "_blank");
-      } else {
-        setMessage(data.error || "حدث خطأ");
-      }
-    } catch {
-      setMessage("خطأ في الشبكة");
-    } finally {
-      setEnrolling(false);
+  const openPaymentModal = () => {
+    if (!user) {
+      router.push("/login");
+      return;
     }
+    setShowPayment(true);
   };
 
   const launchDate = course.launch_date ? new Date(course.launch_date) : null;
@@ -78,9 +66,13 @@ export default function Theme2({ variant, course }: ThemeProps) {
       const d = Math.floor(diff / 86400000);
       const h = Math.floor((diff % 86400000) / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
-      setTimeLeft(`${d}ي ${h}س ${m}د`);
+      setTimeLeft(`${d}d ${h}h ${m}m`);
     };
-    useState(() => { updateTimer(); const i = setInterval(updateTimer, 60000); return () => clearInterval(i); });
+    useState(() => {
+      updateTimer();
+      const i = setInterval(updateTimer, 60000);
+      return () => clearInterval(i);
+    });
   }
 
   return (
@@ -121,7 +113,7 @@ export default function Theme2({ variant, course }: ThemeProps) {
               )}
               {!isLaunched && launchDate && (
                 <div className="absolute top-4 left-4 bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                  <T>قادم قريباً</T>
+                  <T>Coming Soon</T>
                 </div>
               )}
             </div>
@@ -133,7 +125,7 @@ export default function Theme2({ variant, course }: ThemeProps) {
               </h1>
               <p className="text-lg mt-2 flex items-center gap-2" style={{ color: colors.muted }}>
                 <span className="inline-block w-2 h-2 rounded-full bg-orange-400" />
-                <T>يقدمه</T> {course.instructor_name || "د. جيهان علي زياد"}
+                <T>Instructor</T> {course.instructor_name || "Dr. Jehan Ali Ziad"}
               </p>
               <div className="flex flex-wrap gap-6 mt-4 text-base" style={{ color: colors.muted }}>
                 {course.course_duration && (
@@ -159,10 +151,10 @@ export default function Theme2({ variant, course }: ThemeProps) {
               }}
             >
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-2" style={{ color: colors.primary }}>
-                <Sparkles size={24} /> <T>ماذا ستتعلم</T>
+                <Sparkles size={24} /> <T>What You Will Learn</T>
               </h2>
               <div className="prose max-w-none leading-relaxed text-lg" style={{ color: colors.text }}>
-                {course.description || <T>لا يوجد وصف بعد.</T>}
+                {course.description || <T>No description yet.</T>}
               </div>
             </div>
           </div>
@@ -184,11 +176,11 @@ export default function Theme2({ variant, course }: ThemeProps) {
               </div>
               <div className="mt-4 space-y-3 text-base">
                 <div className="flex justify-between">
-                  <span style={{ color: colors.muted }}><T>المدة</T></span>
+                  <span style={{ color: colors.muted }}><T>Duration</T></span>
                   <span className="font-medium">{course.course_duration || "—"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span style={{ color: colors.muted }}><T>مدة الدرس</T></span>
+                  <span style={{ color: colors.muted }}><T>Lesson Duration</T></span>
                   <span className="font-medium">{course.lesson_duration || "—"}</span>
                 </div>
               </div>
@@ -198,7 +190,7 @@ export default function Theme2({ variant, course }: ThemeProps) {
                   className="mt-6 rounded-2xl p-4 text-center text-lg font-bold"
                   style={{ backgroundColor: colors.accent + "20", color: colors.accent }}
                 >
-                  <T>ينطلق خلال</T> {timeLeft}
+                  <T>Starts in</T> {timeLeft}
                 </div>
               )}
 
@@ -211,13 +203,13 @@ export default function Theme2({ variant, course }: ThemeProps) {
                   {isLaunched ? (
                     user ? (
                       <button
-                        onClick={handleBuy}
+                        onClick={openPaymentModal}
                         disabled={enrolling}
                         className="w-full rounded-full py-4 text-lg font-bold text-white transition transform hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2 shadow-xl"
                         style={{ backgroundColor: colors.accent }}
                       >
-                        {enrolling ? <Loader2 size={20} className="animate-spin" /> : <CreditCard size={20} />}
-                        <T>اشتر الآن</T>
+                        <CreditCard size={20} />
+                        <T>Buy Now</T>
                       </button>
                     ) : (
                       <button
@@ -225,7 +217,7 @@ export default function Theme2({ variant, course }: ThemeProps) {
                         className="w-full rounded-full py-4 text-lg font-bold text-white shadow-xl"
                         style={{ backgroundColor: colors.accent }}
                       >
-                        <T>سجل الدخول للشراء</T>
+                        <T>Login to Purchase</T>
                       </button>
                     )
                   ) : (
@@ -234,7 +226,7 @@ export default function Theme2({ variant, course }: ThemeProps) {
                       className="w-full rounded-full py-4 text-lg font-bold text-white opacity-70 cursor-not-allowed"
                       style={{ backgroundColor: colors.muted }}
                     >
-                      <T>قريباً</T>
+                      <T>Coming Soon</T>
                     </button>
                   )}
                 </div>
@@ -243,6 +235,13 @@ export default function Theme2({ variant, course }: ThemeProps) {
           </div>
         </div>
       </div>
+
+      <PaymentModal
+        isOpen={showPayment}
+        onClose={() => setShowPayment(false)}
+        courseTitle={course.title}
+        userEmail={user?.email ?? undefined}
+      />
     </div>
   );
 }

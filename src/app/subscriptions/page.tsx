@@ -2,77 +2,66 @@
 
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { CreditCard, Loader2 } from "lucide-react";
+import { CreditCard } from "lucide-react";
+import { T } from "@/components/TranslatedText";
+import { PaymentModal } from "@/components/PaymentModal";
+import { useAuth } from "@/lib/firebase/AuthProvider";
 
 const defaultPlans = [
-  { id: '1', name: 'الخطة الشهرية', price: 99, duration: '3 أشهر', max_courses: 3 },
-  { id: '2', name: 'الخطة النصف سنوية', price: 179, duration: '6 أشهر', max_courses: 5 },
+  { id: '1', name: 'Monthly Plan', price: 99, duration: '3 Months', max_courses: 3 },
+  { id: '2', name: 'Semi-Annual Plan', price: 179, duration: '6 Months', max_courses: 5 },
 ];
 
 export default function SubscriptionsPage() {
+  const { user } = useAuth();
   const [plans] = useState(defaultPlans);
-  const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
-
-  const handleBuyPlan = async (plan: typeof defaultPlans[0]) => {
-    setLoadingPlanId(plan.id);
-    try {
-      const res = await fetch('/api/shopier/create-payment-link', {
-        method: 'POST',
-        credentials: 'include', // ✅ تمت الإضافة هنا
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'subscription',
-          planId: plan.id,
-          title: plan.name,
-          price: plan.price,
-        }),
-      });
-      const data = await res.json();
-      if (data.paymentUrl) {
-        window.open(data.paymentUrl, '_blank');
-      } else {
-        alert(data.error || 'فشل في إنشاء رابط الدفع');
-      }
-    } catch {
-      alert('خطأ في الشبكة');
-    } finally {
-      setLoadingPlanId(null);
-    }
-  };
+  const [showPayment, setShowPayment] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<typeof defaultPlans[0] | null>(null);
 
   return (
     <div className="min-h-screen bg-background py-12">
       <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-4xl font-bold text-foreground mb-8">خطط الاشتراك</h1>
+        <h1 className="text-4xl font-bold text-foreground mb-8">
+          <T>Subscription Plans</T>
+        </h1>
         <div className="grid md:grid-cols-2 gap-8">
           {plans.map((plan) => (
             <Card key={plan.id} className="bg-card border-border p-8 text-center">
               <CardContent>
-                <h2 className="text-2xl font-semibold text-foreground">{plan.name}</h2>
-                <p className="text-muted-foreground mt-2">{plan.duration}</p>
+                <h2 className="text-2xl font-semibold text-foreground">
+                  <T>{plan.name}</T>
+                </h2>
+                <p className="text-muted-foreground mt-2">
+                  <T>{plan.duration}</T>
+                </p>
                 <p className="text-5xl font-bold text-primary my-6">${plan.price}</p>
                 <p className="text-muted-foreground mb-6">
-                  وصول لـ {plan.max_courses} كورسات من اختيارك
+                  <T>{`Access to ${plan.max_courses} courses of your choice`}</T>
                 </p>
                 <button
-                  onClick={() => handleBuyPlan(plan)}
-                  disabled={loadingPlanId === plan.id}
-                  className="w-full rounded-full bg-accent py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/90 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                  onClick={() => {
+                    setSelectedPlan(plan);
+                    setShowPayment(true);
+                  }}
+                  className="w-full rounded-full bg-accent py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/90 transition flex items-center justify-center gap-2"
                 >
-                  {loadingPlanId === plan.id ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    <>
-                      <CreditCard size={16} />
-                      اشتر الآن
-                    </>
-                  )}
+                  <CreditCard size={16} />
+                  <T>Buy Now</T>
                 </button>
               </CardContent>
             </Card>
           ))}
         </div>
       </div>
+
+      {selectedPlan && (
+        <PaymentModal
+          isOpen={showPayment}
+          onClose={() => setShowPayment(false)}
+          courseTitle={selectedPlan.name}
+          userEmail={user?.email ?? undefined}
+        />
+      )}
     </div>
   );
 }

@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { Star, Clock, Video, BookOpen, Loader2, CheckCircle, ShieldCheck, CreditCard } from "lucide-react";
 import { useAuth } from "@/lib/firebase/AuthProvider";
 import { useRouter } from "next/navigation";
+import { T } from "@/components/TranslatedText";
+import { PaymentModal } from "@/components/PaymentModal";
 
 interface Course {
   id: string;
@@ -34,8 +36,10 @@ export function CourseGrid() {
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [choosingId, setChoosingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [showPayment, setShowPayment] = useState(false);
+  const [selectedCourseForPayment, setSelectedCourseForPayment] = useState<Course | null>(null);
 
-  // جلب الكورسات
+  // Fetch courses
   useEffect(() => {
     fetch("/api/courses")
       .then((r) => r.json())
@@ -66,7 +70,7 @@ export function CourseGrid() {
       .finally(() => setLoading(false));
   }, []);
 
-  // جلب الاشتراك النشط
+  // Fetch active subscription
   useEffect(() => {
     if (!user) return;
     fetch("/api/subscriptions")
@@ -107,37 +111,23 @@ export function CourseGrid() {
         setSubscription((prev) =>
           prev ? { ...prev, courses_used: (prev.courses_used || 0) + 1 } : prev
         );
-        setMessage(`تمت إضافة الكورس بنجاح!`);
+        setMessage("Course added successfully!");
       } else {
-        setMessage(data.error || "حدث خطأ");
+        setMessage(data.error || "An error occurred");
       }
     } catch {
-      setMessage("خطأ في الشبكة");
+      setMessage("Network error");
     } finally {
       setChoosingId(null);
       setTimeout(() => setMessage(""), 3000);
     }
   };
 
-  // ✅ الشراء عبر Shopier
-  const handleBuy = async (courseId: string) => {
+  // Open the manual payment modal
+  const handleBuy = (course: Course) => {
     if (!user) return;
-    try {
-      const res = await fetch("/api/shopier/create-payment-link", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ liveCourseId: courseId }),
-      });
-      const data = await res.json();
-      if (data.paymentUrl) {
-        window.open(data.paymentUrl, "_blank");
-      } else {
-        alert(data.error || "فشل في إنشاء رابط الدفع");
-      }
-    } catch {
-      alert("خطأ في الشبكة");
-    }
+    setSelectedCourseForPayment(course);
+    setShowPayment(true);
   };
 
   if (loading) {
@@ -150,7 +140,7 @@ export function CourseGrid() {
 
   return (
     <div className="space-y-6">
-      {/* رسالة للمشترك */}
+      {/* Message for subscribers */}
       {isSubscriber && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -159,28 +149,28 @@ export function CourseGrid() {
         >
           <ShieldCheck className="inline h-5 w-5 text-primary mr-2" />
           <span className="text-foreground font-medium">
-            أنت مشترك! يمكنك اختيار {remainingSlots} كورسات مجاناً
+            <T>{`You are subscribed! You can choose ${remainingSlots} courses for free`}</T>
           </span>
           {subscription && (
             <span className="text-muted-foreground text-sm ml-2">
-              (تنتهي في {new Date(subscription.expires_at).toLocaleDateString("ar-EG")})
+              <T>{`(Expires on ${new Date(subscription.expires_at).toLocaleDateString("en-US")})`}</T>
             </span>
           )}
         </motion.div>
       )}
 
-      {/* رسالة نجاح */}
+      {/* Success message */}
       {message && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-center text-sm font-medium text-primary"
         >
-          {message}
+          <T>{message}</T>
         </motion.div>
       )}
 
-      {/* شبكة الكورسات */}
+      {/* Course grid */}
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         {courses.map((c, i) => {
           const alreadyChosen = selectedCourses.includes(c.id);
@@ -195,7 +185,7 @@ export function CourseGrid() {
               transition={{ delay: i * 0.05 }}
               className="group overflow-hidden rounded-3xl border border-border bg-card shadow-elegant transition hover:-translate-y-1"
             >
-              {/* رأس البطاقة بتدرج الهوية */}
+              {/* Header with gradient */}
               <div className="relative h-32 bg-gradient-primary">
                 <div
                   className="absolute inset-0 opacity-20"
@@ -203,7 +193,7 @@ export function CourseGrid() {
                     background: "radial-gradient(circle at 30% 30%, white, transparent 60%)",
                   }}
                 />
-                {/* نوع الكورس */}
+                {/* Course type */}
                 <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs text-primary-foreground backdrop-blur">
                   {c.type === "Live Online" ? (
                     <Video className="h-3 w-3" />
@@ -212,17 +202,17 @@ export function CourseGrid() {
                   )}
                   {c.type}
                 </div>
-                {/* المستوى */}
+                {/* Level */}
                 <div className="absolute right-4 top-4 rounded-full bg-accent px-2.5 py-1 text-xs font-bold text-accent-foreground">
                   {c.level}
                 </div>
-                {/* السعر */}
+                {/* Price */}
                 <div className="absolute bottom-3 left-4 font-serif text-3xl text-primary-foreground">
                   ${c.price}
                 </div>
               </div>
 
-              {/* محتوى البطاقة */}
+              {/* Card content */}
               <div className="p-5 space-y-3">
                 <h3 className="font-serif text-lg leading-snug text-foreground">{c.title}</h3>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -234,14 +224,14 @@ export function CourseGrid() {
                   </span>
                 </div>
 
-                {/* أزرار الشراء / الاشتراك */}
+                {/* Buttons: buy / subscribe */}
                 {alreadyChosen ? (
                   <button
                     disabled
                     className="mt-4 w-full rounded-full bg-secondary text-secondary-foreground py-2.5 text-xs font-semibold flex items-center justify-center gap-2"
                   >
                     <CheckCircle size={14} />
-                    تمت الإضافة
+                    <T>Added</T>
                   </button>
                 ) : canChoose ? (
                   <button
@@ -252,24 +242,24 @@ export function CourseGrid() {
                     {isChoosing ? (
                       <Loader2 size={14} className="animate-spin" />
                     ) : null}
-                    مجاني للمشتركين
+                    <T>Free for Subscribers</T>
                   </button>
                 ) : c.price > 0 ? (
                   <div className="mt-4">
                     {user ? (
                       <button
-                        onClick={() => handleBuy(c.id)}
+                        onClick={() => handleBuy(c)}
                         className="w-full rounded-full bg-accent py-2.5 text-xs font-semibold text-accent-foreground transition hover:bg-accent/90 flex items-center justify-center gap-2"
                       >
                         <CreditCard size={14} />
-                        اشتر الآن
+                        <T>Buy Now</T>
                       </button>
                     ) : (
                       <button
                         onClick={() => router.push("/login")}
                         className="w-full rounded-full bg-primary py-2.5 text-xs font-semibold text-primary-foreground transition"
                       >
-                        سجّل الدخول للشراء
+                        <T>Login to Purchase</T>
                       </button>
                     )}
                   </div>
@@ -278,7 +268,7 @@ export function CourseGrid() {
                     onClick={() => router.push(`/courses/${c.id}`)}
                     className="mt-4 w-full rounded-full bg-primary py-2.5 text-xs font-semibold text-primary-foreground transition"
                   >
-                    التحق مجاناً
+                    <T>Enroll for Free</T>
                   </button>
                 )}
               </div>
@@ -286,6 +276,16 @@ export function CourseGrid() {
           );
         })}
       </div>
+
+      {/* Payment Modal */}
+      {selectedCourseForPayment && (
+        <PaymentModal
+          isOpen={showPayment}
+          onClose={() => setShowPayment(false)}
+          courseTitle={selectedCourseForPayment.title}
+          userEmail={user?.email ?? undefined}
+        />
+      )}
     </div>
   );
 }
