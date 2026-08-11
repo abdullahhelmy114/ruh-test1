@@ -9,9 +9,8 @@ export async function GET(
   try {
     const { id } = params;
 
-    // 1. جلب الكتاب
     const [book] = await sql`
-      SELECT id, title, author, description, cover_url, year, pages_count, created_at
+      SELECT id, title, author, description, cover_url, created_at
       FROM library_books
       WHERE id = ${id}
     `;
@@ -19,15 +18,26 @@ export async function GET(
       return NextResponse.json({ error: "Book not found" }, { status: 404 });
     }
 
-    // 2. جلب التصنيفات
-    const categories = await sql`
-      SELECT c.id, c.name, c.slug
-      FROM book_categories bc
-      JOIN categories c ON c.id = bc.category_id
-      WHERE bc.book_id = ${id}
-    `;
+    // جلب التصنيفات (مع تأكيد النوع لتجنب خطأ TS)
+    let categories: { id: string; name: string; slug: string }[] = [];
+    try {
+      const cats = await sql`
+        SELECT c.id, c.name, c.slug
+        FROM book_categories bc
+        JOIN categories c ON c.id = bc.category_id
+        WHERE bc.book_id = ${id}
+      `;
+      // تأكيد النوع يدويًا
+      categories = (cats as any[]).map((c: any) => ({
+        id: c.id as string,
+        name: c.name as string,
+        slug: c.slug as string,
+      }));
+    } catch (e) {
+      console.warn("Could not fetch categories:", e);
+    }
 
-    // 3. جلب الصفحات
+    // جلب الصفحات
     const pages = await sql`
       SELECT page_number, image_url
       FROM library_pages
@@ -35,19 +45,13 @@ export async function GET(
       ORDER BY page_number ASC
     `;
 
-    // 4. إرجاع النتيجة الموحدة
     return NextResponse.json({
       book: {
         ...book,
-        categories: categories.map((c) => ({
-          id: c.id,
-          name: c.name,
-          slug: c.slug,
-        })),
-        // حقل category (للتوافق مع الكود القديم) يأخذ slug أول تصنيف
+        categories: categories.map((c) => ({ id: c.id, name: c.name, slug: c.slug })),
         category: categories[0]?.slug || null,
       },
-      pages: pages.map((p) => ({
+      pages: (pages as any[]).map((p: any) => ({
         page_number: p.page_number,
         image_url: p.image_url,
       })),
