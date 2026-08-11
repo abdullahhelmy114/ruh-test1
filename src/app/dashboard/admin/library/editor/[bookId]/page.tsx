@@ -81,7 +81,7 @@ export default function BookEditorPage() {
 
     const load = async () => {
       try {
-        const res = await authFetch(`/api/library/books/${params.bookId}`);
+        const res = await authFetch(`/api/library/books?id=${params.bookId}`);
         if (!res.ok) throw new Error("Book not found");
         const data = await res.json();
         setBookTitle(data.book?.title || "Untitled");
