@@ -88,7 +88,7 @@ export default function BookEditorPage() {
         setPages(data.pages || []);
 
         // تحميل التراكبات
-        const overlaysRes = await authFetch(`/api/library/page-overlay/${params.bookId}`);
+        const overlaysRes = await authFetch(`/api/library/page-overlay?bookId=${params.bookId}`);
         if (overlaysRes.ok) {
           const overlaysData = await overlaysRes.json();
           setOverlays(overlaysData.overlays || []);
@@ -146,7 +146,7 @@ export default function BookEditorPage() {
       if (res.ok) {
         toast.success(editingOverlay ? "Overlay updated" : "Overlay added");
         // إعادة تحميل التراكبات
-        const overlaysRes = await authFetch(`/api/library/page-overlay/${params.bookId}`);
+        const overlaysRes = await authFetch(`/api/library/page-overlay?bookId=${params.bookId}`);
         if (overlaysRes.ok) {
           const overlaysData = await overlaysRes.json();
           setOverlays(overlaysData.overlays || []);
