@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Clock, Calendar, User, Play, X, CreditCard, Hourglass } from "lucide-react";
+import { Clock, Calendar, User, BadgeCheck, Timer, CreditCard, Play, X } from "lucide-react";
 import { T } from "@/components/TranslatedText";
 import { useAuth } from "@/lib/firebase/AuthProvider";
 import { PaymentModal } from "@/components/PaymentModal";
@@ -29,79 +29,52 @@ function getYouTubeEmbedUrl(url: string): string {
   return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : "";
 }
 
-// ──────────────────────────────────────────────
-//  Advanced Countdown Timer with progress bar
-// ──────────────────────────────────────────────
-function AdvancedCountdown({ targetDate }: { targetDate: string }) {
+/* ------------------------------------------------------------------ */
+/*  Advanced Countdown Timer (لإظهار العد التنازلي)                   */
+/* ------------------------------------------------------------------ */
+function CountdownTimer({ targetDate }: { targetDate: string }) {
   const [now, setNow] = useState(Date.now());
 
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+  useState(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  });
 
-  const launch = useMemo(() => new Date(targetDate), [targetDate]);
-  const diff = launch.getTime() - now;
-
+  const diff = new Date(targetDate).getTime() - now;
   if (diff <= 0) return null;
 
-  const totalSeconds = Math.floor(diff / 1000);
-  const days = Math.floor(totalSeconds / 86400);
-  const hours = Math.floor((totalSeconds % 86400) / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const minutes = Math.floor((diff % 3600000) / 60000);
+  const seconds = Math.floor((diff % 1000) / 1000);
 
-  // An imaginary progress:  100%  –  (remaining / total) * 100
-  const totalLaunchWindow = 30 * 24 * 60 * 60 * 1000; // 30 days reference
-  const progress = Math.max(0, Math.min(100, ((totalLaunchWindow - diff) / totalLaunchWindow) * 100));
+  const units = [
+    { value: days, label: <T>Days</T> },
+    { value: hours, label: <T>Hrs</T> },
+    { value: minutes, label: <T>Min</T> },
+    { value: seconds, label: <T>Sec</T> },
+  ];
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent">
-        <Hourglass size={14} className="animate-pulse" />
-        <T>Launching in</T>
-      </div>
-
-      {/* Countdown digits */}
-      <div className="flex items-center justify-center gap-3 text-2xl font-bold tabular-nums text-foreground">
-        <div className="flex flex-col items-center">
-          <span className="bg-accent/10 text-accent px-2 py-1 rounded-lg min-w-[3rem] text-center">{days.toString().padStart(2, "0")}</span>
-          <span className="text-[10px] text-muted-foreground mt-1">Days</span>
-        </div>
-        <span className="text-muted-foreground">:</span>
-        <div className="flex flex-col items-center">
-          <span className="bg-accent/10 text-accent px-2 py-1 rounded-lg min-w-[3rem] text-center">{hours.toString().padStart(2, "0")}</span>
-          <span className="text-[10px] text-muted-foreground mt-1">Hrs</span>
-        </div>
-        <span className="text-muted-foreground">:</span>
-        <div className="flex flex-col items-center">
-          <span className="bg-accent/10 text-accent px-2 py-1 rounded-lg min-w-[3rem] text-center">{minutes.toString().padStart(2, "0")}</span>
-          <span className="text-[10px] text-muted-foreground mt-1">Min</span>
-        </div>
-        <span className="text-muted-foreground">:</span>
-        <div className="flex flex-col items-center">
-          <span className="bg-accent/10 text-accent px-2 py-1 rounded-lg min-w-[3rem] text-center">{seconds.toString().padStart(2, "0")}</span>
-          <span className="text-[10px] text-muted-foreground mt-1">Sec</span>
-        </div>
-      </div>
-
-      {/* Progress bar */}
-      <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
+    <div className="grid grid-cols-4 gap-2">
+      {units.map((unit) => (
         <div
-          className="h-full bg-gradient-to-r from-accent to-primary transition-all duration-1000 ease-linear rounded-full"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-      <p className="text-[10px] text-muted-foreground text-center">
-        {launch.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
-      </p>
+          key={unit.label?.toString()}
+          className="rounded-xl border border-accent/30 bg-accent/10 px-1 py-2 text-center"
+        >
+          <div className="font-serif font-semibold tabular-nums text-accent text-lg">
+            {String(unit.value).padStart(2, "0")}
+          </div>
+          <div className="text-[10px] text-muted-foreground">{unit.label}</div>
+        </div>
+      ))}
     </div>
   );
 }
 
-// ──────────────────────────────────────────────
-//  Main CourseCard component
-// ──────────────────────────────────────────────
+/* ------------------------------------------------------------------ */
+/*  Main CourseCard Component                                          */
+/* ------------------------------------------------------------------ */
 export function CourseCard({ course }: { course: Course }) {
   const { user } = useAuth();
   const [showVideo, setShowVideo] = useState(false);
@@ -120,22 +93,28 @@ export function CourseCard({ course }: { course: Course }) {
   return (
     <>
       <Link href={`/courses/${course.id}`} className="block group h-full">
-        <div className="glass rounded-2xl overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer border border-border/50 h-full flex flex-col">
-
-          {/* ─── Thumbnail / Video Section ─── */}
-          <div className="relative w-full h-48 bg-gradient-to-br from-primary/20 to-accent/20">
+        <article
+          className="flex min-h-[450px] cursor-pointer flex-col gap-4 rounded-2xl border border-border/50 bg-card/60 p-5 backdrop-blur-md transition-all duration-300 hover:-translate-y-1.5 hover:border-accent/60 hover:shadow-[0_28px_70px_-30px_rgba(45,90,62,0.2)] group"
+        >
+          {/* ─── Thumbnail ─── */}
+          <div className="relative h-40 w-full overflow-hidden rounded-xl bg-gradient-to-br from-primary/30 to-accent/20">
             {course.thumbnail_url ? (
               <Image
                 src={course.thumbnail_url}
                 alt={course.title}
                 fill
-                className="object-cover"
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
                 unoptimized
               />
             ) : (
-              <div className="flex items-center justify-center h-full text-primary/50">
-                <Play size={48} />
-              </div>
+              <>
+                <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_30%_30%,var(--gold),transparent_70%)]" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="flex size-14 rotate-45 items-center justify-center border border-accent/40">
+                    <Play className="size-6 -rotate-45 text-accent" />
+                  </div>
+                </div>
+              </>
             )}
             {embedUrl && (
               <button
@@ -151,87 +130,77 @@ export function CourseCard({ course }: { course: Course }) {
                 </div>
               </button>
             )}
-            {/* Level badge */}
+          </div>
+
+          {/* ─── Instructor & Level ─── */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
+              <span className="truncate">{course.instructor_name || "Dr. Jehan Ali Ziad"}</span>
+              <BadgeCheck className="size-4 shrink-0 text-accent" />
+            </div>
             {course.level && (
-              <span className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-0.5 rounded-full text-xs font-bold">
+              <span className="shrink-0 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-[11px] text-accent">
                 {course.level}
               </span>
             )}
-            {/* Upcoming badge */}
-            {!isLaunched && launchDate && (
-              <span className="absolute top-2 right-2 bg-accent text-accent-foreground px-2 py-0.5 rounded-full text-xs font-bold">
-                <T>Upcoming</T>
+          </div>
+
+          {/* ─── Title ─── */}
+          <h3 className="font-serif text-2xl font-semibold leading-snug text-foreground line-clamp-2">
+            {course.title}
+          </h3>
+
+          {/* ─── Description ─── */}
+          {course.description && (
+            <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+              {course.description}
+            </p>
+          )}
+
+          {/* ─── Meta ─── */}
+          <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+            {course.course_duration && (
+              <span className="inline-flex items-center gap-1.5">
+                <Calendar className="size-4 text-accent" /> {course.course_duration}
+              </span>
+            )}
+            {course.lesson_duration && (
+              <span className="inline-flex items-center gap-1.5">
+                <Clock className="size-4 text-accent" /> {course.lesson_duration}
               </span>
             )}
           </div>
 
-          {/* ─── Card Body ─── */}
-          <div className="p-5 flex flex-col flex-1 space-y-4">
-            {/* Title & Instructor */}
-            <div>
-              <h3 className="font-bold text-xl leading-tight text-foreground line-clamp-2">{course.title}</h3>
-              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                <User size={14} />
-                {course.instructor_name || "Dr. Jehan Ali Ziad"}
+          {/* ─── Countdown ─── */}
+          {launchDate && !isLaunched && (
+            <div className="space-y-2">
+              <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Timer className="size-3.5 text-accent" /> <T>Starts in</T>
               </p>
+              <CountdownTimer targetDate={course.launch_date!} />
             </div>
+          )}
 
-            {/* Description */}
-            {course.description && (
-              <p className="text-sm text-muted-foreground line-clamp-3">{course.description}</p>
-            )}
-
-            {/* Meta info */}
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              {course.course_duration && (
-                <span className="flex items-center gap-1">
-                  <Calendar size={14} /> {course.course_duration}
-                </span>
-              )}
-              {course.lesson_duration && (
-                <span className="flex items-center gap-1">
-                  <Clock size={14} /> {course.lesson_duration}
-                </span>
-              )}
+          {/* ─── Price & CTA ─── */}
+          <div className="mt-auto space-y-4 pt-2">
+            <div className="font-serif text-3xl font-semibold text-accent">
+              ${Number(course.price).toFixed(2)}
             </div>
-
-            {/* Countdown (if not launched) */}
-            {launchDate && !isLaunched && (
-              <AdvancedCountdown targetDate={course.launch_date!} />
-            )}
-
-            {/* Footer: Price & Action */}
-            <div className="flex items-center justify-between mt-auto pt-3 border-t border-border/50">
-              <div className="flex items-baseline gap-2">
-                <span className="text-xl font-bold text-primary">
-                  ${course.price}
-                </span>
-                {course.old_price && (
-                  <span className="text-sm text-muted-foreground line-through">
-                    ${course.old_price}
-                  </span>
-                )}
-              </div>
-              <button
-                onClick={handleBuy}
-                className="rounded-full bg-primary text-primary-foreground px-4 py-1.5 text-xs font-semibold hover:bg-primary/90 transition flex items-center gap-1"
-              >
-                <CreditCard size={14} />
-                {isLaunched ? <T>Buy Now</T> : <T>Details</T>}
-              </button>
-            </div>
+            <button
+              onClick={handleBuy}
+              className="w-full rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors py-2.5 text-sm font-semibold"
+            >
+              {isLaunched ? <T>Buy Now</T> : <T>View Details</T>}
+            </button>
           </div>
-        </div>
+        </article>
       </Link>
 
-      {/* ─── Video Popup ─── */}
+      {/* Video Modal */}
       {showVideo && embedUrl && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="relative w-full max-w-4xl bg-black rounded-2xl overflow-hidden">
-            <button
-              onClick={() => setShowVideo(false)}
-              className="absolute top-3 right-3 z-10 bg-white/20 hover:bg-white/40 text-white rounded-full p-1.5"
-            >
+            <button onClick={() => setShowVideo(false)} className="absolute top-3 right-3 z-10 bg-white/20 hover:bg-white/40 text-white rounded-full p-1.5">
               <X size={20} />
             </button>
             <div className="aspect-video">
@@ -241,7 +210,7 @@ export function CourseCard({ course }: { course: Course }) {
         </div>
       )}
 
-      {/* ─── Payment Modal ─── */}
+      {/* Payment Modal */}
       <PaymentModal
         isOpen={showPayment}
         onClose={() => setShowPayment(false)}

@@ -2,30 +2,25 @@ import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const category = searchParams.get('category');
-
   try {
-    let query = sql`
-      SELECT c.id, c.title, c.description, c.level, c.price, c.old_price,
-             c.course_duration, c.lesson_duration, c.instructor_name,
-             c.intro_video_url, c.thumbnail_url, c.launch_date, c.theme,
-             cat.name AS category_name, cat.slug AS category_slug
-      FROM courses c
-      JOIN categories cat ON c.category_id = cat.id
-      WHERE c.is_published = true
+    const courses = await sql`
+      SELECT id, title, description, level, price, old_price,
+             course_duration, lesson_duration, instructor_name,
+             intro_video_url, thumbnail_url, launch_date, theme
+      FROM courses
+      WHERE is_published = true
+      ORDER BY created_at DESC
     `;
 
-    if (category) {
-      query = sql`${query} AND cat.slug = ${category}`;
-    }
+    const formatted = courses.map(c => ({
+      ...c,
+      price: Number(c.price),
+      old_price: c.old_price ? Number(c.old_price) : null,
+    }));
 
-    query = sql`${query} ORDER BY c.created_at DESC`;
-
-    const courses = await query;
-    return NextResponse.json({ courses });
+    return NextResponse.json({ courses: formatted });
   } catch (error) {
     console.error('Courses GET error:', error);
-    return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
