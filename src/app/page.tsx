@@ -11,7 +11,6 @@ import {
   BookOpen,
   Sparkles,
   Star,
-  TrendingUp,
   Shield,
   Globe,
   GraduationCap,
@@ -19,7 +18,6 @@ import {
   MessageCircle,
   Calendar,
   ChevronRight,
-  Play,
   PackageOpen,
   ScrollText,
 } from "lucide-react";
@@ -98,46 +96,30 @@ export default function HomePage() {
 
   return (
     <div className="overflow-hidden">
-      {/* ─── Hero (تصميم وهمي مطوّر) ──────────────────────── */}
+      {/* ─── Hero ─────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
-        {/* Ambient Radial Spotlight – يخرج من خلف كارت "اقرأ" ويمتد لحواف الصفحة */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-20"
-          style={{
-            background:
-              "radial-gradient(900px 700px at 70% 40%, var(--gold) / 15%, transparent 70%)",
-          }}
-        />
-
-        {/* Ambient Blurred Orbs – كرات ضبابية تكمل الإضاءة */}
         <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute -top-24 left-1/3 h-96 w-96 rounded-full bg-accent/20 blur-3xl" />
+          <div className="absolute -top-24 left-1/3 h-96 w-96 rounded-full bg-gold/20 blur-3xl" />
           <div className="absolute right-0 top-40 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
         </div>
 
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-20 md:grid-cols-2 md:px-8 md:py-28">
-          {/* Left Text */}
           <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
           >
-          <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-            <Sparkles className="h-3.5 w-3.5" />
-            <T>Est. by Dr. Jehan Ali Ahmed</T>
-          </div>
+            <div className="text-xs uppercase tracking-[0.3em] text-gold ornament">
+              <T>Est. by Dr. Gehan Ali Ahmed</T>
+            </div>
 
-            <h1 className="mt-6 font-serif text-5xl font-bold leading-[1.1] tracking-tight md:text-7xl">
-              <T>The art of</T>{" "}
-              <span className="bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
-                Arabic
-              </span>
-              ,<br />
+            <h1 className="mt-5 font-serif text-5xl leading-[1.05] md:text-7xl">
+              <T>The art of</T> <em className="text-gold">Arabic</em>,
+              <br />
               <T>taught with reverence.</T>
             </h1>
 
-            <p className="mt-6 max-w-lg text-lg leading-relaxed text-muted-foreground">
+            <p className="mt-6 max-w-lg text-lg text-muted-foreground">
               <T>
                 An elite academy for those who seek mastery of the Arabic
                 language — classical, modern, and Quranic — through live
@@ -145,36 +127,30 @@ export default function HomePage() {
               </T>
             </p>
 
-            <div className="mt-8 flex flex-wrap items-center gap-4">
+            <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/signup"
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-bold text-primary-foreground shadow-elegant transition hover:scale-105 hover:bg-primary/90"
+                className="inline-flex items-center gap-2 rounded-full gradient-emerald px-6 py-3 text-sm font-semibold text-primary-foreground shadow-elegant transition hover:scale-[1.02]"
               >
-                <T>Begin Your Journey</T>
-                <ArrowRight className="h-4 w-4" />
+                <T>Begin Your Journey</T> <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/marketplace"
-                className="inline-flex items-center gap-2 rounded-full border-2 border-primary/40 bg-background/50 px-7 py-3.5 text-sm font-semibold backdrop-blur-sm transition hover:border-primary hover:bg-primary/10"
+                className="inline-flex items-center gap-2 rounded-full border bg-card px-6 py-3 text-sm font-semibold transition hover:bg-accent"
               >
-                <Play className="h-4 w-4 text-secondary-foreground" />
                 <T>Browse Courses</T>
               </Link>
             </div>
 
-            {/* Stats */}
-            <div className="mt-10 grid grid-cols-3 gap-6 border-t border-border/50 pt-8">
+            <div className="mt-10 grid grid-cols-3 gap-6 border-t pt-6">
               {[
-                { v: stats.students, l: "Students", icon: Users },
-                { v: stats.completion, l: "Completion", icon: TrendingUp },
-                { v: stats.experience, l: "Years Exp.", icon: Calendar },
+                { v: stats.students, l: "Students" },
+                { v: stats.completion, l: "Completion" },
+                { v: stats.experience, l: "Years Teaching" },
               ].map((s) => (
-                <div key={s.l} className="text-center">
-                  <s.icon className="mx-auto h-5 w-5 text-accent-foreground" />
-                  <div className="mt-1 font-serif text-2xl font-bold text-foreground">
-                    {s.v}
-                  </div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <div key={s.l}>
+                  <div className="font-serif text-2xl text-gold">{s.v}</div>
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground">
                     <T>{s.l}</T>
                   </div>
                 </div>
@@ -182,22 +158,21 @@ export default function HomePage() {
             </div>
           </motion.div>
 
-          {/* Right Card (الآية) */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative"
           >
             <div className="absolute -inset-6 rounded-[2.5rem] bg-gold/20 blur-2xl" />
-            <div className="relative overflow-hidden rounded-[2.5rem] bg-linear-to-br from-primary to-primary/90 p-10 text-primary-foreground shadow-elegant">
+            <div className="relative overflow-hidden rounded-[2.5rem] gradient-hero p-10 text-primary-foreground shadow-elegant">
               <div
-                className="text-right text-7xl leading-tight text-primary-foreground md:text-8xl"
+                className="font-arabic text-right text-7xl leading-tight"
                 style={{ fontFamily: "Amiri, serif" }}
               >
                 ٱقْرَأْ
               </div>
-              <div className="mt-2 text-right text-sm text-accent">
+              <div className="mt-2 text-right text-sm text-gold">
                 <T>Read</T> · <T>The first command</T>
               </div>
 
@@ -207,11 +182,14 @@ export default function HomePage() {
                   { icon: <Users className="h-4 w-4" />, t: "Live Cohorts via Zoom" },
                   { icon: <BookOpen className="h-4 w-4" />, t: "A1 — C2 Curriculum" },
                 ].map((f) => (
-                  <div key={f.t} className="flex items-center gap-3">
-                    <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent text-primary">
+                  <div
+                    key={f.t}
+                    className="flex items-center gap-3 rounded-2xl bg-white/5 p-3 backdrop-blur"
+                  >
+                    <div className="grid h-9 w-9 place-items-center rounded-xl bg-gold text-gold-foreground">
                       {f.icon}
                     </div>
-                    <span className="text-sm text-primary-foreground/80">
+                    <span className="text-sm">
                       <T>{f.t}</T>
                     </span>
                   </div>
@@ -222,10 +200,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── Pillars (ثلاثة أعمدة) ─────────────────────────── */}
+      {/* ─── Pillars ──────────────────────────────────────── */}
       <section className="mx-auto max-w-7xl px-4 py-16 md:px-8">
         <div className="text-center">
-          <div className="text-xs uppercase tracking-[0.3em] text-accent ornament">
+          <div className="text-xs uppercase tracking-[0.3em] text-gold ornament">
             <T>The Academy</T>
           </div>
           <h2 className="mt-3 font-serif text-4xl">
@@ -234,21 +212,9 @@ export default function HomePage() {
         </div>
         <div className="mt-10 grid gap-6 md:grid-cols-3">
           {[
-            {
-              t: "Curriculum",
-              d: "Built on classical pedagogy and modern linguistic science.",
-              i: <BookOpen className="h-6 w-6" />,
-            },
-            {
-              t: "Mentorship",
-              d: "Live guidance from certified scholars in intimate cohorts.",
-              i: <Users className="h-6 w-6" />,
-            },
-            {
-              t: "Certification",
-              d: "Earn recognized credentials to teach the Arabic language.",
-              i: <Award className="h-6 w-6" />,
-            },
+            { t: "Curriculum", d: "Built on classical pedagogy and modern linguistic science.", i: <BookOpen /> },
+            { t: "Mentorship", d: "Live guidance from certified scholars in intimate cohorts.", i: <Users /> },
+            { t: "Certification", d: "Earn recognized credentials to teach the Arabic language.", i: <Award /> },
           ].map((p, i) => (
             <motion.div
               key={p.t}
@@ -256,15 +222,15 @@ export default function HomePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.1 }}
-              className="group rounded-3xl border bg-card p-8 shadow-elegant transition-all hover:-translate-y-1 hover:shadow-elegant"
+              className="rounded-3xl border bg-card p-8 shadow-elegant"
             >
-              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-linear-to-br from-primary to-primary/80 text-primary-foreground shadow-elegant group-hover:scale-110 transition-transform">
+              <div className="grid h-12 w-12 place-items-center rounded-2xl gradient-emerald text-primary-foreground">
                 {p.i}
               </div>
               <h3 className="mt-5 font-serif text-2xl">
                 <T>{p.t}</T>
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              <p className="mt-2 text-sm text-muted-foreground">
                 <T>{p.d}</T>
               </p>
             </motion.div>
@@ -601,48 +567,42 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── Final CTA (نفس روح التصميم الوهمي) ────────────── */}
-      <section className="py-20">
-        <div className="mx-auto max-w-4xl px-4 text-center md:px-8">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="relative overflow-hidden rounded-[3rem] bg-linear-to-br from-primary to-primary/90 p-10 shadow-elegant md:p-16"
-          >
-            <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-accent/20 blur-3xl" />
-            <div className="absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-background/10 blur-2xl" />
-            <div className="relative z-10">
-              <GraduationCap className="mx-auto h-12 w-12 text-accent" />
-              <h2 className="mt-6 font-serif text-4xl font-bold text-primary-foreground md:text-5xl">
-                <T>
-                  A tradition of excellence, now at your fingertips.
-                </T>
-              </h2>
-              <p className="mt-4 text-lg text-primary-foreground/70">
-                <T>
-                  Whether you&apos;re beginning your first letter or refining your
-                  scholarly voice, the Academy welcomes you.
-                </T>
-              </p>
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-                <Link
-                  href="/signup"
-                  className="inline-flex items-center gap-2 rounded-full bg-accent px-8 py-4 text-sm font-bold text-accent-foreground shadow-elegant transition hover:scale-105 hover:bg-accent/90"
-                >
-                  <T>Enroll Today</T> <ArrowRight className="h-4 w-4" />
-                </Link>
-                <Link
-                  href="/marketplace"
-                  className="inline-flex items-center gap-2 rounded-full border-2 border-primary/30 px-8 py-4 text-sm font-semibold text-primary-foreground backdrop-blur-sm transition hover:bg-background/10"
-                >
-                  <T>Explore Courses</T>
-                </Link>
-              </div>
+      {/* ─── Final CTA ────────────────────────────────────── */}
+      <section className="mx-auto max-w-7xl px-4 pb-20 md:px-8">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="relative overflow-hidden rounded-3xl gradient-hero p-10 text-primary-foreground shadow-elegant md:p-16"
+        >
+          <Sparkles className="absolute right-10 top-10 h-8 w-8 text-gold" />
+          <div className="relative max-w-2xl">
+            <h2 className="font-serif text-4xl md:text-5xl">
+              <T>A tradition of excellence, now at your fingertips.</T>
+            </h2>
+            <p className="mt-4 text-primary-foreground/80">
+              <T>
+                Whether you&apos;re beginning your first letter or refining your
+                scholarly voice, the Academy welcomes you.
+              </T>
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/signup"
+                className="inline-flex items-center gap-2 rounded-full gradient-gold px-6 py-3 text-sm font-semibold text-gold-foreground shadow-gold"
+              >
+                <T>Enroll Today</T> <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/marketplace"
+                className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-white/10"
+              >
+                <T>Explore Courses</T>
+              </Link>
             </div>
-          </motion.div>
-        </div>
+          </div>
+        </motion.div>
       </section>
     </div>
   );

@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // 🚀 هذا هو السطر السحري الذي سيحل المشكلة ويضغط حجم المشروع
-  output: 'standalone', 
-  
+  output: 'standalone',
+
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -12,7 +12,14 @@ const nextConfig = {
   experimental: {
     memoryBasedWorkersCount: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "encrypted-tbn0.gstatic.com",
+      },
+    ],
+  },
 };
 
-export default nextConfig; // إذا كان الملف ينتهي بـ .ts أو .mjs
-// module.exports = nextConfig; // استخدم هذا السطر فقط إذا كان الملف ينتهي بـ .js
+export default nextConfig;

@@ -143,23 +143,28 @@ export function Navbar() {
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
-          <Link href="/" className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-full gradient-primary shadow-elegant p-1.5">
-              <picture>
-                <source srcSet="/light.svg" media="(prefers-color-scheme: light)" />
-                <source srcSet="/dark.svg" media="(prefers-color-scheme: dark)" />
-              <img src="/light.svg" alt="Ruhulqudus" className="h-full w-full object-contain" />
-              </picture>
-            </div>
-            <div className="leading-tight">
-              <div className="font-serif text-lg font-semibold text-foreground">
-                <T>Ruhulqudus</T>
-              </div>
-              <div className="text-[10px] uppercase tracking-[0.2em] text-foreground">
-                <T>Academy</T>
-                </div>
-              </div>
-            </Link>
+<Link href="/" className="flex items-center gap-3">
+  {/* أيقونة فاتحة تظهر في Light Mode */}
+  <img
+    src="/light.svg"
+    alt="Ruhulqudus"
+    className="h-12 w-12 dark:hidden"
+  />
+  {/* أيقونة داكنة تظهر في Dark Mode */}
+  <img
+    src="/dark.svg"
+    alt="Ruhulqudus"
+    className="h-12 w-12 hidden dark:block"
+  />
+  <div className="leading-tight">
+    <div className="font-serif text-lg font-semibold text-foreground">
+      <T>Ruhulqudus</T>
+    </div>
+    <div className="text-[10px] uppercase tracking-[0.2em] text-foreground">
+      <T>Academy</T>
+    </div>
+  </div>
+</Link>
         </div>
 
         {/* Navigation (desktop) – هوية كريمي × كحلي */}
