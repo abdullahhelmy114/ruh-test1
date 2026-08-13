@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Marketplace Page — Ruh-Ul-Qudus Academy (v3)
+ * Marketplace Page — Ruhulqudus Academy (v3)
  * خلفية سادة + بقع برتقالية شيك + Parallax scrolling
  * على الكمبيوتر: شريط البحث والإحصائيات جنب بعض
  */
@@ -162,7 +162,7 @@ export default function MarketplacePage() {
               }}
             >
               <Sparkles size={13} />
-              <T>Ruh-Ul-Qudus Academy</T>
+              <T>Ruhulqudus Academy</T>
             </span>
 
             <h1 className="mt-6 font-serif text-5xl font-bold leading-[1.08] tracking-tight text-foreground md:text-7xl">
@@ -361,7 +361,7 @@ export default function MarketplacePage() {
             </div>
 
             {loading ? (
-              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-[6px] sm:grid-cols-2 xl:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div
                     key={i}
@@ -406,7 +406,7 @@ export default function MarketplacePage() {
                 )}
               </motion.div>
             ) : (
-              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-[6px] sm:grid-cols-2 xl:grid-cols-3">
                 {courses.map((course, i) => (
                   <motion.div
                     key={course.id}

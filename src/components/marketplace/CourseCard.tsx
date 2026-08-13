@@ -1,10 +1,9 @@
 "use client";
 
 /**
- * CourseCard — Ruh-Ul-Qudus Academy
- * الهوية الجديدة: Deep Emerald × Gold
- * يعتمد على التوكنز الدلالية في globals.css فقط
- * (bg-card / text-foreground / text-gold / bg-primary ...) بدون ألوان ثابتة.
+ * CourseCard v7 — Ruh-Ul-Qudus Academy
+ * كارت رفيع وأنيق: حافة ذهبية شعرية + توهج ذهبي ناعم عند المرور
+ * بدون إطار أخضر/برتقالي — يعتمد التوكنز الدلالية فقط (globals.css)
  */
 
 import { useEffect, useState } from "react";
@@ -79,16 +78,18 @@ function CountdownTimer({ targetDate }: { targetDate: string }) {
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-2" dir="rtl">
+    <div className="grid grid-cols-4 gap-1.5" dir="rtl">
       {units.map((u) => (
         <div
           key={u.l}
-          className="rounded-xl border border-gold/30 bg-gold/10 px-1 py-2 text-center backdrop-blur-sm"
+          className="rounded-lg border border-gold/25 bg-gold/[0.07] px-1 py-2 text-center shadow-[inset_0_1px_0_0_rgba(255,255,255,.06)]"
         >
           <div className="font-serif text-lg leading-none tabular-nums text-gold">
             {String(u.v).padStart(2, "0")}
           </div>
-          <div className="mt-1 text-[10px] text-muted-foreground">{u.l}</div>
+          <div className="mt-1 text-[10px] tracking-wide text-muted-foreground">
+            {u.l}
+          </div>
         </div>
       ))}
     </div>
@@ -145,39 +146,61 @@ export function CourseCard({ course }: { course: Course }) {
             setShowVideo(true);
           }
         }}
-        className={`group mx-auto flex min-h-[610px] w-[80%] flex-col gap-4${embedUrl ? " cursor-pointer" : ""} rounded-2xl border border-border/60 bg-card/90 p-4 shadow-[0_20px_60px_-25px_rgba(0,0,0,.35)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-gold/50`}
+        className={`group relative mx-auto flex min-h-[610px] w-[80%] flex-col gap-4 overflow-hidden rounded-2xl border border-gold/20 bg-card/90 p-4 shadow-[0_1px_0_0_rgba(255,255,255,.06)_inset,0_18px_45px_-28px_rgba(0,0,0,.45)] backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-gold/45 hover:shadow-[0_1px_0_0_rgba(255,255,255,.08)_inset,0_28px_60px_-26px_rgba(0,0,0,.5)]${
+          embedUrl ? " cursor-pointer" : ""
+        }`}
       >
-        {/* ─── Thumbnail ─── */}
-        <div className="block">
-          <div className="relative mx-auto h-36 w-[98%] overflow-hidden rounded-xl">
-            {course.thumbnail_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={course.thumbnail_url}
-                alt={course.title}
-                className="h-full w-full rounded-xl object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-            ) : (
-              <Thumbnail seed={seed} />
-            )}
+        {/* توهج ذهبي علوي ناعم */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 -top-24 h-40 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          style={{
+            background:
+              "radial-gradient(60% 100% at 50% 100%, var(--gold, #C9A84C), transparent 70%)",
+            filter: "blur(28px)",
+          }}
+        />
+        {/* خط ذهبي رفيع أعلى الكارت */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-l from-transparent via-gold/60 to-transparent"
+        />
 
-            {embedUrl && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setShowVideo(true);
-                }}
-                aria-label="مشاهدة الفيديو التعريفي"
-                className="absolute inset-0 flex items-center justify-center rounded-xl bg-primary/50 opacity-0 backdrop-blur-[2px] transition-opacity group-hover:opacity-100"
-              >
-                <span className="rounded-full border border-gold/50 bg-gold/20 p-3">
-                  <Play className="h-5 w-5 text-gold" />
-                </span>
-              </button>
-            )}
-          </div>
+        {/* ─── Thumbnail ─── */}
+        <div className="relative mx-auto h-36 w-[98%] overflow-hidden rounded-xl ring-1 ring-gold/15">
+          {course.thumbnail_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={course.thumbnail_url}
+              alt={course.title}
+              className="h-full w-full rounded-xl object-cover transition-transform duration-700 group-hover:scale-[1.07]"
+            />
+          ) : (
+            <Thumbnail seed={seed} />
+          )}
+
+          {/* تدرّج سفلي لعمق الصورة */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-t from-background/45 via-transparent to-transparent"
+          />
+
+          {embedUrl && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowVideo(true);
+              }}
+              aria-label="مشاهدة الفيديو التعريفي"
+              className="absolute inset-0 flex items-center justify-center rounded-xl bg-primary/45 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100"
+            >
+              <span className="rounded-full border border-gold/50 bg-gold/20 p-3 shadow-lg">
+                <Play className="h-5 w-5 text-gold" />
+              </span>
+            </button>
+          )}
         </div>
 
         {/* ─── Instructor & Level ─── */}
@@ -187,32 +210,35 @@ export function CourseCard({ course }: { course: Course }) {
             تقدمه {course.instructor_name || "د. جيهان علي زياد"}
           </span>
           {course.level && (
-            <span className="rounded-full border border-gold/30 bg-gold/10 px-2.5 py-0.5 text-[11px] text-gold">
+            <span className="rounded-full border border-gold/30 bg-gold/10 px-2.5 py-0.5 text-[11px] tracking-wide text-gold">
               {course.level}
             </span>
           )}
         </div>
 
         {/* ─── Title & description ─── */}
-        <h3 className="font-serif text-xl leading-snug text-foreground transition-colors group-hover:text-gold">
-          {course.title}
-        </h3>
-        {course.description && (
-          <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-            {course.description}
-          </p>
-        )}
+        <div className="space-y-2">
+          <h3 className="font-serif text-xl leading-snug text-foreground transition-colors duration-300 group-hover:text-gold">
+            {course.title}
+          </h3>
+          <div className="h-px w-10 bg-gold/40 transition-all duration-500 group-hover:w-20" />
+          {course.description && (
+            <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+              {course.description}
+            </p>
+          )}
+        </div>
 
         {/* ─── Meta ─── */}
         <div className="flex flex-wrap items-center gap-2">
           {course.course_duration && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-secondary/60 px-3 py-1 text-[11px] text-secondary-foreground">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-secondary/50 px-3 py-1 text-[11px] text-secondary-foreground">
               <Clock className="h-3.5 w-3.5 text-gold" />
               {course.course_duration}
             </span>
           )}
           {course.lesson_duration && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-secondary/60 px-3 py-1 text-[11px] text-secondary-foreground">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-secondary/50 px-3 py-1 text-[11px] text-secondary-foreground">
               <Timer className="h-3.5 w-3.5 text-gold" />
               {course.lesson_duration}
             </span>
@@ -221,7 +247,7 @@ export function CourseCard({ course }: { course: Course }) {
 
         {/* ─── يبدأ خلال + العد التنازلي ─── */}
         {course.launch_date && (
-          <div className="rounded-xl border border-border/60 bg-muted/50 p-3">
+          <div className="rounded-xl border border-border/50 bg-muted/40 p-3">
             <div className="mb-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
               <Timer className="h-3.5 w-3.5 text-gold" />
               {isLaunched ? "الدورة متاحة الآن" : "يبدأ خلال"}
@@ -232,7 +258,7 @@ export function CourseCard({ course }: { course: Course }) {
 
         {/* ─── Price & CTA ─── */}
         <div className="mt-auto space-y-3">
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-baseline gap-2 border-t border-border/40 pt-3">
             <span className="font-serif text-2xl text-gold">
               ${Number(course.price).toFixed(2)}
             </span>
@@ -247,7 +273,7 @@ export function CourseCard({ course }: { course: Course }) {
           <Link
             href={`/courses/${course.id}`}
             onClick={(e) => e.stopPropagation()}
-            className="block w-full rounded-full border border-gold/40 bg-gold/10 px-6 py-3 text-center font-arabic text-sm text-gold transition-colors hover:bg-gold/20"
+            className="block w-full rounded-full border border-gold/35 bg-transparent px-6 py-3 text-center font-arabic text-sm text-gold transition-all duration-300 hover:border-gold/60 hover:bg-gold/10"
           >
             عرض التفاصيل
           </Link>
@@ -256,7 +282,7 @@ export function CourseCard({ course }: { course: Course }) {
           <Link
             href={`/courses/${course.id}`}
             onClick={(e) => e.stopPropagation()}
-            className="block w-full rounded-full bg-primary px-6 py-3 text-center font-arabic text-sm text-primary-foreground transition-opacity hover:opacity-90"
+            className="block w-full rounded-full bg-primary px-6 py-3 text-center font-arabic text-sm text-primary-foreground shadow-[0_10px_25px_-12px_rgba(0,0,0,.6)] transition-all duration-300 hover:opacity-95 hover:shadow-[0_14px_30px_-12px_rgba(0,0,0,.65)]"
           >
             اشترك الآن
           </Link>
@@ -293,7 +319,6 @@ export function CourseCard({ course }: { course: Course }) {
           </div>
         </div>
       )}
-
     </>
   );
 }
