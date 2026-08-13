@@ -21,8 +21,8 @@ interface Course {
 
 interface Subscription {
   id: string;
-  max_courses: number;
-  courses_used: number;
+  max_course: number;
+  course_used: number;
   expires_at: string;
 }
 
@@ -30,24 +30,24 @@ export function CourseGrid() {
   const { user } = useAuth();
   const router = useRouter();
 
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [course, setcourse] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
+  const [selectedcourse, setSelectedcourse] = useState<string[]>([]);
   const [choosingId, setChoosingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [showPayment, setShowPayment] = useState(false);
   const [selectedCourseForPayment, setSelectedCourseForPayment] = useState<Course | null>(null);
 
-  // Fetch courses
+  // Fetch course
   useEffect(() => {
-    fetch("/api/courses")
+    fetch("/api/course")
       .then((r) => r.json())
       .then((data) => {
-        if (data.courses?.length) {
-          setCourses(data.courses);
+        if (data.course?.length) {
+          setcourse(data.course);
         } else {
-          setCourses([
+          setcourse([
             { id: "1", title: "Foundations of Arabic — A1", type: "Recorded", price: 49, level: "A1", rating: 4.9, duration: "12h" },
             { id: "2", title: "Conversational Mastery — B1", type: "Live Online", price: 100, level: "B1", rating: 5.0, duration: "8 weeks" },
             { id: "3", title: "Quranic Arabic Essentials", type: "Recorded", price: 49, level: "A2", rating: 4.8, duration: "16h" },
@@ -58,7 +58,7 @@ export function CourseGrid() {
         }
       })
       .catch(() => {
-        setCourses([
+        setcourse([
           { id: "1", title: "Foundations of Arabic — A1", type: "Recorded", price: 49, level: "A1", rating: 4.9, duration: "12h" },
           { id: "2", title: "Conversational Mastery — B1", type: "Live Online", price: 100, level: "B1", rating: 5.0, duration: "8 weeks" },
           { id: "3", title: "Quranic Arabic Essentials", type: "Recorded", price: 49, level: "A2", rating: 4.8, duration: "16h" },
@@ -78,14 +78,14 @@ export function CourseGrid() {
       .then((data) => {
         if (data.subscription) {
           setSubscription(data.subscription);
-          setSelectedCourses(data.subscription.course_ids || []);
+          setSelectedcourse(data.subscription.course_ids || []);
         }
       })
       .catch(() => {});
   }, [user]);
 
   const isSubscriber = subscription !== null && new Date(subscription.expires_at) > new Date();
-  const remainingSlots = subscription ? subscription.max_courses - (subscription.courses_used || 0) : 0;
+  const remainingSlots = subscription ? subscription.max_course - (subscription.course_used || 0) : 0;
 
   const handleChooseCourse = async (courseId: string) => {
     if (!user) {
@@ -93,7 +93,7 @@ export function CourseGrid() {
       return;
     }
     if (!isSubscriber) return;
-    if (selectedCourses.includes(courseId)) return;
+    if (selectedcourse.includes(courseId)) return;
 
     setChoosingId(courseId);
     setMessage("");
@@ -107,9 +107,9 @@ export function CourseGrid() {
       const data = await res.json();
 
       if (data.success) {
-        setSelectedCourses((prev) => [...prev, courseId]);
+        setSelectedcourse((prev) => [...prev, courseId]);
         setSubscription((prev) =>
-          prev ? { ...prev, courses_used: (prev.courses_used || 0) + 1 } : prev
+          prev ? { ...prev, course_used: (prev.course_used || 0) + 1 } : prev
         );
         setMessage("Course added successfully!");
       } else {
@@ -149,7 +149,7 @@ export function CourseGrid() {
         >
           <ShieldCheck className="inline h-5 w-5 text-primary mr-2" />
           <span className="text-foreground font-medium">
-            <T>{`You are subscribed! You can choose ${remainingSlots} courses for free`}</T>
+            <T>{`You are subscribed! You can choose ${remainingSlots} course for free`}</T>
           </span>
           {subscription && (
             <span className="text-muted-foreground text-sm ml-2">
@@ -172,8 +172,8 @@ export function CourseGrid() {
 
       {/* Course grid */}
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {courses.map((c, i) => {
-          const alreadyChosen = selectedCourses.includes(c.id);
+        {course.map((c, i) => {
+          const alreadyChosen = selectedcourse.includes(c.id);
           const canChoose = isSubscriber && !alreadyChosen && remainingSlots > 0;
           const isChoosing = choosingId === c.id;
 
@@ -265,7 +265,7 @@ export function CourseGrid() {
                   </div>
                 ) : (
                   <button
-                    onClick={() => router.push(`/courses/${c.id}`)}
+                    onClick={() => router.push(`/course/${c.id}`)}
                     className="mt-4 w-full rounded-full bg-primary py-2.5 text-xs font-semibold text-primary-foreground transition"
                   >
                     <T>Enroll for Free</T>

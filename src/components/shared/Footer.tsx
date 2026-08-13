@@ -25,12 +25,12 @@ export function Footer() {
           </div>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li>
-              <Link href="/marketplace" className="hover:text-foreground transition-colors">
-                <T>Courses</T>
+              <Link href="/courses" className="hover:text-foreground transition-colors">
+                <T>course</T>
               </Link>
             </li>
             <li>
-              <Link href="/marketplace" className="hover:text-foreground transition-colors">
+              <Link href="/courses" className="hover:text-foreground transition-colors">
                 <T>Bundles</T>
               </Link>
             </li>

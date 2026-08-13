@@ -8,8 +8,8 @@ import { PaymentModal } from "@/components/PaymentModal";
 import { useAuth } from "@/lib/firebase/AuthProvider";
 
 const defaultPlans = [
-  { id: '1', name: 'Monthly Plan', price: 99, duration: '3 Months', max_courses: 3 },
-  { id: '2', name: 'Semi-Annual Plan', price: 179, duration: '6 Months', max_courses: 5 },
+  { id: '1', name: 'Monthly Plan', price: 99, duration: '3 Months', max_course: 3 },
+  { id: '2', name: 'Semi-Annual Plan', price: 179, duration: '6 Months', max_course: 5 },
 ];
 
 export default function SubscriptionsPage() {
@@ -36,7 +36,7 @@ export default function SubscriptionsPage() {
                 </p>
                 <p className="text-5xl font-bold text-primary my-6">${plan.price}</p>
                 <p className="text-muted-foreground mb-6">
-                  <T>{`Access to ${plan.max_courses} courses of your choice`}</T>
+                  <T>{`Access to ${plan.max_course} course of your choice`}</T>
                 </p>
                 <button
                   onClick={() => {

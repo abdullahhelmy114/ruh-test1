@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     const items = await sql`
       SELECT w.id, w.course_id, c.title, c.level, c.price, c.image_url, p.full_name AS teacher_name
       FROM wishlist w
-      JOIN courses c ON w.course_id = c.id
+      JOIN course c ON w.course_id = c.id
       JOIN profiles p ON c.teacher_uid = p.firebase_uid
       WHERE w.user_uid = ${uid}
       ORDER BY w.created_at DESC

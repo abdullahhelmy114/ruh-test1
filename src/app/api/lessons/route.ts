@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   const teacherUid = searchParams.get('teacherUid');
 
   try {
-    let query = sql`SELECT l.*, c.title AS course_title FROM lessons l JOIN courses c ON l.course_id = c.id`;
+    let query = sql`SELECT l.*, c.title AS course_title FROM lessons l JOIN course c ON l.course_id = c.id`;
     const conditions = [];
 
     if (status) conditions.push(sql`l.status = ${status}`);
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields: courseId, title, teacherUid' }, { status: 400 });
     }
 
-    const [course] = await sql`SELECT id FROM courses WHERE id = ${courseId} AND teacher_uid = ${teacherUid}`;
+    const [course] = await sql`SELECT id FROM course WHERE id = ${courseId} AND teacher_uid = ${teacherUid}`;
     if (!course) {
       return NextResponse.json({ error: 'Course not found or you do not own this course' }, { status: 403 });
     }

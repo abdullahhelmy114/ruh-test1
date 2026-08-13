@@ -11,7 +11,7 @@ export async function GET() {
       SELECT l.id, l.title, l.scheduled_at, l.meeting_url, l.course_id,
              c.title as course_title, t.full_name as teacher_name
       FROM lessons l
-      JOIN courses c ON l.course_id = c.id
+      JOIN course c ON l.course_id = c.id
       LEFT JOIN profiles t ON l.teacher_uid = t.firebase_uid
       WHERE l.type = 'zoom'
         AND l.status = 'approved'

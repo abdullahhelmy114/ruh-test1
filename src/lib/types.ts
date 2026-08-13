@@ -15,17 +15,17 @@ export interface Profile {
 export interface PlatformStats {
   total_students: number;
   total_teachers: number;
-  active_courses: number;
+  active_course: number;
   total_revenue: number;
   students_delta: number;
   teachers_delta: number;
-  courses_delta: number;
+  course_delta: number;
   revenue_delta: number;
 }
 
 export interface PendingCounts {
   teacher_applications: number;
-  courses_awaiting_review: number;
+  course_awaiting_review: number;
   payouts_to_process: number;
   reported_content: number;
 }

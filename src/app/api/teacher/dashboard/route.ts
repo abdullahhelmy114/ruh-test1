@@ -22,27 +22,27 @@ export async function GET(request: Request) {
     const [{ count: students }] = await sql`
       SELECT COUNT(DISTINCT e.user_uid)::int AS count
       FROM enrollments e
-      JOIN courses c ON e.course_id = c.id
+      JOIN course c ON e.course_id = c.id
       WHERE c.teacher_uid = ${uid}
     `;
 
     // عدد الدورات النشطة
-    const [{ count: activeCourses }] = await sql`
-      SELECT COUNT(*)::int AS count FROM courses WHERE teacher_uid = ${uid} AND status = 'published'
+    const [{ count: activecourse }] = await sql`
+      SELECT COUNT(*)::int AS count FROM course WHERE teacher_uid = ${uid} AND status = 'published'
     `;
 
     // الإيرادات
     const [{ revenue }] = await sql`
       SELECT COALESCE(SUM(c.price), 0) AS revenue
       FROM enrollments e
-      JOIN courses c ON e.course_id = c.id
+      JOIN course c ON e.course_id = c.id
       WHERE c.teacher_uid = ${uid}
     `;
 
     // الدورات الخاصة بالمعلم
-    const courses = await sql`
+    const course = await sql`
       SELECT id, title, level, price, status
-      FROM courses
+      FROM course
       WHERE teacher_uid = ${uid}
       ORDER BY created_at DESC
     `;
@@ -51,7 +51,7 @@ export async function GET(request: Request) {
     const sessions = await sql`
       SELECT l.id, l.title, l.scheduled_at, l.meeting_url, l.course_id, c.title AS course_title
       FROM lessons l
-      JOIN courses c ON l.course_id = c.id
+      JOIN course c ON l.course_id = c.id
       WHERE l.teacher_uid = ${uid} AND l.type = 'zoom' AND l.status = 'approved' AND l.scheduled_at IS NOT NULL
       ORDER BY l.scheduled_at ASC
     `;
@@ -60,9 +60,9 @@ export async function GET(request: Request) {
       fullName,
       initial,
       students,
-      activeCourses,
+      activecourse,
       revenue,
-      courses,
+      course,
       sessions,
       certificationProgress: 0,
     });

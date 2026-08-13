@@ -6,8 +6,8 @@ export async function GET(req: Request) {
   const earnings = await sql`
     SELECT te.*, pc.course_id, c.title as course_title
     FROM teacher_earnings te
-    JOIN purchase_courses pc ON te.purchase_course_id = pc.id
-    JOIN courses c ON pc.course_id = c.id
+    JOIN purchase_course pc ON te.purchase_course_id = pc.id
+    JOIN course c ON pc.course_id = c.id
     WHERE te.teacher_uid = ${teacherId}
     ORDER BY te.id DESC
   `;

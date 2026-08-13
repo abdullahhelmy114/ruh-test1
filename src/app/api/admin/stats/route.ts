@@ -8,13 +8,13 @@ export async function GET() {
       SELECT
         (SELECT COUNT(*) FROM profiles WHERE role='student') AS total_students,
         (SELECT COUNT(*) FROM profiles WHERE role='teacher') AS total_teachers,
-        (SELECT COUNT(*) FROM courses WHERE status='published') AS active_courses,
+        (SELECT COUNT(*) FROM course WHERE status='published') AS active_course,
         (SELECT COALESCE(SUM(amount),0) FROM transactions) AS total_revenue
     `;
     const [pending] = await sql`
       SELECT
         (SELECT COUNT(*) FROM teacher_applications WHERE status='pending') AS teacher_applications,
-        (SELECT COUNT(*) FROM courses WHERE status='pending') AS courses_pending,
+        (SELECT COUNT(*) FROM course WHERE status='pending') AS course_pending,
         (SELECT COUNT(*) FROM payouts WHERE status='pending') AS payouts_pending,
         0 AS reported_content
     `;

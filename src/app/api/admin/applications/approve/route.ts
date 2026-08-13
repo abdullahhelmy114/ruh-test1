@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     // 4. جلب بيانات الكورس النموذجي
     const [model] = await sql`
       SELECT id, title, description, level, price, category, scenario
-      FROM model_courses
+      FROM model_course
       WHERE id = ${app.model_course_id}
     `;
     if (!model) {
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
 
     // 6. إنشاء الكورس الحي (live_course) - استخدم firebase_uid
     await sql`
-      INSERT INTO live_courses (model_course_id, teacher_uid, title, description, level, price, status)
+      INSERT INTO live_course (model_course_id, teacher_uid, title, description, level, price, status)
       VALUES (
         ${model.id},
         ${teacher.firebase_uid},

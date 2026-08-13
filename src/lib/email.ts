@@ -82,7 +82,7 @@ export function welcomeEmail(name: string) {
       <p>Dear <strong>${name}</strong>,</p>
       <p>Your account has been created successfully. We are thrilled to have you join our community of Arabic learners.</p>
       <p>Start your journey today:</p>
-      <a href="https://Ruh-Ul-Qudus.net/marketplace" class="button">Browse Courses</a>
+      <a href="https://Ruh-Ul-Qudus.net/courses" class="button">Browse course</a>
     `
   );
 }
@@ -153,7 +153,7 @@ export function teacherApprovedEmail(name: string) {
       <div class="emoji">🎉</div>
       <p>Dear <strong>${name}</strong>,</p>
       <p>Congratulations! Your application to become a teacher at Ruh-Ul-Qudus Academy has been approved.</p>
-      <p>You can now log in and start creating courses.</p>
+      <p>You can now log in and start creating course.</p>
       <a href="https://Ruh-Ul-Qudus.net/dashboard/teacher" class="button">Go to Teacher Dashboard</a>
     `
   );

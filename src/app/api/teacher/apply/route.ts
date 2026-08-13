@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
     // 1. التأكد من أن الكورس النموذجي موجود ومعتمد
     const [model] = await sql`
-      SELECT id FROM model_courses WHERE id = ${model_course_id} AND status = 'approved'
+      SELECT id FROM model_course WHERE id = ${model_course_id} AND status = 'approved'
     `;
     if (!model) {
       return NextResponse.json({ error: 'الكورس غير متاح' }, { status: 400 });
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 
     // 3. التحقق من عدم وجود كورس حي بالفعل لهذا المعلم
     const existingLive = await sql`
-      SELECT lc.id FROM live_courses lc
+      SELECT lc.id FROM live_course lc
       JOIN profiles p ON lc.teacher_uid = p.firebase_uid
       WHERE p.firebase_uid = ${teacherUid} AND lc.model_course_id = ${model_course_id}
     `;

@@ -35,7 +35,7 @@ export default function PublicTeacherPage() {
   const router = useRouter();
   const params = useParams<{ uid: string }>();
   const [teacher, setTeacher] = useState<TeacherProfile | null>(null);
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [course, setcourse] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -50,7 +50,7 @@ export default function PublicTeacherPage() {
           setTeacher(null);
         } else {
           setTeacher(d.teacher);
-          setCourses(d.courses || []);
+          setcourse(d.course || []);
         }
       })
       .catch(() => setError("Failed to load teacher"))
@@ -100,19 +100,19 @@ export default function PublicTeacherPage() {
       {/* كورسات المعلم */}
       <div>
         <h2 className="font-serif text-2xl mb-4">
-          <T>Courses by this teacher</T> ({courses.length})
+          <T>course by this teacher</T> ({course.length})
         </h2>
-        {courses.length === 0 ? (
+        {course.length === 0 ? (
           <div className="text-center py-10 text-muted-foreground">
             <BookOpen className="mx-auto h-12 w-12 mb-3 text-secondary-foreground/50" />
-            <p><T>No courses published yet.</T></p>
+            <p><T>No course published yet.</T></p>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {courses.map(course => (
+            {course.map(course => (
               <Link
                 key={course.id}
-                href={`/courses/${course.id}`}
+                href={`/course/${course.id}`}
                 className="glass rounded-2xl p-4 hover:shadow-elegant transition-shadow block"
               >
                 <div className="h-32 bg-gradient-primary rounded-xl flex items-center justify-center mb-3 overflow-hidden">

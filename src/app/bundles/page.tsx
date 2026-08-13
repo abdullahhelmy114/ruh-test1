@@ -53,7 +53,7 @@ export default function BundlesPage() {
                 <li key={f} className="flex items-center justify-center gap-1"><Check size={14} className="text-primary" /> <T>{f}</T></li>
               ))}
             </ul>
-            <Link href="/marketplace" className="mt-5 inline-block w-full rounded-full bg-gold py-2.5 text-sm font-semibold text-primary-foreground hover:bg-gold/80">
+            <Link href="/courses" className="mt-5 inline-block w-full rounded-full bg-gold py-2.5 text-sm font-semibold text-primary-foreground hover:bg-gold/80">
               <T>Get Started</T>
             </Link>
           </div>

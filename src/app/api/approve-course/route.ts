@@ -11,7 +11,7 @@ export async function PUT(request: Request) {
     }
 
     const result = await sql`
-      UPDATE courses SET status = ${status}
+      UPDATE course SET status = ${status}
       WHERE id = ${courseId}
       RETURNING id, title, status
     `;

@@ -10,7 +10,7 @@ export default function ErrorPage() {
         <h1 className="text-3xl font-bold text-destructive"><T>حدث خطأ</T></h1>
         <p className="text-muted-foreground"><T>لم نتمكن من إتمام العملية.</T></p>
         <Link
-          href="/marketplace"
+          href="/courses"
           className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
         >
           <T>العودة إلى السوق</T>

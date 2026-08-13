@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Contact Us – Ruh-Ul-Qudus Academy",
     description:
-      "Have questions about our courses or need help? Contact our dedicated team. We respond within 24 hours.",
+      "Have questions about our course or need help? Contact our dedicated team. We respond within 24 hours.",
     type: "website",
     locale: "en_US",
     alternateLocale: ["ar_SA", "tr_TR"],

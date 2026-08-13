@@ -18,7 +18,7 @@ export async function GET(
     // التحقق من أن هذا الطالب مسجل في كورس واحد على الأقل مع هذا المعلم
     const [relation] = await sql`
       SELECT 1 FROM enrollments e
-      JOIN courses c ON e.course_id = c.id
+      JOIN course c ON e.course_id = c.id
       WHERE e.user_uid = ${studentUid} AND c.teacher_uid = ${teacherUid}
       LIMIT 1
     `;

@@ -189,7 +189,7 @@ function AdminUserProfileContent() {
         <div className="pt-4 border-t">
           <h3 className="font-serif text-lg flex items-center gap-2 mb-2">
             <BookOpen className="h-5 w-5 text-secondary-foreground" />{" "}
-            {profile.role === "student" ? "Enrollments" : "Courses"}
+            {profile.role === "student" ? "Enrollments" : "course"}
           </h3>
           {enrollments.length === 0 ? (
             <p className="text-sm text-muted-foreground">No records yet.</p>

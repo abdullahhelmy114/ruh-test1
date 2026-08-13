@@ -12,7 +12,7 @@ export async function POST(req: Request) {
 
   try {
     await sql`
-      INSERT INTO model_courses (admin_id, title, category, level, price, scenario)
+      INSERT INTO model_course (admin_id, title, category, level, price, scenario)
       VALUES (${session.uid}, ${title}, ${category}, ${level}, ${price}, ${JSON.stringify(scenario)})
     `;
     return NextResponse.json({ success: true });

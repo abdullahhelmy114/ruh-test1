@@ -54,7 +54,7 @@ const testimonials = [
 ];
 
 export default function HomePage() {
-  const [featuredCourses, setFeaturedCourses] = useState<any[]>([]);
+  const [featuredcourse, setFeaturedcourse] = useState<any[]>([]);
   const [blogPosts, setBlogPosts] = useState<any[]>([]);
   const [bundles, setBundles] = useState<any[]>([]);
   const [certification, setCertification] = useState<any>(null);
@@ -69,10 +69,10 @@ export default function HomePage() {
     // يمكن استبدالها بقيم حقيقية من /api/stats إذا وُجدت
     // تركناها ثابتة كمثال
 
-    // Featured Courses
-    fetch("/api/marketplace?limit=3")
+    // Featured course
+    fetch("/api/courses?limit=3")
       .then((r) => r.json())
-      .then((d) => setFeaturedCourses((d.courses || []).slice(0, 3)))
+      .then((d) => setFeaturedcourse((d.course || []).slice(0, 3)))
       .catch(() => {});
 
     // Blog Posts
@@ -135,10 +135,10 @@ export default function HomePage() {
                 <T>Begin Your Journey</T> <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/marketplace"
+                href="/courses"
                 className="inline-flex items-center gap-2 rounded-full border bg-card px-6 py-3 text-sm font-semibold transition hover:bg-accent"
               >
-                <T>Browse Courses</T>
+                <T>Browse course</T>
               </Link>
             </div>
 
@@ -238,13 +238,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── Featured Courses (بيانات حقيقية) ──────────────── */}
-      {featuredCourses.length > 0 && (
+      {/* ─── Featured course (بيانات حقيقية) ──────────────── */}
+      {featuredcourse.length > 0 && (
         <section className="bg-muted/30 py-20">
           <div className="mx-auto max-w-7xl px-4 md:px-8">
             <motion.div {...fadeInUp} className="text-center">
               <div className="text-xs font-bold uppercase tracking-[0.3em] text-accent-foreground">
-                <T>Featured Courses</T>
+                <T>Featured course</T>
               </div>
               <h2 className="mt-3 font-serif text-4xl md:text-5xl">
                 <T>Start your Arabic journey</T>
@@ -252,7 +252,7 @@ export default function HomePage() {
             </motion.div>
 
             <div className="mt-12 grid gap-6 md:grid-cols-3">
-              {featuredCourses.map((course, i) => (
+              {featuredcourse.map((course, i) => (
                 <motion.div
                   key={course.id}
                   initial={{ opacity: 0, y: 30 }}
@@ -261,7 +261,7 @@ export default function HomePage() {
                   transition={{ duration: 0.4, delay: i * 0.1 }}
                   className="group overflow-hidden rounded-3xl border bg-card shadow-elegant transition-all hover:-translate-y-1 hover:shadow-elegant"
                 >
-                  <Link href={`/courses/${course.id}`}>
+                  <Link href={`/course/${course.id}`}>
                     <div className="h-40 bg-linear-to-br from-primary to-primary/80 flex items-center justify-center relative overflow-hidden">
                       {course.image_url ? (
                         <Image
@@ -279,7 +279,7 @@ export default function HomePage() {
                     </div>
                   </Link>
                   <div className="p-5">
-                    <Link href={`/courses/${course.id}`}>
+                    <Link href={`/course/${course.id}`}>
                       <h3 className="font-serif text-lg font-semibold hover:text-accent-foreground transition-colors line-clamp-1">
                         {course.title}
                       </h3>
@@ -292,7 +292,7 @@ export default function HomePage() {
                         {course.price === 0 ? <T>Free</T> : `$${course.price}`}
                       </span>
                       <Link
-                        href={`/courses/${course.id}`}
+                        href={`/course/${course.id}`}
                         className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent/90 transition"
                       >
                         <T>Learn More</T>
@@ -305,10 +305,10 @@ export default function HomePage() {
 
             <div className="mt-10 text-center">
               <Link
-                href="/marketplace"
+                href="/courses"
                 className="inline-flex items-center gap-2 rounded-full border-2 border-primary/50 px-6 py-3 text-sm font-semibold text-accent-foreground hover:bg-primary/10 transition"
               >
-                <T>View All Courses</T> <ChevronRight className="h-4 w-4" />
+                <T>View All course</T> <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
           </div>
@@ -595,10 +595,10 @@ export default function HomePage() {
                 <T>Enroll Today</T> <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/marketplace"
+                href="/courses"
                 className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-white/10"
               >
-                <T>Explore Courses</T>
+                <T>Explore course</T>
               </Link>
             </div>
           </div>

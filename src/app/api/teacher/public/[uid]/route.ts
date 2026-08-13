@@ -26,14 +26,14 @@ export async function GET(
     }
 
     // كورسات المعلم المنشورة
-    const courses = await sql`
+    const course = await sql`
       SELECT id, title, level, price, description, image_url
-      FROM courses
+      FROM course
       WHERE teacher_uid = ${teacherUid} AND status = 'published'
       ORDER BY created_at DESC
     `;
 
-    return NextResponse.json({ teacher, courses });
+    return NextResponse.json({ teacher, course });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

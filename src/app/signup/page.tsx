@@ -30,7 +30,7 @@ export default function SignupRolePage() {
             <T>Join Our Community</T>
           </h1>
           <p className="mt-3 sm:mt-4 text-base sm:text-lg text-muted-foreground max-w-xl mx-auto px-4">
-            <T>Access hundreds of Arabic courses and live sessions with the best curriculum.</T>
+            <T>Access hundreds of Arabic course and live sessions with the best curriculum.</T>
           </p>
         </motion.header>
 
@@ -53,7 +53,7 @@ export default function SignupRolePage() {
           <ul className="space-y-4 mb-8 text-muted-foreground flex-1">
             <li className="flex items-start gap-3">
               <span className="text-primary mt-0.5">✓</span>
-              <span className="text-sm"><T>Access to hundreds of Arabic courses</T></span>
+              <span className="text-sm"><T>Access to hundreds of Arabic course</T></span>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-primary mt-0.5">✓</span>

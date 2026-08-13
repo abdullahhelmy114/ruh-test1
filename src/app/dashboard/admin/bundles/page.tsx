@@ -47,7 +47,7 @@ interface Bundle {
 export default function AdminBundlesPage() {
   const { user } = useAuth();
   const [bundles, setBundles] = useState<Bundle[]>([]);
-  const [modelCourses, setModelCourses] = useState<ModelCourse[]>([]);
+  const [modelcourse, setModelcourse] = useState<ModelCourse[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -58,7 +58,7 @@ export default function AdminBundlesPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState(0);
-  const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
+  const [selectedcourse, setSelectedcourse] = useState<string[]>([]);
   const [featured, setFeatured] = useState(false);
 
   // جلب البيانات
@@ -68,7 +68,7 @@ export default function AdminBundlesPage() {
     try {
       const token = await user.getIdToken();
       const [modelRes, bundleRes] = await Promise.all([
-        fetch("/api/admin/courses", {
+        fetch("/api/admin/course", {
           headers: { Authorization: `Bearer ${token}` },
           credentials: "include",
         }),
@@ -79,7 +79,7 @@ export default function AdminBundlesPage() {
       ]);
       const modelData = await modelRes.json();
       const bundleData = await bundleRes.json();
-      setModelCourses(modelData.courses || []);
+      setModelcourse(modelData.course || []);
       setBundles(bundleData.bundles || []);
     } catch {
       setError("فشل جلب البيانات");
@@ -94,7 +94,7 @@ export default function AdminBundlesPage() {
 
   // إنشاء حزمة جديدة
   const handleCreate = async () => {
-    if (!title.trim() || selectedCourses.length !== 3) {
+    if (!title.trim() || selectedcourse.length !== 3) {
       setError("يجب إدخال عنوان واختيار 3 كورسات");
       return;
     }
@@ -114,7 +114,7 @@ export default function AdminBundlesPage() {
         title,
         description: description || null,
         price,
-        model_course_ids: selectedCourses,
+        model_course_ids: selectedcourse,
         featured,
       }),
     });
@@ -124,7 +124,7 @@ export default function AdminBundlesPage() {
       setTitle("");
       setDescription("");
       setPrice(0);
-      setSelectedCourses([]);
+      setSelectedcourse([]);
       setFeatured(false);
       setDialogOpen(false);
       fetchData();
@@ -138,7 +138,7 @@ export default function AdminBundlesPage() {
 
   // إضافة/إزالة كورس من الاختيار (حد أقصى 3)
   const toggleCourse = (id: string) => {
-    setSelectedCourses(prev =>
+    setSelectedcourse(prev =>
       prev.includes(id)
         ? prev.filter(c => c !== id)
         : prev.length < 3
@@ -227,21 +227,21 @@ export default function AdminBundlesPage() {
 
               <div>
                 <label className="text-xs font-semibold uppercase text-muted-foreground">
-                  <T>اختر 3 كورسات نموذجية</T> ({selectedCourses.length}/3)
+                  <T>اختر 3 كورسات نموذجية</T> ({selectedcourse.length}/3)
                 </label>
                 <div className="mt-2 grid gap-2 max-h-48 overflow-y-auto border border-border rounded-xl p-2">
-                  {modelCourses.map(course => (
+                  {modelcourse.map(course => (
                     <div
                       key={course.id}
                       onClick={() => toggleCourse(course.id)}
                       className={`flex items-center justify-between rounded-lg p-2 cursor-pointer border transition ${
-                        selectedCourses.includes(course.id)
+                        selectedcourse.includes(course.id)
                           ? "bg-primary/10 border-primary"
                           : "hover:bg-secondary"
                       }`}
                     >
                       <span className="text-sm">{course.title} ({course.level})</span>
-                      {selectedCourses.includes(course.id) && (
+                      {selectedcourse.includes(course.id) && (
                         <CheckCircle2 size={16} className="text-primary" />
                       )}
                     </div>
@@ -259,7 +259,7 @@ export default function AdminBundlesPage() {
             <DialogFooter>
               <Button
                 onClick={handleCreate}
-                disabled={submitting || !title.trim() || selectedCourses.length !== 3}
+                disabled={submitting || !title.trim() || selectedcourse.length !== 3}
                 className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
               >
                 {submitting ? <Loader2 size={16} className="animate-spin" /> : <Package size={16} />}
@@ -302,7 +302,7 @@ export default function AdminBundlesPage() {
               <p className="text-xl font-bold text-primary">${bundle.price}</p>
               <div className="flex flex-wrap gap-1">
                 {bundle.model_course_ids.map((id: string) => {
-                  const course = modelCourses.find(c => c.id === id);
+                  const course = modelcourse.find(c => c.id === id);
                   return (
                     <Badge key={id} variant="secondary" className="text-xs">
                       {course?.title || id.slice(0,8)}

@@ -20,7 +20,7 @@ export async function GET(req: Request) {
         ta.applied_at,
         ta.status
       FROM teaching_applications ta
-      JOIN model_courses mc ON ta.model_course_id = mc.id
+      JOIN model_course mc ON ta.model_course_id = mc.id
       JOIN profiles p ON ta.teacher_uid = p.firebase_uid
       WHERE ta.status = 'pending'
       ORDER BY ta.applied_at ASC

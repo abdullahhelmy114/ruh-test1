@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 -- =============================================
 -- 1. الكورسات النموذجية (ينشئها الأدمن)
 -- =============================================
-CREATE TABLE IF NOT EXISTS model_courses (
+CREATE TABLE IF NOT EXISTS model_course (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   description TEXT,
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS model_courses (
 -- =============================================
 CREATE TABLE IF NOT EXISTS model_lessons (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  model_course_id UUID NOT NULL REFERENCES model_courses(id) ON DELETE CASCADE,
+  model_course_id UUID NOT NULL REFERENCES model_course(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   order_index INT NOT NULL,
   type TEXT DEFAULT 'video',          -- video, zoom, pdf
@@ -43,11 +43,11 @@ CREATE TABLE IF NOT EXISTS model_lessons (
 );
 
 -- =============================================
--- 3. الكورسات الحية (live courses) - بعد موافقة الأدمن
+-- 3. الكورسات الحية (live course) - بعد موافقة الأدمن
 -- =============================================
-CREATE TABLE IF NOT EXISTS live_courses (
+CREATE TABLE IF NOT EXISTS live_course (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  model_course_id UUID NOT NULL REFERENCES model_courses(id),
+  model_course_id UUID NOT NULL REFERENCES model_course(id),
   teacher_uid UUID NOT NULL REFERENCES profiles(firebase_uid)),   -- المعلم القائم بالتدريس
   title TEXT NOT NULL,
   description TEXT,
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS live_courses (
 CREATE TABLE IF NOT EXISTS progress (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_uid UUID REFERENCES profiles(firebase_uid),
-  course_id UUID REFERENCES live_courses(id),
+  course_id UUID REFERENCES live_course(id),
   lesson_id INT,
   completed BOOLEAN DEFAULT false,
   completed_at TIMESTAMPTZ,
@@ -132,7 +132,7 @@ CREATE TABLE IF NOT EXISTS bundles (
   title TEXT NOT NULL,
   description TEXT,
   price NUMERIC(10,2) NOT NULL,
-  course_ids JSONB NOT NULL, -- مصفوفة معرفات live_courses
+  course_ids JSONB NOT NULL, -- مصفوفة معرفات live_course
   created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -144,25 +144,25 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   user_uid UUID NOT NULL REFERENCES profiles(firebase_uid),
   plan_id UUID NOT NULL,
   expires_at TIMESTAMP NOT NULL,
-  courses_used INTEGER DEFAULT 0,
-  max_courses INTEGER DEFAULT 3,
+  course_used INTEGER DEFAULT 0,
+  max_course INTEGER DEFAULT 3,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS subscription_courses (
+CREATE TABLE IF NOT EXISTS subscription_course (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   subscription_id UUID NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
-  course_id UUID NOT NULL REFERENCES live_courses(id),
+  course_id UUID NOT NULL REFERENCES live_course(id),
   created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- =============================================
 -- تفاصيل الكورسات داخل كل عملية شراء
 -- =============================================
-CREATE TABLE IF NOT EXISTS purchase_courses (
+CREATE TABLE IF NOT EXISTS purchase_course (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   purchase_id UUID REFERENCES purchases(id) ON DELETE CASCADE,
-  course_id UUID NOT NULL REFERENCES live_courses(id),
+  course_id UUID NOT NULL REFERENCES live_course(id),
   teacher_uid UUID REFERENCES profiles(firebase_uid),
   amount NUMERIC(10,2) NOT NULL,
   commission_amount NUMERIC(10,2) NOT NULL DEFAULT 0,
@@ -175,7 +175,7 @@ CREATE TABLE IF NOT EXISTS purchase_courses (
 CREATE TABLE IF NOT EXISTS teacher_earnings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   teacher_uid UUID NOT NULL REFERENCES profiles(firebase_uid),
-  purchase_course_id UUID REFERENCES purchase_courses(id),
+  purchase_course_id UUID REFERENCES purchase_course(id),
   amount NUMERIC(10,2) NOT NULL,
   source TEXT DEFAULT 'shopier',
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'paid')),

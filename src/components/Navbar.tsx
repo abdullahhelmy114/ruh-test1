@@ -24,7 +24,7 @@ import {
 // روابط ثابتة (بدون Quran Study أو Blog)
 const baseLinks = [
   { to: "/", label: "Home" },
-  { to: "/marketplace", label: "Marketplace" },
+  { to: "/courses", label: "Courses" },
   { to: "/bundles", label: "Bundles" },
   { to: "/certification", label: "Certification" },
   { to: "/library", label: "Library" },

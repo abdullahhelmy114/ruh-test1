@@ -10,7 +10,7 @@ export async function GET(
     const enrollments = await sql`
       SELECT e.id, e.user_uid, e.course_id, c.title AS course_title, e.enrolled_at
       FROM enrollments e
-      JOIN courses c ON e.course_id = c.id
+      JOIN course c ON e.course_id = c.id
       WHERE e.user_uid = ${params.uid}
       ORDER BY e.enrolled_at DESC
     `;

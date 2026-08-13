@@ -24,7 +24,7 @@ export async function GET(request: Request) {
           WHERE p.role = 'student'
             AND p.firebase_uid NOT IN (
               SELECT e.user_uid FROM enrollments e
-              JOIN courses c ON e.course_id = c.id
+              JOIN course c ON e.course_id = c.id
               WHERE c.teacher_uid = ${teacherUid}
             )
         `;
@@ -39,14 +39,14 @@ export async function GET(request: Request) {
           WHERE p.role = 'student'
             AND p.firebase_uid IN (
               SELECT e.user_uid FROM enrollments e
-              JOIN courses c ON e.course_id = c.id
+              JOIN course c ON e.course_id = c.id
               WHERE c.teacher_uid = ${teacherUid}
               GROUP BY e.user_uid
               HAVING COUNT(DISTINCT e.course_id) = 1
             )
             AND p.firebase_uid NOT IN (
               SELECT e.user_uid FROM enrollments e
-              JOIN courses c ON e.course_id = c.id
+              JOIN course c ON e.course_id = c.id
               WHERE c.teacher_uid = ${teacherUid}
               GROUP BY e.user_uid
               HAVING COUNT(DISTINCT e.course_id) > 1
@@ -63,7 +63,7 @@ export async function GET(request: Request) {
           WHERE p.role = 'student'
             AND p.firebase_uid IN (
               SELECT e.user_uid FROM enrollments e
-              JOIN courses c ON e.course_id = c.id
+              JOIN course c ON e.course_id = c.id
               JOIN certificates cert ON cert.user_uid = e.user_uid AND cert.course_id = c.id
               WHERE c.teacher_uid = ${teacherUid} AND cert.level = ${level}
             )
@@ -79,7 +79,7 @@ export async function GET(request: Request) {
           WHERE p.role = 'student'
             AND p.firebase_uid IN (
               SELECT e.user_uid FROM enrollments e
-              JOIN courses c ON e.course_id = c.id
+              JOIN course c ON e.course_id = c.id
               WHERE c.teacher_uid = ${teacherUid}
             )
         `;

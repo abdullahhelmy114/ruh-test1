@@ -84,7 +84,7 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
 
       const lessonTitles: string[] = finalResult.titles;
       for (const title of lessonTitles) {
-        await fetch(`/api/admin/courses/${courseId}/lessons`, {
+        await fetch(`/api/admin/course/${courseId}/lessons`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({
@@ -201,7 +201,7 @@ export default function SmartLessonEditor() {
   const fetchLessons = () => {
     if (!user || !courseId) return;
     user.getIdToken().then((token) => {
-      fetch(`/api/admin/courses/${courseId}/lessons`, { headers: { Authorization: `Bearer ${token}` } })
+      fetch(`/api/admin/course/${courseId}/lessons`, { headers: { Authorization: `Bearer ${token}` } })
         .then((r) => r.json())
         .then((data) => { setLessons(data.lessons || []); setLoading(false); })
         .catch(() => { toast.error("Failed to fetch lessons"); setLoading(false); });
@@ -243,8 +243,8 @@ export default function SmartLessonEditor() {
       const token = await user?.getIdToken();
       const isNew = script.id === "new";
       const url = isNew
-        ? `/api/admin/courses/${courseId}/lessons`
-        : `/api/admin/courses/${courseId}/lessons/${script.id}`;
+        ? `/api/admin/course/${courseId}/lessons`
+        : `/api/admin/course/${courseId}/lessons/${script.id}`;
 
       const res = await fetch(url, {
         method: isNew ? "POST" : "PUT",
@@ -268,7 +268,7 @@ export default function SmartLessonEditor() {
     if (!user || !window.confirm("Are you sure you want to delete this lesson?")) return;
     try {
       const token = await user.getIdToken();
-      const res = await fetch(`/api/admin/courses/${courseId}/lessons/${lessonId}`, {
+      const res = await fetch(`/api/admin/course/${courseId}/lessons/${lessonId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

@@ -78,7 +78,7 @@ export default function CertificateViewer({
     fontSize: "82.8pt",
     color: "#064e3b",
   };
-  const courseStyle: React.CSSProperties = {
+  const coursetyle: React.CSSProperties = {
     position: "absolute",
     left: "315px",
     top: "348px",
@@ -154,7 +154,7 @@ export default function CertificateViewer({
 
           <div style={{ ...idStyle, zIndex: 10 }}>{certificateId}</div>
           <div style={{ ...nameStyle, zIndex: 10 }}>{studentName}</div>
-          <div style={{ ...courseStyle, zIndex: 10 }}>{courseName}</div>
+          <div style={{ ...coursetyle, zIndex: 10 }}>{courseName}</div>
           <div style={{ ...dateStyle, zIndex: 10 }}>{date}</div>
 
           {/* توقيع المعلم: صورة أو نص تلقائي */}

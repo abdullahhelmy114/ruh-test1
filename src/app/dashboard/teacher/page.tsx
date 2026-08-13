@@ -24,7 +24,7 @@ interface TeacherStats {
   fullName: string;
   initial: string;
   students: number;
-  activeCourses: number;
+  activecourse: number;
   revenue: number;
   commissionRate: number;
   averageRating: number;
@@ -35,7 +35,7 @@ export default function TeacherDashboard() {
   const { user, isLoading, role } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState<TeacherStats | null>(null);
-  const [courses, setCourses] = useState<LiveCourse[]>([]);
+  const [course, setcourse] = useState<LiveCourse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -47,34 +47,34 @@ export default function TeacherDashboard() {
         setError("");
         const token = await user.getIdToken();  // الحصول على التوكن
 
-        const [statsRes, coursesRes] = await Promise.all([
+        const [statsRes, courseRes] = await Promise.all([
           fetch(`/api/teacher/dashboard?uid=${user.uid}`, {
             headers: { Authorization: `Bearer ${token}` },
             credentials: "include",
           }),
-          fetch("/api/teacher/courses", {
+          fetch("/api/teacher/course", {
             headers: { Authorization: `Bearer ${token}` },
             credentials: "include",
           }),
         ]);
 
         if (!statsRes.ok) throw new Error("Failed to load dashboard");
-        if (!coursesRes.ok) throw new Error("Failed to load courses");
+        if (!courseRes.ok) throw new Error("Failed to load course");
 
         const statsData = await statsRes.json();
-        const coursesData = await coursesRes.json();
+        const courseData = await courseRes.json();
 
         setStats({
           fullName: statsData.fullName || user.displayName || "Teacher",
           initial: (statsData.fullName || user.displayName || "T")[0].toUpperCase(),
           students: statsData.students || 0,
-          activeCourses: statsData.activeCourses || 0,
+          activecourse: statsData.activecourse || 0,
           revenue: statsData.revenue || 0,
           commissionRate: statsData.commissionRate || 20,
           averageRating: statsData.averageRating || 0,
           completedLessons: statsData.completedLessons || 0,
         });
-        setCourses(coursesData.courses || []);
+        setcourse(courseData.course || []);
       } catch (err: any) {
         console.error(err);
         setError(err.message || "Could not load dashboard data.");
@@ -142,14 +142,14 @@ export default function TeacherDashboard() {
         </div>
         <div className="flex w-full gap-3 md:w-auto">
           <Link
-            href="/dashboard/teacher/courses"
+            href="/dashboard/teacher/course"
             className="inline-flex items-center gap-2 rounded-full border bg-background px-4 py-2.5 text-sm font-medium hover:bg-secondary transition"
           >
             <BookOpen className="h-4 w-4 text-accent-foreground" />
             <T>كورساتي</T>
           </Link>
           <Link
-            href="/dashboard/teacher/courses/new"
+            href="/dashboard/teacher/course/new"
             className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/90 shadow-elegant transition"
           >
             <Plus className="h-4 w-4" /> <T>طلب تدريس جديد</T>
@@ -204,24 +204,24 @@ export default function TeacherDashboard() {
 
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Courses List */}
+        {/* course List */}
         <div className="lg:col-span-2 space-y-4">
           <h2 className="font-serif text-2xl text-foreground">
             <T>كورساتي الحية</T>
           </h2>
-          {courses.length === 0 ? (
+          {course.length === 0 ? (
             <div className="rounded-3xl border bg-card p-8 text-center text-muted-foreground">
               <BookOpen className="mx-auto h-8 w-8 text-accent-foreground/50 mb-3" />
               <p><T>لا توجد كورسات حية بعد. اطلب تدريس نموذج للبدء.</T></p>
               <Link
-                href="/dashboard/teacher/courses/new"
+                href="/dashboard/teacher/course/new"
                 className="mt-3 inline-block rounded-full bg-accent px-4 py-2 text-xs font-semibold text-accent-foreground"
               >
                 <T>طلب تدريس</T>
               </Link>
             </div>
           ) : (
-            courses.map((course) => (
+            course.map((course) => (
               <div
                 key={course.id}
                 className="rounded-3xl border bg-card p-5 shadow-elegant flex justify-between items-center"
@@ -236,7 +236,7 @@ export default function TeacherDashboard() {
                   </span>
                 </div>
                 <Link
-                  href={`/dashboard/teacher/courses/${course.id}/lessons`}
+                  href={`/dashboard/teacher/course/${course.id}/lessons`}
                   className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition"
                 >
                   <Settings size={14} /> <T>إدارة الدروس</T>
@@ -259,7 +259,7 @@ export default function TeacherDashboard() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground"><T>كورسات نشطة</T></span>
-                <span className="font-semibold text-foreground">{stats.activeCourses}</span>
+                <span className="font-semibold text-foreground">{stats.activecourse}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground"><T>الإيرادات</T></span>

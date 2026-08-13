@@ -133,7 +133,7 @@ export default function StudentDashboard() {
                   {c.progress}% complete
                 </span>
                 <Link
-                  href={`/dashboard/student/courses/${c.courseId}`}
+                  href={`/dashboard/student/course/${c.courseId}`}
                   className="font-semibold text-primary hover:underline"
                 >
                   Resume →
@@ -143,7 +143,7 @@ export default function StudentDashboard() {
           ))}
           {data.inProgress.length === 0 && (
             <div className="col-span-full text-center py-8 text-muted-foreground">
-              No courses in progress.
+              No course in progress.
             </div>
           )}
         </div>
@@ -341,10 +341,10 @@ export default function StudentDashboard() {
           </div>
 
           <Link
-            href="/marketplace"
+            href="/courses"
             className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-accent-foreground/20 bg-accent/5 p-4 text-sm font-bold text-accent-foreground hover:bg-accent/10"
           >
-            Explore Marketplace →
+            Explore courses →
           </Link>
         </div>
       </div>

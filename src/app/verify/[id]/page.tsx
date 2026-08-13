@@ -26,7 +26,7 @@ async function getCertificateData(certificateCode: string) {
       c.issued_at::text AS issue_date
     FROM certificates c
     JOIN profiles u ON c.user_uid = u.firebase_uid
-    JOIN courses co ON c.course_id = co.id
+    JOIN course co ON c.course_id = co.id
     JOIN profiles t ON co.teacher_uid = t.firebase_uid
     WHERE c.code = ${certificateCode}
   `;

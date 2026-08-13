@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     }
 
     // جلب بيانات الكورس والمستخدم معاً
-    const [course] = await sql`SELECT price, title FROM courses WHERE id = ${courseId}`;
+    const [course] = await sql`SELECT price, title FROM course WHERE id = ${courseId}`;
     if (!course) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }

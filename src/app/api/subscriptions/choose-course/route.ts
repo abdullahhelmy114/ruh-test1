@@ -16,7 +16,7 @@ export async function POST(req: Request) {
 
     // 1. جلب الاشتراك النشط للمستخدم من جدول subscriptions
     const [subscription] = await sql`
-      SELECT id, max_courses, courses_used, expires_at
+      SELECT id, max_course, course_used, expires_at
       FROM subscriptions
       WHERE user_uid = (SELECT id FROM profiles WHERE firebase_uid = ${session.uid})
         AND expires_at > NOW()
@@ -27,36 +27,36 @@ export async function POST(req: Request) {
     }
 
     // 2. التأكد من عدم تجاوز الحد الأقصى للكورسات
-    if (subscription.courses_used >= subscription.max_courses) {
+    if (subscription.course_used >= subscription.max_course) {
       return NextResponse.json({ error: 'لقد وصلت للحد الأقصى من الكورسات' }, { status: 400 });
     }
 
     // 3. التحقق من أن الكورس الحي موجود وليس ضمن كورسات الاشتراك سابقاً
     const [liveCourse] = await sql`
-      SELECT id FROM live_courses WHERE id = ${course_id} AND status = 'active'
+      SELECT id FROM live_course WHERE id = ${course_id} AND status = 'active'
     `;
     if (!liveCourse) {
       return NextResponse.json({ error: 'الكورس غير متاح' }, { status: 404 });
     }
 
     const alreadyChosen = await sql`
-      SELECT id FROM subscription_courses
+      SELECT id FROM subscription_course
       WHERE subscription_id = ${subscription.id} AND course_id = ${course_id}
     `;
     if (alreadyChosen.length > 0) {
       return NextResponse.json({ error: 'الكورس تم اختياره بالفعل' }, { status: 409 });
     }
 
-    // 4. إضافة الكورس إلى subscription_courses
+    // 4. إضافة الكورس إلى subscription_course
     await sql`
-      INSERT INTO subscription_courses (subscription_id, course_id)
+      INSERT INTO subscription_course (subscription_id, course_id)
       VALUES (${subscription.id}, ${course_id})
     `;
 
     // 5. زيادة عداد الكورسات المستخدمة في الاشتراك
     await sql`
       UPDATE subscriptions
-      SET courses_used = courses_used + 1
+      SET course_used = course_used + 1
       WHERE id = ${subscription.id}
     `;
 

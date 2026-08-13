@@ -95,7 +95,7 @@ export default function CreateModelCourse() {
 
         // إنشاء درس لكل عنوان
         for (const lessonTitle of lessonTitles) {
-          await fetch(`/api/admin/model-courses/${courseId}/lessons`, {
+          await fetch(`/api/admin/model-course/${courseId}/lessons`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

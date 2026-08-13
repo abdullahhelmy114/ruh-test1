@@ -42,8 +42,8 @@ export default function CartPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
-      <Link href="/marketplace" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
-        <ArrowLeft size={16} /> <T>Back to Marketplace</T>
+      <Link href="/courses" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
+        <ArrowLeft size={16} /> <T>Back to courses</T>
       </Link>
       <h1 className="font-serif text-3xl mb-6 flex items-center gap-2">
         <ShoppingCart className="h-7 w-7 text-secondary-foreground" /> <T>Shopping Cart</T>
@@ -69,7 +69,7 @@ export default function CartPage() {
                   )}
                 </div>
                 <div>
-                  <Link href={`/courses/${item.course_id}`} className="font-medium hover:text-accent-foreground">{item.title}</Link>
+                  <Link href={`/course/${item.course_id}`} className="font-medium hover:text-accent-foreground">{item.title}</Link>
                   <p className="text-xs text-muted-foreground"><T>by</T> {item.teacher_name} · {item.level}</p>
                 </div>
               </div>

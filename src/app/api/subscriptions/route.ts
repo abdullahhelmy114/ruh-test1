@@ -11,7 +11,7 @@ export async function GET(req: Request) {
 
     // جلب الاشتراك النشط
     const [subscription] = await sql`
-      SELECT s.id, s.max_courses, s.courses_used, s.expires_at
+      SELECT s.id, s.max_course, s.course_used, s.expires_at
       FROM subscriptions s
       JOIN profiles p ON s.user_uid = p.id
       WHERE p.firebase_uid = ${session.uid}
@@ -24,19 +24,19 @@ export async function GET(req: Request) {
     }
 
     // جلب الكورسات المختارة في هذا الاشتراك
-    const chosenCourses = await sql`
+    const chosencourse = await sql`
       SELECT sc.course_id
-      FROM subscription_courses sc
+      FROM subscription_course sc
       WHERE sc.subscription_id = ${subscription.id}
     `;
 
-    const courseIds = chosenCourses.map((row: any) => row.course_id);
+    const courseIds = chosencourse.map((row: any) => row.course_id);
 
     return NextResponse.json({
       subscription: {
         id: subscription.id,
-        max_courses: subscription.max_courses,
-        courses_used: subscription.courses_used,
+        max_course: subscription.max_course,
+        course_used: subscription.course_used,
         expires_at: subscription.expires_at,
         course_ids: courseIds,
       },

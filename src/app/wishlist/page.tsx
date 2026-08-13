@@ -41,8 +41,8 @@ export default function WishlistPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
-      <Link href="/marketplace" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
-        <ArrowLeft size={16} /> <T>Back to Marketplace</T>
+      <Link href="/courses" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
+        <ArrowLeft size={16} /> <T>Back to courses</T>
       </Link>
       <h1 className="font-serif text-3xl mb-6 flex items-center gap-2">
         <Heart className="h-7 w-7 text-red-500 fill-current" /> <T>Wishlist</T>
@@ -60,7 +60,7 @@ export default function WishlistPage() {
           {items.map((item: any) => (
             <div key={item.id} className="flex items-center justify-between glass rounded-2xl p-4">
               <div>
-                <Link href={`/courses/${item.course_id}`} className="font-medium hover:text-accent-foreground">{item.title}</Link>
+                <Link href={`/course/${item.course_id}`} className="font-medium hover:text-accent-foreground">{item.title}</Link>
                 <p className="text-xs text-muted-foreground"><T>by</T> {item.teacher_name} · {item.level}</p>
               </div>
               <div className="flex items-center gap-4">

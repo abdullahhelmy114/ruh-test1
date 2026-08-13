@@ -84,10 +84,10 @@ export function CertificationContent() {
 
             <div className="mt-8 text-center sm:text-left">
               <Link
-                href="/marketplace"
+                href="/courses"
                 className="inline-flex items-center gap-2 rounded-full gradient-emerald px-6 py-3 text-sm font-semibold text-primary-foreground shadow-elegant transition hover:scale-[1.02]"
               >
-                <T>Browse Courses</T>
+                <T>Browse course</T>
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
