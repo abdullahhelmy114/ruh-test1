@@ -173,7 +173,7 @@ export default function coursePage() {
                   backgroundImage: `linear-gradient(120deg, ${GOLD}, ${ORANGE} 55%, ${GOLD})`,
                 }}
               >
-                <T>course</T>
+                <T>Courses</T>
               </span>
             </h1>
 

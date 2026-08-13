@@ -149,7 +149,7 @@ export function CourseGrid() {
         >
           <ShieldCheck className="inline h-5 w-5 text-primary mr-2" />
           <span className="text-foreground font-medium">
-            <T>{`You are subscribed! You can choose ${remainingSlots} course for free`}</T>
+            <T>{`You are subscribed! You can choose ${remainingSlots} courses for free`}</T>
           </span>
           {subscription && (
             <span className="text-muted-foreground text-sm ml-2">
