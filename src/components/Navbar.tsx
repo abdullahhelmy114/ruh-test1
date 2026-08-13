@@ -146,7 +146,7 @@ export function Navbar() {
 <Link href="/" className="flex items-center gap-3">
   {/* أيقونة فاتحة تظهر في Light Mode */}
   <img
-    src="/light.svg"
+    src="/light1.svg"
     alt="Ruh-Ul-Qudus"
     className="h-12 w-12 dark:hidden"
   />
