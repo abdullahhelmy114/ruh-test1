@@ -165,7 +165,7 @@ export function ContactContent() {
               </h3>
               <div className="mt-4 flex flex-wrap gap-3">
                 <a
-                  href="https://youtube.com/@ruhulqudus"
+                  href="https://youtube.com/@Ruh-Ul-Qudus"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-xs font-medium text-muted-foreground hover:text-red-500 hover:border-red-500 transition-colors"
@@ -174,7 +174,7 @@ export function ContactContent() {
                   <T>YouTube</T>
                 </a>
                 <a
-                  href="https://instagram.com/ruhulqudus"
+                  href="https://instagram.com/Ruh-Ul-Qudus"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-xs font-medium text-muted-foreground hover:text-pink-500 hover:border-pink-500 transition-colors"
@@ -183,7 +183,7 @@ export function ContactContent() {
                   <T>Instagram</T>
                 </a>
                 <a
-                  href="https://facebook.com/ruhulqudus"
+                  href="https://facebook.com/Ruh-Ul-Qudus"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-xs font-medium text-muted-foreground hover:text-blue-600 hover:border-blue-600 transition-colors"

@@ -139,7 +139,7 @@ export default function AdminDashboard() {
               <T>Admin Control Panel</T>
             </h1>
             <p className="text-sm text-muted-foreground">
-              <T>Oversee the entire Ruhulqudus Academy ecosystem.</T>
+              <T>Oversee the entire Ruh-Ul-Qudus Academy ecosystem.</T>
             </p>
           </div>
         </div>
@@ -1705,8 +1705,8 @@ function AIConfigurationTab() {
 
 /* ─────────── Site Settings Tab ─────────── */
 function SiteSettingsTab() {
-  const [siteName, setSiteName] = useState("Ruhulqudus Academy");
-  const [contactEmail, setContactEmail] = useState("admin@ruhulqudus.net");
+  const [siteName, setSiteName] = useState("Ruh-Ul-Qudus Academy");
+  const [contactEmail, setContactEmail] = useState("admin@Ruh-Ul-Qudus.net");
   const [maintenanceMode, setMaintenanceMode] = useState(false);
 
   return (

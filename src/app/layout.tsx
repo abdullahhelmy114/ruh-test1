@@ -14,7 +14,7 @@ const playfair = Playfair_Display({ variable: "--font-playfair", subsets: ["lati
 
 
 export const metadata: Metadata = {
-  title: "Ruhulqudus Academy | أرقى منصة لتعلم العربية",
+  title: "Ruh-Ul-Qudus Academy | أرقى منصة لتعلم العربية",
   description: "Traditional wisdom meets modern learning technology.",
     icons: {
     icon: [

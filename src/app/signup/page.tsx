@@ -24,7 +24,7 @@ export default function SignupRolePage() {
           className="text-center mb-10 sm:mb-12"
         >
           <div className="text-xs font-bold uppercase tracking-[0.3em] text-gold mb-3">
-            <T>Ruhulqudus Academy</T>
+            <T>Ruh-Ul-Qudus Academy</T>
           </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-primary">
             <T>Join Our Community</T>

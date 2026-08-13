@@ -59,7 +59,7 @@ export default function OnboardingPage() {
         {step === 1 && (
           <>
             <Globe className="mx-auto h-12 w-12 text-secondary-foreground mb-4" />
-            <h1 className="font-serif text-2xl"><T>Welcome to Ruhulqudus Academy!</T></h1>
+            <h1 className="font-serif text-2xl"><T>Welcome to Ruh-Ul-Qudus Academy!</T></h1>
             <p className="mt-2 text-sm text-muted-foreground">
               <T>Let's set up your profile to get started.</T>
             </p>

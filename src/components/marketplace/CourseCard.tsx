@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * CourseCard — Ruhulqudus Academy
+ * CourseCard — Ruh-Ul-Qudus Academy
  * الهوية الجديدة: Deep Emerald × Gold
  * يعتمد على التوكنز الدلالية في globals.css فقط
  * (bg-card / text-foreground / text-gold / bg-primary ...) بدون ألوان ثابتة.

@@ -99,7 +99,7 @@ export default function StudentSignupPage() {
         >
           <header className="mb-8 sm:mb-10 text-center">
             <div className="text-xs font-bold uppercase tracking-[0.3em] text-primary mb-3">
-              <T>Ruhulqudus Academy</T>
+              <T>Ruh-Ul-Qudus Academy</T>
             </div>
             <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl text-primary mb-2 sm:mb-3">
               <T>Begin Your Journey</T>

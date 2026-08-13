@@ -147,18 +147,18 @@ export function Navbar() {
   {/* أيقونة فاتحة تظهر في Light Mode */}
   <img
     src="/light.svg"
-    alt="Ruhulqudus"
+    alt="Ruh-Ul-Qudus"
     className="h-12 w-12 dark:hidden"
   />
   {/* أيقونة داكنة تظهر في Dark Mode */}
   <img
     src="/dark.svg"
-    alt="Ruhulqudus"
+    alt="Ruh-Ul-Qudus"
     className="h-12 w-12 hidden dark:block"
   />
   <div className="leading-tight">
     <div className="font-serif text-lg font-semibold text-foreground">
-      <T>Ruhulqudus</T>
+      <T>Ruh-Ul-Qudus</T>
     </div>
     <div className="text-[10px] uppercase tracking-[0.2em] text-foreground">
       <T>Academy</T>

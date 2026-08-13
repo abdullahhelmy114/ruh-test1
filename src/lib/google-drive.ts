@@ -80,5 +80,5 @@ export function driveUrlToCdnUrl(driveUrl: string): string {
   const match = driveUrl.match(/\/d\/([^/]+)\//) || driveUrl.match(/id=([^&]+)/);
   if (!match) return driveUrl;
   const fileId = match[1];
-  return `https://ruhulqudus.net/cdn/${fileId}`;
+  return `https://Ruh-Ul-Qudus.net/cdn/${fileId}`;
 }

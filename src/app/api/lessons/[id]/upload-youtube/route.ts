@@ -120,7 +120,7 @@ export async function POST(
     // 3. رفع الفيديو إلى YouTube
     const youtubeVideoId = await uploadToYouTube(
       lesson.title || 'Lesson Recording',
-      `Auto-uploaded from Ruhulqudus Academy. Lesson ID: ${lessonId}`,
+      `Auto-uploaded from Ruh-Ul-Qudus Academy. Lesson ID: ${lessonId}`,
       videoBuffer
     );
 

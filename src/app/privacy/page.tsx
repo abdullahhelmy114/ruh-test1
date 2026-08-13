@@ -4,11 +4,11 @@ import { T } from "@/components/TranslatedText";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy – Ruhulqudus Academy",
+  title: "Privacy Policy – Ruh-Ul-Qudus Academy",
   description:
-    "Read Ruhulqudus Academy's privacy policy. We protect your data, use secure payment gateways, and never sell your information to third parties.",
+    "Read Ruh-Ul-Qudus Academy's privacy policy. We protect your data, use secure payment gateways, and never sell your information to third parties.",
   openGraph: {
-    title: "Privacy Policy – Ruhulqudus Academy",
+    title: "Privacy Policy – Ruh-Ul-Qudus Academy",
     description:
       "Your privacy is important to us. Learn how we collect, use, and safeguard your personal information.",
     type: "website",

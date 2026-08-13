@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ProfileShell } from "@/components/profile/ProfileShell";
 
 export const metadata: Metadata = {
-  title: "Profile – Ruhulqudus Academy",
+  title: "Profile – Ruh-Ul-Qudus Academy",
 };
 
 export default function ProfileLayout({ children }: { children: React.ReactNode }) {

@@ -37,17 +37,17 @@ function wrapTemplate(title: string, content: string) {
       <div class="container">
         <div class="card">
           <div class="logo">
-            <h2 style="color:#22305C;font-family:'Cormorant Garamond',serif;font-size:28px;margin:0;">Ruhulqudus Academy</h2>
+            <h2 style="color:#22305C;font-family:'Cormorant Garamond',serif;font-size:28px;margin:0;">Ruh-Ul-Qudus Academy</h2>
           </div>
           <h1 class="title">${title}</h1>
           <div class="content">${content}</div>
           <div class="divider"></div>
           <div class="footer">
-            <p>© ${new Date().getFullYear()} Ruhulqudus Academy. All rights reserved.</p>
+            <p>© ${new Date().getFullYear()} Ruh-Ul-Qudus Academy. All rights reserved.</p>
             <p>
-              <a href="https://ruhulqudus.net/privacy">Privacy Policy</a> · 
-              <a href="https://ruhulqudus.net/terms">Terms of Service</a> · 
-              <a href="https://ruhulqudus.net/contact">Contact Us</a>
+              <a href="https://Ruh-Ul-Qudus.net/privacy">Privacy Policy</a> · 
+              <a href="https://Ruh-Ul-Qudus.net/terms">Terms of Service</a> · 
+              <a href="https://Ruh-Ul-Qudus.net/contact">Contact Us</a>
             </p>
           </div>
         </div>
@@ -66,7 +66,7 @@ export async function sendEmail(
     throw new Error("Email credentials not configured");
   }
   await transporter.sendMail({
-    from: `"Ruhulqudus Academy" <${process.env.EMAIL_FROM}>`,
+    from: `"Ruh-Ul-Qudus Academy" <${process.env.EMAIL_FROM}>`,
     to,
     subject,
     html: htmlContent,
@@ -76,13 +76,13 @@ export async function sendEmail(
 // دوال القوالب (بقيت كما هي)
 export function welcomeEmail(name: string) {
   return wrapTemplate(
-    "Welcome to Ruhulqudus Academy! 🎉",
+    "Welcome to Ruh-Ul-Qudus Academy! 🎉",
     `
       <div class="emoji">📚</div>
       <p>Dear <strong>${name}</strong>,</p>
       <p>Your account has been created successfully. We are thrilled to have you join our community of Arabic learners.</p>
       <p>Start your journey today:</p>
-      <a href="https://ruhulqudus.net/marketplace" class="button">Browse Courses</a>
+      <a href="https://Ruh-Ul-Qudus.net/marketplace" class="button">Browse Courses</a>
     `
   );
 }
@@ -120,7 +120,7 @@ export function courseEnrolledEmail(name: string, course: string) {
       <p>Dear <strong>${name}</strong>,</p>
       <p>You have successfully enrolled in <strong>${course}</strong>.</p>
       <p>Start learning now:</p>
-      <a href="https://ruhulqudus.net/dashboard/student" class="button">Go to Dashboard</a>
+      <a href="https://Ruh-Ul-Qudus.net/dashboard/student" class="button">Go to Dashboard</a>
     `
   );
 }
@@ -152,9 +152,9 @@ export function teacherApprovedEmail(name: string) {
     `
       <div class="emoji">🎉</div>
       <p>Dear <strong>${name}</strong>,</p>
-      <p>Congratulations! Your application to become a teacher at Ruhulqudus Academy has been approved.</p>
+      <p>Congratulations! Your application to become a teacher at Ruh-Ul-Qudus Academy has been approved.</p>
       <p>You can now log in and start creating courses.</p>
-      <a href="https://ruhulqudus.net/dashboard/teacher" class="button">Go to Teacher Dashboard</a>
+      <a href="https://Ruh-Ul-Qudus.net/dashboard/teacher" class="button">Go to Teacher Dashboard</a>
     `
   );
 }

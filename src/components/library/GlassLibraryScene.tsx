@@ -168,7 +168,7 @@ function BookMesh({
             <p className="font-display text-xl leading-tight text-foreground">{book.title}</p>
             <p className="font-arabic mt-0.5 text-base text-gold">{book.author || ""}</p>
             <p className="mt-1 text-[10px] tracking-[0.2em] text-accent uppercase">
-              {book.author || "Ruhulqudus"}
+              {book.author || "Ruh-Ul-Qudus"}
             </p>
             <p className="mt-1.5 line-clamp-3 text-[11px] leading-snug text-muted-foreground">
               {book.description || ""}

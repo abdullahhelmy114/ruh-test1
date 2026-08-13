@@ -25,10 +25,10 @@ export async function POST(request: Request) {
     // إرسال بريد الترحيب
     await sendEmail(
       email,
-      'Welcome to Ruhulqudus Academy!',
+      'Welcome to Ruh-Ul-Qudus Academy!',
       `<h1>Welcome, ${name}!</h1>
        <p>Your account has been created successfully.</p>
-       <p>Start your learning journey today: <a href="https://ruhulqudus.net/marketplace">Browse Courses</a></p>`
+       <p>Start your learning journey today: <a href="https://Ruh-Ul-Qudus.net/marketplace">Browse Courses</a></p>`
     );
 
     return NextResponse.json({ success: true });

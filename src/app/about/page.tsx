@@ -15,11 +15,11 @@ import { T } from "@/components/TranslatedText";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "About Ruhulqudus Academy – Our Mission & Vision",
+  title: "About Ruh-Ul-Qudus Academy – Our Mission & Vision",
   description:
-    "Learn about Ruhulqudus Academy, founded by Dr. Jehan Ali Ziad. We teach Arabic and the Holy Quran with excellence, live mentorship, and a timeless curriculum.",
+    "Learn about Ruh-Ul-Qudus Academy, founded by Dr. Jehan Ali Ziad. We teach Arabic and the Holy Quran with excellence, live mentorship, and a timeless curriculum.",
   openGraph: {
-    title: "About Ruhulqudus Academy",
+    title: "About Ruh-Ul-Qudus Academy",
     description:
       "An elite digital institution for the Arabic language and Quran, combining classical pedagogy with modern technology.",
     type: "website",

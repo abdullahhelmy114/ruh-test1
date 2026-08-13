@@ -23,7 +23,7 @@ export function AffiliateContent() {
   const [copied, setCopied] = useState(false);
   const referralCode = user?.uid?.slice(0, 8) || "signup";
 
-  const referralLink = `https://ruhulqudus.net/r/${referralCode}`;
+  const referralLink = `https://Ruh-Ul-Qudus.net/r/${referralCode}`;
 
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink);

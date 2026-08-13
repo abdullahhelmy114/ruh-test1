@@ -90,7 +90,7 @@ export function LibraryView() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold font-serif text-foreground">
-            <T>Ruhulqudus Library</T>
+            <T>Ruh-Ul-Qudus Library</T>
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             <T>Elegant shelves housing the most important Islamic books.</T>

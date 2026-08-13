@@ -91,7 +91,7 @@ const onSubmit = async (data: TeacherSignupStep2Data) => {
         formData.append("file", file);
         
         // بيانات Cloudinary الخاصة بك
-        formData.append("upload_preset", "ruhulqudus"); 
+        formData.append("upload_preset", "Ruh-Ul-Qudus"); 
         const cloudName = "flpsabx6"; 
 
         // الرفع المباشر (auto تتعرف تلقائياً هل هو pdf أو فيديو)

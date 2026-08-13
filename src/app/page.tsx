@@ -36,7 +36,7 @@ const testimonials = [
   {
     name: "Ahmed Al-Khalidi",
     role: "Student",
-    text: "The best decision I ever made. Dr. Gehan's method transformed my Arabic in 3 months.",
+    text: "The best decision I ever made. Dr. Jehan's method transformed my Arabic in 3 months.",
     avatar: "A",
   },
   {
@@ -110,7 +110,7 @@ export default function HomePage() {
             transition={{ duration: 0.7 }}
           >
             <div className="text-xs uppercase tracking-[0.3em] text-gold ornament">
-              <T>Est. by Dr. Gehan Ali Ahmed</T>
+              <T>Founder: Dr. Jehan Ali Ziad</T>
             </div>
 
             <h1 className="mt-5 font-serif text-5xl leading-[1.05] md:text-7xl">

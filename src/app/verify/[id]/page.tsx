@@ -11,8 +11,8 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
-    title: `Certificate Verification - ${params.id} | Ruhulqudus Academy`,
-    description: "Verify the authenticity of a Ruhulqudus Academy certificate.",
+    title: `Certificate Verification - ${params.id} | Ruh-Ul-Qudus Academy`,
+    description: "Verify the authenticity of a Ruh-Ul-Qudus Academy certificate.",
   };
 }
 

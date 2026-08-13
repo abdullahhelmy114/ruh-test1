@@ -4,13 +4,13 @@ import { T } from "@/components/TranslatedText";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms and Conditions – Ruhulqudus Academy",
+  title: "Terms and Conditions – Ruh-Ul-Qudus Academy",
   description:
-    "Read Ruhulqudus Academy's terms and conditions. Understand your rights, responsibilities, and our policies for using the platform.",
+    "Read Ruh-Ul-Qudus Academy's terms and conditions. Understand your rights, responsibilities, and our policies for using the platform.",
   openGraph: {
-    title: "Terms and Conditions – Ruhulqudus Academy",
+    title: "Terms and Conditions – Ruh-Ul-Qudus Academy",
     description:
-      "By using Ruhulqudus Academy, you agree to these terms. Learn about account rules, payments, refunds, and intellectual property.",
+      "By using Ruh-Ul-Qudus Academy, you agree to these terms. Learn about account rules, payments, refunds, and intellectual property.",
     type: "website",
     locale: "en_US",
     alternateLocale: ["ar_SA", "tr_TR"],

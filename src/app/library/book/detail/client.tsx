@@ -356,7 +356,7 @@ export default function BookReaderClient() {
                   />
                   {role !== "admin" && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-10 z-10">
-                      <p className="text-center text-xl font-bold text-black rotate-45 whitespace-nowrap">RUHULQUDUS</p>
+                      <p className="text-center text-xl font-bold text-black rotate-45 whitespace-nowrap">Ruh-Ul-Qudus</p>
                     </div>
                   )}
                   {(role === "student" || role === "teacher") && drawMode !== "none" && (

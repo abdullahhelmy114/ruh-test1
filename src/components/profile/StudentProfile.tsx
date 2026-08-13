@@ -174,7 +174,7 @@ export function StudentProfile({ readOnly = false }: { readOnly?: boolean }) {
           <h1 className="font-serif text-4xl font-semibold text-foreground sm:text-5xl">
             Begin your <span className="gold-text">journey</span>
           </h1>
-          <p dir="rtl" className="font-arabic text-sm text-muted-foreground">أهلاً بك في أكاديمية روح القدس</p>
+          <p dir="rtl" className="font-arabic text-sm text-muted-foreground">أهلاً بك في أَكَادِيمِيَّةُ رُوحُ الْقُدُسِ</p>
         </header>
 
         <Section step={1} title="Personal" arabic="المعلومات الشخصية" icon={<User size={20} />}>

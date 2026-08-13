@@ -103,7 +103,7 @@ export function AdminProfile() {
           <h1 className="font-serif text-4xl font-semibold text-foreground sm:text-5xl">
             Administrator <span className="gold-text">control</span>
           </h1>
-          <p dir="rtl" className="font-arabic text-sm text-muted-foreground">إدارة أكاديمية روح القدس</p>
+          <p dir="rtl" className="font-arabic text-sm text-muted-foreground">إدارة أَكَادِيمِيَّةُ رُوحُ الْقُدُسِ</p>
         </header>
 
         <Section step={1} title="Identity" arabic="الهوية" icon={<Shield size={20} />}>

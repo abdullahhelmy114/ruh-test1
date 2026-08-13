@@ -53,7 +53,7 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
       formData.append("level", level);
       formData.append("instructions", instructions);
 
-      const startRes = await fetch("https://ai.ruhulqudus.net/generate-from-pdf", {
+      const startRes = await fetch("https://ai.Ruh-Ul-Qudus.net/generate-from-pdf", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -70,7 +70,7 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
 
       while (attempts < maxAttempts) {
         await new Promise(r => setTimeout(r, pollInterval));
-        const statusRes = await fetch(`https://ai.ruhulqudus.net/task-status/${taskId}`);
+        const statusRes = await fetch(`https://ai.Ruh-Ul-Qudus.net/task-status/${taskId}`);
         const statusData = await statusRes.json();
         if (statusData.status === "completed") {
           finalResult = statusData.result;

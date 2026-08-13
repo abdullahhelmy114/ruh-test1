@@ -137,7 +137,7 @@ export async function PUT(
             'Your lesson has been approved!',
             `<h1>Lesson Approved!</h1>
              <p>Your lesson "<strong>${lessonInfo.title}</strong>" has been approved and is now live.</p>
-             <p><a href="https://ruhulqudus.net/live/${lessonId}">View Lesson</a></p>`
+             <p><a href="https://Ruh-Ul-Qudus.net/live/${lessonId}">View Lesson</a></p>`
           );
         }
 

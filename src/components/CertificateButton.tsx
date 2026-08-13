@@ -30,7 +30,7 @@ export function CertificateButton({ studentName, courseName, teacherName }: Cert
     // شعار الأكاديمية (نص بدلاً من صورة)
     doc.setFontSize(16);
     doc.setTextColor("#059669");
-    doc.text("Ruhulqudus Academy", 400, 70, { align: "center" });
+    doc.text("Ruh-Ul-Qudus Academy", 400, 70, { align: "center" });
 
     // عنوان الشهادة
     doc.setFontSize(38);

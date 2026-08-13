@@ -10,7 +10,7 @@ export function Footer() {
         <div>
           <Link href="/">
             <h3 className="font-serif text-xl hover:text-gold transition-colors">
-              <T>Ruhulqudus Academy</T>
+              <T>Ruh-Ul-Qudus Academy</T>
             </h3>
           </Link>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -75,7 +75,7 @@ export function Footer() {
 
       {/* Bottom bar */}
       <div className="border-t py-6 text-center text-xs text-muted-foreground space-x-4">
-        <span>© {new Date().getFullYear()} <T>Ruhulqudus Academy</T>. <T>All rights reserved</T>.</span>
+        <span>© {new Date().getFullYear()} <T>Ruh-Ul-Qudus Academy</T>. <T>All rights reserved</T>.</span>
         <Link href="/privacy" className="hover:text-foreground transition-colors">
           <T>Privacy Policy</T>
         </Link>
