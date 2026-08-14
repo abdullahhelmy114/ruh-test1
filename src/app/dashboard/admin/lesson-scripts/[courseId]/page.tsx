@@ -29,6 +29,8 @@ import { AudioBlock, QuizBlock, AiToolsModal, LibraryModal } from "@/components/
 if (typeof window !== "undefined") {
   pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 }
+import { VoiceMessageNode } from "@/components/editor/VoiceMessageNode";
+
 
 type TabCategory = "format" | "ai" | "insert";
 
@@ -44,14 +46,14 @@ const AVAILABLE_VOICES = [
   { id: "ar-SY-AmanyNeural", label: "أماني (سوري - أنثى)", lang: "ar", sample: "أَكَادِيمِيَّةُ رُوحُ الْقُدُسِ" },
 
   // الإنجليزية
-  { id: "en-US-GuyNeural", label: "Guy (US English - Male)", lang: "en", sample: "Academy of the Holy Spirit" },
-  { id: "en-US-JennyNeural", label: "Jenny (US English - Female)", lang: "en", sample: "Academy of the Holy Spirit" },
-  { id: "en-GB-RyanNeural", label: "Ryan (UK English - Male)", lang: "en", sample: "Academy of the Holy Spirit" },
-  { id: "en-GB-SoniaNeural", label: "Sonia (UK English - Female)", lang: "en", sample: "Academy of the Holy Spirit" },
+  { id: "en-US-GuyNeural", label: "Guy (US English - Male)", lang: "en", sample: "Ruhulqudus Academy" },
+  { id: "en-US-JennyNeural", label: "Jenny (US English - Female)", lang: "en", sample: "Ruhulqudus Academy" },
+  { id: "en-GB-RyanNeural", label: "Ryan (UK English - Male)", lang: "en", sample: "Ruhulqudus Academy" },
+  { id: "en-GB-SoniaNeural", label: "Sonia (UK English - Female)", lang: "en", sample: "Ruhulqudus Academy" },
 
   // التركية
-  { id: "tr-TR-AhmetNeural", label: "Ahmet (Türkçe - Erkek)", lang: "tr", sample: "Kutsal Ruh Akademisi" },
-  { id: "tr-TR-EmelNeural", label: "Emel (Türkçe - Kadın)", lang: "tr", sample: "Kutsal Ruh Akademisi" },
+  { id: "tr-TR-AhmetNeural", label: "Ahmet (Türkçe - Erkek)", lang: "tr", sample: "Ruhuulkudus Akademisi" },
+  { id: "tr-TR-EmelNeural", label: "Emel (Türkçe - Kadın)", lang: "tr", sample: "Ruhulkudus Akademisi" },
 ];
 
 // ==========================================
@@ -195,14 +197,26 @@ const VoiceGeneratorModal = ({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (audioSrc: string, voice: any, text: string) => void;
+  onSave: (audioSrc: string, voice: any, text: string, title: string, theme: string) => void;
 }) => {
   const [selectedVoice, setSelectedVoice] = useState(AVAILABLE_VOICES[0]);
   const [text, setText] = useState("");
+  const [voiceTitle, setVoiceTitle] = useState("");
+  const [selectedTheme, setSelectedTheme] = useState("green");
   const [generatedAudio, setGeneratedAudio] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // قائمة الثيمات
+  const THEMES = [
+    { id: "green", label: "أخضر", color: "#22c55e" },
+    { id: "orange", label: "برتقالي", color: "#f97316" },
+    { id: "purple", label: "موف", color: "#a855f7" },
+    { id: "black", label: "أسود", color: "#000000" },
+    { id: "white", label: "أبيض", color: "#ffffff" },
+    { id: "gray", label: "رمادي", color: "#6b7280" },
+  ];
 
   // تشغيل معاينة الصوت (عبارة قصيرة)
   const handlePreviewVoice = async (voice: any) => {
@@ -221,8 +235,11 @@ const VoiceGeneratorModal = ({
           audioRef.current.src = audioSrc;
           await audioRef.current.play();
         }
+      } else {
+        throw new Error("لا توجد بيانات صوتية");
       }
     } catch (e) {
+      console.error("Preview error:", e);
       toast.error("فشل تشغيل المعاينة");
     } finally {
       setIsPreviewing(null);
@@ -231,7 +248,11 @@ const VoiceGeneratorModal = ({
 
   // توليد الصوت النهائي
   const handleGenerate = async () => {
-    if (!text.trim()) return toast.error("اكتب النص أولاً");
+    if (!text.trim()) {
+      toast.error("اكتب النص أولاً");
+      return;
+    }
+    console.log("Generate clicked, text:", text);
     setIsGenerating(true);
     setGeneratedAudio(null);
     try {
@@ -240,13 +261,16 @@ const VoiceGeneratorModal = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text, voice: selectedVoice.id }),
       });
+      console.log("Response status:", res.status);
       const data = await res.json();
+      console.log("Response data:", data);
       if (data.audioBase64) {
         setGeneratedAudio(`data:audio/mpeg;base64,${data.audioBase64}`);
       } else {
-        throw new Error("لا توجد بيانات صوتية");
+        throw new Error(data.error || "لا توجد بيانات صوتية");
       }
     } catch (e) {
+      console.error("Generation error:", e);
       toast.error("فشل توليد الصوت");
     } finally {
       setIsGenerating(false);
@@ -303,6 +327,18 @@ const VoiceGeneratorModal = ({
             </button>
           </div>
 
+          {/* اسم الفويز */}
+          <div>
+            <label className="block text-sm font-bold mb-2"><T>اسم الفويز (اختياري)</T></label>
+            <input
+              type="text"
+              value={voiceTitle}
+              onChange={(e) => setVoiceTitle(e.target.value)}
+              placeholder="اتركه فارغاً ليكون 'فويز بلا عنوان'"
+              className="w-full bg-background border border-border p-3 rounded-xl outline-none focus:border-primary"
+            />
+          </div>
+
           {/* النص المراد تحويله */}
           <div>
             <label className="block text-sm font-bold mb-2"><T>النص</T></label>
@@ -313,6 +349,30 @@ const VoiceGeneratorModal = ({
               placeholder="اكتب الجملة أو النص هنا..."
               className="w-full bg-background border border-border p-3 rounded-xl outline-none focus:border-primary"
             />
+          </div>
+
+          {/* اختيار الثيم */}
+          <div>
+            <label className="block text-sm font-bold mb-2"><T>اختر الثيم</T></label>
+            <div className="flex flex-wrap gap-2">
+              {THEMES.map((theme) => (
+                <button
+                  key={theme.id}
+                  onClick={() => setSelectedTheme(theme.id)}
+                  className={`p-2 rounded-xl border-2 transition-all ${
+                    selectedTheme === theme.id
+                      ? "border-primary ring-2 ring-primary/30"
+                      : "border-border hover:border-primary/50"
+                  }`}
+                  title={theme.label}
+                >
+                  <span
+                    className="block w-8 h-8 rounded-lg"
+                    style={{ backgroundColor: theme.color }}
+                  />
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* الأزرار */}
@@ -338,7 +398,7 @@ const VoiceGeneratorModal = ({
 
             <button
               onClick={() => {
-                if (generatedAudio) onSave(generatedAudio, selectedVoice, text);
+                if (generatedAudio) onSave(generatedAudio, selectedVoice, text, voiceTitle || "فويز بلا عنوان", selectedTheme);
               }}
               disabled={!generatedAudio}
               className="px-6 py-2.5 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 transition disabled:opacity-50"
@@ -382,12 +442,17 @@ export default function SmartLessonEditor() {
     fontFamily: "sans", fontSize: 18, contentHtml: "", audioBlocks: [], quizBlocks: []
   });
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit, TextStyle, Color, Underline, Link,
-      Highlight.configure({ multicolor: true }),
-      ImageExtension,
-    ],
+const editor = useEditor({
+  extensions: [
+    StarterKit,
+    TextStyle,
+    Color,
+    Underline,
+    Link,
+    Highlight.configure({ multicolor: true }),
+    ImageExtension,
+    VoiceMessageNode, // ✅ هنا
+  ],
     content: "",
     editorProps: { attributes: { class: "prose prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[500px] text-foreground leading-loose" } },
     onUpdate: ({ editor }) => setScript(prev => ({ ...prev, contentHtml: editor.getHTML() }))
@@ -513,23 +578,21 @@ export default function SmartLessonEditor() {
   };
 
   // دالة حفظ الصوت المولّد إلى audioBlocks
-  const handleVoiceSave = (audioSrc: string, voice: any, text: string) => {
-    setScript(prev => ({
-      ...prev,
-      audioBlocks: [
-        ...prev.audioBlocks,
-        {
-          id: Date.now().toString(),
-          title: `${voice.label} - ${text.slice(0, 40)}`,
-          waveformHeights: [2, 4, 6, 8, 5],
-          textToRead: text,
-          audioSrc: audioSrc,
-          voiceId: voice.id,
-        }
-      ]
-    }));
-    setIsVoiceModalOpen(false);
-  };
+const handleVoiceSave = (audioSrc: string, voice: any, text: string, title: string, theme: string) => {
+  if (!editor) return;
+
+  editor.chain().focus().insertContent({
+    type: "voiceMessage",
+    attrs: {
+      src: audioSrc,
+      title: title || "فويز بلا عنوان",
+      theme: theme || "green",
+      width: "80%",
+    },
+  }).run();
+
+  setIsVoiceModalOpen(false);
+};
 
   // دالة رفع الوسائط العامة (صوت، PDF تضمين، ملفات)
   const handleMediaUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {

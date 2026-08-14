@@ -175,6 +175,224 @@
   }
 }
 
+/* ========== 🎙️ Voice Message Bubble ========== */
+
+.voice-message-wrapper {
+  display: flex;
+  justify-content: flex-start;
+  margin: 1rem 0;
+}
+
+.voice-message-bubble {
+  position: relative;       /* ✅ */
+  max-width: 100%;           /* ✅ */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: color-mix(in oklab, var(--primary) 10%, var(--background));
+  border: 1px solid color-mix(in oklab, var(--primary) 20%, transparent);
+  border-radius: var(--radius-2xl, 1.25rem);
+  padding: 8px 12px;
+  max-width: 80%;
+  min-width: 220px;
+  box-shadow: var(--shadow-elegant, 0 20px 60px -20px transparent);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.voice-message-bubble:hover {
+  background: color-mix(in oklab, var(--primary) 15%, var(--background));
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px -8px color-mix(in oklab, var(--primary) 30%, transparent);
+}
+
+.voice-play-btn {
+  background: var(--primary);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-foreground);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.15s, background 0.2s;
+}
+
+.voice-play-btn:hover {
+  background: color-mix(in oklab, var(--primary) 85%, black);
+  transform: scale(1.05);
+}
+
+.voice-message-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.voice-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.voice-progress {
+  width: 100%;
+  height: 4px;
+  -webkit-appearance: none;
+  background: color-mix(in oklab, var(--primary) 30%, transparent);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.voice-progress::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  border: none;
+  transition: transform 0.15s;
+}
+
+.voice-progress::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.voice-progress::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+}
+
+.voice-time {
+  font-size: 10px;
+  color: var(--muted-foreground);
+  margin-top: 2px;
+  text-align: right;
+}
+
+/* Dark mode adjustments */
+.dark .voice-message-bubble {
+  background: color-mix(in oklab, var(--primary) 20%, var(--card));
+  border-color: color-mix(in oklab, var(--primary) 30%, transparent);
+}
+
+.dark .voice-message-bubble:hover {
+  background: color-mix(in oklab, var(--primary) 25%, var(--card));
+}
+
+/* ثيمات الفقاعة الصوتية */
+.voice-theme-green {
+  background: color-mix(in oklab, #22c55e 15%, var(--background));
+  border-color: #22c55e;
+}
+.voice-theme-green .voice-play-btn {
+  background: #22c55e;
+  color: white;
+}
+.voice-theme-green .voice-progress::-webkit-slider-thumb {
+  background: #22c55e;
+}
+
+.voice-theme-orange {
+  background: color-mix(in oklab, #f97316 15%, var(--background));
+  border-color: #f97316;
+}
+.voice-theme-orange .voice-play-btn {
+  background: #f97316;
+  color: white;
+}
+.voice-theme-orange .voice-progress::-webkit-slider-thumb {
+  background: #f97316;
+}
+
+.voice-theme-purple {
+  background: color-mix(in oklab, #a855f7 15%, var(--background));
+  border-color: #a855f7;
+}
+.voice-theme-purple .voice-play-btn {
+  background: #a855f7;
+  color: white;
+}
+.voice-theme-purple .voice-progress::-webkit-slider-thumb {
+  background: #a855f7;
+}
+
+.voice-theme-black {
+  background: color-mix(in oklab, #000000 20%, var(--background));
+  border-color: #000000;
+}
+.voice-theme-black .voice-play-btn {
+  background: #000000;
+  color: white;
+}
+.voice-theme-black .voice-progress::-webkit-slider-thumb {
+  background: #000000;
+}
+
+.voice-theme-white {
+  background: #ffffff;
+  border-color: #cccccc;
+}
+.voice-theme-white .voice-play-btn {
+  background: #ffffff;
+  color: #333;
+  border: 1px solid #ccc;
+}
+.voice-theme-white .voice-title {
+  color: #333;
+}
+.voice-theme-white .voice-time {
+  color: #666;
+}
+.voice-theme-white .voice-progress {
+  background: #e0e0e0;
+}
+.voice-theme-white .voice-progress::-webkit-slider-thumb {
+  background: #333;
+}
+
+.voice-theme-gray {
+  background: color-mix(in oklab, #6b7280 15%, var(--background));
+  border-color: #6b7280;
+}
+.voice-theme-gray .voice-play-btn {
+  background: #6b7280;
+  color: white;
+}
+.voice-theme-gray .voice-progress::-webkit-slider-thumb {
+  background: #6b7280;
+}
+
+/* مقبض تغيير الحجم */
+.voice-resize-handle {
+  width: 12px;
+  height: 12px;
+  background: var(--primary);
+  border-radius: 2px;
+  cursor: nwse-resize;
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.voice-message-bubble:hover .voice-resize-handle {
+  opacity: 1;
+}
+
 @keyframes slideInRight {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
