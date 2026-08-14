@@ -17,8 +17,11 @@ export const AudioBlock = ({ block, onUpdate, onDelete }: { block: AudioBlockDat
   const [isGenerating, setIsGenerating] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // استخدام audioSrc إن وُجد، وإلا audioUrl
+  const audioSource = (block as any).audioSrc || block.audioUrl;
+
   const togglePlay = () => {
-    if (block.audioUrl && audioRef.current) {
+    if (audioSource && audioRef.current) {
       if (isPlaying) { audioRef.current.pause(); setIsPlaying(false); } 
       else { audioRef.current.play(); setIsPlaying(true); }
     }
@@ -42,7 +45,7 @@ export const AudioBlock = ({ block, onUpdate, onDelete }: { block: AudioBlockDat
 
   return (
     <div className="my-8 rounded-2xl border border-border bg-secondary/30 p-5 transition-all hover:bg-secondary/50 shadow-sm relative group">
-      {block.audioUrl && <audio ref={audioRef} src={block.audioUrl} onEnded={() => setIsPlaying(false)} />}
+      {audioSource && <audio ref={audioRef} src={audioSource} onEnded={() => setIsPlaying(false)} />}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <button onClick={togglePlay} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md transition-all hover:scale-105">
@@ -56,7 +59,7 @@ export const AudioBlock = ({ block, onUpdate, onDelete }: { block: AudioBlockDat
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {!block.audioUrl && (
+          {!audioSource && (
             <button onClick={handleGenerateAiVoice} disabled={isGenerating} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
               {isGenerating ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />} <T>Generate Audio</T>
             </button>

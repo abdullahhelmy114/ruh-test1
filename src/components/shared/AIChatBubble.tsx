@@ -6,12 +6,12 @@ import { Brain, Send, X, Sparkles, Loader2 } from "lucide-react";
 
 type Msg = { role: "user" | "ai"; text: string };
 
-const SYSTEM_PROMPT = `You are Nūr, an elite AI assistant for Ruh-Ul-Qudus Academy, a prestigious Arabic language institution. 
-Your role is to help students, teachers, and administrators with:
-- Arabic grammar, vocabulary, and translation.
-- Navigating the academy platform (login, course, profiles, dashboard).
-- Providing cultural and academic insights.
-Always respond in a warm, respectful, and knowledgeable tone. If asked in Arabic, reply in Arabic; otherwise use English.`;
+const SUGGESTIONS = [
+  "كيف أجد الكورسات؟",
+  "أي كورس يناسب مبتدئ؟",
+  "ما هي أسعار الدورات؟",
+  "أين أجد دوراتي المشترك فيها؟",
+];
 
 export function AIChatBubble() {
   const [open, setOpen] = useState(false);
@@ -19,47 +19,49 @@ export function AIChatBubble() {
   const [messages, setMessages] = useState<Msg[]>([
     {
       role: "ai",
-      text: "أهلاً وسهلاً! I'm Nūr, your Arabic learning companion. How can I assist you today?",
+      text: "أهلاً بك! أنا نور، مساعدك في أكاديمية Ruh-Ul-Qudus. اسألني عن الدورات، الأسعار، أو أي شيء يخص المنصة.",
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // التمرير التلقائي إلى آخر رسالة
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isLoading]);
 
-  const send = async () => {
-    const prompt = input.trim();
+  const send = async (text?: string) => {
+    const prompt = (text ?? input).trim();
     if (!prompt || isLoading) return;
 
     const userMsg: Msg = { role: "user", text: prompt };
-    setMessages((prev) => [...prev, userMsg]);
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
     setInput("");
     setIsLoading(true);
 
     try {
-      // تحويل كل الرسائل السابقة + رسالة النظام إلى تنسيق OpenAI
-      const apiMessages = [
-        { role: "system", content: SYSTEM_PROMPT },
-        ...messages.map((m) => ({
+      // بناء التاريخ بصيغة مناسبة للباك إند
+      const history = newMessages
+        .filter((m) => m.role !== "ai" || m.text !== newMessages[0]?.text) // نستثني رسالة الترحيب الافتراضية من التاريخ
+        .slice(0, -1) // نزيل رسالة المستخدم الأخيرة لأنها سترسل كـ message
+        .map((m) => ({
           role: m.role === "ai" ? "assistant" : "user",
           content: m.text,
-        })),
-        { role: "user", content: prompt },
-      ];
+        }));
 
       const response = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: apiMessages }),
+        body: JSON.stringify({
+          message: prompt,
+          history,
+        }),
       });
 
       if (!response.ok) throw new Error("AI request failed");
 
       const data = await response.json();
-      setMessages((prev) => [...prev, { role: "ai", text: data.text }]);
+      setMessages((prev) => [...prev, { role: "ai", text: data.reply }]);
     } catch (err) {
       setMessages((prev) => [
         ...prev,
@@ -79,7 +81,7 @@ export function AIChatBubble() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 280, damping: 25 }}
-            className="fixed bottom-24 right-6 z-50 flex h-[28rem] w-[22rem] flex-col overflow-hidden rounded-3xl border bg-card shadow-elegant"
+            className="fixed bottom-24 right-6 z-50 flex h-[30rem] w-[22rem] flex-col overflow-hidden rounded-3xl border bg-card shadow-elegant"
           >
             <div className="flex items-center justify-between gradient-primary px-4 py-3 text-primary-foreground">
               <div className="flex items-center gap-2">
@@ -87,8 +89,8 @@ export function AIChatBubble() {
                   <Sparkles className="h-4 w-4" />
                 </div>
                 <div>
-                  <div className="font-serif text-base leading-tight">Nūr · AI Assistant</div>
-                  <div className="text-[10px] uppercase tracking-widest opacity-70">Always here to help</div>
+                  <div className="font-serif text-base leading-tight">Nūr · مساعد الموقع</div>
+                  <div className="text-[10px] uppercase tracking-widest opacity-70">أنا هنا لمساعدتك</div>
                 </div>
               </div>
               <button onClick={() => setOpen(false)} className="rounded-full p-1 hover:bg-background/10">
@@ -120,18 +122,32 @@ export function AIChatBubble() {
               <div ref={messagesEndRef} />
             </div>
 
+            {messages.length === 1 && (
+              <div className="px-4 pb-2 flex flex-wrap gap-2">
+                {SUGGESTIONS.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => send(s)}
+                    className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div className="border-t p-3">
               <div className="flex items-center gap-2 rounded-full border bg-background px-3 py-2">
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
-                  placeholder="Ask in English or العربية..."
+                  placeholder="اسأل عن الكورسات، الأسعار، حسابك..."
                   disabled={isLoading}
                   className="flex-1 bg-transparent text-sm outline-none"
                 />
                 <button
-                  onClick={send}
+                  onClick={() => send()}
                   disabled={isLoading || !input.trim()}
                   className="grid h-8 w-8 place-items-center rounded-full gradient-gold disabled:opacity-50"
                 >

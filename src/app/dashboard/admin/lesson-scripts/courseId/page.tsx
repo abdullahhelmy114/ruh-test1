@@ -18,8 +18,10 @@ import * as pdfjsLib from "pdfjs-dist";
 import {
   Save, Loader2, Bold, Italic, Highlighter, Mic, Wand2, FileText, Languages, Sparkles,
   Trash2, Underline as UnderlineIcon, Palette, Image as ImageIcon, Link2, List, ListOrdered,
-  Library, PenTool, BrainCircuit, Blocks, ArrowRight, X, Plus, Video, FileUp, FileDigit
+  Library, PenTool, BrainCircuit, Blocks, ArrowRight, X, Plus, Video, FileUp, FileDigit,
+  Play, Volume2, ChevronDown, Check
 } from "lucide-react";
+
 import { LessonScript, ActiveTool } from "@/components/editor/types";
 import { AudioBlock, QuizBlock, AiToolsModal, LibraryModal } from "@/components/editor/EditorComponents";
 
@@ -29,6 +31,28 @@ if (typeof window !== "undefined") {
 }
 
 type TabCategory = "format" | "ai" | "insert";
+
+// ==========================================
+// 🎙️ Voice Data (Edge TTS Voices)
+// ==========================================
+const AVAILABLE_VOICES = [
+  // العربية
+  { id: "ar-SA-HamedNeural", label: "حامد (عربي فصحى - ذكر)", lang: "ar", sample: "أَكَادِيمِيَّةُ رُوحُ الْقُدُسِ" },
+  { id: "ar-SA-ZariyahNeural", label: "زَريّة (عربي فصحى - أنثى)", lang: "ar", sample: "أَكَادِيمِيَّةُ رُوحُ الْقُدُسِ" },
+  { id: "ar-EG-ShakirNeural", label: "شاكر (مصري - ذكر)", lang: "ar", sample: "أَكَادِيمِيَّةُ رُوحُ الْقُدُسِ" },
+  { id: "ar-EG-SalmaNeural", label: "سلمى (مصري - أنثى)", lang: "ar", sample: "أَكَادِيمِيَّةُ رُوحُ الْقُدُسِ" },
+  { id: "ar-SY-AmanyNeural", label: "أماني (سوري - أنثى)", lang: "ar", sample: "أَكَادِيمِيَّةُ رُوحُ الْقُدُسِ" },
+
+  // الإنجليزية
+  { id: "en-US-GuyNeural", label: "Guy (US English - Male)", lang: "en", sample: "Academy of the Holy Spirit" },
+  { id: "en-US-JennyNeural", label: "Jenny (US English - Female)", lang: "en", sample: "Academy of the Holy Spirit" },
+  { id: "en-GB-RyanNeural", label: "Ryan (UK English - Male)", lang: "en", sample: "Academy of the Holy Spirit" },
+  { id: "en-GB-SoniaNeural", label: "Sonia (UK English - Female)", lang: "en", sample: "Academy of the Holy Spirit" },
+
+  // التركية
+  { id: "tr-TR-AhmetNeural", label: "Ahmet (Türkçe - Erkek)", lang: "tr", sample: "Kutsal Ruh Akademisi" },
+  { id: "tr-TR-EmelNeural", label: "Emel (Türkçe - Kadın)", lang: "tr", sample: "Kutsal Ruh Akademisi" },
+];
 
 // ==========================================
 // 🚀 AI Curriculum Generator Modal
@@ -162,6 +186,176 @@ const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: 
 };
 
 // ==========================================
+// 🎙️ Voice Generator Modal
+// ==========================================
+const VoiceGeneratorModal = ({
+  isOpen,
+  onClose,
+  onSave,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (audioSrc: string, voice: any, text: string) => void;
+}) => {
+  const [selectedVoice, setSelectedVoice] = useState(AVAILABLE_VOICES[0]);
+  const [text, setText] = useState("");
+  const [generatedAudio, setGeneratedAudio] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isPreviewing, setIsPreviewing] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // تشغيل معاينة الصوت (عبارة قصيرة)
+  const handlePreviewVoice = async (voice: any) => {
+    if (!voice) return;
+    try {
+      setIsPreviewing(voice.id);
+      const res = await fetch("/api/tts/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: voice.sample, voice: voice.id }),
+      });
+      const data = await res.json();
+      if (data.audioBase64) {
+        const audioSrc = `data:audio/mpeg;base64,${data.audioBase64}`;
+        if (audioRef.current) {
+          audioRef.current.src = audioSrc;
+          await audioRef.current.play();
+        }
+      }
+    } catch (e) {
+      toast.error("فشل تشغيل المعاينة");
+    } finally {
+      setIsPreviewing(null);
+    }
+  };
+
+  // توليد الصوت النهائي
+  const handleGenerate = async () => {
+    if (!text.trim()) return toast.error("اكتب النص أولاً");
+    setIsGenerating(true);
+    setGeneratedAudio(null);
+    try {
+      const res = await fetch("/api/tts/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, voice: selectedVoice.id }),
+      });
+      const data = await res.json();
+      if (data.audioBase64) {
+        setGeneratedAudio(`data:audio/mpeg;base64,${data.audioBase64}`);
+      } else {
+        throw new Error("لا توجد بيانات صوتية");
+      }
+    } catch (e) {
+      toast.error("فشل توليد الصوت");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // تشغيل الصوت المولّد
+  const handlePlayGenerated = () => {
+    if (generatedAudio && audioRef.current) {
+      audioRef.current.src = generatedAudio;
+      audioRef.current.play();
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+      <div className="w-full max-w-lg bg-card border border-border rounded-3xl p-6 shadow-2xl relative">
+        <button onClick={onClose} className="absolute right-5 top-5 p-2 text-muted-foreground hover:bg-secondary rounded-full transition-colors">
+          <X size={18} />
+        </button>
+        <h2 className="text-2xl font-bold font-serif mb-4 flex items-center gap-2">
+          <Volume2 className="text-primary" />
+          <T>Audio Generator</T>
+        </h2>
+
+        <div className="space-y-5">
+          {/* اختيار الصوت */}
+          <div>
+            <label className="block text-sm font-bold mb-2"><T>اختر الصوت</T></label>
+            <div className="relative">
+              <select
+                value={selectedVoice.id}
+                onChange={(e) => {
+                  const v = AVAILABLE_VOICES.find(v => v.id === e.target.value);
+                  if (v) setSelectedVoice(v);
+                }}
+                className="w-full bg-background border border-border p-3 pr-10 rounded-xl outline-none focus:border-primary appearance-none cursor-pointer"
+              >
+                {AVAILABLE_VOICES.map((v) => (
+                  <option key={v.id} value={v.id}>{v.label}</option>
+                ))}
+              </select>
+              <ChevronDown size={18} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
+            </div>
+            <button
+              onClick={() => handlePreviewVoice(selectedVoice)}
+              disabled={isPreviewing === selectedVoice.id}
+              className="mt-2 w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-secondary/50 hover:bg-secondary transition text-sm font-semibold disabled:opacity-50"
+            >
+              {isPreviewing === selectedVoice.id ? <Loader2 className="animate-spin" size={16} /> : <Play size={16} />}
+              <T>استمع للعبارة التعريفية</T>
+            </button>
+          </div>
+
+          {/* النص المراد تحويله */}
+          <div>
+            <label className="block text-sm font-bold mb-2"><T>النص</T></label>
+            <textarea
+              rows={4}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="اكتب الجملة أو النص هنا..."
+              className="w-full bg-background border border-border p-3 rounded-xl outline-none focus:border-primary"
+            />
+          </div>
+
+          {/* الأزرار */}
+          <div className="flex items-center justify-between gap-3 pt-2">
+            {generatedAudio ? (
+              <button
+                onClick={handlePlayGenerated}
+                className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-accent/20 text-accent-foreground hover:bg-accent/30 transition font-bold"
+              >
+                <Play size={18} />
+                <T>سماع</T>
+              </button>
+            ) : (
+              <button
+                onClick={handleGenerate}
+                disabled={isGenerating || !text.trim()}
+                className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition disabled:opacity-50"
+              >
+                {isGenerating ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />}
+                <T>إنشاء</T>
+              </button>
+            )}
+
+            <button
+              onClick={() => {
+                if (generatedAudio) onSave(generatedAudio, selectedVoice, text);
+              }}
+              disabled={!generatedAudio}
+              className="px-6 py-2.5 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 transition disabled:opacity-50"
+            >
+              <T>حفظ</T>
+            </button>
+          </div>
+        </div>
+
+        {/* عنصر صوتي خفي للتشغيل */}
+        <audio ref={audioRef} className="hidden" />
+      </div>
+    </div>
+  );
+};
+
+// ==========================================
 // 🚀 Main Editor Component
 // ==========================================
 export default function SmartLessonEditor() {
@@ -181,6 +375,7 @@ export default function SmartLessonEditor() {
   const [aiLoading, setAiLoading] = useState(false);
   const [activeTool, setActiveTool] = useState<ActiveTool>(null);
   const [videoModal, setVideoModal] = useState<{ src: string; title?: string } | null>(null);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
 
   const [script, setScript] = useState<LessonScript>({
     id: "new", title: "", subtitle: "", grade: "GRADE 10", subject: "GENERAL", status: "DRAFT",
@@ -315,6 +510,25 @@ export default function SmartLessonEditor() {
       } else throw new Error();
     } catch (err) { toast.error(<T>Failed to generate lesson</T> as unknown as string, { id: toastId }); }
     finally { setAiLoading(false); }
+  };
+
+  // دالة حفظ الصوت المولّد إلى audioBlocks
+  const handleVoiceSave = (audioSrc: string, voice: any, text: string) => {
+    setScript(prev => ({
+      ...prev,
+      audioBlocks: [
+        ...prev.audioBlocks,
+        {
+          id: Date.now().toString(),
+          title: `${voice.label} - ${text.slice(0, 40)}`,
+          waveformHeights: [2, 4, 6, 8, 5],
+          textToRead: text,
+          audioSrc: audioSrc,
+          voiceId: voice.id,
+        }
+      ]
+    }));
+    setIsVoiceModalOpen(false);
   };
 
   // دالة رفع الوسائط العامة (صوت، PDF تضمين، ملفات)
@@ -506,8 +720,12 @@ export default function SmartLessonEditor() {
 
               {activeTab === "ai" && (
                 <div className="flex items-center gap-2 animate-in fade-in px-2">
-                  <button onClick={() => setScript(p => ({...p, audioBlocks: [...p.audioBlocks, { id: Date.now().toString(), title: "Voice Recording", waveformHeights: [2,4,6,8,5], textToRead: editor?.getText() }]}))} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition text-xs font-bold"><Mic size={14} /> <T>AI Voice</T></button>
-                  <button onClick={addAiQuiz} disabled={aiLoading} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent/20 text-accent-foreground hover:bg-accent/30 transition text-xs font-bold"><Wand2 size={14} /> <T>Interactive Quiz</T></button>
+                  <button onClick={() => setIsVoiceModalOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition text-xs font-bold">
+                    <Mic size={14} /> <T>AI Voice</T>
+                  </button>
+                  <button onClick={addAiQuiz} disabled={aiLoading} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent/20 text-accent-foreground hover:bg-accent/30 transition text-xs font-bold">
+                    <Wand2 size={14} /> <T>Interactive Quiz</T>
+                  </button>
                   <button onClick={() => setActiveTool("summary")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-secondary transition text-xs font-bold"><FileText size={14} /> <T>Summarize</T></button>
                   <button onClick={() => setActiveTool("ai-writer")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-secondary transition text-xs font-bold"><Sparkles size={14} /> <T>Expand & Rewrite</T></button>
                   <button onClick={() => setActiveTool("translate")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-secondary transition text-xs font-bold"><Languages size={14} /> <T>Translate</T></button>
@@ -588,6 +806,12 @@ export default function SmartLessonEditor() {
       </main>
 
       <CurriculumModal isOpen={isCurriculumOpen} onClose={() => setIsCurriculumOpen(false)} courseId={courseId} fetchLessons={fetchLessons} />
+
+      <VoiceGeneratorModal
+        isOpen={isVoiceModalOpen}
+        onClose={() => setIsVoiceModalOpen(false)}
+        onSave={handleVoiceSave}
+      />
     </div>
   );
 }
