@@ -1,6 +1,5 @@
 "use client";
 
-import * as pdfjsLib from "pdfjs-dist";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -9,8 +8,10 @@ import { T } from "@/components/TranslatedText";
 import { useAuth } from "@/lib/firebase/AuthProvider";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-// كل أيقونات lucide-react في استيراد واحد مرتب
+import GamificationSettings from "@/components/admin/GamificationSettings";
+import PDFExtractor from "@/components/admin/PDFExtractor";
+import GeneratedContentManager from "@/components/admin/GeneratedContentManager";
+// lucide-react imports
 import {
   Users, GraduationCap, DollarSign, TrendingUp, ShieldCheck, FileText,
   CheckCircle2, XCircle, Search, BookOpen, Clock, Wallet, Sparkles, 
@@ -22,11 +23,8 @@ import {
   ArrowRight, X, BrainCircuit
 } from "lucide-react";
 
-// حماية الأداة (Worker) لتعمل فقط في المتصفح ولا تكسر سيرفر Next.js
-if (typeof window !== "undefined") {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
-}
-// ─── Types ─────────────────────────────────────────────
+
+// Types
 type TabKey =
   | "overview"
   | "manage-course"
@@ -72,7 +70,6 @@ const TABS = [
   { key: "knowledge-base", label: "AI Knowledge Base", icon: BrainCircuit },
 ] as const;
 
-// استيراد ديناميكي لمحتوى إدارة المكتبة
 const LibraryContent = dynamic(() => import("./library/page"), {
   loading: () => (
     <div className="flex justify-center py-20">
@@ -81,7 +78,6 @@ const LibraryContent = dynamic(() => import("./library/page"), {
   ),
 });
 
-// ─── Main Component ────────────────────────────────────
 export default function AdminDashboard() {
   const { user, isLoading: authLoading, role } = useAuth();
   const [tab, setTab] = useState<TabKey>("overview");
@@ -109,7 +105,7 @@ export default function AdminDashboard() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Link href="/login" className="text-accent-foreground">
-          <T>تسجيل الدخول</T>
+          <T>Login</T>
         </Link>
       </div>
     );
@@ -118,7 +114,7 @@ export default function AdminDashboard() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <h1 className="text-3xl text-destructive">
-          <T>غير مصرح</T>
+          <T>Unauthorized</T>
         </h1>
       </div>
     );
@@ -199,12 +195,12 @@ export default function AdminDashboard() {
   );
 }
 
-// ─────────── Library Tab ───────────
+// Library Tab
 function LibraryTab() {
   return <LibraryContent />;
 }
 
-/* ─────────── Overview Tab ─────────── */
+// Overview Tab
 function OverviewTab() {
   const { user } = useAuth();
   const [stats, setStats] = useState<any>(null);
@@ -245,7 +241,7 @@ function OverviewTab() {
       accent: "from-accent/30",
     },
     {
-      label: "Active course",
+      label: "Active Courses",
       value: stats.active_course.toLocaleString(),
       icon: BookOpen,
       accent: "from-primary/20",
@@ -266,7 +262,7 @@ function OverviewTab() {
     },
     {
       icon: BookOpen,
-      label: "course awaiting review",
+      label: "Courses awaiting review",
       count: pending.course_pending,
     },
     {
@@ -353,16 +349,14 @@ function OverviewTab() {
   );
 }
 
-
-
-/* ─────────── Manage course Tab ─────────── */
+// Manage Course Tab
 function ManagecourseTab() {
   const { user } = useAuth();
   const router = useRouter();
-  const [course, setcourse] = useState<any[]>([]);
+  const [course, setCourse] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchcourse = async () => {
+  const fetchCourses = async () => {
     if (!user) return;
     const token = await user.getIdToken();
     try {
@@ -370,32 +364,32 @@ function ManagecourseTab() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (res.ok) setcourse(data.course || []);
+      if (res.ok) setCourse(data.course || []);
     } catch (err) {
-      console.error("Failed to fetch course", err);
+      console.error("Failed to fetch courses", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchcourse();
+    fetchCourses();
   }, [user]);
 
-const handleDelete = async (id: string) => {
-  if (!confirm("حذف الكورس؟")) return;
-  if (!user) return;
-  const token = await user.getIdToken();
-  await fetch("/api/admin/course/id", {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ id }),
-  });
-  fetchcourse();
-};
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this course?")) return;
+    if (!user) return;
+    const token = await user.getIdToken();
+    await fetch("/api/admin/course/id", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ id }),
+    });
+    fetchCourses();
+  };
 
   if (loading) {
     return (
@@ -408,7 +402,7 @@ const handleDelete = async (id: string) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="font-serif text-2xl"><T>Manage course</T></h2>
+        <h2 className="font-serif text-2xl"><T>Manage Courses</T></h2>
         <button
           onClick={() => router.push("/dashboard/admin/course/new")}
           className="rounded-full bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold inline-flex items-center gap-2"
@@ -418,7 +412,7 @@ const handleDelete = async (id: string) => {
       </div>
       {course.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground">
-          <T>No course yet</T>
+          <T>No courses yet</T>
         </div>
       ) : (
         <div className="glass rounded-2xl overflow-x-auto">
@@ -465,7 +459,7 @@ const handleDelete = async (id: string) => {
   );
 }
 
-/* ─────────── Teacher Verification Tab ─────────── */
+// Teacher Verification Tab
 function TeacherVerificationTab() {
   const { user } = useAuth();
   const [applications, setApplications] = useState<any[]>([]);
@@ -501,26 +495,23 @@ function TeacherVerificationTab() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        // أرسلنا teacherId و uid معاً لضمان عدم حدوث خطأ 400 في الباك إند
         body: JSON.stringify({ teacherId: uid, uid: uid }), 
       });
       
       if (res.ok) {
-        // إزالة المعلم من القائمة بعد الموافقة بنجاح
         setApplications((prev) => prev.filter((app) => app.uid !== uid));
       } else {
         const errorData = await res.json();
-        alert(`فشلت الموافقة: ${errorData.message || "Bad Request"}`);
+        alert(`Failed to approve: ${errorData.message || "Bad Request"}`);
       }
     } catch (error) {
-      alert("حدث خطأ في الشبكة");
+      alert("Network error");
     } finally {
       setApprovingId(null);
     }
   };
 
   const handleReject = (uid: string) => {
-    // إزالة مبدئية من الواجهة (يمكنك لاحقاً ربطها بـ API للرفض إن وجد)
     setApplications((prev) => prev.filter((app) => app.uid !== uid));
   };
 
@@ -582,7 +573,6 @@ function TeacherVerificationTab() {
               )}
 
               <div className="flex flex-wrap gap-3 text-sm">
-                {/* تم حل مشكلة زر الـ CV هنا */}
                 <button
                   onClick={() => window.open(app.cv_url, "_blank", "noopener,noreferrer")}
                   disabled={!app.cv_url}
@@ -635,10 +625,10 @@ function TeacherVerificationTab() {
   );
 }
 
-/* ─────────── Course Moderation Tab ─────────── */
+// Course Moderation Tab
 function CourseModerationTab() {
   const { user } = useAuth();
-  const [course, setcourse] = useState<any[]>([]);
+  const [course, setCourse] = useState<any[]>([]);
   const [lessons, setLessons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -656,7 +646,7 @@ function CourseModerationTab() {
         ]);
         const courseData = await courseRes.json();
         const lessonsData = await lessonsRes.json();
-        setcourse(courseData.course || []);
+        setCourse(courseData.course || []);
         setLessons(lessonsData.lessons || []);
       } catch (err) {
         console.error(err);
@@ -683,7 +673,7 @@ function CourseModerationTab() {
         alert(`Failed: ${err.error || "Unknown error"}`);
         return;
       }
-      setcourse((prev) => prev.filter((c) => c.id !== id));
+      setCourse((prev) => prev.filter((c) => c.id !== id));
     } catch (e: any) {
       alert(`Network error: ${e.message}`);
     }
@@ -728,7 +718,7 @@ function CourseModerationTab() {
       </h2>
       {totalPending === 0 ? (
         <div className="rounded-3xl border bg-card p-12 text-center text-muted-foreground">
-          <T>No pending course or lessons</T>
+          <T>No pending courses or lessons</T>
         </div>
       ) : (
         <div className="space-y-8">
@@ -736,7 +726,7 @@ function CourseModerationTab() {
             <div>
               <h3 className="font-serif text-lg mb-3 flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-secondary-foreground" />{" "}
-                <T>course</T> ({course.length})
+                <T>Courses</T> ({course.length})
               </h3>
               <div className="space-y-3">
                 {course.map((c) => (
@@ -822,7 +812,7 @@ function CourseModerationTab() {
   );
 }
 
-/* ─────────── User Management Tab ─────────── */
+// User Management Tab
 function UserManagementTab() {
   const { user } = useAuth();
   const [users, setUsers] = useState<any[]>([]);
@@ -991,7 +981,6 @@ function UserManagementTab() {
         </tbody>
       </table>
 
-      {/* Modals */}
       {showProfile && selectedUser && (
         <div className="fixed inset-0 z-50 bg-foreground/50 flex items-center justify-center p-4">
           <div className="bg-card rounded-3xl p-6 max-w-md w-full shadow-elegant space-y-3">
@@ -1083,7 +1072,7 @@ function UserManagementTab() {
   );
 }
 
-/* ─────────── Coupons Tab ─────────── */
+// Coupons Tab
 function CouponsTab() {
   const { user } = useAuth();
   const [coupons, setCoupons] = useState<any[]>([]);
@@ -1217,9 +1206,11 @@ function CouponsTab() {
   );
 }
 
-/* ─────────── Quizzes Tab ─────────── */
+/* ─────────── Quizzes Tab (with sub-tabs) ─────────── */
 function QuizzesTab() {
-  const [course, setcourse] = useState<any[]>([]);
+  const { user } = useAuth();
+  const [subTab, setSubTab] = useState<"quizzes" | "gamification" | "ai-content">("quizzes");
+  const [course, setCourse] = useState<any[]>([]);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [lessons, setLessons] = useState<any[]>([]);
   const [selectedLesson, setSelectedLesson] = useState("");
@@ -1229,17 +1220,22 @@ function QuizzesTab() {
   const [correct, setCorrect] = useState(0);
 
   useEffect(() => {
-    fetch("/api/courses")
+    fetch("/api/course")
       .then((r) => r.json())
-      .then((d) => setcourse(d.course || []));
+      .then((d) => setCourse(d.course || []));
   }, []);
 
-  useEffect(() => {
-    if (!selectedCourse) return;
-    fetch(`/api/student/course/${selectedCourse}?uid=admin`)
+useEffect(() => {
+  if (!selectedCourse || !user) return;
+  user.getIdToken().then((token) =>
+    fetch(`/api/student/course/${selectedCourse}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then((r) => r.json())
-      .then((d) => setLessons(d.lessons || []));
-  }, [selectedCourse]);
+      .then((d) => setLessons(d.lessons || []))
+      .catch((err) => console.error("Failed to fetch lessons:", err))
+  );
+}, [selectedCourse, user]);
 
   useEffect(() => {
     if (!selectedLesson) return;
@@ -1278,108 +1274,156 @@ function QuizzesTab() {
 
   return (
     <div>
-      <h2 className="font-serif text-2xl mb-4">
-        <T>Quiz Management</T>
-      </h2>
-      <div className="grid md:grid-cols-3 gap-6">
-        <div>
-          <label className="text-sm font-medium">
-            <T>Course</T>
-          </label>
-          <select
-            value={selectedCourse}
-            onChange={(e) => setSelectedCourse(e.target.value)}
-            className="w-full rounded-2xl border bg-background px-4 py-2.5 text-sm mt-1"
-          >
-            <option value="">--</option>
-            {course.map((c) => (
-              <option key={c.id} value={c.id}>{c.title}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="text-sm font-medium">
-            <T>Lesson</T>
-          </label>
-          <select
-            value={selectedLesson}
-            onChange={(e) => setSelectedLesson(e.target.value)}
-            className="w-full rounded-2xl border bg-background px-4 py-2.5 text-sm mt-1"
-          >
-            <option value="">--</option>
-            {lessons.map((l) => (
-              <option key={l.id} value={l.id}>{l.title}</option>
-            ))}
-          </select>
-        </div>
+      {/* Sub-tabs */}
+      <div className="flex gap-1 mb-6 rounded-2xl border bg-card p-1.5 w-fit">
+        <button
+          onClick={() => setSubTab("quizzes")}
+          className={cn(
+            "rounded-xl px-4 py-2 text-sm font-medium transition-all",
+            subTab === "quizzes"
+              ? "bg-primary text-primary-foreground shadow"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          )}
+        >
+          <T>Quiz Management</T>
+        </button>
+        <button
+          onClick={() => setSubTab("gamification")}
+          className={cn(
+            "rounded-xl px-4 py-2 text-sm font-medium transition-all",
+            subTab === "gamification"
+              ? "bg-primary text-primary-foreground shadow"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          )}
+        >
+          <T>Gamification Settings</T>
+        </button>
+        <button
+          onClick={() => setSubTab("ai-content")}
+          className={cn(
+            "rounded-xl px-4 py-2 text-sm font-medium transition-all",
+            subTab === "ai-content"
+              ? "bg-primary text-primary-foreground shadow"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          )}
+        >
+          <T>AI Content</T>
+        </button>
       </div>
 
-      {selectedLesson && (
-        <div className="mt-6 glass rounded-2xl p-6 space-y-4">
-          <h3 className="font-serif text-lg">
-            <T>Add Question</T>
-          </h3>
-          <input
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Question"
-            className="w-full rounded-2xl border bg-background px-4 py-3 text-sm"
-          />
-          {options.map((opt, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <input
-                value={opt}
-                onChange={(e) => {
-                  const o = [...options];
-                  o[i] = e.target.value;
-                  setOptions(o);
-                }}
-                placeholder={`Option ${i + 1}`}
-                className="flex-1 rounded-2xl border bg-background px-4 py-3 text-sm"
-              />
-              <input
-                type="radio"
-                name="correct"
-                checked={correct === i}
-                onChange={() => setCorrect(i)}
-              />
+      {subTab === "quizzes" ? (
+        <div>
+          <h2 className="font-serif text-2xl mb-4">
+            <T>Quiz Management</T>
+          </h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div>
+              <label className="text-sm font-medium">
+                <T>Course</T>
+              </label>
+              <select
+                value={selectedCourse}
+                onChange={(e) => setSelectedCourse(e.target.value)}
+                className="w-full rounded-2xl border bg-background px-4 py-2.5 text-sm mt-1"
+              >
+                <option value="">--</option>
+                {course.map((c) => (
+                  <option key={c.id} value={c.id}>{c.title}</option>
+                ))}
+              </select>
             </div>
-          ))}
-          <button
-            onClick={handleAdd}
-            className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground"
-          >
-            <T>Add Question</T>
-          </button>
+            <div>
+              <label className="text-sm font-medium">
+                <T>Lesson</T>
+              </label>
+              <select
+                value={selectedLesson}
+                onChange={(e) => setSelectedLesson(e.target.value)}
+                className="w-full rounded-2xl border bg-background px-4 py-2.5 text-sm mt-1"
+              >
+                <option value="">--</option>
+                {lessons.map((l) => (
+                  <option key={l.id} value={l.id}>{l.title}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {selectedLesson && (
+            <div className="mt-6 glass rounded-2xl p-6 space-y-4">
+              <h3 className="font-serif text-lg">
+                <T>Add Question</T>
+              </h3>
+              <input
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="Question"
+                className="w-full rounded-2xl border bg-background px-4 py-3 text-sm"
+              />
+              {options.map((opt, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <input
+                    value={opt}
+                    onChange={(e) => {
+                      const o = [...options];
+                      o[i] = e.target.value;
+                      setOptions(o);
+                    }}
+                    placeholder={`Option ${i + 1}`}
+                    className="flex-1 rounded-2xl border bg-background px-4 py-3 text-sm"
+                  />
+                  <input
+                    type="radio"
+                    name="correct"
+                    checked={correct === i}
+                    onChange={() => setCorrect(i)}
+                  />
+                </div>
+              ))}
+              <button
+                onClick={handleAdd}
+                className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground"
+              >
+                <T>Add Question</T>
+              </button>
+            </div>
+          )}
+
+          <div className="mt-6 space-y-2">
+            {quizzes.map((q) => (
+              <div
+                key={q.id}
+                className="flex items-center justify-between glass rounded-2xl p-4"
+              >
+                <div>
+                  <p className="font-medium">{q.question}</p>
+                  <p className="text-xs text-muted-foreground">
+                    <T>Correct</T>: {q.options[q.correct]}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleDelete(q.id)}
+                  className="text-destructive text-sm"
+                >
+                  <T>Delete</T>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : subTab === "gamification" ? (
+        <GamificationSettings />
+      ) : (
+        <div className="space-y-8">
+          <GeneratedContentManager />
+          <PDFExtractor courseId={selectedCourse || undefined} />
         </div>
       )}
-
-      <div className="mt-6 space-y-2">
-        {quizzes.map((q) => (
-          <div
-            key={q.id}
-            className="flex items-center justify-between glass rounded-2xl p-4"
-          >
-            <div>
-              <p className="font-medium">{q.question}</p>
-              <p className="text-xs text-muted-foreground">
-                <T>Correct</T>: {q.options[q.correct]}
-              </p>
-            </div>
-            <button
-              onClick={() => handleDelete(q.id)}
-              className="text-destructive text-sm"
-            >
-              <T>Delete</T>
-            </button>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
 
-/* ─────────── Financial Center Tab ─────────── */
+// Financial Center Tab
 function FinancialCenterTab() {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -1440,7 +1484,7 @@ function FinancialCenterTab() {
   );
 }
 
-/* ─────────── Messaging Tab ─────────── */
+// Messaging Tab
 function MessagingTab() {
   const { user } = useAuth();
   const [users, setUsers] = useState<any[]>([]);
@@ -1541,7 +1585,7 @@ function MessagingTab() {
   );
 }
 
-/* ─────────── Notifications Tab ─────────── */
+// Notifications Tab
 function NotificationsTab() {
   const { user } = useAuth();
   const [title, setTitle] = useState("");
@@ -1613,11 +1657,10 @@ function NotificationsTab() {
   );
 }
 
-/* ─────────── AI Configuration Tab ─────────── */
+// AI Configuration Tab
 function AIConfigurationTab() {
   const [config, setConfig] = useState({
-    systemPrompt:
-      "You are Nūr, a refined and knowledgeable assistant...",
+    systemPrompt: "You are Nūr, a refined and knowledgeable assistant...",
     model: "gpt-5.2",
     temperature: 0.7,
     maxTokens: 2048,
@@ -1703,7 +1746,7 @@ function AIConfigurationTab() {
   );
 }
 
-/* ─────────── Site Settings Tab ─────────── */
+// Site Settings Tab
 function SiteSettingsTab() {
   const [siteName, setSiteName] = useState("Ruh-Ul-Qudus Academy");
   const [contactEmail, setContactEmail] = useState("admin@Ruh-Ul-Qudus.net");
@@ -1760,6 +1803,7 @@ function SiteSettingsTab() {
   );
 }
 
+// Marketing Tab
 function MarketingTab() {
   const { user } = useAuth();
   const [students, setStudents] = useState<any[]>([]);
@@ -1866,6 +1910,7 @@ function MarketingTab() {
   );
 }
 
+// Pages Tab
 function PagesTab() {
   const { user } = useAuth();
   const [pages, setPages] = useState<any[]>([]);
@@ -1984,12 +2029,10 @@ function PagesTab() {
   );
 }
 
-/* ─────────── NEW TABS (Model course, Bundles, Applications) ─────────── */
-
-/* ─────────── Model course Tab ─────────── */
+// Model Course Tab
 function ModelcourseTab() {
   const { user } = useAuth();
-  const [course, setcourse] = useState<any[]>([]);
+  const [course, setCourse] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState("");
   const [level, setLevel] = useState("A1");
@@ -2001,7 +2044,7 @@ function ModelcourseTab() {
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  const fetchcourse = async () => {
+  const fetchModels = async () => {
     if (!user) return;
     const token = await user.getIdToken();
     fetch("/api/admin/course", {
@@ -2009,13 +2052,13 @@ function ModelcourseTab() {
       credentials: "include",
     })
       .then((r) => r.json())
-      .then((data) => setcourse(data.course || []))
-      .catch(() => setError("فشل جلب الكورسات"))
+      .then((data) => setCourse(data.course || []))
+      .catch(() => setError("Failed to fetch courses"))
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    fetchcourse();
+    fetchModels();
   }, [user]);
 
   const handleCreate = async () => {
@@ -2033,24 +2076,24 @@ function ModelcourseTab() {
       body: JSON.stringify({ title, level, price, category, description, scenario }),
     });
     if (res.ok) {
-      setSuccessMsg("تم إنشاء النموذج بنجاح");
+      setSuccessMsg("Model created successfully");
       setTitle("");
       setLevel("A1");
       setPrice(0);
       setCategory("");
       setDescription("");
       setScenario("");
-      fetchcourse();
+      fetchModels();
       setTimeout(() => setSuccessMsg(""), 3000);
     } else {
       const err = await res.json();
-      setError(err.error || "فشل الإنشاء");
+      setError(err.error || "Failed to create");
     }
     setSubmitting(false);
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("هل أنت متأكد من حذف هذا النموذج؟")) return;
+    if (!confirm("Are you sure you want to delete this model?")) return;
     if (!user) return;
     const token = await user.getIdToken();
     await fetch(`/api/admin/model-course/${id}`, {
@@ -2058,7 +2101,7 @@ function ModelcourseTab() {
       credentials: "include",
       headers: { Authorization: `Bearer ${token}` },
     });
-    fetchcourse();
+    fetchModels();
   };
 
   if (loading)
@@ -2070,7 +2113,7 @@ function ModelcourseTab() {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-serif text-2xl"><T>Model course</T></h2>
+      <h2 className="font-serif text-2xl"><T>Model Courses</T></h2>
       {successMsg && (
         <div className="flex items-center gap-2 bg-primary/10 text-primary p-3 rounded-xl text-sm">
           <CheckCircle2 size={16} /> <T>{successMsg}</T>
@@ -2101,10 +2144,10 @@ function ModelcourseTab() {
   );
 }
 
-/* ─────────── Lesson Scripts Tab (اختيار الكورس فقط) ─────────── */
+// Lesson Scripts Tab
 function ModelLessonsTab() {
   const { user } = useAuth();
-  const [course, setcourse] = useState<any[]>([]);
+  const [course, setCourse] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -2116,7 +2159,7 @@ function ModelLessonsTab() {
       })
         .then((r) => r.json())
         .then((data) => {
-          setcourse(data.course || []);
+          setCourse(data.course || []);
           setLoading(false);
         })
     );
@@ -2154,7 +2197,7 @@ function ModelLessonsTab() {
   );
 }
 
-/* ─────────── AI Knowledge Base Tab (Google Studio Way) ─────────── */
+// AI Knowledge Base Tab
 function KnowledgeBaseTab() {
   const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
@@ -2164,7 +2207,7 @@ function KnowledgeBaseTab() {
   const handleUpload = async () => {
     if (!title.trim() || !file || !user) return;
     setUploading(true);
-    const toastId = toast.loading(<T>Uploading directly to Google Gemini's Brain...</T> as unknown as string);
+    const toastId = toast.loading("Uploading to AI brain...");
 
     try {
       const token = await user.getIdToken();
@@ -2172,7 +2215,6 @@ function KnowledgeBaseTab() {
       formData.append("file", file);
       formData.append("book_title", title);
 
-      // الاتصال بالـ API الجديد الذي يرفع الملف لجوجل
       const res = await fetch("/api/admin/knowledge/upload-gemini", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -2182,11 +2224,11 @@ function KnowledgeBaseTab() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      toast.success(<T>{data.message}</T> as unknown as string, { id: toastId });
+      toast.success(data.message, { id: toastId });
       setTitle(""); 
       setFile(null);
     } catch (error: any) {
-      toast.error(<T>{error.message}</T> as unknown as string, { id: toastId });
+      toast.error(error.message, { id: toastId });
     } finally {
       setUploading(false);
     }
@@ -2211,22 +2253,22 @@ function KnowledgeBaseTab() {
         </div>
 
         <button onClick={handleUpload} disabled={uploading || !file || !title} className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 disabled:opacity-50">
-          {uploading ? <T>Processing with Gemini...</T> : <T>Upload to AI Brain</T>}
+          {uploading ? <T>Processing...</T> : <T>Upload to AI Brain</T>}
         </button>
       </div>
     </div>
   );
 }
 
-/* ─────────── Bundles Tab ─────────── */
+// Bundles Tab
 function BundlesTab() {
   const { user } = useAuth();
   const [bundles, setBundles] = useState<any[]>([]);
-  const [modelcourse, setModelcourse] = useState<any[]>([]);
+  const [modelCourse, setModelCourse] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState(0);
-  const [selectedcourse, setSelectedcourse] = useState<string[]>([]);
+  const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -2248,7 +2290,7 @@ function BundlesTab() {
       ]);
       const modelData = await modelRes.json();
       const bundleData = await bundleRes.json();
-      setModelcourse(modelData.course || []);
+      setModelCourse(modelData.course || []);
       setBundles(bundleData.bundles || []);
     } catch (err) {
       console.error("Failed to fetch bundles data", err);
@@ -2262,7 +2304,7 @@ function BundlesTab() {
   }, [user]);
 
   const toggleCourse = (id: string) => {
-    setSelectedcourse((prev) =>
+    setSelectedCourses((prev) =>
       prev.includes(id)
         ? prev.filter((c) => c !== id)
         : prev.length < 3
@@ -2272,8 +2314,8 @@ function BundlesTab() {
   };
 
   const handleCreate = async () => {
-    if (!title.trim() || selectedcourse.length !== 3) {
-      setError("يجب إدخال عنوان واختيار 3 كورسات");
+    if (!title.trim() || selectedCourses.length !== 3) {
+      setError("Title and exactly 3 courses are required");
       return;
     }
     if (!user) return;
@@ -2288,21 +2330,21 @@ function BundlesTab() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ title, price, model_course_ids: selectedcourse }),
+        body: JSON.stringify({ title, price, model_course_ids: selectedCourses }),
       });
       if (res.ok) {
-        setSuccessMsg("تم إنشاء الحزمة بنجاح");
+        setSuccessMsg("Bundle created successfully");
         setTitle("");
         setPrice(0);
-        setSelectedcourse([]);
+        setSelectedCourses([]);
         fetchData();
         setTimeout(() => setSuccessMsg(""), 3000);
       } else {
         const err = await res.json();
-        setError(err.error || "فشل إنشاء الحزمة");
+        setError(err.error || "Failed to create bundle");
       }
     } catch (err) {
-      setError("حدث خطأ في الشبكة");
+      setError("Network error");
     } finally {
       setSubmitting(false);
     }
@@ -2345,7 +2387,7 @@ function BundlesTab() {
           />
           <button
             onClick={handleCreate}
-            disabled={submitting || selectedcourse.length !== 3}
+            disabled={submitting || selectedCourses.length !== 3}
             className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
           >
             {submitting ? (
@@ -2359,15 +2401,15 @@ function BundlesTab() {
         </div>
         <div>
           <label className="text-xs font-semibold uppercase text-muted-foreground">
-            <T>Select 3 Model course</T> ({selectedcourse.length}/3)
+            <T>Select 3 Model Courses</T> ({selectedCourses.length}/3)
           </label>
           <div className="mt-2 grid gap-2 max-h-48 overflow-y-auto border border-border rounded-xl p-2">
-            {modelcourse.map((course) => (
+            {modelCourse.map((course) => (
               <div
                 key={course.id}
                 onClick={() => toggleCourse(course.id)}
                 className={`flex items-center justify-between rounded-lg p-2 cursor-pointer border transition ${
-                  selectedcourse.includes(course.id)
+                  selectedCourses.includes(course.id)
                     ? "bg-primary/10 border-primary"
                     : "hover:bg-secondary"
                 }`}
@@ -2375,7 +2417,7 @@ function BundlesTab() {
                 <span className="text-sm">
                   {course.title} ({course.level})
                 </span>
-                {selectedcourse.includes(course.id) && (
+                {selectedCourses.includes(course.id) && (
                   <CheckCircle2 size={16} className="text-primary" />
                 )}
               </div>
@@ -2392,7 +2434,7 @@ function BundlesTab() {
             </div>
             <div className="flex flex-wrap gap-1 mt-2">
               {b.model_course_ids?.map((id: string) => {
-                const course = modelcourse.find((c) => c.id === id);
+                const course = modelCourse.find((c) => c.id === id);
                 return (
                   <span
                     key={id}
@@ -2410,7 +2452,7 @@ function BundlesTab() {
   );
 }
 
-/* ─────────── Applications Tab ─────────── */
+// Applications Tab
 function ApplicationsTab() {
   const { user } = useAuth();
   const [applications, setApplications] = useState<any[]>([]);
@@ -2455,7 +2497,7 @@ function ApplicationsTab() {
     if (res.ok) {
       fetchApplications();
     } else {
-      alert("فشلت الموافقة");
+      alert("Failed to approve");
     }
     setApprovingId(null);
   };
@@ -2498,6 +2540,3 @@ function ApplicationsTab() {
     </div>
   );
 }
-
-// تصدير Plus لاستخدامه في ModelcourseTab (قد تحتاج لإضافته في imports)
-// تم إضافة Plus في قسم imports من lucide-react
