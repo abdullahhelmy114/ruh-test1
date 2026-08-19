@@ -55,6 +55,7 @@
     "autoprefixer": "^10.5.2",
     "axios": "^1.18.1",
     "canvas": "^3.2.3",
+    "canvas-confetti": "^1.9.4",
     "cheerio": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.10.0",
@@ -110,6 +111,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
     "@types/nodemailer": "^8.0.0",
     "@types/react": "^19.2.17",

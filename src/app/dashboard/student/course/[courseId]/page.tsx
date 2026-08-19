@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/AuthProvider";
 import {
-  Loader2, Play, FileText, Download, CheckCircle,
-  BookOpen, ArrowLeft, HelpCircle, Award,
+  Loader2, Play, FileText, Download, CheckCircle, BookOpen, ArrowLeft,
+  HelpCircle, Gamepad2, Flame, Trophy, Lock, Radio, Video,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { T } from "@/components/TranslatedText";
@@ -24,8 +24,14 @@ interface Lesson {
 }
 
 interface CourseData {
-  course: { id: string; title: string; level: string; teacher_name: string };
+  course: { id: string; title: string; level: string; teacher_name: string; description?: string };
   lessons: Lesson[];
+}
+
+interface GamificationStats {
+  points: number;
+  streak: number;
+  badges: { id: string; name: string; icon?: string; earned: boolean }[];
 }
 
 function CourseCompletionSection({
@@ -51,7 +57,7 @@ function CourseCompletionSection({
 
   if (loadingExam) {
     return (
-      <div className="glass rounded-2xl p-6 text-center">
+      <div className="glass rounded-3xl p-6 text-center">
         <Loader2 className="animate-spin mx-auto h-6 w-6 text-primary" />
       </div>
     );
@@ -59,17 +65,17 @@ function CourseCompletionSection({
 
   if (hasExam) {
     return (
-      <div className="glass rounded-2xl p-6 text-center space-y-4">
+      <div className="glass rounded-3xl p-8 text-center space-y-4 shadow-elegant">
         <HelpCircle className="mx-auto h-10 w-10 text-accent-foreground" />
         <h3 className="font-serif text-xl text-foreground">
           <T>Final Exam Required</T>
         </h3>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           <T>You must pass the final exam to earn your certificate.</T>
         </p>
         <Link
           href={`/dashboard/student/exam/${courseId}`}
-          className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/80"
+          className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/80 transition"
         >
           <T>Take Final Exam</T>
         </Link>
@@ -78,12 +84,12 @@ function CourseCompletionSection({
   }
 
   return (
-    <div className="glass rounded-2xl p-6 text-center space-y-4">
+    <div className="glass rounded-3xl p-8 text-center space-y-4 shadow-elegant">
       <CheckCircle className="mx-auto h-10 w-10 text-primary" />
       <h3 className="font-serif text-xl text-foreground">
         <T>Congratulations!</T>
       </h3>
-      <p className="text-muted-foreground">
+      <p className="text-muted-foreground text-sm">
         <T>You have completed all lessons.</T>
       </p>
       <CertificateButton
@@ -100,6 +106,7 @@ function QuizSection({ lessonId }: { lessonId: string }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     fetch(`/api/quizzes/${lessonId}`)
       .then(r => r.json())
       .then(d => setQuizzes(d.quizzes || []))
@@ -110,7 +117,7 @@ function QuizSection({ lessonId }: { lessonId: string }) {
   if (quizzes.length === 0) return null;
 
   return (
-    <div className="glass rounded-2xl p-5 space-y-3">
+    <div className="glass rounded-3xl p-6 space-y-3 shadow-elegant">
       <h3 className="font-serif text-lg flex items-center gap-2 text-foreground">
         <HelpCircle className="h-5 w-5 text-accent-foreground" />
         <T>Lesson Quiz</T>
@@ -126,11 +133,15 @@ export default function CoursePlayerPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [data, setData] = useState<CourseData | null>(null);
+  const [stats, setStats] = useState<GamificationStats | null>(null);
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [completing, setCompleting] = useState(false);
 
-  const allCompleted = data?.lessons?.every(l => l.completed) ?? false;
+  const lessons = data?.lessons ?? [];
+  const completedCount = lessons.filter(l => l.completed).length;
+  const allCompleted = lessons.length > 0 && completedCount === lessons.length;
+  const progress = lessons.length ? Math.round((completedCount / lessons.length) * 100) : 0;
 
   useEffect(() => {
     if (!user) return;
@@ -142,11 +153,29 @@ export default function CoursePlayerPage() {
         .then(d => {
           if (d.error) { router.push("/dashboard/student"); return; }
           setData(d);
-          setCurrentLesson(d.lessons?.[0] || null);
+          setCurrentLesson(d.lessons?.find((l: Lesson) => !l.completed) || d.lessons?.[0] || null);
           setLoading(false);
         })
     ).catch(() => setLoading(false));
   }, [courseId, user, router]);
+
+  useEffect(() => {
+    if (!user) return;
+    user.getIdToken().then((token) =>
+      fetch(`/api/student/course/${courseId}/stats`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(r => (r.ok ? r.json() : null))
+        .then(d => {
+          if (!d || d.error) return;
+          setStats({
+            points: d.points ?? 0,
+            streak: d.streak ?? 0,
+            badges: d.badges ?? [],
+          });
+        })
+    ).catch(() => undefined);
+  }, [courseId, user]);
 
   const handleComplete = async () => {
     if (!currentLesson || !user) return;
@@ -156,7 +185,17 @@ export default function CoursePlayerPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ lessonId: currentLesson.id, uid: user.uid }),
     });
-    setCurrentLesson(prev => prev ? { ...prev, completed: true } : prev);
+    setCurrentLesson(prev => (prev ? { ...prev, completed: true } : prev));
+    setData(prev =>
+      prev
+        ? {
+            ...prev,
+            lessons: prev.lessons.map(l =>
+              l.id === currentLesson.id ? { ...l, completed: true } : l,
+            ),
+          }
+        : prev,
+    );
     setCompleting(false);
   };
 
@@ -174,16 +213,80 @@ export default function CoursePlayerPage() {
   return (
     <div className="flex flex-col lg:flex-row gap-6 p-4 md:p-8 min-h-screen bg-background">
       {/* Sidebar */}
-      <aside className="w-full lg:w-80 shrink-0 glass rounded-3xl p-5 shadow-elegant max-h-[85vh] overflow-y-auto">
-        <Link href="/dashboard/student" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4">
+      <aside className="w-full lg:w-80 shrink-0 glass rounded-3xl p-5 shadow-elegant lg:max-h-[85vh] lg:sticky lg:top-6 overflow-y-auto">
+        <Link href="/dashboard/student" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 transition">
           <ArrowLeft size={16} /> <T>Back to Dashboard</T>
         </Link>
+
         <h2 className="font-serif text-xl flex items-center gap-2 text-foreground">
           <BookOpen className="h-5 w-5 text-accent-foreground" /> {data.course.title}
         </h2>
-        <p className="text-xs text-muted-foreground mt-1"><T>Level</T> {data.course.level}</p>
-        <div className="mt-4 space-y-2">
-          {data.lessons.map((lesson, i) => (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent-foreground">
+            <T>Level</T> {data.course.level}
+          </span>
+          <span className="text-xs text-muted-foreground">{data.course.teacher_name}</span>
+        </div>
+
+        {/* Progress */}
+        <div className="mt-5 rounded-2xl border border-border/60 bg-background/60 p-4">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span><T>Course Progress</T></span>
+            <span className="font-semibold text-foreground">{completedCount}/{lessons.length}</span>
+          </div>
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+
+        {/* Gamification */}
+        {stats && (
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <div className="rounded-2xl border border-border/60 bg-background/60 p-3">
+              <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                <Trophy className="h-3.5 w-3.5 text-accent-foreground" /> <T>Points</T>
+              </p>
+              <p className="mt-1 font-serif text-lg text-foreground">{stats.points.toLocaleString("en-US")}</p>
+            </div>
+            <div className="rounded-2xl border border-border/60 bg-background/60 p-3">
+              <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                <Flame className="h-3.5 w-3.5 text-accent-foreground" /> <T>Streak</T>
+              </p>
+              <p className="mt-1 font-serif text-lg text-foreground">{stats.streak}</p>
+            </div>
+          </div>
+        )}
+
+        {stats && stats.badges.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {stats.badges.map(badge => (
+              <span
+                key={badge.id}
+                title={badge.name}
+                className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm ${
+                  badge.earned
+                    ? "border-accent/40 bg-accent/15 text-accent-foreground"
+                    : "border-border/60 bg-muted/40 opacity-50"
+                }`}
+              >
+                {badge.icon || badge.name.charAt(0)}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <Link
+          href={`/dashboard/student/course/${courseId}/practice`}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition"
+        >
+          <Gamepad2 size={16} /> <T>Start Practice</T>
+        </Link>
+
+        <div className="mt-5 space-y-2">
+          <p className="px-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <T>Lessons</T>
+          </p>
+          {lessons.map((lesson, i) => (
             <button
               key={lesson.id}
               onClick={() => setCurrentLesson(lesson)}
@@ -199,6 +302,11 @@ export default function CoursePlayerPage() {
                 {lesson.completed ? <CheckCircle size={14} /> : i + 1}
               </span>
               <span className="truncate">{lesson.title}</span>
+              {lesson.type === "zoom" ? (
+                <Radio size={14} className="ml-auto shrink-0 opacity-70" />
+              ) : (
+                <Video size={14} className="ml-auto shrink-0 opacity-70" />
+              )}
             </button>
           ))}
         </div>
@@ -217,7 +325,9 @@ export default function CoursePlayerPage() {
               onClick={() => alert("Please complete all lessons before taking the exam.")}
               className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border/50 opacity-60 cursor-not-allowed w-full"
             >
-              <span className="shrink-0 w-6 h-6 rounded-full border border-border flex items-center justify-center text-xs">!</span>
+              <span className="shrink-0 w-6 h-6 rounded-full border border-border flex items-center justify-center text-xs">
+                <Lock size={12} />
+              </span>
               <span className="text-sm text-muted-foreground"><T>Final Exam</T></span>
               <span className="ml-auto text-[10px] text-muted-foreground"><T>Locked</T></span>
             </button>
@@ -234,7 +344,7 @@ export default function CoursePlayerPage() {
                 <YouTubeEmbed url={currentLesson.recording_url} title={currentLesson.title} />
               </div>
             )}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="glass rounded-3xl p-6 shadow-elegant flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h1 className="font-serif text-2xl md:text-3xl text-foreground">{currentLesson.title}</h1>
                 <p className="text-sm text-muted-foreground mt-1">
@@ -250,15 +360,23 @@ export default function CoursePlayerPage() {
                     : "bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 }`}
               >
-                {currentLesson.completed ? (
+                {completing ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : currentLesson.completed ? (
                   <><CheckCircle size={18} /> <T>Completed</T></>
                 ) : (
                   <><Play size={18} /> <T>Mark as Complete</T></>
                 )}
               </button>
             </div>
+            {data.course.description && (
+              <div className="glass rounded-3xl p-6">
+                <h3 className="font-serif text-lg text-foreground"><T>About this course</T></h3>
+                <p className="mt-2 text-sm leading-7 text-muted-foreground">{data.course.description}</p>
+              </div>
+            )}
             {currentLesson.files && currentLesson.files.length > 0 && (
-              <div className="glass rounded-2xl p-5">
+              <div className="glass rounded-3xl p-6">
                 <h3 className="font-serif text-lg mb-3 flex items-center gap-2 text-foreground">
                   <FileText className="h-5 w-5 text-accent-foreground" /> <T>Lesson Resources</T>
                 </h3>

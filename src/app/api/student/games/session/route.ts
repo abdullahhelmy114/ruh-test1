@@ -1,16 +1,29 @@
 // src/app/api/student/games/session/route.ts
+// جلب جلسة لعبة عشوائية من جدول generated_games مباشرة
+// مع تحويل معرّفات الألعاب من الواجهة إلى game_type في قاعدة البيانات
+
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
 import { firebaseAdmin } from "@/lib/firebase-admin";
 
 type GameId = "word-order" | "speed-choice" | "matching" | "letter-connect" | "time-race";
 
+// أنواع الأسئلة المرتبطة بكل لعبة (تُستخدم كخيار احتياطي فقط)
 const GAME_QUESTION_TYPE: Record<GameId, string[]> = {
   "word-order": ["word_order"],
   "speed-choice": ["choice"],
   "matching": ["matching"],
   "letter-connect": ["fill_blank", "word_order"],
   "time-race": ["choice"],
+};
+
+// تحويل معرّف اللعبة في الواجهة (بشرطة) إلى game_type المخزن في قاعدة البيانات (بشرطة سفلية)
+const DB_GAME_TYPE: Record<GameId, string> = {
+  "word-order": "word_order",
+  "speed-choice": "speed_choice",
+  "matching": "matching",
+  "letter-connect": "letter_connect",
+  "time-race": "time_race",
 };
 
 function safeJsonParse(value: any): any {
@@ -24,9 +37,13 @@ function safeJsonParse(value: any): any {
   }
 }
 
+/**
+ * تحويل بيانات لعبة مخزنة في generated_games إلى صيغة الأسئلة الموحدة للجلسة
+ */
 function convertGameToSessionQuestion(game: any) {
   const data = safeJsonParse(game.game_data);
 
+  // ألعاب speed_choice و time_race => اختيار
   if (game.game_type === "speed_choice" || game.game_type === "time_race") {
     return {
       kind: "choice",
@@ -37,6 +54,7 @@ function convertGameToSessionQuestion(game: any) {
     };
   }
 
+  // ألعاب word_order
   if (game.game_type === "word_order") {
     return {
       kind: "sequence",
@@ -49,6 +67,7 @@ function convertGameToSessionQuestion(game: any) {
     };
   }
 
+  // ألعاب letter_connect
   if (game.game_type === "letter_connect") {
     return {
       kind: "sequence",
@@ -61,6 +80,7 @@ function convertGameToSessionQuestion(game: any) {
     };
   }
 
+  // ألعاب matching
   if (game.game_type === "matching") {
     return {
       kind: "pairs",
@@ -71,6 +91,7 @@ function convertGameToSessionQuestion(game: any) {
     };
   }
 
+  // افتراضي: choice
   return {
     kind: "choice",
     prompt: data.question || "سؤال",
@@ -101,12 +122,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "gameId and courseId are required" }, { status: 400 });
     }
 
-    // 1) جلب من generated_games
+    // تحويل معرّف اللعبة إلى game_type الصحيح في قاعدة البيانات
+    const dbGameType = DB_GAME_TYPE[gameId as GameId];
+    if (!dbGameType) {
+      return NextResponse.json({ error: "Invalid game type" }, { status: 400 });
+    }
+
+    // 1) جلب ألعاب عشوائية من generated_games
     const games = await sql`
       SELECT id, game_type, game_data, difficulty
       FROM generated_games
       WHERE course_id = ${courseId}
-        AND game_type = ${gameId}
+        AND game_type = ${dbGameType}
       ORDER BY random()
       LIMIT ${count}
     `;
@@ -116,7 +143,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ questions: sessionQuestions });
     }
 
-    // 2) Fallback إلى generated_questions
+    // 2) fallback: جلب أسئلة من generated_questions بنفس النوع
     const questionTypes = GAME_QUESTION_TYPE[gameId as GameId];
     if (!questionTypes) {
       return NextResponse.json({ error: "Invalid game type" }, { status: 400 });
@@ -152,6 +179,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ questions: sessionQuestions });
   } catch (error: any) {
     console.error("Error fetching game session:", error);
-    return NextResponse.json({ error: error.message || "Failed to get session" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to get session" },
+      { status: 500 }
+    );
   }
+}
+
+/**
+ * لمنع خطأ 405 عند فتح الرابط مباشرة
+ */
+export async function GET() {
+  return NextResponse.json({ error: "Method not allowed. Use POST." }, { status: 405 });
 }

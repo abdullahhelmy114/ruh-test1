@@ -60,7 +60,7 @@ ${actualText}
 `;
 
   const response = await simpleGroqCompletion(userPrompt, systemPrompt, {
-    model: "gemini-3.7-flash",
+    model: "gemini-3.5-flash-lite",
     temperature: 0.3,
     max_tokens: 1000,
   });

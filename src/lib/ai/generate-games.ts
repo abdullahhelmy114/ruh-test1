@@ -1,21 +1,19 @@
 // src/lib/ai/generate-games.ts
-// توليد بيانات ألعاب تعليمية من النصوص باستخدام Groq API
-
 import { groqJSONCompletion } from "../groq-client";
 
 export type GameType =
-  | "word_order"     // ترتيب الكلمات لتكوين جملة
-  | "speed_choice"   // اختيار الصحيح بسرعة
-  | "matching"       // مطابقة صوت وصورة (أو كلمة ومعنى)
-  | "letter_connect" // توصيل الحروف لتكوين كلمة
-  | "time_race"      // سباق زمني (سلسلة أسئلة سريعة)
-  | "coloring";      // تلوين حروف/كلمات (قد لا يحتاج Groq، لكن بيانات بسيطة)
+  | "word_order"
+  | "speed_choice"
+  | "matching"
+  | "letter_connect"
+  | "time_race"
+  | "coloring";
 
 export interface GeneratedGame {
   game_type: GameType;
   title: string;
   description?: string;
-  game_data: any; // JSON خاص بكل لعبة
+  game_data: any;
   difficulty?: string;
 }
 
@@ -27,10 +25,16 @@ export interface GenerateGamesInput {
   additionalInstructions?: string;
 }
 
+function chunkText(text: string, chunkSize = 3000): string[] {
+  const chunks: string[] = [];
+  for (let i = 0; i < text.length; i += chunkSize) {
+    chunks.push(text.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
+
 /**
- * توليد بيانات ألعاب من نص مصدر باستخدام Groq.
- * @param input المصدر والأنواع المطلوبة
- * @returns مصفوفة من الألعاب المولدة
+ * توليد ألعاب من نص مصدر مع تقطيع تلقائي
  */
 export async function generateGamesFromText(
   input: GenerateGamesInput
@@ -53,6 +57,40 @@ export async function generateGamesFromText(
     throw new Error("countPerType must be positive");
   }
 
+  const chunks = chunkText(sourceText, 10000);
+  const totalChunks = chunks.length;
+  const perChunkCount = Math.max(1, Math.ceil(countPerType / totalChunks));
+
+  const allGames: GeneratedGame[] = [];
+
+  for (const chunk of chunks) {
+    const chunkGames = await generateGamesFromChunk({
+      sourceText: chunk,
+      gameTypes,
+      countPerType: perChunkCount,
+      difficulty,
+      additionalInstructions,
+    });
+    allGames.push(...chunkGames);
+  }
+
+  return allGames;
+}
+
+/**
+ * توليد ألعاب من مقطع واحد
+ */
+async function generateGamesFromChunk(
+  input: GenerateGamesInput
+): Promise<GeneratedGame[]> {
+  const {
+    sourceText,
+    gameTypes,
+    countPerType,
+    difficulty,
+    additionalInstructions = "",
+  } = input;
+
   const systemPrompt = `أنت خبير ألعاب تعليمية متخصص في تعليم اللغة العربية والقرآن الكريم.
 صمم ألعاباً تفاعلية ممتعة مبنية على النص المقدم.
 أعد الناتج بصيغة JSON فقط، بدون أي نص إضافي.`;
@@ -73,64 +111,22 @@ ${additionalInstructions ? `تعليمات إضافية: ${additionalInstruction
 {
   "games": [
     {
-      "game_type": "word_order",       // أو أي نوع من الأنواع المطلوبة
+      "game_type": "word_order",
       "title": "عنوان اللعبة",
       "description": "وصف مختصر",
-      "game_data": { ... },           // بيانات حسب نوع اللعبة
+      "game_data": { ... },
       "difficulty": "${difficulty || "متوسط"}"
     }
   ]
 }
 
 تفاصيل game_data لكل نوع لعبة:
-
-1. word_order (ترتيب الكلمات):
-{
-  "sentence": "الجملة الصحيحة",
-  "words": ["كلمة1", "كلمة2", "كلمة3"],  // الكلمات مبعثرة
-  "correct_order": [0, 1, 2]            // ترتيب الفهارس الصحيح
-}
-
-2. speed_choice (اختيار الصحيح بسرعة):
-{
-  "question": "نص السؤال",
-  "options": ["خيار1", "خيار2", "خيار3", "خيار4"],
-  "correct_index": 0,                   // فهرس الإجابة الصحيحة
-  "time_limit_seconds": 10              // الحد الزمني المقترح
-}
-
-3. matching (مطابقة):
-{
-  "pairs": [
-    { "left": "كلمة", "right": "معناها" },
-    { "left": "صوت", "right": "نص" }      // إذا كانت مطابقة صوت ونص
-  ],
-  "correct_mapping": { "كلمة": "معناها" } // أو { "left_item": "right_item" }
-}
-
-4. letter_connect (توصيل الحروف):
-{
-  "word": "الكلمة",
-  "letters": ["ح", "ر", "ف"],           // الحروف مبعثرة
-  "correct_order": [0, 1, 2]            // ترتيب الفهارس الصحيح
-}
-
-5. time_race (سباق زمني):
-{
-  "questions": [
-    {
-      "question": "سؤال سريع",
-      "options": ["خيار1", "خيار2", "خيار3"],
-      "correct_index": 0
-    }
-  ]
-}
-
-6. coloring (تلوين):
-{
-  "word": "الكلمة",
-  "image_hint": "وصف بسيط للصورة المقترحة" // لن نستخدم Groq لتوليد صورة، فقط بيانات
-}
+1. word_order: { "sentence": "...", "words": ["...", "..."], "correct_order": [0, 1] }
+2. speed_choice: { "question": "...", "options": ["...", "..."], "correct_index": 0, "time_limit_seconds": 10 }
+3. matching: { "pairs": [{"left": "...", "right": "..."}], "correct_mapping": {} }
+4. letter_connect: { "word": "...", "letters": ["..."], "correct_order": [0] }
+5. time_race: { "questions": [{"question": "...", "options": ["..."], "correct_index": 0}] }
+6. coloring: { "word": "...", "image_hint": "..." }
 
 تأكد من أن جميع الألعاب مبنية على النص المصدر ومناسبة للمستوى.
 أعد فقط JSON بدون أي تعليقات إضافية.
@@ -140,9 +136,9 @@ ${additionalInstructions ? `تعليمات إضافية: ${additionalInstruction
     userPrompt,
     systemPrompt,
     {
-      model: "gemini-3.7-flash",
+      model: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
       temperature: 0.8,
-      max_tokens: 4000,
+      max_tokens: 10000, // تم رفعها
     }
   );
 
@@ -150,9 +146,5 @@ ${additionalInstructions ? `تعليمات إضافية: ${additionalInstruction
     throw new Error("Invalid response format from AI");
   }
 
-  const cleaned = parsed.games.filter(
-    (g) => g.game_type && g.title && g.game_data
-  );
-
-  return cleaned;
+  return parsed.games.filter((g) => g.game_type && g.title && g.game_data);
 }

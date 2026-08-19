@@ -1,4 +1,4 @@
-// app/api/student/submit-exam/route.ts
+// src/app/api/student/submit-exam/route.ts
 // تقديم الامتحان الكامل وتصحيحه وإصدار النقاط
 
 import { NextResponse } from "next/server";
@@ -22,17 +22,40 @@ async function getUserIdFromRequest(request: Request): Promise<string | null> {
   }
 }
 
-function isAnswerCorrect(questionType: string, userAnswer: any, correctAnswer: any): boolean {
+function safeJsonParse(value: any): any {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "object") return value;
+  if (typeof value !== "string") return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+}
+
+function normalizeText(s: any): string {
+  return String(s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function isAnswerCorrect(questionType: string, userAnswer: any, correctAnswer: any, options?: any): boolean {
+  let finalCorrect = correctAnswer;
+  if ((typeof correctAnswer === "number" || /^\d+$/.test(String(correctAnswer))) && Array.isArray(options)) {
+    const idx = parseInt(String(correctAnswer), 10);
+    if (idx >= 0 && idx < options.length) {
+      finalCorrect = options[idx];
+    }
+  }
+
   switch (questionType) {
     case "choice":
     case "true_false":
     case "listening":
-      return userAnswer === correctAnswer;
+      return normalizeText(userAnswer) === normalizeText(finalCorrect);
     case "fill_blank":
-      return String(userAnswer).trim().toLowerCase() === String(correctAnswer).trim().toLowerCase();
+      return normalizeText(userAnswer) === normalizeText(finalCorrect);
     case "word_order":
     case "matching":
-      return JSON.stringify(userAnswer) === JSON.stringify(correctAnswer);
+      return JSON.stringify(userAnswer) === JSON.stringify(finalCorrect);
     default:
       return false;
   }
@@ -56,6 +79,7 @@ export async function POST(request: Request) {
       );
     }
 
+    // جلب بيانات المحاولة
     const attemptRes = await sql`
       SELECT id, user_id, course_id, passed, score
       FROM exam_attempts
@@ -73,37 +97,36 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Exam already submitted" }, { status: 400 });
     }
 
-    const questionIds = answers.map((a: any) => a.questionId);
-    if (questionIds.length === 0) {
-      return NextResponse.json({ error: "No question IDs provided" }, { status: 400 });
-    }
-
+    // جلب جميع أسئلة الكورس بدلاً من استخدام معرّفات الأسئلة
     const questionsRes = await sql`
-      SELECT id, question_type, correct_answer
+      SELECT id, question_type, correct_answer, options
       FROM generated_questions
-      WHERE id = ANY(${questionIds})
+      WHERE course_id = ${attempt.course_id}
     `;
-    const correctMap = new Map<string, { question_type: string; correct_answer: any }>();
+
+    // بناء خريطة الإجابات الصحيحة
+    const correctMap = new Map<string, { question_type: string; correct_answer: any; options: any }>();
     for (const q of questionsRes) {
-      let parsedCorrect = q.correct_answer;
-      try {
-        parsedCorrect = q.correct_answer ? JSON.parse(q.correct_answer) : null;
-      } catch {
-        parsedCorrect = q.correct_answer;
-      }
       correctMap.set(q.id, {
         question_type: q.question_type,
-        correct_answer: parsedCorrect,
+        correct_answer: safeJsonParse(q.correct_answer),
+        options: safeJsonParse(q.options),
       });
     }
 
+    // حساب النتيجة
     let correctCount = 0;
     let validCount = 0;
     for (const ans of answers) {
       const qInfo = correctMap.get(ans.questionId);
       if (!qInfo) continue;
       validCount++;
-      const isCorrect = isAnswerCorrect(qInfo.question_type, ans.answer, qInfo.correct_answer);
+      const isCorrect = isAnswerCorrect(
+        qInfo.question_type,
+        ans.answer,
+        qInfo.correct_answer,
+        qInfo.options
+      );
       if (isCorrect) correctCount++;
     }
 
@@ -111,6 +134,7 @@ export async function POST(request: Request) {
     const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
     const passed = score >= 50;
 
+    // تحديث المحاولة
     await sql`
       UPDATE exam_attempts
       SET score = ${score},
@@ -123,6 +147,7 @@ export async function POST(request: Request) {
     let pointsAwarded = 0;
 
     if (passed) {
+      // جلب قيمة نقاط النجاح من الإعدادات
       const configRes = await sql`
         SELECT value FROM gamification_config WHERE key_name = 'exam_pass_points'
       `;

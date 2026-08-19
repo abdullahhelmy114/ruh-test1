@@ -1,6 +1,4 @@
-// app/api/student/start-exam/route.ts
-// بدء امتحان كامل: اختيار أسئلة عشوائية من المخزون وتخزين محاولة
-
+// src/app/api/student/start-exam/route.ts
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
 import { firebaseAdmin } from "@/lib/firebase-admin";
@@ -17,6 +15,17 @@ async function getUserIdFromRequest(request: Request): Promise<string | null> {
     return result.length > 0 ? result[0].id : null;
   } catch {
     return null;
+  }
+}
+
+function safeJsonParse(value: any): any {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "object") return value; // JSONB from Postgres
+  if (typeof value !== "string") return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value; // نص عادي مثل "صح,خطأ"
   }
 }
 
@@ -67,7 +76,7 @@ export async function POST(request: Request) {
       id: q.id,
       question_type: q.question_type,
       question_text: q.question_text,
-      options: q.options ? JSON.parse(q.options) : null,
+      options: safeJsonParse(q.options),
       audio_url: q.audio_url,
       audio_text: q.audio_text,
       difficulty: q.difficulty,

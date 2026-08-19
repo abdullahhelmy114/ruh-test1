@@ -1,7 +1,7 @@
 // src/lib/groq-client.ts
-// عميل Google Gemini API
-// المفتاح: GEMINI_API_KEY
-// النموذج الافتراضي: gemini-3.7-flash
+// عميل Gemini API مع 10 محاولات تلقائية عند الفشل.
+// تم تعطيل OpenRouter نهائيًا.
+// النموذج الافتراضي: gemini-3.7-flash (أو من البيئة GEMINI_MODEL)
 
 export type ChatRole = "system" | "user" | "assistant";
 
@@ -28,7 +28,10 @@ export interface GroqResponse {
   usage?: GroqUsage;
 }
 
-function convertMessages(messages: ChatMessage[]) {
+/**
+ * تحويل رسائل Chat إلى صيغة Gemini
+ */
+function convertMessagesToGemini(messages: ChatMessage[]) {
   const systemMessage = messages.find((m) => m.role === "system");
   const contents = messages
     .filter((m) => m.role !== "system")
@@ -45,20 +48,23 @@ function convertMessages(messages: ChatMessage[]) {
   };
 }
 
-export async function groqChatCompletion(
+/**
+ * استدعاء Gemini API
+ */
+async function callGemini(
   messages: ChatMessage[],
-  options: GroqRequestOptions = {}
+  options: GroqRequestOptions
 ): Promise<GroqResponse> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is not set in environment variables");
+    throw new Error("GEMINI_API_KEY is not set");
   }
 
   const model = options.model || process.env.GEMINI_MODEL || "gemini-3.7-flash";
   const temperature = options.temperature ?? 0.7;
   const maxTokens = options.max_tokens || 4096;
 
-  const { systemInstruction, contents } = convertMessages(messages);
+  const { systemInstruction, contents } = convertMessagesToGemini(messages);
 
   const requestBody: any = {
     contents,
@@ -105,6 +111,48 @@ export async function groqChatCompletion(
   return { text, usage };
 }
 
+/**
+ * الدالة الرئيسية: تحاول Gemini حتى 10 مرات مع مهلة بين المحاولات.
+ */
+export async function groqChatCompletion(
+  messages: ChatMessage[],
+  options: GroqRequestOptions = {}
+): Promise<GroqResponse> {
+  const maxAttempts = 10;
+  let lastError: any;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await callGemini(messages, options);
+    } catch (error: any) {
+      lastError = error;
+
+      // محاولة استخراج retryDelay من رسالة الخطأ إذا كانت 429
+      let retryDelayMs = 2000 * attempt; // الافتراضي
+      if (error?.message?.includes("429")) {
+        const match = error.message.match(/retryDelay":\s*"(\d+)s"/);
+        if (match) {
+          retryDelayMs = parseInt(match[1], 10) * 1000 + 500; // إضافة 0.5 ثانية أمان
+        }
+      }
+
+      console.warn(
+        `Gemini attempt ${attempt}/${maxAttempts} failed. Waiting ${retryDelayMs / 1000}s before retry.`,
+        error
+      );
+
+      if (attempt === maxAttempts) throw error;
+
+      await new Promise((r) => setTimeout(r, retryDelayMs));
+    }
+  }
+
+  throw lastError;
+}
+
+/**
+ * توليد نص بسيط
+ */
 export async function simpleGroqCompletion(
   prompt: string,
   systemPrompt: string = "You are a helpful assistant.",
@@ -118,6 +166,9 @@ export async function simpleGroqCompletion(
   return result.text;
 }
 
+/**
+ * توليد استجابة JSON مع استخراج آمن
+ */
 export async function groqJSONCompletion<T = any>(
   prompt: string,
   systemPrompt: string,
@@ -130,20 +181,45 @@ export async function groqJSONCompletion<T = any>(
 
   const result = await groqChatCompletion(messages, {
     ...options,
-    model: options.model || process.env.GEMINI_MODEL || "gemini-3.7-flash",
     response_format: { type: "json_object" },
   });
 
-  try {
-    let cleaned = result.text.trim();
-    if (cleaned.startsWith("```json")) {
-      cleaned = cleaned.replace(/^```json\s*/, "").replace(/```$/, "");
-    } else if (cleaned.startsWith("```")) {
-      cleaned = cleaned.replace(/^```\s*/, "").replace(/```$/, "");
-    }
-    return JSON.parse(cleaned) as T;
-  } catch (error) {
-    console.error("Failed to parse JSON from Gemini:", result.text);
-    throw new Error("Failed to parse JSON response");
+  let cleaned = result.text.trim();
+
+  // إزالة علامات code fences إن وجدت
+  if (cleaned.startsWith("```json")) {
+    cleaned = cleaned.replace(/^```json\s*/, "").replace(/```$/, "");
+  } else if (cleaned.startsWith("```")) {
+    cleaned = cleaned.replace(/^```\s*/, "").replace(/```$/, "");
   }
+
+  try {
+    // المحاولة الأولى: تحليل النص كما هو
+    return JSON.parse(cleaned) as T;
+  } catch {
+    // المحاولة الثانية: استخراج جزء JSON (كائن أو مصفوفة)
+    try {
+      const firstChar = cleaned.trim()[0];
+      if (firstChar === "{") {
+        const firstBrace = cleaned.indexOf("{");
+        const lastBrace = cleaned.lastIndexOf("}");
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          const jsonOnly = cleaned.slice(firstBrace, lastBrace + 1);
+          return JSON.parse(jsonOnly) as T;
+        }
+      } else if (firstChar === "[") {
+        const firstBracket = cleaned.indexOf("[");
+        const lastBracket = cleaned.lastIndexOf("]");
+        if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+          const jsonOnly = cleaned.slice(firstBracket, lastBracket + 1);
+          return JSON.parse(jsonOnly) as T;
+        }
+      }
+    } catch {
+      // فشل الاستخراج أيضًا
+    }
+  }
+
+  console.error("Failed to parse JSON. Raw response:", result.text);
+  throw new Error("Failed to parse JSON response");
 }
