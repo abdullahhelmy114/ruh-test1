@@ -1,157 +1,186 @@
-// src/app/api/student/games/session/route.ts
-import { NextResponse } from "next/server";
-import { neon } from "@neondatabase/serverless";
-import { firebaseAdmin } from "@/lib/firebase-admin";
+// src/lib/ai/generate-questions.ts
+import { groqJSONCompletion } from "../groq-client";
 
-type GameId = "word-order" | "speed-choice" | "matching" | "letter-connect" | "time-race";
+export type QuestionType =
+  | "choice"
+  | "true_false"
+  | "fill_blank"
+  | "word_order"
+  | "matching"
+  | "listening"
+  | "writing"
+  | "speaking";
 
-const GAME_QUESTION_TYPE: Record<GameId, string[]> = {
-  "word-order": ["word_order"],
-  "speed-choice": ["choice"],
-  "matching": ["matching"],
-  "letter-connect": ["fill_blank", "word_order"],
-  "time-race": ["choice"],
-};
-
-function safeJsonParse(value: any): any {
-  if (value === null || value === undefined) return null;
-  if (typeof value === "object") return value;
-  if (typeof value !== "string") return value;
-  try {
-    return JSON.parse(value);
-  } catch {
-    return value;
-  }
+export interface GeneratedQuestion {
+  question_type: QuestionType;
+  question_text: string;
+  options: any;
+  correct_answer: any;
+  audio_text?: string;
+  difficulty?: string;
+  explanation?: string;
 }
 
-function convertGameToSessionQuestion(game: any) {
-  const data = safeJsonParse(game.game_data);
-
-  if (game.game_type === "speed_choice" || game.game_type === "time_race") {
-    return {
-      kind: "choice",
-      prompt: data.question || "اختر الإجابة الصحيحة",
-      options: data.options || [],
-      answer: data.options?.[data.correct_index] ?? null,
-      explanation: data.explanation || "الإجابة الصحيحة معروضة.",
-    };
-  }
-
-  if (game.game_type === "word_order") {
-    return {
-      kind: "sequence",
-      prompt: "رتب الكلمات لتكوين جملة صحيحة",
-      tokens: data.words || [],
-      answer: data.correct_order
-        ? data.correct_order.map((idx: number) => data.words?.[idx])
-        : data.sentence?.split(" "),
-      explanation: data.sentence || "الترتيب الصحيح للجملة.",
-    };
-  }
-
-  if (game.game_type === "letter_connect") {
-    return {
-      kind: "sequence",
-      prompt: `كوّن الكلمة: ${data.word || ""}`,
-      tokens: data.letters || [],
-      answer: data.correct_order
-        ? data.correct_order.map((idx: number) => data.letters?.[idx])
-        : data.word?.split(""),
-      explanation: `الكلمة الصحيحة: ${data.word || ""}`,
-    };
-  }
-
-  if (game.game_type === "matching") {
-    return {
-      kind: "pairs",
-      prompt: "طابق كل كلمة مع معناها",
-      pairs: data.pairs || [],
-      answer: data.correct_mapping || data.pairs,
-      explanation: "طابق الأزواج بشكل صحيح.",
-    };
-  }
-
-  return {
-    kind: "choice",
-    prompt: data.question || "سؤال",
-    options: data.options || [],
-    answer: data.options?.[data.correct_index] ?? null,
-    explanation: data.explanation || "",
-  };
+export interface GenerateQuestionsInput {
+  sourceText: string;
+  questionTypes: QuestionType[];
+  countPerType: number;
+  difficulty?: string;
+  language?: string;
+  additionalInstructions?: string;
 }
 
-export async function POST(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+/**
+ * تقطيع النص إلى أجزاء صغيرة لتجنب تجاوز حدود الـ Tokens
+ */
+function chunkText(text: string, chunkSize = 8000): string[] {
+  const chunks: string[] = [];
+  for (let i = 0; i < text.length; i += chunkSize) {
+    chunks.push(text.slice(i, i + chunkSize));
   }
-  const token = authHeader.split("Bearer ")[1];
-  try {
-    const decoded = await firebaseAdmin.auth().verifyIdToken(token);
-    const sql = neon(process.env.DATABASE_URL!);
-    const profile = await sql`SELECT id FROM profiles WHERE firebase_uid = ${decoded.uid} LIMIT 1`;
-    if (profile.length === 0) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
+  return chunks;
+}
 
-    const body = await request.json();
-    const { gameId, courseId, count = 10 } = body;
+/**
+ * توليد أسئلة من نص مصدر مع تقطيع تلقائي
+ */
+export async function generateQuestionsFromText(
+  input: GenerateQuestionsInput
+): Promise<GeneratedQuestion[]> {
+  const {
+    sourceText,
+    questionTypes,
+    countPerType,
+    difficulty,
+    additionalInstructions = "",
+  } = input;
 
-    if (!gameId || !courseId) {
-      return NextResponse.json({ error: "gameId and courseId are required" }, { status: 400 });
-    }
+  if (!sourceText || sourceText.trim().length === 0) {
+    throw new Error("Source text is required");
+  }
+  if (!questionTypes || questionTypes.length === 0) {
+    throw new Error("At least one question type is required");
+  }
+  if (countPerType <= 0) {
+    throw new Error("countPerType must be positive");
+  }
 
-    // 1) جلب من generated_games
-    const games = await sql`
-      SELECT id, game_type, game_data, difficulty
-      FROM generated_games
-      WHERE course_id = ${courseId}
-        AND game_type = ${gameId}
-      ORDER BY random()
-      LIMIT ${count}
-    `;
+  const chunks = chunkText(sourceText, 8000);
+  const totalChunks = chunks.length;
+  const perChunkCount = Math.max(1, Math.ceil(countPerType / totalChunks));
 
-    if (games.length > 0) {
-      const sessionQuestions = games.map((g: any) => convertGameToSessionQuestion(g));
-      return NextResponse.json({ questions: sessionQuestions });
-    }
+  const allQuestions: GeneratedQuestion[] = [];
 
-    // 2) Fallback إلى generated_questions
-    const questionTypes = GAME_QUESTION_TYPE[gameId as GameId];
-    if (!questionTypes) {
-      return NextResponse.json({ error: "Invalid game type" }, { status: 400 });
-    }
-
-    const questions = await sql`
-      SELECT id, question_text, options, correct_answer, difficulty
-      FROM generated_questions
-      WHERE course_id = ${courseId}
-        AND question_type = ANY(${questionTypes})
-      ORDER BY random()
-      LIMIT ${count}
-    `;
-
-    if (questions.length === 0) {
-      return NextResponse.json({ error: "No questions available for this game" }, { status: 404 });
-    }
-
-    const sessionQuestions = questions.map((q: any) => {
-      const options = safeJsonParse(q.options);
-      const correctAnswer = safeJsonParse(q.correct_answer);
-      return {
-        kind: gameId === "word-order" || gameId === "letter-connect" ? "sequence" : gameId === "matching" ? "pairs" : "choice",
-        prompt: q.question_text,
-        options: Array.isArray(options) ? options : undefined,
-        tokens: gameId === "word-order" ? options : gameId === "letter-connect" ? String(q.question_text).split("") : undefined,
-        pairs: gameId === "matching" ? options : undefined,
-        answer: correctAnswer,
-        explanation: q.explanation || "الإجابة الصحيحة معروضة.",
-      };
+  for (const chunk of chunks) {
+    const chunkQuestions = await generateQuestionsFromChunk({
+      sourceText: chunk,
+      questionTypes,
+      countPerType: perChunkCount,
+      difficulty,
+      additionalInstructions,
     });
-
-    return NextResponse.json({ questions: sessionQuestions });
-  } catch (error: any) {
-    console.error("Error fetching game session:", error);
-    return NextResponse.json({ error: error.message || "Failed to get session" }, { status: 500 });
+    allQuestions.push(...chunkQuestions);
   }
+
+  return allQuestions;
+}
+
+/**
+ * توليد أسئلة من مقطع واحد (بدون تقطيع داخلي)
+ */
+async function generateQuestionsFromChunk(
+  input: GenerateQuestionsInput
+): Promise<GeneratedQuestion[]> {
+  const {
+    sourceText,
+    questionTypes,
+    countPerType,
+    difficulty,
+    additionalInstructions = "",
+  } = input;
+
+  const systemPrompt = `أنت خبير تعليمي متخصص في توليد أسئلة تعلم اللغة العربية والقرآن الكريم.
+أنشئ أسئلة متنوعة بناءً على النص المقدم.
+يجب أن تكون الأسئلة دقيقة ومناسبة للمستوى المحدد.
+أعد الناتج بصيغة JSON فقط، بدون أي نص إضافي.`;
+
+  const userPrompt = `
+النص المصدر:
+"""
+${sourceText}
+"""
+
+المطلوب:
+قم بتوليد ${countPerType} سؤال لكل نوع من الأنواع التالية: ${questionTypes.join(", ")}.
+
+${difficulty ? `مستوى الصعوبة: ${difficulty}` : ""}
+${additionalInstructions ? `تعليمات إضافية: ${additionalInstructions}` : ""}
+
+صيغة JSON المطلوبة:
+{
+  "questions": [
+    {
+      "question_type": "choice",
+      "question_text": "نص السؤال",
+      "options": ["خيار1", "خيار2", "خيار3", "خيار4"],
+      "correct_answer": "الإجابة الصحيحة",
+      "audio_text": "نص للاستماع إن لزم",
+      "difficulty": "${difficulty || "متوسط"}",
+      "explanation": "شرح مختصر"
+    }
+  ]
+}
+
+أنواع الأسئلة المدعومة وتنسيق كل نوع:
+- choice: options مصفوفة من 4 نصوص، correct_answer هو النص الصحيح.
+- true_false: options ["صح", "خطأ"], correct_answer هو "صح" أو "خطأ".
+- fill_blank: question_text يحتوي على فراغ مثل "أكمل: ___ هو عاصمة مصر"، correct_answer هو الكلمة الناقصة.
+- word_order: question_text هو الجملة الصحيحة، correct_answer هو مصفوفة الكلمات بالترتيب الصحيح، options هي الكلمات المبعثرة.
+- matching: question_text هو تعليمة، options عبارة عن مصفوفة كائنات {left: "...", right: "..."}، correct_answer كائن يربط بينهما.
+- listening: مشابه لـ choice لكن مع audio_text يحتوي على النص الذي سيُقرأ صوتياً، والخيارات نصية.
+- writing: question_text هو سؤال كتابي مفتوح، correct_answer نص مرجعي للتقييم.
+- speaking: question_text هو ما يجب أن يقوله الطالب، correct_answer نص مرجعي.
+
+تأكد من أن جميع الأسئلة مبنية على النص المصدر وذات صلة.
+أعد فقط JSON بدون أي تعليقات إضافية.
+`;
+
+  const parsed = await groqJSONCompletion<{ questions: GeneratedQuestion[] }>(
+    userPrompt,
+    systemPrompt,
+    {
+      model: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
+      temperature: 0.7,
+      max_tokens: 10000,
+    }
+  );
+
+  if (!parsed || !Array.isArray(parsed.questions)) {
+    throw new Error("Invalid response format from AI");
+  }
+
+  return parsed.questions.filter(
+    (q) => q.question_type && q.question_text && q.correct_answer !== undefined
+  );
+}
+
+/**
+ * توليد أسئلة من نص ثم تحويلها للتخزين في قاعدة البيانات.
+ * يمكن استخدامها مباشرة في API route.
+ */
+export async function generateQuestionsForCourse(
+  sourceText: string,
+  questionTypes: QuestionType[],
+  countPerType: number,
+  courseId: string,
+  difficulty?: string
+): Promise<GeneratedQuestion[]> {
+  const questions = await generateQuestionsFromText({
+    sourceText,
+    questionTypes,
+    countPerType,
+    difficulty,
+  });
+
+  return questions;
 }
