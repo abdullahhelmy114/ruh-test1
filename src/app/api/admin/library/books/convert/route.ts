@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
 import { getServerSession } from "@/lib/auth";
 import { uploadFileToGoogleDrive, driveUrlToCdnUrl } from "@/lib/google-drive";
-import * as pdfjsLib from "pdfjs-dist";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 import { createCanvas } from "canvas";
 import sharp from "sharp";
 
