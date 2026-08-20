@@ -77,6 +77,9 @@ export const AudioBlock = ({ block, onUpdate, onDelete }: { block: AudioBlockDat
 export const QuizBlock = ({ block, onDelete }: { block: QuizBlockData, onDelete: any }) => {
   const [activeIdx, setActiveIdx] = useState(0);
   const [selectedOpt, setSelectedOpt] = useState<number | null>(null);
+  if (!block.questions || !Array.isArray(block.questions) || block.questions.length === 0) {
+    return null;
+  }
   const currentQ = block.questions[activeIdx];
 
   if (!currentQ) return null;

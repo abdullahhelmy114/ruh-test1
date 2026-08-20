@@ -1,9 +1,6 @@
 // src/lib/tts/edge-tts.ts
-// توليد ملفات صوتية باستخدام Edge TTS (مجاني، جودة عالية)
-// يتطلب تثبيت الحزمة: npm install edge-tts
-
-// @ts-ignore - edge-tts may not have TypeScript declarations
-const { Communicate } = require("edge-tts");
+// توليد ملفات صوتية باستخدام Edge TTS (Microsoft Edge Read Aloud) مباشرة عبر fetch
+// لا يتطلب أي حزمة خارجية
 
 export interface TTSResult {
   audioBase64: string;
@@ -11,10 +8,21 @@ export interface TTSResult {
 }
 
 /**
- * توليد صوت من نص باستخدام Edge TTS وإرجاعه كـ base64
- * @param text النص المراد تحويله لصوت
- * @param voice اسم الصوت (افتراضياً: ar-SA-HamedNeural)
- * @returns base64 data URL
+ * الهروب من رموز XML الخاصة
+ */
+function escapeXml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+/**
+ * توليد صوت من نص باستخدام Edge TTS وإرجاعه base64
+ * @param text النص المراد تحويله
+ * @param voice اسم الصوت (مثل ar-SA-HamedNeural)
  */
 export async function generateSpeechBase64(
   text: string,
@@ -24,39 +32,53 @@ export async function generateSpeechBase64(
     throw new Error("Text is required");
   }
 
-  const communicate = new Communicate(text, voice);
-  const chunks: Buffer[] = [];
+  const ssml = `<speak version='1.0' xml:lang='ar-SA'><voice name='${voice}'>${escapeXml(
+    text
+  )}</voice></speak>`;
 
-  await new Promise<void>((resolve, reject) => {
-    communicate
-      .stream((chunk: Buffer) => {
-        chunks.push(Buffer.from(chunk));
-      })
-      .then(() => resolve())
-      .catch((err: any) => reject(err));
+  const url =
+    "https://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?TrustedClientToken=6A5AA1D4EAFF4E9FB37E23D68491D6F4";
+
+  const headers = {
+    "Content-Type": "application/ssml+xml",
+    "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3",
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
+    Origin: "chrome-extension://jdiccldimpdaibmpdkjnbmckianbfold",
+  };
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers,
+    body: ssml,
+    cache: "no-store",
   });
 
-  const audioBuffer = Buffer.concat(chunks);
-  return audioBuffer.toString("base64");
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Edge TTS API error: ${response.status} - ${errorText}`);
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  return buffer.toString("base64");
 }
 
 /**
  * توليد صوت وحفظه في ملف
- * @param text النص المراد تحويله
+ * @param text النص
  * @param voice اسم الصوت
- * @param outputPath مسار الحفظ (مثل: /tmp/audio.mp3)
+ * @param outputPath مسار الحفظ
  */
 export async function generateSpeechToFile(
   text: string,
   voice: string = "ar-SA-HamedNeural",
   outputPath: string
 ): Promise<void> {
-  if (!text || text.trim().length === 0) {
-    throw new Error("Text is required");
-  }
-
-  const communicate = new Communicate(text, voice);
-  await communicate.save(outputPath);
+  const base64 = await generateSpeechBase64(text, voice);
+  const buffer = Buffer.from(base64, "base64");
+  const fs = await import("fs/promises");
+  await fs.writeFile(outputPath, buffer);
 }
 
 /**

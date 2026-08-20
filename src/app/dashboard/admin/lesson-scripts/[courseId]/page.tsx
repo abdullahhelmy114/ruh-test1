@@ -24,6 +24,7 @@ import {
 
 import { LessonScript, ActiveTool } from "@/components/editor/types";
 import { AudioBlock, QuizBlock, AiToolsModal, LibraryModal } from "@/components/editor/EditorComponents";
+import CurriculumGeneratorModal from "@/components/admin/CurriculumGeneratorModal";
 
 // حماية Worker الخاص بـ PDF.js
 if (typeof window !== "undefined") {
@@ -57,137 +58,6 @@ const AVAILABLE_VOICES = [
 ];
 
 // ==========================================
-// 🚀 AI Curriculum Generator Modal
-// ==========================================
-const CurriculumModal = ({ isOpen, onClose, courseId, fetchLessons }: { isOpen: boolean, onClose: () => void, courseId: string, fetchLessons: () => void }) => {
-  const { user } = useAuth();
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [level, setLevel] = useState("A1");
-  const [instructions, setInstructions] = useState("");
-  const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleGenerate = async () => {
-    if (!selectedFile) return toast.error("يرجى اختيار ملف PDF");
-    setLoading(true);
-    const toastId = toast.loading("جاري تحليل الكتاب وبدء توليد المنهج...");
-
-    try {
-      const token = await user?.getIdToken();
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-      formData.append("level", level);
-      formData.append("instructions", instructions);
-
-      const startRes = await fetch("https://ai.Ruh-Ul-Qudus.net/generate-from-pdf", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      const startData = await startRes.json();
-      if (!startData.success) throw new Error(startData.detail || "فشل بدء المهمة");
-      const taskId = startData.task_id;
-
-      toast.loading("جاري توليد المنهج...", { id: toastId });
-      const pollInterval = 5000;
-      const maxAttempts = 60;
-      let attempts = 0;
-      let finalResult = null;
-
-      while (attempts < maxAttempts) {
-        await new Promise(r => setTimeout(r, pollInterval));
-        const statusRes = await fetch(`https://ai.Ruh-Ul-Qudus.net/task-status/${taskId}`);
-        const statusData = await statusRes.json();
-        if (statusData.status === "completed") {
-          finalResult = statusData.result;
-          break;
-        } else if (statusData.status === "failed") {
-          throw new Error(statusData.result?.detail || "فشل المعالجة");
-        }
-        attempts++;
-      }
-      if (!finalResult) throw new Error("انتهت مهلة الانتظار");
-
-      const lessonTitles: string[] = finalResult.titles;
-      for (const title of lessonTitles) {
-        await fetch(`/api/admin/course/${courseId}/lessons`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({
-            title: title,
-            content: JSON.stringify({ html: "", audio: [], quiz: [] })
-          }),
-        });
-      }
-
-      toast.success(`تم إنشاء ${lessonTitles.length} درساً`, { id: toastId });
-      fetchLessons();
-      onClose();
-    } catch (e: any) {
-      toast.error("فشل التوليد: " + e.message, { id: toastId });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
-      <div className="w-full max-w-2xl bg-card border border-border rounded-3xl p-8 shadow-2xl relative">
-        <button onClick={onClose} className="absolute right-6 top-6 p-2 text-muted-foreground hover:bg-secondary rounded-full transition-colors"><X size={18} /></button>
-        <h2 className="text-2xl font-bold font-serif mb-2 flex items-center gap-2"><BrainCircuit className="text-primary"/> <T>AI Full Curriculum Generator</T></h2>
-        <p className="text-muted-foreground text-sm mb-6"><T>Upload a PDF book to generate a full curriculum.</T></p>
-
-        <div className="space-y-5">
-          <div>
-            <label className="block text-sm font-bold mb-2"><T>Upload PDF File</T></label>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf"
-              onChange={e => {
-                const file = e.target.files?.[0];
-                if (file) setSelectedFile(file);
-              }}
-              className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer text-muted-foreground"
-            />
-            {selectedFile && <p className="text-xs text-green-600 mt-1">📄 {selectedFile.name}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold mb-2"><T>Target Level</T></label>
-            <select className="w-full bg-background border border-border p-3 rounded-xl outline-none focus:border-primary" onChange={e => setLevel(e.target.value)} value={level}>
-              <option value="A1">A1 - Beginner</option>
-              <option value="A2">A2 - Elementary</option>
-              <option value="B1">B1 - Intermediate</option>
-              <option value="B2">B2 - Upper Intermediate</option>
-              <option value="C1">C1 - Advanced</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold mb-2"><T>Additional AI Instructions</T></label>
-            <textarea
-              rows={3} onChange={e => setInstructions(e.target.value)}
-              placeholder="e.g., Focus on grammar and Quranic vocabulary..."
-              className="w-full bg-background border border-border p-3 rounded-xl outline-none focus:border-primary"
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-border">
-          <button onClick={onClose} className="px-5 py-2 rounded-xl border border-border hover:bg-secondary text-sm font-semibold transition-colors"><T>Cancel</T></button>
-          <button onClick={handleGenerate} disabled={loading || !selectedFile} className="px-6 py-2 rounded-xl bg-primary text-primary-foreground font-bold flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-md disabled:opacity-50">
-            {loading ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />} <T>Build Curriculum</T>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ==========================================
 // 🎙️ Voice Generator Modal
 // ==========================================
 const VoiceGeneratorModal = ({
@@ -208,7 +78,6 @@ const VoiceGeneratorModal = ({
   const [isPreviewing, setIsPreviewing] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // قائمة الثيمات
   const THEMES = [
     { id: "green", label: "أخضر", color: "#22c55e" },
     { id: "orange", label: "برتقالي", color: "#f97316" },
@@ -218,7 +87,6 @@ const VoiceGeneratorModal = ({
     { id: "gray", label: "رمادي", color: "#6b7280" },
   ];
 
-  // تشغيل معاينة الصوت (عبارة قصيرة)
   const handlePreviewVoice = async (voice: any) => {
     if (!voice) return;
     try {
@@ -246,13 +114,11 @@ const VoiceGeneratorModal = ({
     }
   };
 
-  // توليد الصوت النهائي
   const handleGenerate = async () => {
     if (!text.trim()) {
       toast.error("اكتب النص أولاً");
       return;
     }
-    console.log("Generate clicked, text:", text);
     setIsGenerating(true);
     setGeneratedAudio(null);
     try {
@@ -261,9 +127,7 @@ const VoiceGeneratorModal = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text, voice: selectedVoice.id }),
       });
-      console.log("Response status:", res.status);
       const data = await res.json();
-      console.log("Response data:", data);
       if (data.audioBase64) {
         setGeneratedAudio(`data:audio/mpeg;base64,${data.audioBase64}`);
       } else {
@@ -277,7 +141,6 @@ const VoiceGeneratorModal = ({
     }
   };
 
-  // تشغيل الصوت المولّد
   const handlePlayGenerated = () => {
     if (generatedAudio && audioRef.current) {
       audioRef.current.src = generatedAudio;
@@ -299,7 +162,6 @@ const VoiceGeneratorModal = ({
         </h2>
 
         <div className="space-y-5">
-          {/* اختيار الصوت */}
           <div>
             <label className="block text-sm font-bold mb-2"><T>اختر الصوت</T></label>
             <div className="relative">
@@ -327,7 +189,6 @@ const VoiceGeneratorModal = ({
             </button>
           </div>
 
-          {/* اسم الفويز */}
           <div>
             <label className="block text-sm font-bold mb-2"><T>اسم الفويز (اختياري)</T></label>
             <input
@@ -339,7 +200,6 @@ const VoiceGeneratorModal = ({
             />
           </div>
 
-          {/* النص المراد تحويله */}
           <div>
             <label className="block text-sm font-bold mb-2"><T>النص</T></label>
             <textarea
@@ -351,7 +211,6 @@ const VoiceGeneratorModal = ({
             />
           </div>
 
-          {/* اختيار الثيم */}
           <div>
             <label className="block text-sm font-bold mb-2"><T>اختر الثيم</T></label>
             <div className="flex flex-wrap gap-2">
@@ -375,7 +234,6 @@ const VoiceGeneratorModal = ({
             </div>
           </div>
 
-          {/* الأزرار */}
           <div className="flex items-center justify-between gap-3 pt-2">
             {generatedAudio ? (
               <button
@@ -408,7 +266,6 @@ const VoiceGeneratorModal = ({
           </div>
         </div>
 
-        {/* عنصر صوتي خفي للتشغيل */}
         <audio ref={audioRef} className="hidden" />
       </div>
     </div>
@@ -442,17 +299,17 @@ export default function SmartLessonEditor() {
     fontFamily: "sans", fontSize: 18, contentHtml: "", audioBlocks: [], quizBlocks: []
   });
 
-const editor = useEditor({
-  extensions: [
-    StarterKit,
-    TextStyle,
-    Color,
-    Underline,
-    Link,
-    Highlight.configure({ multicolor: true }),
-    ImageExtension,
-    VoiceMessageNode, // ✅ هنا
-  ],
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      TextStyle,
+      Color,
+      Underline,
+      Link,
+      Highlight.configure({ multicolor: true }),
+      ImageExtension,
+      VoiceMessageNode,
+    ],
     content: "",
     editorProps: { attributes: { class: "prose prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[500px] text-foreground leading-loose" } },
     onUpdate: ({ editor }) => setScript(prev => ({ ...prev, contentHtml: editor.getHTML() }))
@@ -477,8 +334,36 @@ const editor = useEditor({
       try {
         const parsed = JSON.parse(lesson.content);
         html = parsed.html || "";
-        audio = parsed.audio || [];
-        quiz = parsed.quiz || [];
+        audio = Array.isArray(parsed.audio) ? parsed.audio : [];
+
+        const rawQuiz = parsed.quiz;
+        // إذا كان quiz مصفوفة أسئلة مباشرة (بدون questions)
+        if (Array.isArray(rawQuiz) && rawQuiz.length > 0 && !Array.isArray(rawQuiz[0]?.questions)) {
+          // حولها إلى صيغة QuizBlockData
+          quiz = [
+            {
+              id: Date.now().toString(),
+              title: "Interactive Quiz",
+              currentQuestionIndex: 0,
+              questions: rawQuiz.map((q: any) => ({
+                question: q.question_text || q.question || "",
+                options: Array.isArray(q.options)
+                  ? q.options.map((opt: string, idx: number) => ({
+                      label: String.fromCharCode(65 + idx),
+                      text: opt,
+                    }))
+                  : [],
+                correctIndex: q.correct_answer && Array.isArray(q.options)
+                  ? q.options.findIndex((opt: string) => opt === q.correct_answer)
+                  : 0,
+                explanation: q.explanation || "",
+              })),
+            },
+          ];
+        } else {
+          // quiz بالفعل مصفوفة QuizBlockData
+          quiz = Array.isArray(rawQuiz) ? rawQuiz : [];
+        }
       } catch (e) {}
 
       setScript({
@@ -577,24 +462,22 @@ const editor = useEditor({
     finally { setAiLoading(false); }
   };
 
-  // دالة حفظ الصوت المولّد إلى audioBlocks
-const handleVoiceSave = (audioSrc: string, voice: any, text: string, title: string, theme: string) => {
-  if (!editor) return;
+  const handleVoiceSave = (audioSrc: string, voice: any, text: string, title: string, theme: string) => {
+    if (!editor) return;
 
-  editor.chain().focus().insertContent({
-    type: "voiceMessage",
-    attrs: {
-      src: audioSrc,
-      title: title || "فويز بلا عنوان",
-      theme: theme || "green",
-      width: "80%",
-    },
-  }).run();
+    editor.chain().focus().insertContent({
+      type: "voiceMessage",
+      attrs: {
+        src: audioSrc,
+        title: title || "فويز بلا عنوان",
+        theme: theme || "green",
+        width: "80%",
+      },
+    }).run();
 
-  setIsVoiceModalOpen(false);
-};
+    setIsVoiceModalOpen(false);
+  };
 
-  // دالة رفع الوسائط العامة (صوت، PDF تضمين، ملفات)
   const handleMediaUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !editor) return;
@@ -621,7 +504,6 @@ const handleVoiceSave = (audioSrc: string, voice: any, text: string, title: stri
     event.target.value = '';
   }, [editor]);
 
-  // دالة استيراد PDF وتحويله إلى نصوص قابلة للتحرير
   const handlePdfToText = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !editor) return;
@@ -648,7 +530,6 @@ const handleVoiceSave = (audioSrc: string, voice: any, text: string, title: stri
     event.target.value = '';
   }, [editor]);
 
-  // دالة رفع فيديو من الجهاز
   const handleVideoUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !editor) return;
@@ -668,7 +549,6 @@ const handleVoiceSave = (audioSrc: string, voice: any, text: string, title: stri
     event.target.value = '';
   }, [editor]);
 
-  // إضافة يوتيوب
   const addYouTube = () => {
     const url = prompt("YouTube URL:");
     if (url) {
@@ -683,7 +563,6 @@ const handleVoiceSave = (audioSrc: string, voice: any, text: string, title: stri
     }
   };
 
-  // عرض الفيديو في مودال
   const openVideoModal = (src: string) => setVideoModal({ src });
   useEffect(() => {
     if (!editor) return;
@@ -868,7 +747,12 @@ const handleVoiceSave = (audioSrc: string, voice: any, text: string, title: stri
         )}
       </main>
 
-      <CurriculumModal isOpen={isCurriculumOpen} onClose={() => setIsCurriculumOpen(false)} courseId={courseId} fetchLessons={fetchLessons} />
+      <CurriculumGeneratorModal
+        isOpen={isCurriculumOpen}
+        onClose={() => setIsCurriculumOpen(false)}
+        courseId={courseId}
+        onLessonsGenerated={fetchLessons}
+      />
 
       <VoiceGeneratorModal
         isOpen={isVoiceModalOpen}
