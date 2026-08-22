@@ -54,7 +54,6 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
-  output: "standalone",
   generateEtags: false,
   poweredByHeader: false,
   compress: true,
