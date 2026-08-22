@@ -17,24 +17,61 @@ import { Footer } from "@/components/shared/Footer";
 import AuthProviderLazy from "@/lib/firebase/AuthProviderLazy";
 
 export const metadata: Metadata = {
-  title: "About Us | Ruh-Ul-Qudus Academy",
-  description: "Learn about Ruh-Ul-Qudus Academy, our mission to teach Arabic and Quran to non-native speakers with modern technology.",
-  alternates: { canonical: "https://ruhulqudus.com/about" },
+  title: "Ruh-Ul-Qudus Academy | Learn Arabic & Quran Online",
+  description:
+    "Master Arabic and Quran with interactive lessons, AI-powered practice, quizzes, and certified courses for non-native speakers. Start your journey today.",
+  keywords: [
+    "Learn Arabic online",
+    "Quran for non-native speakers",
+    "Arabic language course",
+    "Quran tajweed",
+    "Online Islamic academy",
+    "Arabic for beginners",
+    "Ruh-Ul-Qudus Academy",
+  ],
+  alternates: {
+    canonical: "https://ruhulqudus.com",
+    languages: {
+      en: "https://ruhulqudus.com/en",
+      ar: "https://ruhulqudus.com/ar",
+      tr: "https://ruhulqudus.com/tr",
+    },
+  },
   openGraph: {
-    title: "About Ruh-Ul-Qudus Academy",
-    description: "An elite institution for Arabic and Quran, founded by Dr. Jehan Ali Ziad, blending classical education with modern learning.",
-    url: "https://ruhulqudus.com/about",
+    title: "Ruh-Ul-Qudus Academy | Learn Arabic & Quran",
+    description:
+      "An elite digital institution for Arabic and Quran, blending classical pedagogy with modern technology.",
+    url: "https://ruhulqudus.com",
     siteName: "Ruh-Ul-Qudus Academy",
     type: "website",
     locale: "en_US",
     alternateLocale: ["ar_SA", "tr_TR"],
-    images: [{ url: "https://ruhulqudus.com/light1.png", width: 1200, height: 630, alt: "About Ruh-Ul-Qudus Academy" }],
+    images: [
+      {
+        url: "https://ruhulqudus.com/light1.png",
+        width: 1200,
+        height: 630,
+        alt: "Ruh-Ul-Qudus Academy – Learn Arabic and Quran",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "About Ruh-Ul-Qudus Academy",
-    description: "Learn about our mission to teach Arabic and Quran with excellence.",
+    title: "Ruh-Ul-Qudus Academy | Learn Arabic & Quran",
+    description:
+      "Master Arabic and Quran with interactive lessons, AI-powered practice, and certified courses.",
     images: ["https://ruhulqudus.com/light1.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 };
 
