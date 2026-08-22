@@ -4,23 +4,17 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      // الصور
       "img-src 'self' data: blob: https://encrypted-tbn0.gstatic.com https://source.unsplash.com https://images.unsplash.com https://*.googleusercontent.com",
-      // الخطوط
       "font-src 'self' https://fonts.gstatic.com",
-      // الأنماط
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      // السكربتات
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.gstatic.com https://*.firebaseio.com https://www.google.com",
-      // الاتصالات
-      "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.google-analytics.com https://api.openai.com https://generativelanguage.googleapis.com",
-      // الإطارات
+      // إزالة unsafe-inline و unsafe-eval من script-src حيثما أمكن، لكن Next.js قد يحتاج unsafe-eval في بيئات معينة.
+      "script-src 'self' https://apis.google.com https://www.gstatic.com https://*.firebaseio.com https://www.google.com",
+      "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.google-analytics.com https://generativelanguage.googleapis.com",
       "frame-src 'self' https://www.youtube.com https://*.firebaseapp.com https://*.google.com",
-      // تقييد الكائنات
+      "frame-ancestors 'self'",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
-      // ترقية الروابط غير الآمنة
       "upgrade-insecure-requests",
     ].join("; "),
   },
@@ -59,23 +53,28 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
-  // تفعيل وضع standalone لتقليل حجم الحزمة وسهولة النشر
   output: "standalone",
-
-  // إيقاف توليد ETag لتقليل الحمولة
   generateEtags: false,
-
-  // إيقاف تعليق powered-by-header للأمان
   poweredByHeader: false,
-
-  // ضغط الاستجابات
   compress: true,
-
-  // تعطيل source maps في الإنتاج لتقليل الحجم
   productionBrowserSourceMaps: false,
-
-  // استخدام SWC للتصغير (أسرع وأصغر)
   swcMinify: true,
+
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "http://ruhulqudus.com",
+          },
+        ],
+        destination: "https://ruhulqudus.com/:path*",
+        permanent: true,
+      },
+    ];
+  },
 
   typescript: {
     ignoreBuildErrors: true,
@@ -85,7 +84,6 @@ const nextConfig = {
   },
   experimental: {
     memoryBasedWorkersCount: true,
-    // تحسين استيراد الحزم الشائعة لتقليل حجم الحزمة
     optimizePackageImports: [
       "lucide-react",
       "firebase",
@@ -96,22 +94,11 @@ const nextConfig = {
   },
   images: {
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "encrypted-tbn0.gstatic.com",
-      },
-      {
-        protocol: "https",
-        hostname: "source.unsplash.com",
-      },
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-      },
+      { protocol: "https", hostname: "encrypted-tbn0.gstatic.com" },
+      { protocol: "https", hostname: "source.unsplash.com" },
+      { protocol: "https", hostname: "images.unsplash.com" },
     ],
   },
-
-  // إضافة headers الأمان لجميع المسارات
   async headers() {
     return [
       {
