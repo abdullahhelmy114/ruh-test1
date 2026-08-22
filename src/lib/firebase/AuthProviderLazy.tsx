@@ -1,23 +1,34 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useState, useEffect } from "react";
+import { AuthProvider as FirebaseAuthProvider } from "./AuthProvider";
 
-const AuthProvider = dynamic(
-  () => import("./AuthProvider").then((mod) => mod.AuthProvider),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    ),
-  }
-);
-
+// مكوّن خفيف يبدأ بتحميل AuthProvider بعد التركيب
 export default function AuthProviderLazy({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <AuthProvider>{children}</AuthProvider>;
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    // على الخادم أو قبل التحميل، نعرض الأطفال مباشرة بدون أي حجب
+    return <>{children}</>;
+  }
+
+  // الآن عميل، نحمّل AuthProvider الفعلي
+  const AuthProviderComponent = dynamic(
+    () => import("./AuthProvider").then((mod) => mod.AuthProvider),
+    {
+      ssr: false,
+      loading: () => null, // لا سبينر يغطي الصفحة
+    }
+  );
+
+  return <AuthProviderComponent>{children}</AuthProviderComponent>;
 }

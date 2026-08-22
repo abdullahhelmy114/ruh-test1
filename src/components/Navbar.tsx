@@ -3,6 +3,7 @@
 import { T } from "@/components/TranslatedText";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Bell, BellOff, Mail, Moon, Sun, BookOpen, User, LayoutDashboard, LogOut, ChevronDown,
@@ -146,15 +147,20 @@ export function Navbar() {
 
           <Link href="/" className="flex items-center gap-3">
             {/* أيقونة فاتحة تظهر في Light Mode */}
-            <img
+            <Image
               src="/light1.png"
               alt="Ruh-Ul-Qudus"
+              width={48}
+              height={48}
+              priority
               className="h-12 w-12 dark:hidden"
             />
             {/* أيقونة داكنة تظهر في Dark Mode */}
-            <img
+            <Image
               src="/dark.png"
               alt="Ruh-Ul-Qudus"
+              width={48}
+              height={48}
               className="h-12 w-12 hidden dark:block"
             />
             <div className="leading-tight">

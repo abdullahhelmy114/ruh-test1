@@ -95,6 +95,8 @@ export default function RootLayout({
             `,
           }}
         />
+        <link rel="preconnect" href="https://ruhulqudus-48d29.firebaseapp.com" />
+        <link rel="preconnect" href="https://www.gstatic.com" />
       </head>
       <body
         className={`${inter.variable} ${playfair.variable} ${amiri.variable} ${dancing_script.variable} ${pinyon_script.variable} ${quattrocento.variable} ${scheherazade_new.variable} font-sans antialiased min-h-screen bg-background text-foreground`}
