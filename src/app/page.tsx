@@ -75,12 +75,6 @@ export default function HomePage() {
       .then((d) => setFeaturedcourse((d.course || []).slice(0, 3)))
       .catch(() => {});
 
-    // Blog Posts
-    fetch("/api/blog/posts?limit=3")
-      .then((r) => r.json())
-      .then((d) => setBlogPosts((d.posts || []).slice(0, 3)))
-      .catch(() => {});
-
     // Bundles
     fetch("/api/bundles")
       .then((r) => r.json())
