@@ -62,7 +62,7 @@ const nextConfig = {
   // تفعيل وضع standalone لتقليل حجم الحزمة وسهولة النشر
   output: "standalone",
 
-  // إيقاف توليد ETag لتقليل الحمولة (اختياري)
+  // إيقاف توليد ETag لتقليل الحمولة
   generateEtags: false,
 
   // إيقاف تعليق powered-by-header للأمان
@@ -70,6 +70,12 @@ const nextConfig = {
 
   // ضغط الاستجابات
   compress: true,
+
+  // تعطيل source maps في الإنتاج لتقليل الحجم
+  productionBrowserSourceMaps: false,
+
+  // استخدام SWC للتصغير (أسرع وأصغر)
+  swcMinify: true,
 
   typescript: {
     ignoreBuildErrors: true,
@@ -79,6 +85,14 @@ const nextConfig = {
   },
   experimental: {
     memoryBasedWorkersCount: true,
+    // تحسين استيراد الحزم الشائعة لتقليل حجم الحزمة
+    optimizePackageImports: [
+      "lucide-react",
+      "firebase",
+      "firebase-admin",
+      "@neondatabase/serverless",
+      "framer-motion",
+    ],
   },
   images: {
     remotePatterns: [
@@ -86,7 +100,6 @@ const nextConfig = {
         protocol: "https",
         hostname: "encrypted-tbn0.gstatic.com",
       },
-      // إضافة نطاقات الصور المستخدمة في الكورسات والدروس
       {
         protocol: "https",
         hostname: "source.unsplash.com",

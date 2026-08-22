@@ -146,13 +146,13 @@ export function Navbar() {
 <Link href="/" className="flex items-center gap-3">
   {/* أيقونة فاتحة تظهر في Light Mode */}
   <img
-    src="/light1.svg"
+    src="/light1.png"
     alt="Ruh-Ul-Qudus"
     className="h-12 w-12 dark:hidden"
   />
   {/* أيقونة داكنة تظهر في Dark Mode */}
   <img
-    src="/dark.svg"
+    src="/dark.png"
     alt="Ruh-Ul-Qudus"
     className="h-12 w-12 hidden dark:block"
   />

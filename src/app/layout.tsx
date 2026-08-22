@@ -1,25 +1,28 @@
-// app/layout.tsx
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import {
+  inter,
+  playfair,
+  amiri,
+  dancing_script,
+  pinyon_script,
+  quattrocento,
+  scheherazade_new,
+} from "@/lib/fonts";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Navbar } from "@/components/Navbar";
 import { Toaster } from "@/components/ui/sonner";
-import { AIChatBubble } from "@/components/shared/AIChatBubble";
+import AIChatBubbleLazy from "@/components/shared/AIChatBubbleLazy";
 import { Footer } from "@/components/shared/Footer";
-import { AuthProvider } from "@/lib/firebase/AuthProvider";
-
-const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
-const playfair = Playfair_Display({ variable: "--font-playfair", subsets: ["latin"] });
-
+import AuthProviderLazy from "@/lib/firebase/AuthProviderLazy";
 
 export const metadata: Metadata = {
   title: "Ruh-Ul-Qudus Academy | أرقى منصة لتعلم العربية",
   description: "Traditional wisdom meets modern learning technology.",
-    icons: {
+  icons: {
     icon: [
-      { url: '/light.svg', media: '(prefers-color-scheme: light)' },
-      { url: '/dark.svg',  media: '(prefers-color-scheme: dark)' },
+      { url: '/light1.png', media: '(prefers-color-scheme: light)' },
+      { url: '/dark.png', media: '(prefers-color-scheme: dark)' },
     ],
   },
 };
@@ -44,30 +47,26 @@ export default function RootLayout({
             `,
           }}
         />
-        {/* روابط الخطوط المطلوبة للشهادة */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Dancing+Script:wght@400;700&family=Inter:wght@400;500&family=Pinyon+Script&family=Quattrocento:wght@400;700&display=swap"
-          rel="stylesheet"
-        />
-
-        <link href="https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body
-        className={`${inter.variable} ${playfair.variable} font-sans antialiased min-h-screen bg-background text-foreground`}
+        className={`${inter.variable} ${playfair.variable} ${amiri.variable} ${dancing_script.variable} ${pinyon_script.variable} ${quattrocento.variable} ${scheherazade_new.variable} font-sans antialiased min-h-screen bg-background text-foreground`}
       >
-        <AuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <AuthProviderLazy>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
             <div className="relative flex min-h-screen flex-col">
               <Navbar />
               <main className="flex-1">{children}</main>
               <Footer />
             </div>
-            <AIChatBubble />
+            <AIChatBubbleLazy />
             <Toaster />
           </ThemeProvider>
-        </AuthProvider>
+        </AuthProviderLazy>
       </body>
     </html>
   );
