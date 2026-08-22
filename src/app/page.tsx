@@ -444,7 +444,7 @@ export default function HomePage() {
                   href="/certification"
                   className="mt-6 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground shadow-elegant hover:bg-accent/90 transition"
                 >
-                  <T>Learn More</T> <ArrowRight className="h-4 w-4" />
+                  <T>Explore certification</T> <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             </motion.div>

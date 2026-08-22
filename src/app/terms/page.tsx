@@ -4,16 +4,24 @@ import { T } from "@/components/TranslatedText";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms and Conditions – Ruh-Ul-Qudus Academy",
-  description:
-    "Read Ruh-Ul-Qudus Academy's terms and conditions. Understand your rights, responsibilities, and our policies for using the platform.",
+  title: "Terms of Service | Ruh-Ul-Qudus Academy",
+  description: "Review the terms and conditions for using Ruh-Ul-Qudus Academy's platform and services.",
+  alternates: { canonical: "https://ruhulqudus.com/terms" },
   openGraph: {
-    title: "Terms and Conditions – Ruh-Ul-Qudus Academy",
-    description:
-      "By using Ruh-Ul-Qudus Academy, you agree to these terms. Learn about account rules, payments, refunds, and intellectual property.",
+    title: "Terms of Service | Ruh-Ul-Qudus Academy",
+    description: "Review the terms and conditions for using our platform.",
+    url: "https://ruhulqudus.com/terms",
+    siteName: "Ruh-Ul-Qudus Academy",
     type: "website",
     locale: "en_US",
     alternateLocale: ["ar_SA", "tr_TR"],
+    images: [{ url: "https://ruhulqudus.com/light1.png", width: 1200, height: 630, alt: "Terms of Service" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Terms of Service | Ruh-Ul-Qudus Academy",
+    description: "Review our terms and conditions.",
+    images: ["https://ruhulqudus.com/light1.png"],
   },
 };
 

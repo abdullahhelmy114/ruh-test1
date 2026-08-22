@@ -84,7 +84,7 @@ export async function GET(request: Request) {
         date: new Date(c.completed_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
       })),
       referral: {
-        code: `Ruh-Ul-Qudus.net/r/${uid.slice(0, 6)}`,
+        code: `ruhulqudus.com/r/${uid.slice(0, 6)}`,
         count: 0,
         credits: 0,
       },

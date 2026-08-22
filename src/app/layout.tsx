@@ -17,13 +17,24 @@ import { Footer } from "@/components/shared/Footer";
 import AuthProviderLazy from "@/lib/firebase/AuthProviderLazy";
 
 export const metadata: Metadata = {
-  title: "Ruh-Ul-Qudus Academy | أرقى منصة لتعلم العربية",
-  description: "Traditional wisdom meets modern learning technology.",
-  icons: {
-    icon: [
-      { url: '/light1.png', media: '(prefers-color-scheme: light)' },
-      { url: '/dark.png', media: '(prefers-color-scheme: dark)' },
-    ],
+  title: "About Us | Ruh-Ul-Qudus Academy",
+  description: "Learn about Ruh-Ul-Qudus Academy, our mission to teach Arabic and Quran to non-native speakers with modern technology.",
+  alternates: { canonical: "https://ruhulqudus.com/about" },
+  openGraph: {
+    title: "About Ruh-Ul-Qudus Academy",
+    description: "An elite institution for Arabic and Quran, founded by Dr. Jehan Ali Ziad, blending classical education with modern learning.",
+    url: "https://ruhulqudus.com/about",
+    siteName: "Ruh-Ul-Qudus Academy",
+    type: "website",
+    locale: "en_US",
+    alternateLocale: ["ar_SA", "tr_TR"],
+    images: [{ url: "https://ruhulqudus.com/light1.png", width: 1200, height: 630, alt: "About Ruh-Ul-Qudus Academy" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About Ruh-Ul-Qudus Academy",
+    description: "Learn about our mission to teach Arabic and Quran with excellence.",
+    images: ["https://ruhulqudus.com/light1.png"],
   },
 };
 

@@ -21,7 +21,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 
-// روابط ثابتة (بدون Quran Study أو Blog)
+// روابط ثابتة
 const baseLinks = [
   { to: "/", label: "Home" },
   { to: "/courses", label: "Courses" },
@@ -138,36 +138,37 @@ export function Navbar() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
             className="md:hidden grid h-10 w-10 place-items-center rounded-full border border-border bg-card transition-colors hover:bg-accent"
           >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
-<Link href="/" className="flex items-center gap-3">
-  {/* أيقونة فاتحة تظهر في Light Mode */}
-  <img
-    src="/light1.png"
-    alt="Ruh-Ul-Qudus"
-    className="h-12 w-12 dark:hidden"
-  />
-  {/* أيقونة داكنة تظهر في Dark Mode */}
-  <img
-    src="/dark.png"
-    alt="Ruh-Ul-Qudus"
-    className="h-12 w-12 hidden dark:block"
-  />
-  <div className="leading-tight">
-    <div className="font-serif text-lg font-semibold text-foreground">
-      <T>Ruh-Ul-Qudus</T>
-    </div>
-    <div className="text-[10px] uppercase tracking-[0.2em] text-foreground">
-      <T>Academy</T>
-    </div>
-  </div>
-</Link>
+          <Link href="/" className="flex items-center gap-3">
+            {/* أيقونة فاتحة تظهر في Light Mode */}
+            <img
+              src="/light1.png"
+              alt="Ruh-Ul-Qudus"
+              className="h-12 w-12 dark:hidden"
+            />
+            {/* أيقونة داكنة تظهر في Dark Mode */}
+            <img
+              src="/dark.png"
+              alt="Ruh-Ul-Qudus"
+              className="h-12 w-12 hidden dark:block"
+            />
+            <div className="leading-tight">
+              <div className="font-serif text-lg font-semibold text-foreground">
+                <T>Ruh-Ul-Qudus</T>
+              </div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-foreground">
+                <T>Academy</T>
+              </div>
+            </div>
+          </Link>
         </div>
 
-        {/* Navigation (desktop) – هوية كريمي × كحلي */}
+        {/* Navigation (desktop) */}
         <nav className="hidden md:flex items-center gap-1">
           {links.map((l) => (
             <Link
@@ -182,7 +183,6 @@ export function Navbar() {
             </Link>
           ))}
 
-          {/* رابط المجتمع للطلاب فقط */}
           {role === "student" && (
             <Link
               href="/community"
@@ -234,6 +234,7 @@ export function Navbar() {
           {user && !notificationsEnabled && (
             <button
               onClick={enableNotifications}
+              aria-label="Enable notifications"
               className="grid h-10 w-10 place-items-center rounded-full border border-border bg-card transition-colors hover:bg-accent"
               title="Enable Notifications"
             >
@@ -244,6 +245,7 @@ export function Navbar() {
           <div className="relative">
             <button
               onClick={() => setNotifOpen(!notifOpen)}
+              aria-label="Notifications"
               className="relative grid h-10 w-10 place-items-center rounded-full border border-border bg-card transition-colors hover:bg-accent"
             >
               <Bell className="h-4 w-4" />
@@ -287,6 +289,7 @@ export function Navbar() {
 
           <Link
             href="/messages"
+            aria-label="Messages"
             className="relative grid h-10 w-10 place-items-center rounded-full border border-border bg-card transition-colors hover:bg-accent"
           >
             <Mail className="h-4 w-4" />
@@ -367,7 +370,11 @@ export function Navbar() {
         {/* Mobile right side */}
         <div className="flex md:hidden items-center gap-1">
           <LanguageSwitcher />
-          <button onClick={toggle} className="grid h-10 w-10 place-items-center rounded-full border border-border bg-card">
+          <button
+            onClick={toggle}
+            aria-label="Toggle theme"
+            className="grid h-10 w-10 place-items-center rounded-full border border-border bg-card"
+          >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
           {user ? (
@@ -389,7 +396,11 @@ export function Navbar() {
           <div className="absolute right-0 top-0 h-full w-72 max-w-[85vw] bg-card shadow-elegant p-6 overflow-y-auto animate-slide-in-right">
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-serif text-xl text-foreground"><T>Menu</T></h3>
-              <button onClick={() => setMobileOpen(false)} className="p-2 rounded-full hover:bg-accent">
+              <button
+                onClick={() => setMobileOpen(false)}
+                aria-label="Close menu"
+                className="p-2 rounded-full hover:bg-accent"
+              >
                 <X size={20} />
               </button>
             </div>

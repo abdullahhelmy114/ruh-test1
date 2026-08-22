@@ -4,16 +4,24 @@ import { T } from "@/components/TranslatedText";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy – Ruh-Ul-Qudus Academy",
-  description:
-    "Read Ruh-Ul-Qudus Academy's privacy policy. We protect your data, use secure payment gateways, and never sell your information to third parties.",
+  title: "Privacy Policy | Ruh-Ul-Qudus Academy",
+  description: "Read the privacy policy of Ruh-Ul-Qudus Academy to understand how we protect your data.",
+  alternates: { canonical: "https://ruhulqudus.com/privacy" },
   openGraph: {
-    title: "Privacy Policy – Ruh-Ul-Qudus Academy",
-    description:
-      "Your privacy is important to us. Learn how we collect, use, and safeguard your personal information.",
+    title: "Privacy Policy | Ruh-Ul-Qudus Academy",
+    description: "Read our privacy policy to understand how we protect your data.",
+    url: "https://ruhulqudus.com/privacy",
+    siteName: "Ruh-Ul-Qudus Academy",
     type: "website",
     locale: "en_US",
     alternateLocale: ["ar_SA", "tr_TR"],
+    images: [{ url: "https://ruhulqudus.com/light1.png", width: 1200, height: 630, alt: "Privacy Policy" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Privacy Policy | Ruh-Ul-Qudus Academy",
+    description: "Read our privacy policy.",
+    images: ["https://ruhulqudus.com/light1.png"],
   },
 };
 

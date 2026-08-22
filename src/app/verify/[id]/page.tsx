@@ -3,6 +3,15 @@ import CertificateViewer from "@/components/CertificateViewer";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "Verify | Ruh-Ul-Qudus Academy",
+  description: "Account verification.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
 export const dynamic = "force-dynamic";
 
 type Props = {

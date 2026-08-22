@@ -1,0 +1,30 @@
+# Ruh-Ul-Qudus Academy
+
+A specialized educational platform for teaching Arabic and Quran to non-native speakers.
+
+## Main Pages
+- [Home](https://ruhulqudus.com)
+- [Courses](https://ruhulqudus.com/courses)
+- [Bundles](https://ruhulqudus.com/bundles)
+- [Certification](https://ruhulqudus.com/certification)
+- [Library](https://ruhulqudus.com/library)
+- [Quran Irab](https://ruhulqudus.com/quran)
+
+## Important Links
+- [About Us](https://ruhulqudus.com/about)
+- [Contact](https://ruhulqudus.com/contact)
+- [Blog](https://ruhulqudus.com/blog)
+- [Community](https://ruhulqudus.com/community)
+
+## User Account
+- [Sign In](https://ruhulqudus.com/login)
+- [Sign Up](https://ruhulqudus.com/signup)
+- [Student Dashboard](https://ruhulqudus.com/dashboard/student)
+- [Admin Dashboard](https://ruhulqudus.com/dashboard/admin)
+
+## Legal
+- [Privacy Policy](https://ruhulqudus.com/privacy)
+- [Terms of Service](https://ruhulqudus.com/terms)
+
+## General Description
+The platform offers interactive lessons, quizzes, educational games, AI-powered practice, and accredited certificates for learning Arabic.

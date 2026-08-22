@@ -45,9 +45,9 @@ function wrapTemplate(title: string, content: string) {
           <div class="footer">
             <p>© ${new Date().getFullYear()} Ruh-Ul-Qudus Academy. All rights reserved.</p>
             <p>
-              <a href="https://Ruh-Ul-Qudus.net/privacy">Privacy Policy</a> · 
-              <a href="https://Ruh-Ul-Qudus.net/terms">Terms of Service</a> · 
-              <a href="https://Ruh-Ul-Qudus.net/contact">Contact Us</a>
+              <a href="https://ruhulqudus.com/privacy">Privacy Policy</a> · 
+              <a href="https://ruhulqudus.com/terms">Terms of Service</a> · 
+              <a href="https://ruhulqudus.com/contact">Contact Us</a>
             </p>
           </div>
         </div>
@@ -82,7 +82,7 @@ export function welcomeEmail(name: string) {
       <p>Dear <strong>${name}</strong>,</p>
       <p>Your account has been created successfully. We are thrilled to have you join our community of Arabic learners.</p>
       <p>Start your journey today:</p>
-      <a href="https://Ruh-Ul-Qudus.net/courses" class="button">Browse course</a>
+      <a href="https://ruhulqudus.com/courses" class="button">Browse course</a>
     `
   );
 }
@@ -120,7 +120,7 @@ export function courseEnrolledEmail(name: string, course: string) {
       <p>Dear <strong>${name}</strong>,</p>
       <p>You have successfully enrolled in <strong>${course}</strong>.</p>
       <p>Start learning now:</p>
-      <a href="https://Ruh-Ul-Qudus.net/dashboard/student" class="button">Go to Dashboard</a>
+      <a href="https://ruhulqudus.com/dashboard/student" class="button">Go to Dashboard</a>
     `
   );
 }
@@ -154,7 +154,7 @@ export function teacherApprovedEmail(name: string) {
       <p>Dear <strong>${name}</strong>,</p>
       <p>Congratulations! Your application to become a teacher at Ruh-Ul-Qudus Academy has been approved.</p>
       <p>You can now log in and start creating course.</p>
-      <a href="https://Ruh-Ul-Qudus.net/dashboard/teacher" class="button">Go to Teacher Dashboard</a>
+      <a href="https://ruhulqudus.com/dashboard/teacher" class="button">Go to Teacher Dashboard</a>
     `
   );
 }

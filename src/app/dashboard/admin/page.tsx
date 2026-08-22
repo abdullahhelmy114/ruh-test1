@@ -1749,7 +1749,7 @@ function AIConfigurationTab() {
 // Site Settings Tab
 function SiteSettingsTab() {
   const [siteName, setSiteName] = useState("Ruh-Ul-Qudus Academy");
-  const [contactEmail, setContactEmail] = useState("admin@Ruh-Ul-Qudus.net");
+  const [contactEmail, setContactEmail] = useState("admin@ruhulqudus.com");
   const [maintenanceMode, setMaintenanceMode] = useState(false);
 
   return (

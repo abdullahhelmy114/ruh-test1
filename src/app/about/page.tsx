@@ -15,16 +15,24 @@ import { T } from "@/components/TranslatedText";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "About Ruh-Ul-Qudus Academy – Our Mission & Vision",
-  description:
-    "Learn about Ruh-Ul-Qudus Academy, founded by Dr. Jehan Ali Ziad. We teach Arabic and the Holy Quran with excellence, live mentorship, and a timeless curriculum.",
+  title: "About Us | Ruh-Ul-Qudus Academy",
+  description: "Learn about Ruh-Ul-Qudus Academy, our mission to teach Arabic and Quran to non-native speakers with modern technology.",
+  alternates: {
+    canonical: "https://ruhulqudus.com/about",
+  },
   openGraph: {
     title: "About Ruh-Ul-Qudus Academy",
-    description:
-      "An elite digital institution for the Arabic language and Quran, combining classical pedagogy with modern technology.",
+    description: "An elite digital institution for Arabic and Quran, combining classical pedagogy with modern technology.",
+    url: "https://ruhulqudus.com/about",
+    siteName: "Ruh-Ul-Qudus Academy",
     type: "website",
     locale: "en_US",
     alternateLocale: ["ar_SA", "tr_TR"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About Ruh-Ul-Qudus Academy",
+    description: "An elite digital institution for Arabic and Quran.",
   },
 };
 
