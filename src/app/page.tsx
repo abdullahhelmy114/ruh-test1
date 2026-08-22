@@ -92,10 +92,18 @@ export default function HomePage() {
     <div className="overflow-hidden">
       {/* ─── Hero ─────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute -top-24 left-1/3 h-96 w-96 rounded-full bg-gold/20 blur-3xl" />
-          <div className="absolute right-0 top-40 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
-        </div>
+<div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+  {/* البقع الكبيرة الحالية */}
+  <div className="absolute -top-24 left-1/3 h-96 w-96 rounded-full bg-gold/20 blur-3xl" />
+  <div className="absolute right-0 top-40 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
+
+  {/* بقع برتقالية خفيفة إضافية */}
+  <div className="absolute left-[8%] top-[18%] h-24 w-24 rounded-full bg-orange-200/30 blur-xl" />
+  <div className="absolute right-[12%] top-[32%] h-32 w-32 rounded-full bg-orange-300/20 blur-xl" />
+  <div className="absolute left-[22%] bottom-[20%] h-28 w-28 rounded-full bg-amber-200/30 blur-lg" />
+  <div className="absolute right-[28%] bottom-[10%] h-20 w-20 rounded-full bg-orange-200/40 blur-md" />
+  <div className="absolute left-[45%] top-[55%] h-16 w-16 rounded-full bg-orange-100/40 blur-md" />
+</div>
 
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-20 md:grid-cols-2 md:px-8 md:py-28">
           <motion.div
@@ -152,45 +160,46 @@ export default function HomePage() {
             </div>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative"
-          >
-            <div className="absolute -inset-6 rounded-[2.5rem] bg-gold/20 blur-2xl" />
-            <div className="relative overflow-hidden rounded-[2.5rem] gradient-hero p-10 text-primary-foreground shadow-elegant">
-              <div
-                className="font-arabic text-right text-7xl leading-tight"
-                style={{ fontFamily: "Amiri, serif" }}
-              >
-                ٱقْرَأْ
-              </div>
-              <div className="mt-2 text-right text-sm text-gold">
-                <T>Read</T> · <T>The first command</T>
-              </div>
+<motion.div
+  initial={{ opacity: 0, scale: 0.95 }}
+  animate={{ opacity: 1, scale: 1 }}
+  transition={{ duration: 0.8, delay: 0.2 }}
+  className="relative"
+>
+  {/* الظل: أخضر في الوضع الفاتح، ذهبي في الوضع الداكن */}
+  <div className="absolute -inset-6 rounded-[2.5rem] bg-primary/20 dark:bg-gold/20 blur-2xl" />
+  <div className="relative overflow-hidden rounded-[2.5rem] gradient-hero dark:bg-[#f5e9dc] dark:bg-none p-10 text-primary-foreground dark:text-[#17352c] shadow-elegant">
+    <div
+      className="font-arabic text-right text-7xl leading-tight"
+      style={{ fontFamily: "Amiri, serif" }}
+    >
+      ٱقْرَأْ
+    </div>
+    <div className="mt-2 text-right text-sm text-gold dark:text-[#17352c]">
+      <T>Read</T> · <T>The first command</T>
+    </div>
 
-              <div className="mt-10 space-y-4">
-                {[
-                  { icon: <Award className="h-4 w-4" />, t: "Certified Teacher Program" },
-                  { icon: <Users className="h-4 w-4" />, t: "Live Cohorts via Zoom" },
-                  { icon: <BookOpen className="h-4 w-4" />, t: "A1 — C2 Curriculum" },
-                ].map((f) => (
-                  <div
-                    key={f.t}
-                    className="flex items-center gap-3 rounded-2xl bg-white/5 p-3 backdrop-blur"
-                  >
-                    <div className="grid h-9 w-9 place-items-center rounded-xl bg-gold text-gold-foreground">
-                      {f.icon}
-                    </div>
-                    <span className="text-sm">
-                      <T>{f.t}</T>
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
+    <div className="mt-10 space-y-4">
+      {[
+        { icon: <Award className="h-4 w-4" />, t: "Certified Teacher Program" },
+        { icon: <Users className="h-4 w-4" />, t: "Live Cohorts via Zoom" },
+        { icon: <BookOpen className="h-4 w-4" />, t: "A1 — C2 Curriculum" },
+      ].map((f) => (
+        <div
+          key={f.t}
+          className="flex items-center gap-3 rounded-2xl bg-white/5 dark:bg-black/10 backdrop-blur p-3"
+        >
+          <div className="grid h-9 w-9 place-items-center rounded-xl bg-gold text-gold-foreground">
+            {f.icon}
+          </div>
+          <span className="text-sm">
+            <T>{f.t}</T>
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+</motion.div>
         </div>
       </section>
 

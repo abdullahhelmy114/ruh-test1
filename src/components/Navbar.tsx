@@ -7,7 +7,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Bell, BellOff, Mail, Moon, Sun, BookOpen, User, LayoutDashboard, LogOut, ChevronDown,
-  Info, Phone, Shield, ShoppingCart, Heart, Menu, X, Users,
+  Info, Phone, Library, Shield, ShoppingCart, Heart, Menu, X, Users,
 } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
@@ -27,14 +27,14 @@ const baseLinks = [
   { to: "/", label: "Home" },
   { to: "/courses", label: "Courses" },
   { to: "/bundles", label: "Bundles" },
-  { to: "/certification", label: "Certification" },
-  { to: "/library", label: "Library" },
-  { to: "/quran", label: "Quran Irab" },
+  { to: "/certification", label: "Certification" }, 
+  { to: "/quran", label: "Quran" },
 ];
 
 const moreLinks = [
   { to: "/about", label: "About", icon: Info },
   { to: "/contact", label: "Contact", icon: Phone },
+  { to: "/library", label: "Library", icon: Library },
 ];
 
 export function Navbar() {
@@ -163,7 +163,7 @@ export function Navbar() {
               height={48}
               className="h-12 w-12 hidden dark:block"
             />
-            <div className="leading-tight">
+            <div className="hidden md:block leading-tight">
               <div className="font-serif text-lg font-semibold text-foreground">
                 <T>Ruh-Ul-Qudus</T>
               </div>
