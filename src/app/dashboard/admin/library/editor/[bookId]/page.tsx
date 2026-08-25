@@ -25,7 +25,6 @@ import {
 import { toast } from "sonner";
 import {
   ArrowLeft,
-  Save,
   Plus,
   Trash2,
   Image as ImageIcon,
@@ -33,87 +32,131 @@ import {
   Music,
   HelpCircle,
   Loader2,
-  Move,
+  Link2,
+  Gamepad2,
 } from "lucide-react";
-import type { OverlayItem } from "@/components/reader/PageOverlay";
 
-// ── أنواع ──────────────────────────────────────────
+// ── Types ──────────────────────────────────────────
 interface PageInfo {
   page_number: number;
-  image_url: string;
+  image_url?: string;
+  image_file_id?: string;
 }
 
-// ── المكون الرئيسي ────────────────────────────────
+interface OverlayItem {
+  id: string;
+  book_id: string;
+  page_number: number;
+  type: "audio" | "video" | "quiz" | "game" | "iframe" | "link";
+  position: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  content: any;
+  settings?: any;
+}
+
+// ── Main Component ────────────────────────────────
 export default function BookEditorPage() {
   const params = useParams<{ bookId: string }>();
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
 
-  // بيانات الكتاب
+  const bookId = params.bookId as string;
+
+  // Book data
   const [bookTitle, setBookTitle] = useState("");
   const [pages, setPages] = useState<PageInfo[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // الصفحة المختارة حاليًا
+  // Current selected page
   const [selectedPage, setSelectedPage] = useState<number | null>(null);
 
-  // التراكبات (خاصة بالكتاب كله)
+  // Overlays for the whole book
   const [overlays, setOverlays] = useState<OverlayItem[]>([]);
 
-  // حوار إضافة/تعديل تراكب
+  // Dialog state for adding/editing overlay
   const [overlayDialogOpen, setOverlayDialogOpen] = useState(false);
   const [editingOverlay, setEditingOverlay] = useState<OverlayItem | null>(null);
-  const [overlayType, setOverlayType] = useState<"audio" | "video" | "quiz" | "game">("video");
+  const [overlayType, setOverlayType] = useState<string>("video");
   const [overlayUrl, setOverlayUrl] = useState("");
-  const [overlayPosition, setOverlayPosition] = useState({ x: 10, y: 10, width: 80, height: 80 });
+  const [overlayPosition, setOverlayPosition] = useState({
+    x: 10,
+    y: 10,
+    width: 20,
+    height: 20,
+  });
+  const [quizQuestion, setQuizQuestion] = useState("");
+  const [quizOptions, setQuizOptions] = useState("");
+  const [quizCorrect, setQuizCorrect] = useState("");
   const [savingOverlay, setSavingOverlay] = useState(false);
 
-  // السحب لتحديد الموضع (بسيط)
+  // Drag to position
   const imageRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
 
-  // ── تحميل الكتاب ──────────────────────────────────
+  // ── Fetch book and overlays ──────────────────────
   useEffect(() => {
-    if (!user || !params.bookId) {
+    if (!user || !bookId) {
       setLoading(false);
       return;
     }
 
     const load = async () => {
       try {
-        const res = await authFetch(`/api/library/books?id=${params.bookId}`);
+        // Fetch book details and pages
+        const res = await authFetch(`/api/admin/library/books/${bookId}`);
         if (!res.ok) throw new Error("Book not found");
         const data = await res.json();
         setBookTitle(data.book?.title || "Untitled");
-        setPages(data.pages || []);
+        const fetchedPages: PageInfo[] = data.pages || [];
+        setPages(fetchedPages);
+        if (fetchedPages.length > 0) {
+          setSelectedPage(fetchedPages[0].page_number);
+        }
 
-        // تحميل التراكبات
-        const overlaysRes = await authFetch(`/api/library/page-overlay?bookId=${params.bookId}`);
+        // Fetch overlays
+        const overlaysRes = await authFetch(`/api/admin/library/overlays?bookId=${bookId}`);
         if (overlaysRes.ok) {
           const overlaysData = await overlaysRes.json();
           setOverlays(overlaysData.overlays || []);
         }
       } catch (err) {
         console.error(err);
-        toast.error("Failed to load book");
+        toast.error(<T>Failed to load book</T>);
       }
       setLoading(false);
     };
 
     load();
-  }, [user, params.bookId]);
+  }, [user, bookId]);
 
-  // التراكبات الخاصة بالصفحة الحالية
+  // Overlays for current page
   const currentOverlays = overlays.filter(
-    (o) => (o as any).page_number === selectedPage
+    (o) => o.page_number === selectedPage
   );
 
-  // ── إضافة / تعديل تراكب ──────────────────────────
+  const getPageImageUrl = (page: PageInfo) => {
+    if (page.image_file_id) {
+      return `/api/library/files/${page.image_file_id}`;
+    }
+    if (page.image_url) {
+      return page.image_url;
+    }
+    return "";
+  };
+
+  // ── Overlay operations ───────────────────────────
   const openNewOverlay = () => {
     setEditingOverlay(null);
     setOverlayType("video");
     setOverlayUrl("");
-    setOverlayPosition({ x: 10, y: 10, width: 80, height: 80 });
+    setQuizQuestion("");
+    setQuizOptions("");
+    setQuizCorrect("");
+    setOverlayPosition({ x: 10, y: 10, width: 20, height: 20 });
     setOverlayDialogOpen(true);
   };
 
@@ -121,6 +164,9 @@ export default function BookEditorPage() {
     setEditingOverlay(item);
     setOverlayType(item.type);
     setOverlayUrl(item.content?.url || "");
+    setQuizQuestion(item.content?.question || "");
+    setQuizOptions((item.content?.options || []).join(", "));
+    setQuizCorrect(item.content?.correct || "");
     setOverlayPosition(item.position);
     setOverlayDialogOpen(true);
   };
@@ -129,24 +175,46 @@ export default function BookEditorPage() {
     if (!selectedPage) return;
     setSavingOverlay(true);
 
+    const content: any = {
+      url: overlayUrl,
+    };
+    if (overlayType === "quiz") {
+      content.question = quizQuestion;
+      content.options = quizOptions
+        .split(",")
+        .map((opt) => opt.trim())
+        .filter((opt) => opt.length > 0);
+      content.correct = quizCorrect;
+    }
+
     const body = {
-      book_id: params.bookId,
+      book_id: bookId,
       page_number: selectedPage,
       type: overlayType,
       position: overlayPosition,
-      content: { url: overlayUrl }, // تبسيط
+      content,
+      settings: {},
     };
 
     try {
-      // إنشاء تراكب جديد (POST)
-      const res = await authFetch("/api/library/page-overlay", {
-        method: "POST",
-        body: JSON.stringify(body),
-      });
+      const res = editingOverlay
+        ? await authFetch(`/api/admin/library/overlays/${editingOverlay.id}`, {
+            method: "PUT",
+            body: JSON.stringify(body),
+          })
+        : await authFetch("/api/admin/library/overlays", {
+            method: "POST",
+            body: JSON.stringify(body),
+          });
+
       if (res.ok) {
-        toast.success(editingOverlay ? "Overlay updated" : "Overlay added");
-        // إعادة تحميل التراكبات
-        const overlaysRes = await authFetch(`/api/library/page-overlay?bookId=${params.bookId}`);
+        toast.success(
+          editingOverlay ? <T>Overlay updated</T> : <T>Overlay added</T>
+        );
+        // Reload overlays
+        const overlaysRes = await authFetch(
+          `/api/admin/library/overlays?bookId=${bookId}`
+        );
         if (overlaysRes.ok) {
           const overlaysData = await overlaysRes.json();
           setOverlays(overlaysData.overlays || []);
@@ -157,25 +225,41 @@ export default function BookEditorPage() {
         toast.error(err.error || "Failed to save overlay");
       }
     } catch {
-      toast.error("Network error");
+      toast.error(<T>Network error</T>);
     } finally {
       setSavingOverlay(false);
     }
   };
 
   const deleteOverlay = async (overlayId: string) => {
-    // ملاحظة: لم ننشئ endpoint DELETE للتراكبات بعد. يمكن إضافته لاحقًا.
-    // حاليًا نستخدم تحذير.
-    toast.error("Delete overlay not implemented yet. Remove from database manually.");
+    if (!confirm("Are you sure you want to delete this overlay?")) return;
+    try {
+      const res = await authFetch(`/api/admin/library/overlays/${overlayId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        toast.success(<T>Overlay deleted</T>);
+        setOverlays((prev) => prev.filter((o) => o.id !== overlayId));
+      } else {
+        const err = await res.json();
+        toast.error(err.error || "Delete failed");
+      }
+    } catch {
+      toast.error(<T>Network error</T>);
+    }
   };
 
-  // ── السحب لتحديد الموضع ─────────────────────────
+  // ── Drag to position ─────────────────────────────
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!imageRef.current) return;
     const rect = imageRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setOverlayPosition((prev) => ({ ...prev, x: Math.round(x), y: Math.round(y) }));
+    setOverlayPosition((prev) => ({
+      ...prev,
+      x: Math.round(x),
+      y: Math.round(y),
+    }));
     setDragging(true);
   };
 
@@ -184,12 +268,16 @@ export default function BookEditorPage() {
     const rect = imageRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setOverlayPosition((prev) => ({ ...prev, x: Math.round(x), y: Math.round(y) }));
+    setOverlayPosition((prev) => ({
+      ...prev,
+      x: Math.round(x),
+      y: Math.round(y),
+    }));
   };
 
   const handleMouseUp = () => setDragging(false);
 
-  // ── عرض التحميل ──────────────────────────────────
+  // ── Loading state ────────────────────────────────
   if (authLoading || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -200,26 +288,28 @@ export default function BookEditorPage() {
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8" dir="rtl">
-      {/* رأس الصفحة */}
+      {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push("/dashboard/admin")}
+            onClick={() => router.push("/dashboard/admin/library")}
           >
             <ArrowLeft className="ml-2 h-4 w-4" />
-            <T>Back to Dashboard</T>
+            <T>Back to Library</T>
           </Button>
           <h1 className="text-2xl font-bold">{bookTitle}</h1>
         </div>
       </div>
 
       <div className="grid grid-cols-12 gap-6">
-        {/* قائمة الصفحات (الشريط الجانبي) */}
+        {/* Pages Sidebar */}
         <div className="col-span-12 lg:col-span-3">
           <div className="rounded-xl border bg-card p-4">
-            <h2 className="mb-3 font-semibold"><T>Pages</T></h2>
+            <h2 className="mb-3 font-semibold">
+              <T>Pages</T>
+            </h2>
             <div className="space-y-2 max-h-[70vh] overflow-y-auto">
               {pages.map((page) => (
                 <button
@@ -232,29 +322,35 @@ export default function BookEditorPage() {
                   }`}
                 >
                   <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">صفحة {page.page_number}</span>
+                  <span className="text-sm">
+                    <T>Page</T> {page.page_number}
+                  </span>
                 </button>
               ))}
               {pages.length === 0 && (
-                <p className="text-sm text-muted-foreground">لا توجد صفحات بعد. قم بتحويل الـ PDF أولاً.</p>
+                <p className="text-sm text-muted-foreground">
+                  <T>No pages available. Convert PDF first.</T>
+                </p>
               )}
             </div>
           </div>
         </div>
 
-        {/* منطقة تحرير الصفحة */}
+        {/* Editor Area */}
         <div className="col-span-12 lg:col-span-9">
           {selectedPage ? (
             <div className="rounded-xl border bg-card p-6">
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg font-semibold">صفحة {selectedPage}</h3>
+                <h3 className="text-lg font-semibold">
+                  <T>Page</T> {selectedPage}
+                </h3>
                 <Button onClick={openNewOverlay} size="sm">
                   <Plus className="ml-2 h-4 w-4" />
-                  إضافة عنصر تفاعلي
+                  <T>Add Interactive Element</T>
                 </Button>
               </div>
 
-              {/* معاينة الصفحة مع التراكبات */}
+              {/* Page preview with overlays */}
               <div
                 ref={imageRef}
                 className="relative mx-auto overflow-hidden rounded-lg border"
@@ -265,13 +361,17 @@ export default function BookEditorPage() {
                 onMouseLeave={handleMouseUp}
               >
                 <img
-                  src={pages.find((p) => p.page_number === selectedPage)?.image_url}
+                  src={
+                    getPageImageUrl(
+                      pages.find((p) => p.page_number === selectedPage) as PageInfo
+                    ) || "/placeholder-page.png"
+                  }
                   alt={`Page ${selectedPage}`}
                   className="h-full w-full object-contain"
                   draggable={false}
                 />
 
-                {/* عرض التراكبات الحالية */}
+                {/* Render overlays for selected page */}
                 {currentOverlays.map((item) => {
                   const left = `${item.position.x}%`;
                   const top = `${item.position.y}%`;
@@ -291,6 +391,10 @@ export default function BookEditorPage() {
                       {item.type === "video" && <Video className="h-6 w-6 text-primary" />}
                       {item.type === "audio" && <Music className="h-6 w-6 text-primary" />}
                       {item.type === "quiz" && <HelpCircle className="h-6 w-6 text-primary" />}
+                      {item.type === "game" && <Gamepad2 className="h-6 w-6 text-primary" />}
+                      {(item.type === "iframe" || item.type === "link") && (
+                        <Link2 className="h-6 w-6 text-primary" />
+                      )}
                     </div>
                   );
                 })}
@@ -298,42 +402,60 @@ export default function BookEditorPage() {
             </div>
           ) : (
             <div className="flex h-full items-center justify-center rounded-xl border bg-card p-12 text-muted-foreground">
-              <p>اختر صفحة من القائمة لتحريرها</p>
+              <p>
+                <T>Select a page from the list to edit it</T>
+              </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* حوار إضافة / تعديل تراكب */}
+      {/* Add/Edit Overlay Dialog */}
       <Dialog open={overlayDialogOpen} onOpenChange={setOverlayDialogOpen}>
-        <DialogContent className="bg-card">
+        <DialogContent className="bg-card sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {editingOverlay ? "تعديل العنصر" : "إضافة عنصر تفاعلي"}
+              {editingOverlay ? <T>Edit Element</T> : <T>Add Interactive Element</T>}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            {/* اختيار النوع */}
+            {/* Type */}
             <div>
-              <Label>النوع</Label>
-              <Select
-                value={overlayType}
-                onValueChange={(val: any) => setOverlayType(val)}
-              >
+              <Label>
+                <T>Type</T>
+              </Label>
+              <Select value={overlayType} onValueChange={setOverlayType}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="video">فيديو</SelectItem>
-                  <SelectItem value="audio">صوت</SelectItem>
-                  <SelectItem value="quiz">اختبار</SelectItem>
+                  <SelectItem value="video">
+                    <T>Video</T>
+                  </SelectItem>
+                  <SelectItem value="audio">
+                    <T>Audio</T>
+                  </SelectItem>
+                  <SelectItem value="quiz">
+                    <T>Quiz</T>
+                  </SelectItem>
+                  <SelectItem value="game">
+                    <T>Game</T>
+                  </SelectItem>
+                  <SelectItem value="iframe">
+                    <T>Embed iframe</T>
+                  </SelectItem>
+                  <SelectItem value="link">
+                    <T>Link</T>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* رابط الوسائط */}
+            {/* URL */}
             <div>
-              <Label>الرابط (URL)</Label>
+              <Label>
+                <T>URL</T>
+              </Label>
               <Input
                 value={overlayUrl}
                 onChange={(e) => setOverlayUrl(e.target.value)}
@@ -341,7 +463,43 @@ export default function BookEditorPage() {
               />
             </div>
 
-            {/* إحداثيات الموضع */}
+            {/* Quiz fields */}
+            {overlayType === "quiz" && (
+              <>
+                <div>
+                  <Label>
+                    <T>Question</T>
+                  </Label>
+                  <Input
+                    value={quizQuestion}
+                    onChange={(e) => setQuizQuestion(e.target.value)}
+                    placeholder="What is the capital of France?"
+                  />
+                </div>
+                <div>
+                  <Label>
+                    <T>Options (comma separated)</T>
+                  </Label>
+                  <Input
+                    value={quizOptions}
+                    onChange={(e) => setQuizOptions(e.target.value)}
+                    placeholder="Paris, London, Rome, Madrid"
+                  />
+                </div>
+                <div>
+                  <Label>
+                    <T>Correct Answer</T>
+                  </Label>
+                  <Input
+                    value={quizCorrect}
+                    onChange={(e) => setQuizCorrect(e.target.value)}
+                    placeholder="Paris"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Position */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>X %</Label>
@@ -349,7 +507,10 @@ export default function BookEditorPage() {
                   type="number"
                   value={overlayPosition.x}
                   onChange={(e) =>
-                    setOverlayPosition((prev) => ({ ...prev, x: Number(e.target.value) }))
+                    setOverlayPosition((prev) => ({
+                      ...prev,
+                      x: Number(e.target.value),
+                    }))
                   }
                   min={0}
                   max={100}
@@ -361,7 +522,10 @@ export default function BookEditorPage() {
                   type="number"
                   value={overlayPosition.y}
                   onChange={(e) =>
-                    setOverlayPosition((prev) => ({ ...prev, y: Number(e.target.value) }))
+                    setOverlayPosition((prev) => ({
+                      ...prev,
+                      y: Number(e.target.value),
+                    }))
                   }
                   min={0}
                   max={100}
@@ -373,7 +537,10 @@ export default function BookEditorPage() {
                   type="number"
                   value={overlayPosition.width}
                   onChange={(e) =>
-                    setOverlayPosition((prev) => ({ ...prev, width: Number(e.target.value) }))
+                    setOverlayPosition((prev) => ({
+                      ...prev,
+                      width: Number(e.target.value),
+                    }))
                   }
                   min={1}
                   max={100}
@@ -385,7 +552,10 @@ export default function BookEditorPage() {
                   type="number"
                   value={overlayPosition.height}
                   onChange={(e) =>
-                    setOverlayPosition((prev) => ({ ...prev, height: Number(e.target.value) }))
+                    setOverlayPosition((prev) => ({
+                      ...prev,
+                      height: Number(e.target.value),
+                    }))
                   }
                   min={1}
                   max={100}
@@ -393,15 +563,19 @@ export default function BookEditorPage() {
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              أو انقر واسحب على الصفحة لتحديد الموضع.
+              <T>Or click and drag on the page to set the position.</T>
             </p>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOverlayDialogOpen(false)}>
-              إلغاء
+              <T>Cancel</T>
             </Button>
             <Button onClick={saveOverlay} disabled={savingOverlay}>
-              {savingOverlay ? <Loader2 className="h-4 w-4 animate-spin" /> : "حفظ"}
+              {savingOverlay ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <T>Save</T>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -162,7 +162,8 @@ export function CourseGrid() {
       {/* Success message */}
       {message && (
         <motion.div
-          initial={{ opacity: 0 }}
+
+        initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-center text-sm font-medium text-primary"
         >

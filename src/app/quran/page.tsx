@@ -1,30 +1,6 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { T } from "@/components/TranslatedText";
-import type { Metadata } from "next";
-
-
-export const metadata: Metadata = {
-  title: "Quran Learning | Ruh-Ul-Qudus Academy",
-  description: "Learn Quran recitation, tajweed, and understanding with expert teachers and interactive tools.",
-  alternates: { canonical: "https://ruhulqudus.com/quran" },
-  openGraph: {
-    title: "Quran Learning | Ruh-Ul-Qudus Academy",
-    description: "Master Quran recitation and tajweed with our expert-led programs.",
-    url: "https://ruhulqudus.com/quran",
-    siteName: "Ruh-Ul-Qudus Academy",
-    type: "website",
-    locale: "en_US",
-    alternateLocale: ["ar_SA", "tr_TR"],
-    images: [{ url: "https://ruhulqudus.com/light1.png", width: 1200, height: 630, alt: "Quran Learning" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Quran Learning | Ruh-Ul-Qudus Academy",
-    description: "Learn Quran recitation and tajweed online.",
-    images: ["https://ruhulqudus.com/light1.png"],
-  },
-};
 
 interface SurahInfo {
   number: number;

@@ -749,7 +749,6 @@
   "Native": "Ana dil",
   "Beginner": "Başlangıç",
   "Intermediate": "Orta",
-  "Advanced": "İleri",
   "Select country...": "Ülke seç...",
   "e.g. Egyptian": "örn. Mısırlı",
   "Select…": "Seç…",
@@ -934,5 +933,78 @@
   "Begin Reading": "Okumaya Başla",
   "Subscribe to Read": "Okumak İçin Abone Ol",
   "All Categories": "Tüm Kategoriler",
-  "No Books to Display in 3D": "3D görünümünde gösterilecek kitap yok"
+  "No Books to Display in 3D": "3D görünümünde gösterilecek kitap yok",
+  "Dictionary": "Sözlük",
+  "Search": "Ara",
+  "Simple": "Basit",
+  "Advanced": "Gelişmiş",
+  "Word": "Kelime",
+  "Plural": "Çoğul",
+  "Antonym": "Zıt Anlamlı",
+  "Meaning": "Anlam",
+  "No words found": "Kelime bulunamadı",
+  "Quranic Examples": "Kur'an Örnekleri",
+  "No examples found": "Örnek bulunamadı",
+  "Listen": "Dinle",
+  "Listen to verse": "Ayeti dinle",
+
+  "Definitions": "Tanımlar",
+  "Definitions Content": "Bu sözleşmede geçen 'Akademi', ruhulqudus.com üzerinden dijital eğitim hizmeti sunan Dr. Jehan Ali Ziad'ı (Şahıs Firması / Sole Proprietor) ifade eder. 'Kullanıcı' veya 'Öğrenci' ise platforma kaydolup hizmet alan kişidir.",
+
+  "Account Registration": "Hesap Kaydı ve Güvenlik",
+  "Account Registration Content": "Kullanıcılar öğrenci paneline erişim için kendi adlarına doğru ve güncel bilgiler sağlamalıdır. Hesap giriş bilgilerinin gizliliğinin korunması tamamen kullanıcının sorumluluğundadır. Bir hesabın ortak kullanımı yasaktır.",
+
+  "Payments and Subscriptions": "Ödemeler ve Abonelikler",
+  "Payments and Subscriptions Content": "Eğitim ücretleri platformda belirtilen fiyatlar üzerinden iyzico güvenli ödeme altyapısı ile tahsil edilir. Alıcı, ödeme esnasında güncel fiyatlandırmayı ve varsa ek vergileri kabul etmiş sayılır.",
+
+  "Refund Policy": "İptal ve İade Koşulları",
+  "Refund Policy Content": "6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği uyarınca, elektronik ortamda anında ifa edilen dijital hizmetler ve eğitim içerikleri cayma hakkının istisnası kapsamındadır. Bu nedenle erişim sağlanan içeriklerde iade yapılmaz.",
+
+  "User Conduct": "Kullanıcı Davranış Kuralları",
+  "User Conduct Content": "Kullanıcılar platformu yalnızca yasal eğitim amaçları için kullanabilir. Canlı derslerin huzurunu bozacak veya diğer öğrencileri rahatsız edecek davranışlarda bulunanların hesapları askıya alınabilir.",
+
+  "Intellectual Property": "Fikri Mülkiyet Hakları",
+  "Intellectual Property Content": "Ruh-Ul-Qudus Academy tarafından sunulan tüm ders videoları, PDF dokümanları, ses kayıtları ve eğitim materyallerinin fikri mülkiyet hakları Dr. Jehan Ali Ziad'a aittir. İzinsiz kopyalanması ve dağıtılması kesinlikle yasaktır.",
+
+  "Limitation of Liability": "Sorumluluk Sınırlandırılması",
+  "Limitation of Liability Content": "Akademi, internet kesintileri veya kullanıcının donanımsal yetersizliklerinden kaynaklanan erişim aksamalarından sorumlu tutulamaz. Canlı ders verimliliği için stabil internet bağlantısı kullanıcının sorumluluğundadır.",
+
+  "Termination": "Sözleşmenin Feshi",
+  "Termination Content": "Kullanıcının işbu kullanım koşullarını veya fikri mülkiyet haklarını ihlal etmesi durumunda, Akademi kullanıcının hesabını önceden bildirimde bulunmaksızın tek taraflı olarak feshetme hakkına sahiptir.",
+
+  "Changes to Terms": "Koşullarda Değişiklik Yapılması",
+  "Changes to Terms Content": "Akademi, hizmet şartlarını dilediği zaman güncelleme hakkını saklı tutar. Güncellenen koşullar platform üzerinde yayınlandığı andan itibaren tüm kullanıcılar için geçerli olur.",
+
+  "Governing Law": "Yetkili Hukuk ve Mahkemeler",
+  "Governing Law Content": "İşbu sözleşmenin uygulanmasından ve yorumlanmasından doğacak her türlü hukuki ihtilafta Türk Hukuku uygulanacak olup, ihtilafların çözümünde Sakarya (veya ikamet ettiğiniz şehir) Mahkemeleri ve İcra Daireleri yetkilidir.",
+
+  "Contact Terms": "İletişim Bilgileri",
+  "Contact Terms Content": "Kullanım şartları ve platform kuralları ile ilgili her türlü soru ve geri bildiriminiz için info@ruhulqudus.com adresi üzerinden bizimle iletişime geçebilirsiniz.",
+  "Refund Badge": "Geri Ödeme",
+  "Refund Heading": "İptal ve İade Koşulları",
+  "Refund Subtitle": "Ruh-Ul-Qudus Academy Dijital Hizmet İade Politikası",
+  "Refund General": "Genel İade Politikası",
+  "Refund General Content": "Ruh-Ul-Qudus Academy bünyesinde sunulan tüm eğitimler, canlı dersler ve dijital içerikler 'Anında İfa Edilen Dijital Hizmet' kapsamında yer almaktadır. Bu nedenle, satın alma işlemi tamamlandıktan ve eğitim içeriklerine erişim sağlandıktan sonra prensip olarak iade yapılmamaktadır.",
+  "Refund Law": "Tüketici Mevzuatı ve Cayma Hakkı",
+  "Refund Law Content": "6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği’nin 15. maddesinin (g) bendi uyarınca; 'Elektronik ortamda anında ifa edilen hizmetler veya tüketiciye anında teslim edilen gayrimaddi mallara ilişkin sözleşmeler' cayma hakkının istisnasıdır. Alıcı, dijital olarak teslim edilen bu eğitim hizmetlerinde cayma hakkından faydalanamayacağını peşinen kabul eder.",
+  "Refund Exceptions": "İstisnai İptal Durumları",
+  "Refund Exceptions Content": "Sistemsel bir hata nedeniyle Alıcı'nın kredi kartından mükerrer (çift) tahsilat yapılması durumunda veya Akademi tarafından ilan edilen programın mücbir sebepler dışında tamamen iptal edilmesi halinde gerekli incelemeler yapılarak iade süreçleri işletilebilir.",
+  "Refund Support": "İletişim ve Destek",
+  "Refund Support Content": "İptal, iade veya erişim sorunlarıyla ilgili her türlü talebinizi info@ruhulqudus.com e-posta adresi üzerinden destek ekibimize iletebilirsiniz. Başvurularınız en geç 7 iş günü içerisinde incelenecektir.",
+
+  "Sale Badge": "Sözleşme",
+  "Sale Heading": "Mesafeli Satış Sözleşmesi",
+  "Sale Subtitle": "Ruh-Ul-Qudus Academy Elektronik Satış Politikaları ve Şartları",
+  "Sale Parties": "Taraflar",
+  "Sale Parties Content": "Satıcı: Ruh-Ul-Qudus Academy (Dr. Jehan Ali Ziad) - İletişim: info@ruhulqudus.com. Alıcı: ruhulqudus.com internet sitesinden elektronik ortamda dijital eğitim hizmeti satın alan kullanıcı.",
+  "Sale Subject": "Sözleşmenin Konusu",
+  "Sale Subject Content": "İşbu sözleşmenin konusu, Alıcı'nın Satıcı'ya ait internet sitesinden elektronik ortamda siparişini yaptığı dijital Arapça dil eğitimi ve canlı ders hizmetlerinin satışı ve teslimi ile ilgili olarak 6502 sayılı Tüketicinin Korunması Hakkında Kanun gereğince tarafların hak ve yükümlülüklerinin saptanmasıdır.",
+  "Sale Delivery": "Hizmet Teslimatı",
+  "Sale Delivery Content": "Satın alınan ürün bir dijital eğitim hizmetidir (Online / Canlı Ders). Ödeme iyzico güvenli ödeme altyapısı üzerinden onaylandıktan sonra Alıcı'ya kullanıcı paneli üzerinden veya e-posta yoluyla anında erişim sağlanır.",
+  "Sale Cancellation": "Cayma Hakkı İstisnası",
+  "Sale Cancellation Content": "Mesafeli Sözleşmeler Yönetmeliği uyarınca elektronik ortamda anında teslim edilen gayrimaddi mallar ve eğitim içeriklerinde cayma hakkı kullanılamaz. Kullanıcı satın alma işlemiyle birlikte bu şartı onaylamış sayılır.",
+  "Sale Law": "Yetkili Mahkemeler",
+  "Sale Law Content": "İşbu sözleşmenin uygulanmasından ve yorumlanmasından doğacak her türlü hukuki ihtilafta Türk Hukuku uygulanacak olup, ihtilafların çözümünde Sakarya Mahkemeleri ve İcra Daireleri yetkilidir.",
+  "Sale Contact": "Yürürlük ve İletişim",
+  "Sale Contact Content": "Alıcı, site üzerinden verdiği siparişe ait ödemeyi gerçekleştirdiğinde işbu sözleşmenin tüm şartlarını kabul etmiş sayılır. Sorularınız için info@ruhulqudus.com adresine yazabilirsiniz."
 }

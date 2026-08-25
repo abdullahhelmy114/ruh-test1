@@ -53,7 +53,7 @@ export default function SignupRolePage() {
           <ul className="space-y-4 mb-8 text-muted-foreground flex-1">
             <li className="flex items-start gap-3">
               <span className="text-primary mt-0.5">✓</span>
-              <span className="text-sm"><T>Access to hundreds of Arabic course</T></span>
+              <span className="text-sm"><T>Access to hundreds of Arabic courses</T></span>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-primary mt-0.5">✓</span>

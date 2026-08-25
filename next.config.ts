@@ -1,4 +1,7 @@
 /** @type {import('next').NextConfig} */
+
+const isDevelopment = process.env.NODE_ENV === "development";
+
 const securityHeaders = [
   {
     key: "Content-Security-Policy",
@@ -8,8 +11,10 @@ const securityHeaders = [
       "font-src 'self' https://fonts.gstatic.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // السماح بالسكربتات المضمنة (inline) وسكربتات Firebase/Google وCloudflare
-      "script-src 'self' 'unsafe-inline' https://apis.google.com https://www.gstatic.com https://*.firebaseio.com https://www.google.com https://static.cloudflareinsights.com",
-      // يمكن تحديد script-src-elem كذلك، لكن يكفي script-src
+      // في وضع التطوير نضيف unsafe-eval لدعم React Fast Refresh
+      `script-src 'self' 'unsafe-inline'${
+        isDevelopment ? " 'unsafe-eval'" : ""
+      } https://apis.google.com https://www.gstatic.com https://*.firebaseio.com https://www.google.com https://static.cloudflareinsights.com`,
       "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.google-analytics.com https://generativelanguage.googleapis.com",
       "frame-src 'self' https://www.youtube.com https://*.firebaseapp.com https://*.google.com",
       "frame-ancestors 'self'",
@@ -58,7 +63,8 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
   productionBrowserSourceMaps: false,
-  swcMinify: true,
+  // تمت إزالة swcMinify لأنها لم تعد مدعومة في Next.js 16
+  // swcMinify: true,
 
   async redirects() {
     return [
@@ -67,7 +73,7 @@ const nextConfig = {
         has: [
           {
             type: "host",
-            value: "http://ruhulqudus.com",
+            value: "ruhulqudus.com",
           },
         ],
         destination: "https://ruhulqudus.com/:path*",
@@ -79,9 +85,10 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // تمت إزالة eslint لأنها لم تعد مدعومة في next.config
+  // eslint: {
+  //   ignoreDuringBuilds: true,
+  // },
   experimental: {
     memoryBasedWorkersCount: true,
     optimizePackageImports: [

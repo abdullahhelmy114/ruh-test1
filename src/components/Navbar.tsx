@@ -28,7 +28,7 @@ const baseLinks = [
   { to: "/courses", label: "Courses" },
   { to: "/bundles", label: "Bundles" },
   { to: "/certification", label: "Certification" }, 
-  { to: "/quran", label: "Quran" },
+  { to: "/dictionary", label: "Dictionary" },
 ];
 
 const moreLinks = [
