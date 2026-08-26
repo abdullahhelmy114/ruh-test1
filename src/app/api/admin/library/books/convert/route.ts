@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
 import { getServerSession } from "@/lib/auth";
 import { uploadFileToGoogleDrive, driveUrlToCdnUrl } from "@/lib/google-drive";
-import { getDocument } from "pdfjs-dist";
 import sharp from "sharp";
 
 export const runtime = "nodejs";
@@ -21,39 +20,28 @@ export async function POST(req: Request) {
   }
 
   try {
-    const pdfResponse = await fetch(book.pdf_url);
-    const pdfBuffer = await pdfResponse.arrayBuffer();
-    const pdf = await getDocument({ data: new Uint8Array(pdfBuffer) }).promise;
-    const totalPages = pdf.numPages;
+    // نسخة مؤقتة: إنشاء صفحة واحدة فارغة بدلاً من تحويل PDF فعلي
+    const totalPages = 1;
     const pages = [];
 
-    for (let i = 1; i <= totalPages; i++) {
-      const page = await pdf.getPage(i);
-      const viewport = page.getViewport({ scale: 1.0 }); // دقة منخفضة مؤقتاً
-      const width = Math.floor(viewport.width);
-      const height = Math.floor(viewport.height);
+    const imageBuffer = await sharp({
+      create: {
+        width: 800,
+        height: 1000,
+        channels: 3,
+        background: { r: 255, g: 255, b: 255 },
+      },
+    })
+      .webp({ quality: 80 })
+      .toBuffer();
 
-      // إنشاء صورة بيضاء مؤقتة (بدلاً من رسم المحتوى الفعلي)
-      const imageBuffer = await sharp({
-        create: {
-          width,
-          height,
-          channels: 3,
-          background: { r: 255, g: 255, b: 255 },
-        },
-      })
-        .webp({ quality: 80 })
-        .toBuffer();
-
-      const driveUrl = await uploadFileToGoogleDrive(
-        imageBuffer,
-        `page-${i}.webp`,
-        "image/webp"
-      );
-      const imageUrl = driveUrlToCdnUrl(driveUrl);
-
-      pages.push({ book_id: bookId, page_number: i, image_url: imageUrl });
-    }
+    const driveUrl = await uploadFileToGoogleDrive(
+      imageBuffer,
+      `page-1.webp`,
+      "image/webp"
+    );
+    const imageUrl = driveUrlToCdnUrl(driveUrl);
+    pages.push({ book_id: bookId, page_number: 1, image_url: imageUrl });
 
     for (const p of pages) {
       await sql`
