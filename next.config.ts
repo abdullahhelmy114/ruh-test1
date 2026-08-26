@@ -65,21 +65,8 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
   productionBrowserSourceMaps: false,
-  async redirects() {
-    return [
-      {
-        source: "/:path*",
-        has: [
-          {
-            type: "host",
-            value: "ruhulqudus.com",
-          },
-        ],
-        destination: "https://ruhulqudus.com/:path*",
-        permanent: true,
-      },
-    ];
-  },
+  // تمت إزالة redirects لتجنب حلقة إعادة التوجيه اللانهائية
+  // async redirects() { ... },
   typescript: {
     ignoreBuildErrors: true,
   },
