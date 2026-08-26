@@ -125,7 +125,7 @@ export default function PublicTeacherPage() {
                 <h3 className="font-serif text-lg">{course.title}</h3>
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-xs bg-gold/10 text-accent-foreground px-2 py-0.5 rounded-full">{course.level}</span>
-                  <span className="font-bold text-accent-foreground">{course.price === 0 ? <T>Free</T> : `$${course.price}`}</span>
+                  <span className="font-bold text-accent-foreground">{course.price === 0 ? <T>Free</T> : `₺${course.price}`}</span>
                 </div>
                 {course.description && (
                   <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{course.description}</p>

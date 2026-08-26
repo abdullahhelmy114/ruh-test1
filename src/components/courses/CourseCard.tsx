@@ -6,7 +6,7 @@
  * Displays locally uploaded images with error handling
  * All UI text uses English base via <T> for translation
  */
-
+import { cn, formatPrice } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -265,11 +265,11 @@ export function CourseCard({ course }: { course: Course }) {
         <div className="mt-auto space-y-3">
           <div className="flex items-baseline gap-2 border-t border-border/40 pt-3">
             <span className="font-serif text-2xl text-gold">
-              ${Number(course.price).toFixed(2)}
+             {formatPrice(Number(course.price))}
             </span>
             {course.old_price ? (
               <span className="text-sm text-muted-foreground line-through">
-                ${Number(course.old_price).toFixed(2)}
+                {formatPrice(Number(course.old_price))}
               </span>
             ) : null}
           </div>

@@ -8,3 +8,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * تنسيق السعر بالليرة التركية (₺) مع منزلتين عشريتين
+ */
+export function formatPrice(amount: number): string {
+  return `₺${Number(amount).toFixed(2)}`;
+}

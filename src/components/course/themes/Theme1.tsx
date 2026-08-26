@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useAuth } from "@/lib/firebase/AuthProvider";
-import { Loader2, CreditCard, Clock, BookOpen, Calendar, PlayCircle, FileVideo } from "lucide-react";
+import {
+  Loader2, CreditCard, Clock, BookOpen, Calendar,
+  PlayCircle, FileVideo,
+} from "lucide-react";
 import { T } from "@/components/TranslatedText";
 import { PaymentModal } from "@/components/PaymentModal";
+import { formatPrice } from "@/lib/utils";
 
 interface ThemeProps {
   variant: "adult" | "kids";
@@ -193,7 +196,7 @@ export default function Theme1({ variant, course }: ThemeProps) {
               }}
             >
               <div className="text-3xl font-bold" style={{ color: colors.accent }}>
-                ${course.price}
+                {formatPrice(Number(course.price))}
               </div>
 
               <div className="mt-4 space-y-2 text-sm">

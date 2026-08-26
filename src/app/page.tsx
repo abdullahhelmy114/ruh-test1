@@ -288,7 +288,7 @@ export default function HomePage() {
                     </p>
                     <div className="mt-3 flex items-center justify-between">
                       <span className="font-serif text-2xl font-bold text-accent-foreground">
-                        {course.price === 0 ? <T>Free</T> : `$${course.price}`}
+                        {course.price === 0 ? <T>Free</T> : `₺${course.price}`}
                       </span>
                       <Link
                         href={`/course/${course.id}`}
