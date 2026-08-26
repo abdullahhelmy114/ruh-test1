@@ -166,3 +166,9 @@ export async function createDriveFolder(
   });
   return response.data.id || "";
 }
+
+export function driveUrlToCdnUrl(url: string): string {
+  const match = url.match(/\/d\/([^/]+)\/|\?id=([^&]+)/);
+  const fileId = match ? (match[1] || match[2]) : null;
+  return fileId ? `https://lh3.googleusercontent.com/d/${fileId}` : url;
+}

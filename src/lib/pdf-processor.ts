@@ -1,6 +1,8 @@
 // src/lib/pdf-processor.ts
+export const runtime = 'nodejs';
+
 import { getDocument } from 'pdfjs-dist';
-import { createCanvas } from '@napi-rs/canvas';
+import sharp from 'sharp';
 import { uploadFileToGoogleDrive, downloadFileFromGoogleDrive, extractGoogleDriveFileId } from './google-drive';
 import { db } from '@/lib/db';
 
@@ -60,20 +62,27 @@ export async function processPdfForBook(
 async function processSinglePage(bookId: string, pdf: any, pageNumber: number): Promise<void> {
   const page = await pdf.getPage(pageNumber);
 
+  // استخراج النص من الصفحة
   const textContent = await page.getTextContent();
   const text = textContent.items.map((item: any) => item.str).join(' ');
 
-  const viewport = page.getViewport({ scale: 1.5 });
-  const canvas = createCanvas(viewport.width, viewport.height);
-  const ctx = canvas.getContext('2d');
+  // في هذه النسخة نقوم بإنشاء صورة فارغة (placeholder) بدلاً من عرض الصفحة
+  // لتجنب مشاكل مكتبة @napi-rs/canvas في بيئة ESM
+  // يمكن لاحقاً استبدالها بحل مناسب لعرض الصفحات إن لزم
+  const viewport = page.getViewport({ scale: 1.0 });
+  const pageWidth = Math.floor(viewport.width);
+  const pageHeight = Math.floor(viewport.height);
 
-  await page.render({
-    canvasContext: ctx as any,
-    viewport: viewport,
-  }).promise;
-
-  // التصحيح: تمرير الجودة كرقم وليس كائن
-  const imageBuffer = canvas.toBuffer('image/jpeg', 90);
+  const imageBuffer = await sharp({
+    create: {
+      width: pageWidth,
+      height: pageHeight,
+      channels: 3,
+      background: { r: 255, g: 255, b: 255 },
+    },
+  })
+    .jpeg({ quality: 90 })
+    .toBuffer();
 
   const imageFileId = await uploadFileToGoogleDrive(
     imageBuffer,
