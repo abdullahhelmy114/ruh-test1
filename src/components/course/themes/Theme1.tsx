@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/lib/firebase/AuthProvider";
-import { Loader2, CreditCard, Clock, BookOpen, Calendar } from "lucide-react";
+import { Loader2, CreditCard, Clock, BookOpen, Calendar, PlayCircle, FileVideo } from "lucide-react";
 import { T } from "@/components/TranslatedText";
 import { PaymentModal } from "@/components/PaymentModal";
 
@@ -25,12 +25,22 @@ interface ThemeProps {
   };
 }
 
+// دالة للتحقق من روابط يوتيوب
+const isYouTubeUrl = (url: string) =>
+  url.includes("youtube.com") || url.includes("youtu.be");
+
+// دالة للتحقق من روابط الفيديو المرفوعة محليًا
+const isLocalVideo = (url: string) =>
+  url.startsWith("/api/uploads/") || url.endsWith(".mp4") || url.endsWith(".webm");
+
 export default function Theme1({ variant, course }: ThemeProps) {
   const { user } = useAuth();
   const router = useRouter();
   const [enrolling, setEnrolling] = useState(false);
   const [message, setMessage] = useState("");
   const [showPayment, setShowPayment] = useState(false);
+  const [timeLeft, setTimeLeft] = useState("");
+  const [videoError, setVideoError] = useState(false);
 
   const isKids = variant === "kids";
 
@@ -56,18 +66,70 @@ export default function Theme1({ variant, course }: ThemeProps) {
 
   const launchDate = course.launch_date ? new Date(course.launch_date) : null;
   const isLaunched = !launchDate || launchDate <= new Date();
-  const [timeLeft, setTimeLeft] = useState("");
-  if (launchDate && !isLaunched) {
+
+  // المؤقت الزمني للانطلاق
+  useEffect(() => {
+    if (!launchDate || isLaunched) return;
+
     const updateTimer = () => {
       const diff = launchDate.getTime() - Date.now();
-      if (diff <= 0) { setTimeLeft(""); return; }
+      if (diff <= 0) {
+        setTimeLeft("");
+        return;
+      }
       const d = Math.floor(diff / 86400000);
       const h = Math.floor((diff % 86400000) / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
       setTimeLeft(`${d}d ${h}h ${m}m`);
     };
-    useState(() => { updateTimer(); const i = setInterval(updateTimer, 60000); return () => clearInterval(i); });
-  }
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 60000);
+    return () => clearInterval(interval);
+  }, [launchDate, isLaunched]);
+
+  // اختيار عرض الوسائط
+  const renderMedia = () => {
+    if (course.intro_video_url && isYouTubeUrl(course.intro_video_url)) {
+      return (
+        <iframe
+          src={course.intro_video_url.replace("watch?v=", "embed/")}
+          className="w-full h-64 md:h-80"
+          allowFullScreen
+        />
+      );
+    }
+
+    if (course.intro_video_url && isLocalVideo(course.intro_video_url)) {
+      return (
+        <video
+          src={course.intro_video_url}
+          className="w-full h-64 md:h-80 object-cover"
+          controls
+          onError={() => setVideoError(true)}
+        />
+      );
+    }
+
+    if (course.image_url) {
+      return (
+        <img
+          src={course.image_url}
+          alt={course.title}
+          className="w-full h-64 md:h-80 object-cover"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).style.display = "none";
+          }}
+        />
+      );
+    }
+
+    return (
+      <div className="w-full h-64 md:h-80 flex items-center justify-center bg-gradient-to-br from-emerald-800 to-emerald-900 text-white/30">
+        <BookOpen className="h-24 w-24" />
+      </div>
+    );
+  };
 
   return (
     <div
@@ -85,25 +147,7 @@ export default function Theme1({ variant, course }: ThemeProps) {
               className="rounded-3xl overflow-hidden relative"
               style={{ borderRadius: colors.radius, boxShadow: colors.shadow }}
             >
-              {course.intro_video_url ? (
-                <iframe
-                  src={course.intro_video_url.replace("watch?v=", "embed/")}
-                  className="w-full h-64 md:h-80"
-                  allowFullScreen
-                />
-              ) : course.image_url ? (
-                <Image
-                  src={course.image_url}
-                  alt={course.title}
-                  width={800}
-                  height={400}
-                  className="object-cover w-full h-64 md:h-80"
-                />
-              ) : (
-                <div className="w-full h-64 md:h-80 flex items-center justify-center bg-gradient-to-br from-emerald-800 to-emerald-900 text-white/30">
-                  <BookOpen className="h-24 w-24" />
-                </div>
-              )}
+              {renderMedia()}
             </div>
 
             <div>

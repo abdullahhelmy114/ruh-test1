@@ -26,21 +26,21 @@ export function Footer() {
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li>
               <Link href="/courses" className="hover:text-foreground transition-colors">
-                <T>course</T>
+                <T>Courses</T>
               </Link>
             </li>
             <li>
-              <Link href="/courses" className="hover:text-foreground transition-colors">
+              <Link href="/bundles" className="hover:text-foreground transition-colors">
                 <T>Bundles</T>
               </Link>
             </li>
             <li>
-              <Link href="/dashboard/student" className="hover:text-foreground transition-colors">
+              <Link href="/live-classes" className="hover:text-foreground transition-colors">
                 <T>Live Classes</T>
               </Link>
             </li>
             <li>
-              <Link href="/dashboard/student" className="hover:text-foreground transition-colors">
+              <Link href="/assessments" className="hover:text-foreground transition-colors">
                 <T>Assessments</T>
               </Link>
             </li>
@@ -63,6 +63,16 @@ export function Footer() {
                 <T>Community</T>
               </Link>
             </li>
+            <li>
+              <Link href="/refund-policy" className="hover:text-foreground transition-colors">
+                <T>Refund Policy</T>
+              </Link>
+            </li>
+            <li>
+              <Link href="/terms-of-sale" className="hover:text-foreground transition-colors">
+                <T>Terms Of Sale</T>
+              </Link>
+            </li>
             <li className="flex items-center gap-1">
               <Mail size={12} className="text-secondary-foreground" />
               <a href="mailto:info@ruhulqudus.com" className="hover:text-foreground transition-colors">
@@ -75,7 +85,9 @@ export function Footer() {
 
       {/* Bottom bar */}
       <div className="border-t py-6 text-center text-xs text-muted-foreground space-x-4">
-        <span>© {new Date().getFullYear()} <T>Ruh-Ul-Qudus Academy</T>. <T>All rights reserved</T>.</span>
+        <span>
+          © {new Date().getFullYear()} <T>Ruh-Ul-Qudus Academy</T>. <T>All rights reserved</T>.
+        </span>
         <Link href="/privacy" className="hover:text-foreground transition-colors">
           <T>Privacy Policy</T>
         </Link>

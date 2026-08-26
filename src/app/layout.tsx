@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import {
   inter,
   playfair,
@@ -82,19 +83,17 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* ضبط اتجاه الصفحة قبل أي عرض */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var locale = localStorage.getItem('preferred-locale') || 'en';
-                  document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
-                  document.documentElement.lang = locale;
-                } catch (e) {}
-              })();
-            `,
-          }}
-        />
+        <Script id="set-direction" strategy="beforeInteractive">
+          {`
+            (function() {
+              try {
+                var locale = localStorage.getItem('preferred-locale') || 'en';
+                document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
+                document.documentElement.lang = locale;
+              } catch (e) {}
+            })();
+          `}
+        </Script>
         <link rel="preconnect" href="https://ruhulqudus-48d29.firebaseapp.com" />
         <link rel="preconnect" href="https://www.gstatic.com" />
       </head>

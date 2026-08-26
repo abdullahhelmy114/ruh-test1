@@ -1,9 +1,10 @@
 "use client";
 
 /**
- * CourseCard v7 — Ruh-Ul-Qudus Academy
- * كارت رفيع وأنيق: حافة ذهبية شعرية + توهج ذهبي ناعم عند المرور
- * بدون إطار أخضر/برتقالي — يعتمد التوكنز الدلالية فقط (globals.css)
+ * CourseCard v7.2 — Ruh-Ul-Qudus Academy
+ * Supports local videos (mp4/webm) alongside YouTube
+ * Displays locally uploaded images with error handling
+ * All UI text uses English base via <T> for translation
  */
 
 import { useEffect, useState } from "react";
@@ -15,9 +16,9 @@ import {
   Play,
   Timer,
   X,
+  FileVideo,
 } from "lucide-react";
-
-/* ------------------------------------------------------------------ types */
+import { T } from "@/components/TranslatedText";
 
 export interface Course {
   id: string;
@@ -34,14 +35,22 @@ export interface Course {
   level?: string;
 }
 
-/* ---------------------------------------------------------------- helpers */
-
 function getYouTubeEmbedUrl(url: string): string {
   const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
   const match = url.match(regExp);
   return match && match[2]?.length === 11
     ? `https://www.youtube.com/embed/${match[2]}`
     : "";
+}
+
+function isLocalVideo(url: string): boolean {
+  return (
+    url.startsWith("/api/uploads/") ||
+    url.endsWith(".mp4") ||
+    url.endsWith(".webm") ||
+    url.endsWith(".ogv") ||
+    url.endsWith(".mov")
+  );
 }
 
 function useCountdown(target?: string) {
@@ -65,20 +74,18 @@ function useCountdown(target?: string) {
   };
 }
 
-/* -------------------------------------------------------------- countdown */
-
 function CountdownTimer({ targetDate }: { targetDate: string }) {
   const t = useCountdown(targetDate);
 
   const units = [
-    { v: t?.days ?? 0, l: "يوم" },
-    { v: t?.hours ?? 0, l: "ساعة" },
-    { v: t?.minutes ?? 0, l: "دقيقة" },
-    { v: t?.seconds ?? 0, l: "ثانية" },
+    { v: t?.days ?? 0, l: "Day" },
+    { v: t?.hours ?? 0, l: "Hour" },
+    { v: t?.minutes ?? 0, l: "Min" },
+    { v: t?.seconds ?? 0, l: "Sec" },
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-1.5" dir="rtl">
+    <div className="grid grid-cols-4 gap-1.5" dir="ltr">
       {units.map((u) => (
         <div
           key={u.l}
@@ -88,15 +95,13 @@ function CountdownTimer({ targetDate }: { targetDate: string }) {
             {String(u.v).padStart(2, "0")}
           </div>
           <div className="mt-1 text-[10px] tracking-wide text-muted-foreground">
-            {u.l}
+            <T>{u.l}</T>
           </div>
         </div>
       ))}
     </div>
   );
 }
-
-/* -------------------------------------------------------------- thumbnail */
 
 function Thumbnail({ seed }: { seed: number }) {
   return (
@@ -118,11 +123,10 @@ function Thumbnail({ seed }: { seed: number }) {
   );
 }
 
-/* ------------------------------------------------------------ course card */
-
 export function CourseCard({ course }: { course: Course }) {
   const [showVideo, setShowVideo] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -131,26 +135,28 @@ export function CourseCard({ course }: { course: Course }) {
   const embedUrl = course.intro_video_url
     ? getYouTubeEmbedUrl(course.intro_video_url)
     : "";
+  const localVideo = course.intro_video_url && isLocalVideo(course.intro_video_url);
   const seed = Number(course.id.replace(/\D/g, "") || 1);
+
+  const hasPlayableVideo = Boolean(embedUrl || localVideo);
 
   return (
     <>
       <div
-        dir="rtl"
-        role={embedUrl ? "button" : undefined}
-        tabIndex={embedUrl ? 0 : undefined}
-        onClick={() => embedUrl && setShowVideo(true)}
+        dir="ltr"
+        role={hasPlayableVideo ? "button" : undefined}
+        tabIndex={hasPlayableVideo ? 0 : undefined}
+        onClick={() => hasPlayableVideo && setShowVideo(true)}
         onKeyDown={(e) => {
-          if (embedUrl && (e.key === "Enter" || e.key === " ")) {
+          if (hasPlayableVideo && (e.key === "Enter" || e.key === " ")) {
             e.preventDefault();
             setShowVideo(true);
           }
         }}
         className={`group relative mx-auto flex min-h-[610px] w-[80%] flex-col gap-4 overflow-hidden rounded-2xl border border-gold/20 bg-card/90 p-4 shadow-[0_1px_0_0_rgba(255,255,255,.06)_inset,0_18px_45px_-28px_rgba(0,0,0,.45)] backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-gold/45 hover:shadow-[0_1px_0_0_rgba(255,255,255,.08)_inset,0_28px_60px_-26px_rgba(0,0,0,.5)]${
-          embedUrl ? " cursor-pointer" : ""
+          hasPlayableVideo ? " cursor-pointer" : ""
         }`}
       >
-        {/* توهج ذهبي علوي ناعم */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 -top-24 h-40 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
@@ -160,32 +166,31 @@ export function CourseCard({ course }: { course: Course }) {
             filter: "blur(28px)",
           }}
         />
-        {/* خط ذهبي رفيع أعلى الكارت */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-l from-transparent via-gold/60 to-transparent"
         />
 
-        {/* ─── Thumbnail ─── */}
+        {/* Thumbnail */}
         <div className="relative mx-auto h-36 w-[98%] overflow-hidden rounded-xl ring-1 ring-gold/15">
-          {course.thumbnail_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
+          {course.thumbnail_url && !imgError ? (
             <img
               src={course.thumbnail_url}
               alt={course.title}
               className="h-full w-full rounded-xl object-cover transition-transform duration-700 group-hover:scale-[1.07]"
+              onError={() => setImgError(true)}
+              loading="lazy"
             />
           ) : (
             <Thumbnail seed={seed} />
           )}
 
-          {/* تدرّج سفلي لعمق الصورة */}
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-t from-background/45 via-transparent to-transparent"
           />
 
-          {embedUrl && (
+          {hasPlayableVideo && (
             <button
               type="button"
               onClick={(e) => {
@@ -193,7 +198,7 @@ export function CourseCard({ course }: { course: Course }) {
                 e.stopPropagation();
                 setShowVideo(true);
               }}
-              aria-label="مشاهدة الفيديو التعريفي"
+              aria-label="Watch intro video"
               className="absolute inset-0 flex items-center justify-center rounded-xl bg-primary/45 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100"
             >
               <span className="rounded-full border border-gold/50 bg-gold/20 p-3 shadow-lg">
@@ -203,11 +208,11 @@ export function CourseCard({ course }: { course: Course }) {
           )}
         </div>
 
-        {/* ─── Instructor & Level ─── */}
+        {/* Instructor & Level */}
         <div className="flex items-center justify-between gap-2">
           <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
             <BadgeCheck className="h-3.5 w-3.5 text-gold" />
-            تقدمه {course.instructor_name || "د. جيهان علي زياد"}
+            <T>By</T> {course.instructor_name || "Dr. Jehan Ali Ziad"}
           </span>
           {course.level && (
             <span className="rounded-full border border-gold/30 bg-gold/10 px-2.5 py-0.5 text-[11px] tracking-wide text-gold">
@@ -216,7 +221,7 @@ export function CourseCard({ course }: { course: Course }) {
           )}
         </div>
 
-        {/* ─── Title & description ─── */}
+        {/* Title & description */}
         <div className="space-y-2">
           <h3 className="font-serif text-xl leading-snug text-foreground transition-colors duration-300 group-hover:text-gold">
             {course.title}
@@ -229,7 +234,7 @@ export function CourseCard({ course }: { course: Course }) {
           )}
         </div>
 
-        {/* ─── Meta ─── */}
+        {/* Meta */}
         <div className="flex flex-wrap items-center gap-2">
           {course.course_duration && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-secondary/50 px-3 py-1 text-[11px] text-secondary-foreground">
@@ -245,18 +250,18 @@ export function CourseCard({ course }: { course: Course }) {
           )}
         </div>
 
-        {/* ─── يبدأ خلال + العد التنازلي ─── */}
+        {/* Launch countdown */}
         {course.launch_date && (
           <div className="rounded-xl border border-border/50 bg-muted/40 p-3">
             <div className="mb-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
               <Timer className="h-3.5 w-3.5 text-gold" />
-              {isLaunched ? "الدورة متاحة الآن" : "يبدأ خلال"}
+              {isLaunched ? <T>Available now</T> : <T>Starts in</T>}
             </div>
             {!isLaunched && <CountdownTimer targetDate={course.launch_date} />}
           </div>
         )}
 
-        {/* ─── Price & CTA ─── */}
+        {/* Price & CTA */}
         <div className="mt-auto space-y-3">
           <div className="flex items-baseline gap-2 border-t border-border/40 pt-3">
             <span className="font-serif text-2xl text-gold">
@@ -269,28 +274,26 @@ export function CourseCard({ course }: { course: Course }) {
             ) : null}
           </div>
 
-          {/* عرض التفاصيل — فوق */}
           <Link
             href={`/course/${course.id}`}
             onClick={(e) => e.stopPropagation()}
-            className="block w-full rounded-full border border-gold/35 bg-transparent px-6 py-3 text-center font-arabic text-sm text-gold transition-all duration-300 hover:border-gold/60 hover:bg-gold/10"
+            className="block w-full rounded-full border border-gold/35 bg-transparent px-6 py-3 text-center font-sans text-sm text-gold transition-all duration-300 hover:border-gold/60 hover:bg-gold/10"
           >
-            عرض التفاصيل
+            <T>View details</T>
           </Link>
 
-          {/* اشترك الآن — آخر الكارت */}
           <Link
             href={`/course/${course.id}`}
             onClick={(e) => e.stopPropagation()}
-            className="block w-full rounded-full bg-primary px-6 py-3 text-center font-arabic text-sm text-primary-foreground shadow-[0_10px_25px_-12px_rgba(0,0,0,.6)] transition-all duration-300 hover:opacity-95 hover:shadow-[0_14px_30px_-12px_rgba(0,0,0,.65)]"
+            className="block w-full rounded-full bg-primary px-6 py-3 text-center font-sans text-sm text-primary-foreground shadow-[0_10px_25px_-12px_rgba(0,0,0,.6)] transition-all duration-300 hover:opacity-95 hover:shadow-[0_14px_30px_-12px_rgba(0,0,0,.65)]"
           >
-            اشترك الآن
+            <T>Subscribe now</T>
           </Link>
         </div>
       </div>
 
-      {/* ─── Video Modal ─── */}
-      {showVideo && embedUrl && (
+      {/* Video Modal */}
+      {showVideo && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/70 p-4 backdrop-blur-sm"
           onClick={() => setShowVideo(false)}
@@ -302,19 +305,33 @@ export function CourseCard({ course }: { course: Course }) {
             <button
               type="button"
               onClick={() => setShowVideo(false)}
-              aria-label="إغلاق"
+              aria-label="Close"
               className="absolute left-4 top-4 z-10 rounded-full border border-gold/40 bg-gold/20 p-1.5 text-foreground"
             >
               <X className="h-4 w-4" />
             </button>
             <div className="aspect-video w-full overflow-hidden rounded-xl">
-              <iframe
-                src={embedUrl}
-                title={course.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="h-full w-full"
-              />
+              {embedUrl ? (
+                <iframe
+                  src={embedUrl}
+                  title={course.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="h-full w-full"
+                />
+              ) : localVideo ? (
+                <video
+                  src={course.intro_video_url}
+                  controls
+                  autoPlay
+                  className="h-full w-full object-contain"
+                  onError={() => setShowVideo(false)}
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center text-muted-foreground">
+                  <FileVideo className="h-10 w-10" />
+                </div>
+              )}
             </div>
           </div>
         </div>

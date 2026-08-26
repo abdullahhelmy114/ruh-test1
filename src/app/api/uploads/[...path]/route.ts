@@ -7,21 +7,20 @@ const UPLOAD_ROOT = path.join(process.cwd(), "uploads");
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }   // ← Next.js 16: params أصبح Promise
 ) {
   try {
-    // params.path عبارة عن مصفوفة من المقاطع، مثلاً ["cvs", "uid", "file.pdf"]
-    const filePath = path.join(UPLOAD_ROOT, ...params.path);
+    const { path: pathSegments } = await params; // ← انتظار الـ Promise
 
-    // منع الخروج من مجلد uploads (حماية من هجمات directory traversal)
+    const filePath = path.join(UPLOAD_ROOT, ...pathSegments);
+
+    // منع الخروج من مجلد uploads
     if (!filePath.startsWith(UPLOAD_ROOT)) {
       return new NextResponse("Forbidden", { status: 403 });
     }
 
-    // قراءة الملف
     const data = await readFile(filePath);
 
-    // تحديد نوع المحتوى بناءً على الامتداد
     const ext = path.extname(filePath).toLowerCase();
     const mimeTypes: Record<string, string> = {
       ".pdf": "application/pdf",
@@ -38,15 +37,17 @@ export async function GET(
       ".docx":
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     };
+
     const contentType = mimeTypes[ext] || "application/octet-stream";
 
     return new NextResponse(data, {
       headers: {
         "Content-Type": contentType,
-        "Cache-Control": "private, max-age=86400", // تخزين مؤقت لمدة يوم
+        "Cache-Control": "private, max-age=86400",
       },
     });
   } catch (error) {
+    console.error("File serve error:", error);
     return new NextResponse("Not Found", { status: 404 });
   }
 }

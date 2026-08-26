@@ -53,12 +53,6 @@ interface Course {
 const LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"] as const;
 type Level = (typeof LEVELS)[number];
 
-const STATS = [
-  { icon: BookOpen, value: "+120", label: "course" },
-  { icon: Users, value: "+8,400", label: "Students" },
-  { icon: Star, value: "4.9", label: "Average rating" },
-];
-
 export default function coursePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [course, setcourse] = useState<Course[]>([]);
@@ -308,23 +302,6 @@ export default function coursePage() {
             </div>
 
             {/* Stats — جنب البحث على الشاشات الكبيرة */}
-            <div className="grid grid-cols-3 gap-3 lg:w-[26rem]">
-              {STATS.map(({ icon: Icon, value, label }) => (
-                <div
-                  key={label}
-                  className="rounded-2xl border border-border/50 bg-card/50 px-3 py-3.5 text-center backdrop-blur-md transition-colors hover:border-[color:var(--hov)]"
-                  style={{ ["--hov" as string]: `${ORANGE}66` }}
-                >
-                  <Icon className="mx-auto h-4 w-4" style={{ color: ORANGE }} />
-                  <p className="mt-1.5 font-serif text-xl font-bold text-foreground">
-                    {value}
-                  </p>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                    <T>{label}</T>
-                  </p>
-                </div>
-              ))}
-            </div>
           </motion.div>
         </motion.div>
       </section>

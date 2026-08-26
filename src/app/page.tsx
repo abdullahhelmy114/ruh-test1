@@ -59,8 +59,6 @@ export default function HomePage() {
   const [bundles, setBundles] = useState<any[]>([]);
   const [certification, setCertification] = useState<any>(null);
   const [stats, setStats] = useState({
-    students: "12K+",
-    completion: "98%",
     experience: "30+",
   });
 
@@ -146,8 +144,6 @@ export default function HomePage() {
 
             <div className="mt-10 grid grid-cols-3 gap-6 border-t pt-6">
               {[
-                { v: stats.students, l: "Students" },
-                { v: stats.completion, l: "Completion" },
                 { v: stats.experience, l: "Years Teaching" },
               ].map((s) => (
                 <div key={s.l}>

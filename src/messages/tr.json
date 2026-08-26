@@ -1006,5 +1006,16 @@
   "Sale Law": "Yetkili Mahkemeler",
   "Sale Law Content": "İşbu sözleşmenin uygulanmasından ve yorumlanmasından doğacak her türlü hukuki ihtilafta Türk Hukuku uygulanacak olup, ihtilafların çözümünde Sakarya Mahkemeleri ve İcra Daireleri yetkilidir.",
   "Sale Contact": "Yürürlük ve İletişim",
-  "Sale Contact Content": "Alıcı, site üzerinden verdiği siparişe ait ödemeyi gerçekleştirdiğinde işbu sözleşmenin tüm şartlarını kabul etmiş sayılır. Sorularınız için info@ruhulqudus.com adresine yazabilirsiniz."
+  "Sale Contact Content": "Alıcı, site üzerinden verdiği siparişe ait ödemeyi gerçekleştirdiğinde işbu sözleşmenin tüm şartlarını kabul etmiş sayılır. Sorularınız için info@ruhulqudus.com adresine yazabilirsiniz.",
+  "day": "Gün",
+  "hour": "Saat",
+  "min": "Dk",
+  "sec": "Sn",
+  "by": "Sunan",
+  "availableNow": "Şimdi mevcut",
+  "startsIn": "Başlıyor",
+  "View details": "Detayları gör",
+  "Subscribe now": "Şimdi abone ol",
+  "close": "Kapat",
+  "watchIntroVideo": "Tanıtım videosunu izle"
 }

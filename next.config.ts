@@ -21,6 +21,8 @@ const securityHeaders = [
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
+      "media-src 'self' blob:", // ← السماح بعرض blob للميديا
+      "worker-src 'self' blob:", // ← السماح للـ service worker بتحميل blob إذا لزم
       "upgrade-insecure-requests",
     ].join("; "),
   },
@@ -63,9 +65,6 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
   productionBrowserSourceMaps: false,
-  // تمت إزالة swcMinify لأنها لم تعد مدعومة في Next.js 16
-  // swcMinify: true,
-
   async redirects() {
     return [
       {
@@ -81,14 +80,9 @@ const nextConfig = {
       },
     ];
   },
-
   typescript: {
     ignoreBuildErrors: true,
   },
-  // تمت إزالة eslint لأنها لم تعد مدعومة في next.config
-  // eslint: {
-  //   ignoreDuringBuilds: true,
-  // },
   experimental: {
     memoryBasedWorkersCount: true,
     optimizePackageImports: [
