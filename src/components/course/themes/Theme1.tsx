@@ -8,7 +8,6 @@ import {
   PlayCircle, FileVideo,
 } from "lucide-react";
 import { T } from "@/components/TranslatedText";
-import { PaymentModal } from "@/components/PaymentModal";
 import { formatPrice } from "@/lib/utils";
 
 interface ThemeProps {
@@ -21,6 +20,7 @@ interface ThemeProps {
     intro_video_url?: string;
     image_url?: string;
     price: number;
+    payment_url?: string | null;
     launch_date?: string;
     course_duration?: string;
     lesson_duration?: string;
@@ -28,20 +28,15 @@ interface ThemeProps {
   };
 }
 
-// دالة للتحقق من روابط يوتيوب
 const isYouTubeUrl = (url: string) =>
   url.includes("youtube.com") || url.includes("youtu.be");
 
-// دالة للتحقق من روابط الفيديو المرفوعة محليًا
 const isLocalVideo = (url: string) =>
   url.startsWith("/api/uploads/") || url.endsWith(".mp4") || url.endsWith(".webm");
 
 export default function Theme1({ variant, course }: ThemeProps) {
   const { user } = useAuth();
   const router = useRouter();
-  const [enrolling, setEnrolling] = useState(false);
-  const [message, setMessage] = useState("");
-  const [showPayment, setShowPayment] = useState(false);
   const [timeLeft, setTimeLeft] = useState("");
   const [videoError, setVideoError] = useState(false);
 
@@ -59,18 +54,9 @@ export default function Theme1({ variant, course }: ThemeProps) {
     shadow: "0 4px 30px rgba(0,0,0,0.05)",
   };
 
-  const openPaymentModal = () => {
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-    setShowPayment(true);
-  };
-
   const launchDate = course.launch_date ? new Date(course.launch_date) : null;
   const isLaunched = !launchDate || launchDate <= new Date();
 
-  // المؤقت الزمني للانطلاق
   useEffect(() => {
     if (!launchDate || isLaunched) return;
 
@@ -91,7 +77,6 @@ export default function Theme1({ variant, course }: ThemeProps) {
     return () => clearInterval(interval);
   }, [launchDate, isLaunched]);
 
-  // اختيار عرض الوسائط
   const renderMedia = () => {
     if (course.intro_video_url && isYouTubeUrl(course.intro_video_url)) {
       return (
@@ -219,34 +204,19 @@ export default function Theme1({ variant, course }: ThemeProps) {
                 </div>
               )}
 
-              {message && (
-                <div className="mt-3 text-xs text-center font-medium text-red-500">
-                  {message}
-                </div>
-              )}
-
               {course.price > 0 && (
                 <div className="mt-6">
-                  {isLaunched ? (
-                    user ? (
-                      <button
-                        onClick={openPaymentModal}
-                        disabled={enrolling}
-                        className="w-full rounded-full py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
-                        style={{ backgroundColor: colors.primary }}
-                      >
-                        <CreditCard size={16} />
-                        <T>Buy Now</T>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => router.push("/login")}
-                        className="w-full rounded-full py-3 text-sm font-semibold text-white"
-                        style={{ backgroundColor: colors.primary }}
-                      >
-                        <T>Login to Purchase</T>
-                      </button>
-                    )
+                  {isLaunched && course.payment_url ? (
+                    <a
+                      href={course.payment_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full rounded-full py-3 text-sm font-semibold text-white transition hover:opacity-90 flex items-center justify-center gap-2"
+                      style={{ backgroundColor: colors.primary }}
+                    >
+                      <CreditCard size={16} />
+                      <T>Buy Now</T>
+                    </a>
                   ) : (
                     <button
                       disabled
@@ -262,13 +232,6 @@ export default function Theme1({ variant, course }: ThemeProps) {
           </div>
         </div>
       </div>
-
-      <PaymentModal
-        isOpen={showPayment}
-        onClose={() => setShowPayment(false)}
-        courseTitle={course.title}
-        userEmail={user?.email ?? undefined}
-      />
     </div>
   );
 }

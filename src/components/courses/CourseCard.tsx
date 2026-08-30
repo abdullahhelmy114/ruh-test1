@@ -1,12 +1,11 @@
 "use client";
 
 /**
- * CourseCard v7.2 — Ruh-Ul-Qudus Academy
- * Supports local videos (mp4/webm) alongside YouTube
- * Displays locally uploaded images with error handling
- * All UI text uses English base via <T> for translation
+ * CourseCard v7.3 — Ruh-Ul-Qudus Academy
+ * Supports local videos, YouTube, images, and payment links.
  */
-import { cn, formatPrice } from "@/lib/utils";
+
+import { formatPrice } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -29,6 +28,7 @@ export interface Course {
   intro_video_url?: string;
   price: number;
   old_price?: number;
+  payment_url?: string | null;
   launch_date?: string;
   course_duration?: string;
   lesson_duration?: string;
@@ -136,9 +136,12 @@ export function CourseCard({ course }: { course: Course }) {
     ? getYouTubeEmbedUrl(course.intro_video_url)
     : "";
   const localVideo = course.intro_video_url && isLocalVideo(course.intro_video_url);
-  const seed = Number(course.id.replace(/\D/g, "") || 1);
+  const seed = course.id ? Number(course.id.replace(/\D/g, "") || 1) : 1;
 
   const hasPlayableVideo = Boolean(embedUrl || localVideo);
+
+  // رابط الشراء: payment_url إن وُجد، وإلا صفحة الكورس
+  const purchaseHref = course.payment_url || `/course/${course.id}`;
 
   return (
     <>
@@ -265,7 +268,7 @@ export function CourseCard({ course }: { course: Course }) {
         <div className="mt-auto space-y-3">
           <div className="flex items-baseline gap-2 border-t border-border/40 pt-3">
             <span className="font-serif text-2xl text-gold">
-             {formatPrice(Number(course.price))}
+              {formatPrice(Number(course.price))}
             </span>
             {course.old_price ? (
               <span className="text-sm text-muted-foreground line-through">
@@ -282,13 +285,26 @@ export function CourseCard({ course }: { course: Course }) {
             <T>View details</T>
           </Link>
 
-          <Link
-            href={`/course/${course.id}`}
-            onClick={(e) => e.stopPropagation()}
-            className="block w-full rounded-full bg-primary px-6 py-3 text-center font-sans text-sm text-primary-foreground shadow-[0_10px_25px_-12px_rgba(0,0,0,.6)] transition-all duration-300 hover:opacity-95 hover:shadow-[0_14px_30px_-12px_rgba(0,0,0,.65)]"
-          >
-            <T>Subscribe now</T>
-          </Link>
+          {/* زر الشراء: يستخدم payment_url إذا وجد */}
+          {course.payment_url ? (
+            <a
+              href={course.payment_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="block w-full rounded-full bg-primary px-6 py-3 text-center font-sans text-sm text-primary-foreground shadow-[0_10px_25px_-12px_rgba(0,0,0,.6)] transition-all duration-300 hover:opacity-95 hover:shadow-[0_14px_30px_-12px_rgba(0,0,0,.65)]"
+            >
+              <T>Subscribe now</T>
+            </a>
+          ) : (
+            <Link
+              href={purchaseHref}
+              onClick={(e) => e.stopPropagation()}
+              className="block w-full rounded-full bg-primary px-6 py-3 text-center font-sans text-sm text-primary-foreground shadow-[0_10px_25px_-12px_rgba(0,0,0,.6)] transition-all duration-300 hover:opacity-95 hover:shadow-[0_14px_30px_-12px_rgba(0,0,0,.65)]"
+            >
+              <T>Subscribe now</T>
+            </Link>
+          )}
         </div>
       </div>
 

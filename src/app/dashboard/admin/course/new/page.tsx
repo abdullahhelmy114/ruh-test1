@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/firebase/AuthProvider";
 import {
   Loader2, Plus, Upload, FileVideo, Image as ImageIcon,
 } from "lucide-react";
@@ -17,7 +18,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
-import { useAuth } from "@/lib/firebase/AuthProvider";
 
 const THEMES = [
   { value: "theme-1", label: "Academic Theme" },
@@ -44,8 +44,9 @@ export default function NewCoursePage() {
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState("");
-  const [price, setPrice] = useState(0);
+  const [price, setPrice] = useState<number>(0);
   const [oldPrice, setOldPrice] = useState<number | undefined>();
+  const [paymentUrl, setPaymentUrl] = useState(""); // ✅ حقل رابط الدفع اليدوي
   const [launchDate, setLaunchDate] = useState("");
   const [courseDuration, setCourseDuration] = useState("");
   const [lessonDuration, setLessonDuration] = useState("");
@@ -87,29 +88,14 @@ export default function NewCoursePage() {
     }
   };
 
-  const uploadToServer = async (file: File, folder: string): Promise<string> => {
-    if (!user) throw new Error("Not authenticated");
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseFloat(e.target.value);
+    setPrice(Number.isNaN(val) ? 0 : val);
+  };
 
-    const token = await user.getIdToken();
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("folder", folder);
-
-    const res = await fetch("/api/upload", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    });
-
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || "Upload failed");
-    }
-
-    const data = await res.json();
-    return data.url;
+  const handleOldPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value ? parseFloat(e.target.value) : undefined;
+    setOldPrice(Number.isNaN(val) ? undefined : val);
   };
 
   const handleSubmit = async () => {
@@ -117,42 +103,35 @@ export default function NewCoursePage() {
     setError("");
 
     try {
-      let finalIntroVideoUrl = introVideoUrl;
-      let finalThumbnailUrl = thumbnailUrl;
-
-      if (introVideoFile) {
-        finalIntroVideoUrl = await uploadToServer(introVideoFile, "course-videos");
-      }
-
-      if (thumbnailFile) {
-        finalThumbnailUrl = await uploadToServer(thumbnailFile, "course-thumbnails");
-      }
+      const payload = {
+        category_id: categoryId || null,
+        title: title.trim(),
+        level,
+        description: description || null,
+        intro_video_url: introVideoUrl || null,
+        thumbnail_url: thumbnailUrl || null,
+        price,
+        old_price: oldPrice ?? null,
+        payment_url: paymentUrl || null, // ✅ إرسال رابط الدفع اليدوي
+        launch_date: launchDate || null,
+        course_duration: courseDuration || null,
+        lesson_duration: lessonDuration || null,
+        instructor_name: instructorName || "Dr. Jehan Ali Ziad",
+        theme,
+        is_published: true,
+      };
 
       const res = await fetch("/api/admin/course", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          category_id: categoryId,
-          title,
-          level,
-          description,
-          intro_video_url: finalIntroVideoUrl,
-          thumbnail_url: finalThumbnailUrl,
-          price,
-          old_price: oldPrice,
-          launch_date: launchDate,
-          course_duration: courseDuration,
-          lesson_duration: lessonDuration,
-          instructor_name: instructorName,
-          theme,
-          is_published: true,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
         router.push("/dashboard/admin/course");
       } else {
-        setError("Failed to create course");
+        const err = await res.json();
+        setError(err.error || "Failed to create course");
       }
     } catch {
       setError("Network error");
@@ -162,12 +141,12 @@ export default function NewCoursePage() {
 
   return (
     <div className="max-w-3xl mx-auto p-4 py-8">
-      <h1 className="font-serif text-3xl mb-8"><T>Create New Course</T></h1>
+      <h1 className="font-serif text-3xl mb-8 text-foreground"><T>Create New Course</T></h1>
       <div className="glass rounded-3xl p-6 space-y-6">
         {/* Category + New Category */}
         <div className="flex items-end gap-3">
           <div className="flex-1">
-            <Label><T>Category</T></Label>
+            <Label className="text-muted-foreground"><T>Category</T></Label>
             <Select value={categoryId} onValueChange={setCategoryId}>
               <SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger>
               <SelectContent>
@@ -191,13 +170,13 @@ export default function NewCoursePage() {
 
         {/* Course Title */}
         <div>
-          <Label><T>Course Title</T></Label>
+          <Label className="text-muted-foreground"><T>Course Title</T></Label>
           <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Arabic for Beginners" />
         </div>
 
         {/* Level */}
         <div>
-          <Label><T>Level</T></Label>
+          <Label className="text-muted-foreground"><T>Level</T></Label>
           <Select value={level} onValueChange={setLevel}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -208,13 +187,13 @@ export default function NewCoursePage() {
 
         {/* Description */}
         <div>
-          <Label><T>Course Description</T></Label>
+          <Label className="text-muted-foreground"><T>Course Description</T></Label>
           <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} placeholder="Detailed description..." />
         </div>
 
         {/* Intro Video */}
         <div className="space-y-3">
-          <Label><T>Intro Video</T></Label>
+          <Label className="text-muted-foreground"><T>Intro Video</T></Label>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs text-muted-foreground"><T>From URL</T></Label>
@@ -236,7 +215,7 @@ export default function NewCoursePage() {
 
         {/* Thumbnail */}
         <div className="space-y-3">
-          <Label><T>Thumbnail Image</T></Label>
+          <Label className="text-muted-foreground"><T>Thumbnail Image</T></Label>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs text-muted-foreground"><T>From URL</T></Label>
@@ -258,30 +237,43 @@ export default function NewCoursePage() {
 
         {/* Price + Old Price */}
         <div className="grid grid-cols-2 gap-4">
-          <div><Label><T>Price ($)</T></Label><Input type="number" value={price} onChange={e => setPrice(Number(e.target.value))} /></div>
-          <div><Label><T>Old Price (optional)</T></Label><Input type="number" value={oldPrice ?? ''} onChange={e => setOldPrice(e.target.value ? Number(e.target.value) : undefined)} /></div>
+          <div><Label className="text-muted-foreground"><T>Price ($)</T></Label><Input type="number" value={price} onChange={handlePriceChange} /></div>
+          <div><Label className="text-muted-foreground"><T>Old Price (optional)</T></Label><Input type="number" value={oldPrice ?? ''} onChange={handleOldPriceChange} /></div>
+        </div>
+
+        {/* Payment Link */}
+        <div>
+          <Label className="text-muted-foreground"><T>Payment Link</T></Label>
+          <Input
+            value={paymentUrl}
+            onChange={e => setPaymentUrl(e.target.value)}
+            placeholder="https://..."
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            <T>Optional – provide a payment link if available.</T>
+          </p>
         </div>
 
         {/* Launch Date */}
-        <div><Label><T>Launch Date</T></Label><Input type="datetime-local" value={launchDate} onChange={e => setLaunchDate(e.target.value)} /></div>
+        <div><Label className="text-muted-foreground"><T>Launch Date</T></Label><Input type="datetime-local" value={launchDate} onChange={e => setLaunchDate(e.target.value)} /></div>
 
         {/* Durations */}
         <div className="grid grid-cols-2 gap-4">
-          <div><Label><T>Course Duration</T></Label><Input value={courseDuration} onChange={e => setCourseDuration(e.target.value)} placeholder="12 weeks" /></div>
-          <div><Label><T>Lesson Duration</T></Label><Input value={lessonDuration} onChange={e => setLessonDuration(e.target.value)} placeholder="45 minutes" /></div>
+          <div><Label className="text-muted-foreground"><T>Course Duration</T></Label><Input value={courseDuration} onChange={e => setCourseDuration(e.target.value)} placeholder="12 weeks" /></div>
+          <div><Label className="text-muted-foreground"><T>Lesson Duration</T></Label><Input value={lessonDuration} onChange={e => setLessonDuration(e.target.value)} placeholder="45 minutes" /></div>
         </div>
 
         {/* Instructor */}
-        <div><Label><T>Instructor</T></Label><Input value={instructorName} onChange={e => setInstructorName(e.target.value)} /></div>
+        <div><Label className="text-muted-foreground"><T>Instructor</T></Label><Input value={instructorName} onChange={e => setInstructorName(e.target.value)} /></div>
 
         {/* Theme */}
         <div>
-          <Label><T>Landing Page Theme</T></Label>
+          <Label className="text-muted-foreground"><T>Landing Page Theme</T></Label>
           <RadioGroup value={theme} onValueChange={setTheme} className="grid grid-cols-2 gap-3 mt-2">
             {THEMES.map(t => (
               <label key={t.value} className={`flex items-center gap-3 rounded-2xl border p-4 cursor-pointer transition ${theme === t.value ? 'border-primary bg-primary/5' : 'border-border'}`}>
                 <RadioGroupItem value={t.value} id={t.value} />
-                <div><p className="font-medium text-sm"><T>{t.label}</T></p></div>
+                <div><p className="font-medium text-sm text-foreground"><T>{t.label}</T></p></div>
               </label>
             ))}
           </RadioGroup>
