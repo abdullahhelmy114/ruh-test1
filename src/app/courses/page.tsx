@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * course Page — Ruhulqudus Academy (v3)
+ * CoursePage — Ruhulqudus Academy (v3)
  * خلفية سادة + بقع برتقالية شيك + Parallax scrolling
  * على الكمبيوتر: شريط البحث والإحصائيات جنب بعض
  */
@@ -17,6 +17,7 @@ import {
 import { T } from "@/components/TranslatedText";
 import { CategoryTabs } from "@/components/courses/CategoryTabs";
 import { CourseCard } from "@/components/courses/CourseCard";
+import TutorChat from "@/components/TutorChat"; // ✅ استيراد المعلم الذكي
 import {
   Search,
   SlidersHorizontal,
@@ -25,6 +26,7 @@ import {
   Users,
   Star,
   X,
+  MessageCircle,
 } from "lucide-react";
 
 const ORANGE = "#D4742B";
@@ -53,14 +55,15 @@ interface Course {
 const LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"] as const;
 type Level = (typeof LEVELS)[number];
 
-export default function coursePage() {
+export default function CoursePage() {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [course, setcourse] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]); // ✅ تم تغيير الاسم لتجنب الالتباس
   const [activeSlug, setActiveSlug] = useState("");
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [selectedLevels, setSelectedLevels] = useState<Level[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false); // ✅ حالة فتح نافذة المعلم
 
   /* ── Parallax ── */
   const pageRef = useRef<HTMLDivElement>(null);
@@ -91,8 +94,8 @@ export default function coursePage() {
     const t = setTimeout(() => {
       fetch(`/api/course?${params.toString()}`)
         .then((r) => r.json())
-        .then((d) => setcourse(d.course || []))
-        .catch(() => setcourse([]))
+        .then((d) => setCourses(d.course || []))
+        .catch(() => setCourses([]))
         .finally(() => setLoading(false));
     }, 250);
     return () => clearTimeout(t);
@@ -186,7 +189,7 @@ export default function coursePage() {
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
               <T>
                 Master the Arabic language and Quran with expertly crafted
-                course designed for every level.
+                courses designed for every level.
               </T>
             </p>
           </motion.div>
@@ -214,7 +217,7 @@ export default function coursePage() {
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search course..."
+                    placeholder="Search courses..."
                     className="w-full rounded-full bg-transparent py-4 pl-14 pr-14 text-sm text-foreground outline-none placeholder:text-muted-foreground/60"
                   />
                   <button
@@ -306,7 +309,7 @@ export default function coursePage() {
         </motion.div>
       </section>
 
-      {/* ─── course ─── */}
+      {/* ─── الكورسات ─── */}
       <section className="relative mx-auto max-w-7xl px-4 pb-24 md:px-8">
         <div className="lg:flex lg:items-start lg:gap-10">
           <CategoryTabs
@@ -319,13 +322,13 @@ export default function coursePage() {
             <div className="mb-6 flex items-center justify-between gap-4">
               <p className="text-sm text-muted-foreground">
                 {loading ? (
-                  <T>Loading course…</T>
+                  <T>Loading courses…</T>
                 ) : (
                   <>
                     <span className="font-bold text-foreground">
-                      {course.length}
+                      {courses.length}
                     </span>{" "}
-                    <T>course available</T>
+                    <T>courses available</T>
                   </>
                 )}
               </p>
@@ -346,7 +349,7 @@ export default function coursePage() {
                   />
                 ))}
               </div>
-            ) : course.length === 0 ? (
+            ) : courses.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -359,12 +362,12 @@ export default function coursePage() {
                   <Search className="h-7 w-7" />
                 </div>
                 <h2 className="mt-5 font-serif text-2xl font-bold text-foreground">
-                  <T>No course found</T>
+                  <T>No courses found</T>
                 </h2>
                 <p className="mx-auto mt-2 max-w-md text-muted-foreground">
                   <T>
                     Try adjusting your filters or check back later for new
-                    course.
+                    courses.
                   </T>
                 </p>
                 {activeFilters > 0 && (
@@ -384,7 +387,7 @@ export default function coursePage() {
               </motion.div>
             ) : (
               <div className="grid gap-[6px] sm:grid-cols-2 xl:grid-cols-3">
-                {course.map((course, i) => (
+                {courses.map((course, i) => (
                   <motion.div
                     key={course.id}
                     initial={{ opacity: 0, y: 36 }}
@@ -404,6 +407,90 @@ export default function coursePage() {
           </div>
         </div>
       </section>
+
+
+      {/* ─── زر المعلم الذكي العائم ─── */}
+      <button
+        onClick={() => setChatOpen(true)}
+        style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          zIndex: 9999,
+          width: '64px',
+          height: '64px',
+          borderRadius: '9999px',
+          backgroundImage: `linear-gradient(135deg, ${ORANGE}, ${GOLD})`,
+          color: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 20px 40px -10px rgba(0,0,0,0.3)',
+          cursor: 'pointer',
+          border: 'none',
+        }}
+        aria-label="Chat with Arabic teacher"
+      >
+        <MessageCircle className="h-7 w-7" />
+      </button>
+
+      {/* ─── نافذة المعلم الذكي ─── */}
+      <AnimatePresence>
+        {chatOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 10000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(0,0,0,0.5)',
+              backdropFilter: 'blur(4px)',
+            }}
+            onClick={() => setChatOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3 }}
+              style={{
+                position: 'relative',
+                width: '100%',
+                maxWidth: '42rem',
+                maxHeight: '85vh',
+                overflowY: 'auto',
+                borderRadius: '1.5rem',
+                background: 'var(--background)', // أو أي لون خلفية مناسب
+                boxShadow: '0 25px 60px -15px rgba(0,0,0,0.3)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setChatOpen(false)}
+                style={{
+                  position: 'absolute',
+                  right: '16px',
+                  top: '16px',
+                  zIndex: 10,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+                aria-label="Close chat"
+              >
+                <X className="h-5 w-5 text-muted-foreground" />
+              </button>
+              <TutorChat context="sales" />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
