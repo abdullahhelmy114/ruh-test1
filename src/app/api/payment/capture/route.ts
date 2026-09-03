@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
 import { firebaseAdmin } from "@/lib/firebase-admin";
