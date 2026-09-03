@@ -13,13 +13,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     alternateLocale: ["ar_SA", "tr_TR"],
-    images: [{ url: "https://ruhulqudus.com/light1.png", width: 1200, height: 630, alt: "Certification" }],
+    images: [{ url: "https://ruhulqudus.com/light.png", width: 1200, height: 630, alt: "Certification" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Certification | Ruh-Ul-Qudus Academy",
     description: "Earn accredited certificates in Arabic and Quran.",
-    images: ["https://ruhulqudus.com/light1.png"],
+    images: ["https://ruhulqudus.com/light.png"],
   },
 };
 

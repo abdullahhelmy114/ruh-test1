@@ -127,33 +127,50 @@ export default function HomePage() {
               </T>
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/signup"
-                className="inline-flex items-center gap-2 rounded-full gradient-emerald px-6 py-3 text-sm font-semibold text-primary-foreground shadow-elegant transition hover:scale-[1.02]"
-              >
-                <T>Begin Your Journey</T> <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/courses"
-                className="inline-flex items-center gap-2 rounded-full border bg-card px-6 py-3 text-sm font-semibold transition hover:bg-accent"
-              >
-                <T>Browse course</T>
-              </Link>
-            </div>
+<div className="mt-8 max-w-md">
+  <p className="mb-2 text-sm text-gold font-medium">
+    <T>Join the early-bird list for 50% OFF at launch</T>
+  </p>
+  <form 
+    onSubmit={(e) => {
+      e.preventDefault();
+      // هنا كود إرسال الإيميل لقاعدة البيانات الخاصة بك
+      alert("Thank you! You've secured your 50% discount.");
+    }} 
+    className="flex flex-col sm:flex-row gap-2 rounded-2xl border bg-card p-1.5 shadow-elegant"
+  >
+    <input 
+      type="email" 
+      required
+      placeholder="Enter your email address..." 
+      className="flex-1 bg-transparent px-4 py-2 text-sm outline-none placeholder:text-muted-foreground"
+    />
+    <button 
+      type="submit"
+      className="inline-flex items-center justify-center gap-2 rounded-xl gradient-emerald px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-elegant transition hover:scale-[1.02] whitespace-nowrap"
+    >
+      <T>Secure Discount</T> <ArrowRight className="h-4 w-4" />
+    </button>
+  </form>
+</div>
 
-            <div className="mt-10 grid grid-cols-3 gap-6 border-t pt-6">
-              {[
-                { v: stats.experience, l: "Years Teaching" },
-              ].map((s) => (
-                <div key={s.l}>
-                  <div className="font-serif text-2xl text-gold">{s.v}</div>
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                    <T>{s.l}</T>
-                  </div>
-                </div>
-              ))}
-            </div>
+
+
+<div className="mt-10 grid grid-cols-2 gap-6 border-t pt-6">
+  <div>
+    <div className="font-serif text-2xl text-gold">{stats.experience}</div>
+    <div className="text-xs uppercase tracking-wider text-muted-foreground">
+      <T>Years Academic Experience</T>
+    </div>
+  </div>
+  <div>
+    <div className="font-serif text-2xl text-gold">100%</div>
+    <div className="text-xs uppercase tracking-wider text-muted-foreground">
+      <T>Live Online Mentorship</T>
+    </div>
+  </div>
+</div>
+
           </motion.div>
 
 <motion.div
@@ -237,6 +254,53 @@ export default function HomePage() {
         </div>
       </section>
 
+
+      {/* ─── Pre-launch Preview Video ────────────────────── */}
+      <section className="bg-accent/40 py-16">
+        <div className="mx-auto max-w-7xl px-4 md:px-8">
+          <div className="grid items-center gap-12 md:grid-cols-2">
+            <motion.div {...fadeInUp}>
+              <div className="text-xs uppercase tracking-[0.3em] text-gold ornament">
+                <T>Exclusive Sneak Peek</T>
+              </div>
+              <h2 className="mt-3 font-serif text-4xl">
+                <T>Behind the scenes of Ruh-Ul-Qudus</T>
+              </h2>
+              <p className="mt-4 text-muted-foreground">
+                <T>
+                  See how our digital environment blends seamlessly with elite traditional scholarship. Watch a short preview of our live Zoom structure, dynamic dashboard, and interactive vocabulary engine.
+                </T>
+              </p>
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center gap-3">
+                  <Shield className="text-gold h-5 w-5 shrink-0" />
+                  <span className="text-sm font-medium"><T>No credit card required for early access</T></span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Calendar className="text-gold h-5 w-5 shrink-0" />
+                  <span className="text-sm font-medium"><T>Get notified 24 hours before public opening</T></span>
+                </div>
+              </div>
+            </motion.div>
+            
+            <motion.div 
+              {...fadeInUp}
+              className="relative aspect-video overflow-hidden rounded-[2rem] border bg-card shadow-elegant group cursor-pointer"
+            >
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition group-hover:bg-black/50">
+                <div className="grid h-16 w-16 place-items-center rounded-full bg-white text-primary shadow-elegant transition group-hover:scale-110">
+                  <ChevronRight className="h-6 w-6 ml-1" />
+                </div>
+              </div>
+              <div className="absolute bottom-4 left-4 text-xs font-semibold uppercase tracking-wider text-white bg-black/30 backdrop-blur px-3 py-1.5 rounded-full">
+                <T>Preview Course Dashboard (1:20)</T>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+
       {/* ─── Featured course (بيانات حقيقية) ──────────────── */}
       {featuredcourse.length > 0 && (
         <section className="bg-muted/30 py-20">
@@ -288,7 +352,7 @@ export default function HomePage() {
                     </p>
                     <div className="mt-3 flex items-center justify-between">
                       <span className="font-serif text-2xl font-bold text-accent-foreground">
-                        {course.price === 0 ? <T>Free</T> : `₺${course.price}`}
+                        {course.price === 0 ? <T>Free</T> : `$${course.price}`}
                       </span>
                       <Link
                         href={`/course/${course.id}`}
@@ -564,44 +628,6 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-      </section>
-
-      {/* ─── Final CTA ────────────────────────────────────── */}
-      <section className="mx-auto max-w-7xl px-4 pb-20 md:px-8">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="relative overflow-hidden rounded-3xl gradient-hero p-10 text-primary-foreground shadow-elegant md:p-16"
-        >
-          <Sparkles className="absolute right-10 top-10 h-8 w-8 text-gold" />
-          <div className="relative max-w-2xl">
-            <h2 className="font-serif text-4xl md:text-5xl">
-              <T>A tradition of excellence, now at your fingertips.</T>
-            </h2>
-            <p className="mt-4 text-primary-foreground/80">
-              <T>
-                Whether you&apos;re beginning your first letter or refining your
-                scholarly voice, the Academy welcomes you.
-              </T>
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/signup"
-                className="inline-flex items-center gap-2 rounded-full gradient-gold px-6 py-3 text-sm font-semibold text-gold-foreground shadow-gold"
-              >
-                <T>Enroll Today</T> <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/courses"
-                className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-white/10"
-              >
-                <T>Explore course</T>
-              </Link>
-            </div>
-          </div>
-        </motion.div>
       </section>
     </div>
   );

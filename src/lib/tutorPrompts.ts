@@ -1,5 +1,7 @@
 import { sql } from '@/lib/db/client';
 
+type Language = 'en' | 'tr' | 'it' | 'es' | 'ar';
+
 async function getCoursesForPrompt(): Promise<string> {
   const courses = await sql`
     SELECT id, title, description, level, course_duration
@@ -18,10 +20,29 @@ async function getCoursesForPrompt(): Promise<string> {
     .join('\n');
 }
 
-export async function buildOnboardingPrompt(userName?: string): Promise<string> {
+// دالة لاختيار لغة التعليمات
+function getLanguageInstructions(language: Language): string {
+  switch (language) {
+    case 'en':
+      return 'Please communicate with the student in English. Explain grammar rules in English, and give Arabic examples with translations.';
+    case 'tr':
+      return 'Lütfen öğrenciyle Türkçe iletişim kurun. Dilbilgisi kurallarını Türkçe açıklayın, Arapça örnekleri çevirileriyle verin.';
+    case 'it':
+      return 'Per favore comunica con lo studente in italiano. Spiega le regole grammaticali in italiano e fornisci esempi in arabo con traduzione.';
+    case 'es':
+      return 'Por favor, comuníquese con el estudiante en español. Explique las reglas gramaticales en español y dé ejemplos en árabe con traducción.';
+    default:
+      return 'تواصل مع الطالب باللغة العربية الفصحى.';
+  }
+}
+
+export async function buildOnboardingPrompt(userName?: string, language: Language = 'ar'): Promise<string> {
   const courses = await getCoursesForPrompt();
+  const langInstruction = getLanguageInstructions(language);
   return `
 أنت معلم لغة عربية فصيحة ذكي وودود، مهمتك مساعدة المستخدم الجديد على تحديد هدفه من تعلم العربية ومستواه الحالي.
+
+${langInstruction}
 
 ابدأ بترحيب قصير، ثم اسأل: "ما هدفك من تعلم العربية؟" (عام، أكاديمي، أعمال، ديني، سفر).
 
@@ -37,10 +58,13 @@ ${userName ? `اسم المستخدم: ${userName}` : ''}
 `;
 }
 
-export async function buildSalesPrompt(): Promise<string> {
+export async function buildSalesPrompt(language: Language = 'ar'): Promise<string> {
   const courses = await getCoursesForPrompt();
+  const langInstruction = getLanguageInstructions(language);
   return `
 أنت معلم لغة عربية فصيحة ذكي وودود، هدفك مساعدة الزائر في اختيار الكورس المناسب من بين الكورسات المتاحة.
+
+${langInstruction}
 
 ابدأ بسؤال قصير: "ما هدفك من تعلم العربية؟" و"ما مستواك الحالي؟"
 
@@ -52,10 +76,13 @@ ${courses}
 `;
 }
 
-export async function buildDashboardPrompt(userLevel?: string, userGoal?: string): Promise<string> {
+export async function buildDashboardPrompt(userLevel?: string, userGoal?: string, language: Language = 'ar'): Promise<string> {
   const courses = await getCoursesForPrompt();
+  const langInstruction = getLanguageInstructions(language);
   return `
 أنت معلم لغة عربية فصيحة، تساعد الطالب في تحسين مستواه.
+
+${langInstruction}
 
 مستوى الطالب الحالي: ${userLevel || 'غير محدد'}
 هدفه: ${userGoal || 'غير محدد'}

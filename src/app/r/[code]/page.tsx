@@ -1,18 +1,25 @@
 "use client";
 
 import { useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 
-export default function ReferralPage() {
-  const params = useParams<{ code: string }>();
+export default function ReferralRedirectPage() {
   const router = useRouter();
+  const params = useParams();
+  const code = Array.isArray(params.code) ? params.code[0] : params.code;
 
   useEffect(() => {
-    if (params.code && typeof window !== "undefined") {
-      localStorage.setItem("referral_code", params.code);
+    if (code) {
+      // حفظ كود الإحالة في localStorage ليستخدمه التسجيل لاحقاً
+      localStorage.setItem("referral_code", code);
+      // توجيه المستخدم لصفحة التسجيل
+      router.push("/signup");
     }
-    router.push("/signup");
-  }, [params.code, router]);
+  }, [code, router]);
 
-  return null;
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <p className="text-sm text-muted-foreground">Redirecting to signup...</p>
+    </div>
+  );
 }

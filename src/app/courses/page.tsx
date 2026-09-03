@@ -2,7 +2,7 @@
 
 /**
  * CoursePage — Ruhulqudus Academy (v3)
- * خلفية سادة + بقع برتقالية شيك + Parallax scrolling
+ * خلفية سادة + بقع خضراء وذهبية شيك + Parallax scrolling
  * على الكمبيوتر: شريط البحث والإحصائيات جنب بعض
  */
 
@@ -17,7 +17,8 @@ import {
 import { T } from "@/components/TranslatedText";
 import { CategoryTabs } from "@/components/courses/CategoryTabs";
 import { CourseCard } from "@/components/courses/CourseCard";
-import TutorChat from "@/components/TutorChat"; // ✅ استيراد المعلم الذكي
+import TutorChat from "@/components/TutorChat";
+import { usePathname } from "next/navigation";
 import {
   Search,
   SlidersHorizontal,
@@ -29,8 +30,8 @@ import {
   MessageCircle,
 } from "lucide-react";
 
-const ORANGE = "#D4742B";
-const GOLD = "#C49A3C";
+const PRIMARY = "var(--primary)";
+const GOLD = "var(--gold)";
 
 interface Category {
   id: string;
@@ -57,13 +58,17 @@ type Level = (typeof LEVELS)[number];
 
 export default function CoursePage() {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [courses, setCourses] = useState<Course[]>([]); // ✅ تم تغيير الاسم لتجنب الالتباس
+  const [courses, setCourses] = useState<Course[]>([]);
   const [activeSlug, setActiveSlug] = useState("");
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [selectedLevels, setSelectedLevels] = useState<Level[]>([]);
   const [showFilters, setShowFilters] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false); // ✅ حالة فتح نافذة المعلم
+  const [chatOpen, setChatOpen] = useState(false);
+
+  const pathname = usePathname();
+  const locale = pathname?.split('/')[1] || 'en';
+  const language = ['en', 'tr', 'it', 'es', 'ar'].includes(locale) ? locale : 'en';
 
   /* ── Parallax ── */
   const pageRef = useRef<HTMLDivElement>(null);
@@ -110,12 +115,12 @@ export default function CoursePage() {
 
   return (
     <div ref={pageRef} className="relative min-h-screen bg-background">
-      {/* ─── خلفية سادة + بقع برتقالية بحركة parallax ─── */}
+      {/* ─── خلفية سادة + بقع خضراء وذهبية بحركة parallax ─── */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <motion.div
           style={{
             y: blobA,
-            background: `radial-gradient(circle, ${ORANGE}, transparent 70%)`,
+            background: `radial-gradient(circle, ${PRIMARY}, transparent 70%)`,
           }}
           className="absolute -top-52 -right-40 h-[38rem] w-[38rem] rounded-full opacity-[0.22] blur-[150px]"
         />
@@ -129,7 +134,7 @@ export default function CoursePage() {
         <motion.div
           style={{
             y: blobC,
-            background: `radial-gradient(circle, ${ORANGE}, transparent 72%)`,
+            background: `radial-gradient(circle, ${PRIMARY}, transparent 72%)`,
           }}
           className="absolute bottom-[-10rem] left-1/2 h-[30rem] w-[30rem] -translate-x-1/2 rounded-full opacity-[0.14] blur-[170px]"
         />
@@ -153,9 +158,9 @@ export default function CoursePage() {
             <span
               className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] backdrop-blur-md"
               style={{
-                borderColor: `${ORANGE}55`,
-                color: ORANGE,
-                backgroundColor: `${ORANGE}12`,
+                borderColor: `${PRIMARY}55`,
+                color: PRIMARY,
+                backgroundColor: `${PRIMARY}12`,
               }}
             >
               <Sparkles size={13} />
@@ -167,7 +172,7 @@ export default function CoursePage() {
               <span
                 className="bg-clip-text text-transparent"
                 style={{
-                  backgroundImage: `linear-gradient(120deg, ${GOLD}, ${ORANGE} 55%, ${GOLD})`,
+                  backgroundImage: `linear-gradient(120deg, ${GOLD}, ${PRIMARY} 55%, ${GOLD})`,
                 }}
               >
                 <T>Courses</T>
@@ -179,7 +184,7 @@ export default function CoursePage() {
                 className="h-px w-16"
                 style={{ backgroundImage: `linear-gradient(90deg, transparent, ${GOLD}90)` }}
               />
-              <span className="h-1.5 w-1.5 rotate-45" style={{ backgroundColor: ORANGE }} />
+              <span className="h-1.5 w-1.5 rotate-45" style={{ backgroundColor: PRIMARY }} />
               <span
                 className="h-px w-16"
                 style={{ backgroundImage: `linear-gradient(270deg, transparent, ${GOLD}90)` }}
@@ -206,13 +211,13 @@ export default function CoursePage() {
               <div
                 className="relative rounded-full p-[1.5px]"
                 style={{
-                  backgroundImage: `linear-gradient(120deg, ${GOLD}55, ${ORANGE}88, ${GOLD}55)`,
+                  backgroundImage: `linear-gradient(120deg, ${GOLD}55, ${PRIMARY}88, ${GOLD}55)`,
                 }}
               >
                 <div className="relative rounded-full bg-card/80 backdrop-blur-xl">
                   <Search
                     className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2"
-                    style={{ color: ORANGE }}
+                    style={{ color: PRIMARY }}
                   />
                   <input
                     value={query}
@@ -226,8 +231,8 @@ export default function CoursePage() {
                     className="absolute right-2 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full transition-all"
                     style={
                       showFilters
-                        ? { backgroundColor: ORANGE, color: "#fff" }
-                        : { border: `1px solid ${ORANGE}55`, color: ORANGE }
+                        ? { backgroundColor: PRIMARY, color: "#fff" }
+                        : { border: `1px solid ${PRIMARY}55`, color: PRIMARY }
                     }
                   >
                     <SlidersHorizontal className="h-4 w-4" />
@@ -247,7 +252,7 @@ export default function CoursePage() {
                     <div className="mt-3 rounded-3xl border border-border/50 bg-card/60 p-5 backdrop-blur-xl">
                       <p
                         className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em]"
-                        style={{ color: ORANGE }}
+                        style={{ color: PRIMARY }}
                       >
                         <T>Level</T>
                       </p>
@@ -262,9 +267,9 @@ export default function CoursePage() {
                               style={
                                 on
                                   ? {
-                                      backgroundColor: ORANGE,
+                                      backgroundColor: PRIMARY,
                                       color: "#fff",
-                                      boxShadow: `0 8px 20px -8px ${ORANGE}`,
+                                      boxShadow: `0 8px 20px -8px ${PRIMARY}`,
                                     }
                                   : {
                                       border:
@@ -357,7 +362,7 @@ export default function CoursePage() {
               >
                 <div
                   className="mx-auto flex h-16 w-16 items-center justify-center rounded-full"
-                  style={{ backgroundColor: `${ORANGE}18`, color: ORANGE }}
+                  style={{ backgroundColor: `${PRIMARY}18`, color: PRIMARY }}
                 >
                   <Search className="h-7 w-7" />
                 </div>
@@ -378,7 +383,7 @@ export default function CoursePage() {
                     }}
                     className="mt-6 rounded-full px-6 py-2.5 text-sm font-bold text-white transition-transform hover:scale-[1.03]"
                     style={{
-                      backgroundImage: `linear-gradient(120deg, ${ORANGE}, ${GOLD})`,
+                      backgroundImage: `linear-gradient(120deg, ${PRIMARY}, ${GOLD})`,
                     }}
                   >
                     <T>Clear filters</T>
@@ -408,7 +413,6 @@ export default function CoursePage() {
         </div>
       </section>
 
-
       {/* ─── زر المعلم الذكي العائم ─── */}
       <button
         onClick={() => setChatOpen(true)}
@@ -420,7 +424,7 @@ export default function CoursePage() {
           width: '64px',
           height: '64px',
           borderRadius: '9999px',
-          backgroundImage: `linear-gradient(135deg, ${ORANGE}, ${GOLD})`,
+          backgroundImage: `linear-gradient(135deg, ${PRIMARY}, ${GOLD})`,
           color: '#fff',
           display: 'flex',
           alignItems: 'center',
@@ -465,7 +469,7 @@ export default function CoursePage() {
                 maxHeight: '85vh',
                 overflowY: 'auto',
                 borderRadius: '1.5rem',
-                background: 'var(--background)', // أو أي لون خلفية مناسب
+                background: 'var(--background)',
                 boxShadow: '0 25px 60px -15px rgba(0,0,0,0.3)',
               }}
               onClick={(e) => e.stopPropagation()}
@@ -485,12 +489,11 @@ export default function CoursePage() {
               >
                 <X className="h-5 w-5 text-muted-foreground" />
               </button>
-              <TutorChat context="sales" />
+              <TutorChat context="sales" language={language} />
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   );
 }
@@ -500,9 +503,9 @@ function Chip({ label, onClear }: { label: string; onClear: () => void }) {
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold"
       style={{
-        backgroundColor: `${ORANGE}14`,
-        color: ORANGE,
-        border: `1px solid ${ORANGE}40`,
+        backgroundColor: `${PRIMARY}14`,
+        color: PRIMARY,
+        border: `1px solid ${PRIMARY}40`,
       }}
     >
       {label}

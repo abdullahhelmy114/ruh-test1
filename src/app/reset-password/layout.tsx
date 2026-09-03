@@ -12,13 +12,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     alternateLocale: ["ar_SA", "tr_TR"],
-    images: [{ url: "https://ruhulqudus.com/light1.png", width: 1200, height: 630, alt: "Reset Password" }],
+    images: [{ url: "https://ruhulqudus.com/light.png", width: 1200, height: 630, alt: "Reset Password" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Reset Password | Ruh-Ul-Qudus Academy",
     description: "Set a new password for your account.",
-    images: ["https://ruhulqudus.com/light1.png"],
+    images: ["https://ruhulqudus.com/light.png"],
   },
 };
 

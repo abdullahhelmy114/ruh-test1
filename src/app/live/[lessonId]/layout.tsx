@@ -13,13 +13,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     alternateLocale: ["ar_SA", "tr_TR"],
-    images: [{ url: "https://ruhulqudus.com/light1.png", width: 1200, height: 630, alt: "Live Sessions" }],
+    images: [{ url: "https://ruhulqudus.com/light.png", width: 1200, height: 630, alt: "Live Sessions" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Live Sessions | Ruh-Ul-Qudus Academy",
     description: "Join our live Arabic and Quran classes.",
-    images: ["https://ruhulqudus.com/light1.png"],
+    images: ["https://ruhulqudus.com/light.png"],
   },
 };
 export default function LiveLessonLayout({ children }: { children: React.ReactNode }) {

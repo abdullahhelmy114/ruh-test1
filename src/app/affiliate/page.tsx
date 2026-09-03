@@ -13,13 +13,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     alternateLocale: ["ar_SA", "tr_TR"],
-    images: [{ url: "https://ruhulqudus.com/light1.png", width: 1200, height: 630, alt: "Affiliate Program" }],
+    images: [{ url: "https://ruhulqudus.com/light.png", width: 1200, height: 630, alt: "Affiliate Program" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Affiliate Program | Ruh-Ul-Qudus Academy",
     description: "Earn commissions by referring students.",
-    images: ["https://ruhulqudus.com/light1.png"],
+    images: ["https://ruhulqudus.com/light.png"],
   },
 };
 

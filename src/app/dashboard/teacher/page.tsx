@@ -1,15 +1,14 @@
 "use client";
 
-import { T } from "@/components/TranslatedText";
-import { useAuth } from "@/lib/firebase/AuthProvider";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import {
   Users, Plus, Loader2, ArrowRight,
-  Star, BookOpen, TrendingUp, AlertCircle, Settings, DollarSign
+  Star, BookOpen, TrendingUp, AlertCircle, Settings, DollarSign,
 } from "lucide-react";
-import Link from "next/link";
-import { motion } from "framer-motion";
+import { useAuth } from "@/lib/firebase/AuthProvider";
 
 interface LiveCourse {
   id: string;
@@ -32,10 +31,10 @@ interface TeacherStats {
 }
 
 export default function TeacherDashboard() {
-  const { user, isLoading, role } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState<TeacherStats | null>(null);
-  const [course, setcourse] = useState<LiveCourse[]>([]);
+  const [courses, setCourses] = useState<LiveCourse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -45,24 +44,22 @@ export default function TeacherDashboard() {
     const fetchData = async () => {
       try {
         setError("");
-        const token = await user.getIdToken();  // الحصول على التوكن
+        const token = await user.getIdToken();
 
-        const [statsRes, courseRes] = await Promise.all([
-          fetch(`/api/teacher/dashboard?uid=${user.uid}`, {
+        const [statsRes, coursesRes] = await Promise.all([
+          fetch("/api/teacher/dashboard", {
             headers: { Authorization: `Bearer ${token}` },
-            credentials: "include",
           }),
           fetch("/api/teacher/course", {
             headers: { Authorization: `Bearer ${token}` },
-            credentials: "include",
           }),
         ]);
 
         if (!statsRes.ok) throw new Error("Failed to load dashboard");
-        if (!courseRes.ok) throw new Error("Failed to load course");
+        if (!coursesRes.ok) throw new Error("Failed to load courses");
 
         const statsData = await statsRes.json();
-        const courseData = await courseRes.json();
+        const coursesData = await coursesRes.json();
 
         setStats({
           fullName: statsData.fullName || user.displayName || "Teacher",
@@ -74,7 +71,8 @@ export default function TeacherDashboard() {
           averageRating: statsData.averageRating || 0,
           completedLessons: statsData.completedLessons || 0,
         });
-        setcourse(courseData.course || []);
+
+        setCourses(coursesData.course || []);
       } catch (err: any) {
         console.error(err);
         setError(err.message || "Could not load dashboard data.");
@@ -94,18 +92,18 @@ export default function TeacherDashboard() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center flex-col gap-4">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
         <div className="rounded-3xl border bg-card p-8 text-center shadow-elegant">
           <AlertCircle className="mx-auto h-10 w-10 text-destructive mb-4" />
           <h2 className="font-serif text-xl text-destructive">
-            <T>خطأ في تحميل لوحة التحكم</T>
+            Error loading dashboard
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="mt-4 rounded-full bg-accent px-6 py-2 text-sm font-semibold text-accent-foreground"
           >
-            <T>إعادة المحاولة</T>
+            Retry
           </button>
         </div>
       </div>
@@ -132,114 +130,112 @@ export default function TeacherDashboard() {
           </div>
           <div>
             <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent-foreground">
-              <T>بوابة المعلم</T>
+              Teacher Portal
             </div>
             <h1 className="mt-1 font-serif text-3xl text-foreground">{stats.fullName}</h1>
             <p className="mt-1 text-sm italic text-muted-foreground">
-              <T>"علمكم الله ما ينفعكم"</T>
+              "May Allah teach you what benefits you"
             </p>
           </div>
         </div>
-        <div className="flex w-full gap-3 md:w-auto">
+        <div className="flex w-full flex-wrap gap-3 md:w-auto">
           <Link
-            href="/dashboard/teacher/course"
+            href="/dashboard/teacher/courses"
             className="inline-flex items-center gap-2 rounded-full border bg-background px-4 py-2.5 text-sm font-medium hover:bg-secondary transition"
           >
             <BookOpen className="h-4 w-4 text-accent-foreground" />
-            <T>كورساتي</T>
+            My Courses
           </Link>
           <Link
-            href="/dashboard/teacher/course/new"
+            href="/dashboard/teacher/courses/new"
             className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/90 shadow-elegant transition"
           >
-            <Plus className="h-4 w-4" /> <T>طلب تدريس جديد</T>
+            <Plus className="h-4 w-4" /> Request New Teaching
           </Link>
           <Link
             href="/dashboard/teacher/earnings"
             className="inline-flex items-center gap-2 rounded-full border bg-background px-6 py-3 text-sm font-medium hover:bg-secondary transition"
           >
-            <DollarSign className="h-4 w-4 text-accent-foreground" /> <T>أرباحي</T>
+            <DollarSign className="h-4 w-4 text-accent-foreground" /> My Earnings
           </Link>
         </div>
       </div>
 
       {/* Commission Card */}
-      {stats.averageRating > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-4xl border bg-card p-6 shadow-elegant"
-        >
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground">
-                <Star className="h-6 w-6 fill-white" />
-              </div>
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-                  <T>تقييمك</T>
-                </div>
-                <div className="font-serif text-3xl text-foreground">
-                  {stats.averageRating.toFixed(1)}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {stats.completedLessons} <T>درس مكتمل</T>
-                </div>
-              </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-4xl border bg-card p-6 shadow-elegant"
+      >
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground">
+              <Star className="h-6 w-6 fill-white" />
             </div>
-            <div className="text-right">
+            <div>
               <div className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-                <T>نسبة العمولة</T>
+                Your Rating
               </div>
-              <div className="font-serif text-3xl text-primary">
-                {stats.commissionRate}%
+              <div className="font-serif text-3xl text-foreground">
+                {stats.averageRating.toFixed(1)}
               </div>
-              <div className="text-xs text-muted-foreground">
-                <T>+5% كل 50 درس بتقييم 4.5+ (حد أقصى 50%)</T>
+              <div className="text-sm text-muted-foreground">
+                {stats.completedLessons} lessons completed
               </div>
             </div>
           </div>
-        </motion.div>
-      )}
+          <div className="text-right">
+            <div className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+              Commission Rate
+            </div>
+            <div className="font-serif text-3xl text-primary">
+              {stats.commissionRate}%
+            </div>
+            <div className="text-xs text-muted-foreground">
+              +5% for every 50 lessons rated 4.5+ (up to 50%)
+            </div>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* course List */}
+        {/* Courses List */}
         <div className="lg:col-span-2 space-y-4">
           <h2 className="font-serif text-2xl text-foreground">
-            <T>كورساتي الحية</T>
+            My Live Courses
           </h2>
-          {course.length === 0 ? (
+          {courses.length === 0 ? (
             <div className="rounded-3xl border bg-card p-8 text-center text-muted-foreground">
               <BookOpen className="mx-auto h-8 w-8 text-accent-foreground/50 mb-3" />
-              <p><T>لا توجد كورسات حية بعد. اطلب تدريس نموذج للبدء.</T></p>
+              <p>No live courses yet. Request a teaching model to begin.</p>
               <Link
-                href="/dashboard/teacher/course/new"
+                href="/dashboard/teacher/courses/new"
                 className="mt-3 inline-block rounded-full bg-accent px-4 py-2 text-xs font-semibold text-accent-foreground"
               >
-                <T>طلب تدريس</T>
+                Request Teaching
               </Link>
             </div>
           ) : (
-            course.map((course) => (
+            courses.map((course) => (
               <div
                 key={course.id}
-                className="rounded-3xl border bg-card p-5 shadow-elegant flex justify-between items-center"
+                className="rounded-3xl border bg-card p-5 shadow-elegant flex flex-col sm:flex-row sm:items-center justify-between gap-3"
               >
                 <div>
                   <h3 className="font-serif text-lg text-foreground">{course.title}</h3>
                   <p className="text-sm text-muted-foreground">
-                    <T>المستوى</T> {course.level} · ${course.price}
+                    Level {course.level} · ${course.price}
                   </p>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                  <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                     {course.status}
                   </span>
                 </div>
                 <Link
-                  href={`/dashboard/teacher/course/${course.id}/lessons`}
-                  className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition"
+                  href={`/dashboard/teacher/courses/${course.id}/lessons`}
+                  className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition whitespace-nowrap"
                 >
-                  <Settings size={14} /> <T>إدارة الدروس</T>
+                  <Settings size={14} /> Manage Lessons
                 </Link>
               </div>
             ))
@@ -250,41 +246,39 @@ export default function TeacherDashboard() {
         <div className="space-y-4">
           <div className="rounded-3xl border bg-card p-6 shadow-elegant">
             <div className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-              <T>إحصائيات</T>
+              Statistics
             </div>
             <div className="mt-4 space-y-3">
               <div className="flex justify-between">
-                <span className="text-muted-foreground"><T>الطلاب</T></span>
+                <span className="text-muted-foreground">Students</span>
                 <span className="font-semibold text-foreground">{stats.students}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground"><T>كورسات نشطة</T></span>
+                <span className="text-muted-foreground">Active Courses</span>
                 <span className="font-semibold text-foreground">{stats.activecourse}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground"><T>الإيرادات</T></span>
+                <span className="text-muted-foreground">Revenue</span>
                 <span className="font-semibold text-foreground">${stats.revenue}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground"><T>العمولة</T></span>
+                <span className="text-muted-foreground">Commission</span>
                 <span className="font-semibold text-primary">{stats.commissionRate}%</span>
               </div>
             </div>
           </div>
 
-          {stats.averageRating > 0 && (
-            <div className="rounded-3xl border bg-card p-6 shadow-elegant">
-              <div className="flex items-center gap-2">
-                <Star className="h-5 w-5 fill-accent text-accent" />
-                <span className="font-serif text-xl text-foreground">
-                  {stats.averageRating.toFixed(1)}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                <T>{String(stats.completedLessons) + ' درس مكتمل'}</T>
-              </p>
+          <div className="rounded-3xl border bg-card p-6 shadow-elegant">
+            <div className="flex items-center gap-2">
+              <Star className="h-5 w-5 fill-accent text-accent" />
+              <span className="font-serif text-xl text-foreground">
+                {stats.averageRating.toFixed(1)}
+              </span>
             </div>
-          )}
+            <p className="text-xs text-muted-foreground mt-2">
+              {stats.completedLessons} lessons completed
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { buildOnboardingPrompt, buildSalesPrompt, buildDashboardPrompt } from '@/lib/tutorPrompts';
 import { sql } from '@/lib/db/client';
 
+type Language = 'en' | 'tr' | 'it' | 'es' | 'ar';
+
 // دالة استخراج التقييم بصيغة JSON من رد المعلم
 async function extractAssessment(replyText: string, apiKey: string): Promise<any | null> {
   const extractionPrompt = `
@@ -19,7 +21,7 @@ async function extractAssessment(replyText: string, apiKey: string): Promise<any
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -33,7 +35,6 @@ async function extractAssessment(replyText: string, apiKey: string): Promise<any
     const data = await response.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
 
-    // استخراج JSON بدون استخدام العلامة s
     const jsonStart = text.indexOf('{');
     const jsonEnd = text.lastIndexOf('}');
     if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
@@ -57,6 +58,7 @@ export async function POST(req: NextRequest) {
       userGoal,
       userName,
       userId,
+      language = 'ar', // ✅ لغة جديدة
     } = await req.json();
 
     if (!message || typeof message !== 'string') {
@@ -70,11 +72,11 @@ export async function POST(req: NextRequest) {
 
     let systemPrompt = '';
     if (context === 'onboarding') {
-      systemPrompt = await buildOnboardingPrompt(userName);
+      systemPrompt = await buildOnboardingPrompt(userName, language as Language);
     } else if (context === 'sales') {
-      systemPrompt = await buildSalesPrompt();
+      systemPrompt = await buildSalesPrompt(language as Language);
     } else {
-      systemPrompt = await buildDashboardPrompt(userLevel, userGoal);
+      systemPrompt = await buildDashboardPrompt(userLevel, userGoal, language as Language);
     }
 
     const contents = [
@@ -88,7 +90,7 @@ export async function POST(req: NextRequest) {
     ];
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

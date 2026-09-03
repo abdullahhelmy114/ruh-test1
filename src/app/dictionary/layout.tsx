@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     alternateLocale: ["ar_SA", "tr_TR"],
     images: [
       {
-        url: "https://ruhulqudus.com/light1.png",
+        url: "https://ruhulqudus.com/light.png",
         width: 1200,
         height: 630,
         alt: "Ruh-Ul-Qudus Academy – Arabic Dictionary",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     title: "Arabic Dictionary | Ruh-Ul-Qudus Academy",
     description:
       "Interactive Arabic dictionary with Quranic examples, audio, and translations.",
-    images: ["https://ruhulqudus.com/light1.png"],
+    images: ["https://ruhulqudus.com/light.png"],
   },
   robots: {
     index: true,

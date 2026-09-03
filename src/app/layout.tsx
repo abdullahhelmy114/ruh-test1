@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     alternateLocale: ["ar_SA", "tr_TR"],
     images: [
       {
-        url: "https://ruhulqudus.com/light1.png",
+        url: "https://ruhulqudus.com/light.png",
         width: 1200,
         height: 630,
         alt: "Ruh-Ul-Qudus Academy – Learn Arabic and Quran",
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     title: "Ruh-Ul-Qudus Academy | Learn Arabic & Quran",
     description:
       "Master Arabic and Quran with interactive lessons, AI-powered practice, and certified courses.",
-    images: ["https://ruhulqudus.com/light1.png"],
+    images: ["https://ruhulqudus.com/light.png"],
   },
   robots: {
     index: true,

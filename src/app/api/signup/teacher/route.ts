@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminAuth } from "@/lib/firebase/admin";
 import { sql } from "@/lib/db/client";
 import { sendEmailVerificationCode } from "@/lib/email";
+import { generateReferralCode } from "@/lib/referral";
 
+const referralCode = generateReferralCode();
 // لم نعد بحاجة لاستيراد uploadFile لأن الرفع يتم من المتصفح مباشرة للسحابة
 
 export async function POST(req: NextRequest) {
@@ -29,31 +31,33 @@ export async function POST(req: NextRequest) {
 
     // 4. إدخال بيانات المعلم في قاعدة البيانات (PostgreSQL) باستخدام الروابط السحابية الآمنة
     await sql`
-      INSERT INTO profiles (
-        firebase_uid, email, full_name,
-        country_of_residence, nationality, gender,
-        languages, whatsapp, telegram, social_links,
-        bio, cv_url, intro_video_url,
-        role, status, age, created_at
-      ) VALUES (
-        ${userRecord.uid},
-        ${step1.email},
-        ${fullName},
-        ${step1.countryOfResidence},
-        ${step1.nationality},
-        ${step1.gender},
-        ${JSON.stringify(step1.languages)},
-        ${step1.whatsapp},
-        ${step2.telegram},
-        ${JSON.stringify(step2.socialLinks || [])},
-        ${step2.bio},
-        ${cv_url},                     -- حفظ الرابط السحابي الدائم
-        ${video_url || null},          -- حفظ فيديو المقدمة إن وجد
-        'teacher',
-        'pending',
-        ${step1.age || null},
-        NOW()
-      )
+INSERT INTO profiles (
+  firebase_uid, email, full_name,
+  country_of_residence, nationality, gender,
+  languages, whatsapp, telegram, social_links,
+  bio, cv_url, intro_video_url,
+  referral_code,
+  role, status, age, created_at
+) VALUES (
+  ${userRecord.uid},
+  ${step1.email},
+  ${fullName},
+  ${step1.countryOfResidence},
+  ${step1.nationality},
+  ${step1.gender},
+  ${JSON.stringify(step1.languages)},
+  ${step1.whatsapp},
+  ${step2.telegram},
+  ${JSON.stringify(step2.socialLinks || [])},
+  ${step2.bio},
+  ${cv_url},
+  ${video_url || null},
+  ${referralCode},
+  'teacher',
+  'pending',
+  ${step1.age || null},
+  NOW()
+)
     `;
 
     // 5. إرسال كود التفعيل للبريد الإلكتروني وتخزينه في الداتابيز

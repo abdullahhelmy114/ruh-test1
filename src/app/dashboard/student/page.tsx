@@ -1,26 +1,28 @@
 "use client";
 
-import { T } from "@/components/TranslatedText";
-import { useAuth } from "@/lib/firebase/AuthProvider";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  Award, Copy, GraduationCap, Trophy, ChevronRight,
-  BookOpen, Loader2, Video, Clock, Play,
-  Users, BarChart3, DollarSign, TrendingUp, Wallet, Calendar,
-} from "lucide-react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import {
+  Award, Copy, Check, Flame, Zap, Trophy, ChevronRight,
+  BookOpen, Loader2, Video, Clock, Play,
+  Calendar, Gift,
+} from "lucide-react";
+import { T } from "@/components/TranslatedText";
+import { useAuth } from "@/lib/firebase/AuthProvider";
 import { YouTubeEmbed } from "@/components/ui/YouTubeEmbed";
 
-interface DashboardData {
+interface StudentDashboardData {
   firstName: string;
   streak: number;
+  xp: number;
+  level: number;
   inProgress: {
+    courseId: string;
     title: string;
     next: string;
     progress: number;
-    courseId: string;
   }[];
   completed: {
     title: string;
@@ -33,10 +35,10 @@ interface DashboardData {
     scheduled_at: string;
     course_title: string;
     teacher_name: string;
-    meeting_url?: string;
   }[];
   referral: {
     code: string;
+    link: string;
     count: number;
     credits: number;
   };
@@ -45,12 +47,13 @@ interface DashboardData {
 export default function StudentDashboard() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [data, setData] = useState<DashboardData | null>(null);
+  const [data, setData] = useState<StudentDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedRecording, setSelectedRecording] = useState<{
     url: string;
     title: string;
   } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -59,9 +62,7 @@ export default function StudentDashboard() {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((r) => r.json())
-        .then((d) => {
-          setData(d);
-        })
+        .then((d) => setData(d))
         .catch(console.error)
         .finally(() => setLoading(false)),
     );
@@ -72,6 +73,15 @@ export default function StudentDashboard() {
       router.push("/login");
     }
   }, [user, isLoading, router]);
+
+const copyReferral = async () => {
+  if (!data?.referral.link) return;
+  try {
+    await navigator.clipboard.writeText(data.referral.link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  } catch {}
+};
 
   if (isLoading || loading) {
     return (
@@ -85,7 +95,54 @@ export default function StudentDashboard() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-10 md:px-8 min-h-screen bg-background">
-      {/* Banner */}
+      {/* ====== شريط التحفيز العلوي ====== */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="grid gap-4 lg:grid-cols-3"
+      >
+        {/* Day Streak */}
+        <div className="flex items-center gap-4 rounded-3xl border bg-card p-6 shadow-elegant">
+          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground">
+            <Flame className="h-7 w-7" />
+          </div>
+          <div>
+            <div className="font-serif text-3xl font-bold">{data.streak}</div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Day Streak
+            </div>
+          </div>
+        </div>
+
+        {/* XP Points */}
+        <div className="flex items-center gap-4 rounded-3xl border bg-card p-6 shadow-elegant">
+          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-accent text-accent-foreground">
+            <Zap className="h-7 w-7" />
+          </div>
+          <div>
+            <div className="font-serif text-3xl font-bold">{data.xp}</div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              XP Points
+            </div>
+          </div>
+        </div>
+
+        {/* Level */}
+        <div className="flex items-center gap-4 rounded-3xl border bg-card p-6 shadow-elegant">
+          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground">
+            <Trophy className="h-7 w-7" />
+          </div>
+          <div>
+            <div className="font-serif text-3xl font-bold">{data.level}</div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Current Level
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ====== الترحيب ====== */}
       <div className="flex flex-col gap-4 rounded-3xl border bg-card p-6 shadow-elegant md:flex-row md:items-center md:justify-between">
         <div>
           <div className="text-xs uppercase tracking-widest text-accent-foreground">
@@ -98,21 +155,15 @@ export default function StudentDashboard() {
             Continue where you left off — every word is a victory.
           </p>
         </div>
-        <div className="flex items-center gap-2 rounded-full border bg-background px-4 py-2 text-sm">
-          <Trophy className="h-4 w-4 text-accent-foreground" />{" "}
-          {data.streak}-day streak
-        </div>
       </div>
 
-      {/* In Progress */}
+      {/* ====== الكورسات الجارية ====== */}
       <section>
-        <div className="mb-4 flex items-end justify-between">
-          <div>
-            <div className="text-xs uppercase tracking-widest text-accent-foreground">
-              Continue your studies
-            </div>
-            <h2 className="font-serif text-2xl">In Progress</h2>
+        <div className="mb-4">
+          <div className="text-xs uppercase tracking-widest text-accent-foreground">
+            Continue your studies
           </div>
+          <h2 className="font-serif text-2xl">In Progress</h2>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {data.inProgress.map((c) => (
@@ -149,16 +200,14 @@ export default function StudentDashboard() {
         </div>
       </section>
 
-      {/* Completed */}
+      {/* ====== الكورسات المكتملة ====== */}
       {data.completed.length > 0 && (
         <section>
-          <div className="mb-4 flex items-end justify-between">
-            <div>
-              <div className="text-xs uppercase tracking-widest text-accent-foreground">
-                Your achievements
-              </div>
-              <h2 className="font-serif text-2xl">Completed</h2>
+          <div className="mb-4">
+            <div className="text-xs uppercase tracking-widest text-accent-foreground">
+              Your achievements
             </div>
+            <h2 className="font-serif text-2xl">Completed</h2>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
             {data.completed.map((c) => (
@@ -195,18 +244,16 @@ export default function StudentDashboard() {
       )}
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Live sessions calendar */}
+        {/* ====== الجلسات المباشرة ====== */}
         <div className="lg:col-span-2">
           <div className="rounded-3xl border bg-card p-6 shadow-elegant">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-accent-foreground">
-                  <Calendar className="h-4 w-4" /> Live Sessions
-                </div>
-                <h3 className="mt-1 font-serif text-2xl">
-                  Upcoming Zoom Calendar
-                </h3>
+            <div className="mb-5">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-accent-foreground">
+                <Calendar className="h-4 w-4" /> Live Sessions
               </div>
+              <h3 className="mt-1 font-serif text-2xl">
+                Upcoming Zoom Calendar
+              </h3>
             </div>
 
             <div className="space-y-3">
@@ -218,7 +265,7 @@ export default function StudentDashboard() {
                 return (
                   <div
                     key={s.id}
-                    className="group flex items-center gap-4 rounded-2xl border bg-background p-4 transition hover:border-primary/40"
+                    className="flex items-center gap-4 rounded-2xl border bg-background p-4 transition hover:border-primary/40"
                   >
                     <div className="grid h-14 w-14 flex-none place-items-center rounded-2xl bg-gradient-primary text-primary-foreground">
                       <div className="text-center leading-tight">
@@ -243,11 +290,11 @@ export default function StudentDashboard() {
                           })}
                         </span>
                         <span className="rounded-full bg-accent/20 px-2 py-0.5 text-accent-foreground">
-                          {s.course_title || "Course"}
+                          {s.course_title}
                         </span>
                         <span className="inline-flex items-center gap-1 text-primary">
                           <BookOpen className="h-3 w-3" />{" "}
-                          {s.teacher_name || "Teacher"}
+                          {s.teacher_name}
                         </span>
                       </div>
                     </div>
@@ -282,44 +329,36 @@ export default function StudentDashboard() {
         </div>
 
         <div className="space-y-6">
-          {/* Stats */}
-          <div className="rounded-4xl border bg-card p-6 shadow-elegant">
-            <div className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-              Stats
-            </div>
-            <div className="mt-4 space-y-3">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Enrolled</span>
-                <span className="font-semibold">
-                  {data.inProgress.length + data.completed.length}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Completed</span>
-                <span className="font-semibold">
-                  {data.completed.length}
-                </span>
+          {/* ====== الإحالة ====== */}
+          <div className="rounded-3xl border bg-card p-6 shadow-elegant">
+            <div className="flex items-center gap-2">
+              <Gift className="h-5 w-5 text-primary" />
+              <div className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+                Refer a Friend
               </div>
             </div>
-          </div>
 
-          {/* Referral */}
-          <div className="rounded-4xl border bg-card p-6 shadow-elegant">
-            <div className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-              Referral Center
-            </div>
-            <h3 className="mt-2 font-serif text-xl">Share the Academy</h3>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Earn credits for every friend who joins.
+            <p className="mt-3 text-sm font-medium text-charcoal">
+              Invite a friend. When they join, you both get 50% off.
             </p>
-            <div className="mt-5 flex items-center gap-2 rounded-xl border bg-background p-2 text-xs">
-              <code className="flex-1 truncate px-2">
-                {data.referral.code}
+
+            <div className="mt-4 flex items-center gap-2 rounded-xl border bg-background p-2">
+              <code className="flex-1 truncate px-2 text-xs" dir="ltr">
+                 {data.referral.link}
               </code>
-              <button className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
-                <Copy size={14} />
+              <button
+                onClick={copyReferral}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground transition hover:bg-primary/90"
+                aria-label="Copy referral link"
+              >
+                {copied ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
               </button>
             </div>
+
             <div className="mt-6 grid grid-cols-2 gap-4 text-center">
               <div className="rounded-2xl border bg-background p-4">
                 <div className="font-serif text-2xl">
@@ -349,7 +388,7 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* Recording Modal */}
+      {/* ====== مودال التسجيل ====== */}
       {selectedRecording && (
         <div className="fixed inset-0 z-50 bg-foreground/60 backdrop-blur-sm flex items-center justify-center p-4">
           <motion.div
