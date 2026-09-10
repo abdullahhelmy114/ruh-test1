@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { buildOnboardingPrompt, buildSalesPrompt, buildDashboardPrompt } from '@/lib/tutorPrompts';
 import { sql } from '@/lib/db/client';
+import { requireAuth, AuthError } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
 type Language = 'en' | 'tr' | 'it' | 'es' | 'ar';
 
@@ -48,7 +50,12 @@ async function extractAssessment(replyText: string, apiKey: string): Promise<any
   }
 }
 
-export async function POST(req: NextRequest) {
+// Phase 2.2: the `sales` context is a genuine pre-authentication use (public
+// courses page). Every other context requires a verified session, and the
+// assessment written in `onboarding` is keyed by the caller's own uid; the
+// client-supplied userId is no longer accepted. userName/userLevel/userGoal
+// remain prompt hints only (they never establish identity).
+export const POST = withApi(async (req) => {
   try {
     const {
       message,
@@ -57,9 +64,11 @@ export async function POST(req: NextRequest) {
       userLevel,
       userGoal,
       userName,
-      userId,
       language = 'ar', // ✅ لغة جديدة
     } = await req.json();
+
+    const user = context === 'sales' ? null : await requireAuth(req);
+    const userId = user?.uid ?? null;
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json({ error: 'الرسالة فارغة أو غير صالحة' }, { status: 400 });
@@ -131,7 +140,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ reply, assessment });
   } catch (error) {
+    if (error instanceof AuthError) throw error; // let withApi map 401/403
     console.error('Error in /api/tutor:', error);
     return NextResponse.json({ error: 'حدث خطأ في المعالجة' }, { status: 500 });
   }
-}
+});

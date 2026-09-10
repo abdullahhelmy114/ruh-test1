@@ -1,20 +1,17 @@
-export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
+import { requireAuth } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const uid = searchParams.get('uid');
-  if (!uid) return NextResponse.json({ notifications: [] });
+// Phase 2.2: returns the verified caller's own notifications. Edge runtime
+// removed for firebase-admin compatibility.
+export const GET = withApi(async (req) => {
+  const user = await requireAuth(req);
 
-  try {
-    const notifications = await sql`
-      SELECT * FROM notifications
-      WHERE user_uid = ${uid}
-      ORDER BY created_at DESC LIMIT 10
-    `;
-    return NextResponse.json({ notifications });
-  } catch (error: any) {
-    return NextResponse.json({ notifications: [], error: error.message });
-  }
-}
+  const notifications = await sql`
+    SELECT * FROM notifications
+    WHERE user_uid = ${user.uid}
+    ORDER BY created_at DESC LIMIT 10
+  `;
+  return NextResponse.json({ notifications });
+});

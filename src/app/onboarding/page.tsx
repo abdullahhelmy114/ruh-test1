@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/AuthProvider";
+import { authFetch } from "@/lib/authFetch";
 import { Loader2, User, MapPin, BookOpen, Globe, ArrowRight } from "lucide-react";
 import { T } from "@/components/TranslatedText";
 
@@ -28,11 +29,10 @@ export default function OnboardingPage() {
     setSaving(true);
     setError("");
     try {
-      const res = await fetch("/api/user/complete-onboarding", {
+      const res = await authFetch("/api/user/complete-onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          uid: user.uid,
           bio,
           country,
           interests,

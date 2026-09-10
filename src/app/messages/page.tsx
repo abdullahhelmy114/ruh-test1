@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/firebase/AuthProvider";
+import { authFetch } from "@/lib/authFetch";
 import { T } from "@/components/TranslatedText";
 import { Loader2, Mail, Send, User } from "lucide-react";
 
@@ -15,7 +16,7 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (!user) return;
-    fetch(`/api/messages?uid=${user.uid}`)
+    authFetch("/api/messages")
       .then(r => r.json())
       .then(d => setMessages(d.messages || []))
       .finally(() => setLoading(false));
@@ -24,16 +25,16 @@ export default function MessagesPage() {
   const handleSendReply = async () => {
     if (!replyTo || !replyText.trim()) return;
     setSending(true);
-    await fetch("/api/messages", {
+    await authFetch("/api/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ senderUid: user?.uid, receiverUid: replyTo, message: replyText }),
+      body: JSON.stringify({ receiverUid: replyTo, message: replyText }),
     });
     setReplyTo(null);
     setReplyText("");
     setSending(false);
     // إعادة تحميل الرسائل
-    const res = await fetch(`/api/messages?uid=${user?.uid}`);
+    const res = await authFetch("/api/messages");
     const data = await res.json();
     setMessages(data.messages || []);
   };

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/firebase/AuthProvider";
+import { authFetch } from "@/lib/authFetch";
 import { T } from "@/components/TranslatedText";
 import { Loader2, Heart, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -14,7 +15,7 @@ export default function WishlistPage() {
   const fetchWishlist = () => {
     if (!user) return;
     setLoading(true);
-    fetch(`/api/wishlist?uid=${user.uid}`)
+    authFetch("/api/wishlist")
       .then(r => r.json())
       .then(d => setItems(d.items || []))
       .finally(() => setLoading(false));
@@ -23,10 +24,10 @@ export default function WishlistPage() {
   useEffect(() => { fetchWishlist(); }, [user]);
 
   const removeItem = async (courseId: string) => {
-    await fetch("/api/wishlist", {
+    await authFetch("/api/wishlist", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ uid: user?.uid, courseId }),
+      body: JSON.stringify({ courseId }),
     });
     fetchWishlist();
   };

@@ -1,18 +1,15 @@
-export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
+import { requireAuth } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const uid = searchParams.get('uid');
-  if (!uid) return NextResponse.json({ count: 0 });
+// Phase 2.2: counts unread messages for the verified caller only. Edge
+// runtime removed for firebase-admin compatibility.
+export const GET = withApi(async (req) => {
+  const user = await requireAuth(req);
 
-  try {
-    const [result] = await sql`
-      SELECT COUNT(*)::int AS count FROM messages WHERE receiver_uid = ${uid} AND read = false
-    `;
-    return NextResponse.json({ count: result?.count || 0 });
-  } catch {
-    return NextResponse.json({ count: 0 });
-  }
-}
+  const [result] = await sql`
+    SELECT COUNT(*)::int AS count FROM messages WHERE receiver_uid = ${user.uid} AND read = false
+  `;
+  return NextResponse.json({ count: result?.count || 0 });
+});

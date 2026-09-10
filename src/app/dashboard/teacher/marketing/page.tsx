@@ -33,7 +33,9 @@ export default function MarketingPage() {
   const router = useRouter();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedFilter, setSelectedFilter] = useState("never-enrolled");
+  // Phase 2.2: "never-enrolled" is admin-only server-side; default to a filter
+  // teachers are allowed to use so the page loads.
+  const [selectedFilter, setSelectedFilter] = useState("all");
   const [level, setLevel] = useState("B1");
   const [exporting, setExporting] = useState(false);
 
@@ -47,7 +49,7 @@ export default function MarketingPage() {
     if (!user) return;
     setLoading(true);
     const token = await user.getIdToken();
-    const params = new URLSearchParams({ teacherUid: user.uid, filter: selectedFilter });
+    const params = new URLSearchParams({ filter: selectedFilter });
     if (selectedFilter === "certificate-level") params.append("level", level);
     const res = await fetch(`/api/teacher/marketing?${params.toString()}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -65,7 +67,7 @@ export default function MarketingPage() {
     if (!user) return;
     setExporting(true);
     const token = await user.getIdToken();
-    const params = new URLSearchParams({ teacherUid: user.uid, filter: selectedFilter, export: "true" });
+    const params = new URLSearchParams({ filter: selectedFilter, export: "true" });
     if (selectedFilter === "certificate-level") params.append("level", level);
     const res = await fetch(`/api/teacher/marketing?${params.toString()}`, {
       headers: { Authorization: `Bearer ${token}` },

@@ -2,21 +2,23 @@ export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
-import { getServerSession } from '@/lib/auth';
+import { getServerSession, requireAuth, requireSelfOrAdmin } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const uid = searchParams.get('uid'); // هذا هو firebase_uid
-  if (!uid) return NextResponse.json({ error: 'Missing uid' }, { status: 400 });
+// GET: الملف الشخصي للمستخدم المسجّل دخوله.
+// Phase 2.2: returns the verified caller's own profile by default. An explicit
+// ?uid= is honoured only for the caller themself or an admin
+// (requireSelfOrAdmin → 403 otherwise). SELECT * retained (REVIEW_REQUIRED:
+// the profile pages read many columns and the list is not documented in-repo).
+export const GET = withApi(async (req) => {
+  const requested = new URL(req.url).searchParams.get('uid');
+  const user = requested ? await requireSelfOrAdmin(req, requested) : await requireAuth(req);
+  const uid = requested ?? user.uid;
 
-  try {
-    const [profile] = await sql`SELECT * FROM profiles WHERE firebase_uid = ${uid}`;
-    if (!profile) return NextResponse.json({ profile: null });
-    return NextResponse.json({ profile });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
+  const [profile] = await sql`SELECT * FROM profiles WHERE firebase_uid = ${uid}`;
+  if (!profile) return NextResponse.json({ profile: null });
+  return NextResponse.json({ profile });
+});
 
 // POST: إنشاء/تحديث الملف الشخصي للمستخدم المسجّل دخوله فقط.
 // Phase 0 containment: identity comes from the verified session, never from the

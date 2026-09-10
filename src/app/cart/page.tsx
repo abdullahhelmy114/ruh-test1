@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/firebase/AuthProvider";
+import { authFetch } from "@/lib/authFetch";
 import { T } from "@/components/TranslatedText";
 import { Loader2, Trash2, ShoppingCart, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -15,7 +16,7 @@ export default function CartPage() {
   const fetchCart = () => {
     if (!user) return;
     setLoading(true);
-    fetch(`/api/cart?uid=${user.uid}`)
+    authFetch("/api/cart")
       .then(r => r.json())
       .then(d => setItems(d.items || []))
       .finally(() => setLoading(false));
@@ -24,10 +25,10 @@ export default function CartPage() {
   useEffect(() => { fetchCart(); }, [user]);
 
   const removeItem = async (courseId: string) => {
-    await fetch("/api/cart", {
+    await authFetch("/api/cart", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ uid: user?.uid, courseId }),
+      body: JSON.stringify({ courseId }),
     });
     fetchCart();
   };

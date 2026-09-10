@@ -1,6 +1,7 @@
-export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
+import { requireAuth } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
 // GET: جلب تقييمات كورس مع المتوسط وعدد التقييمات
 export async function GET(request: Request) {
@@ -33,20 +34,21 @@ export async function GET(request: Request) {
 }
 
 // POST: إضافة تقييم جديد (أو تحديثه)
-export async function POST(request: Request) {
-  try {
-    const { userUid, courseId, rating, comment } = await request.json();
-    if (!userUid || !courseId || !rating) {
-      return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
-    }
+// Phase 2.2: the review author is the verified caller (user.uid); the client
+// no longer supplies userUid. courseId remains the target. Edge runtime
+// removed from this file for firebase-admin compatibility.
+export const POST = withApi(async (req) => {
+  const user = await requireAuth(req);
 
-    await sql`
-      INSERT INTO reviews (user_uid, course_id, rating, comment)
-      VALUES (${userUid}, ${courseId}, ${rating}, ${comment || null})
-      ON CONFLICT (user_uid, course_id) DO UPDATE SET rating = ${rating}, comment = ${comment || null}
-    `;
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  const { courseId, rating, comment } = await req.json();
+  if (!courseId || !rating) {
+    return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
   }
-}
+
+  await sql`
+    INSERT INTO reviews (user_uid, course_id, rating, comment)
+    VALUES (${user.uid}, ${courseId}, ${rating}, ${comment || null})
+    ON CONFLICT (user_uid, course_id) DO UPDATE SET rating = ${rating}, comment = ${comment || null}
+  `;
+  return NextResponse.json({ success: true });
+});

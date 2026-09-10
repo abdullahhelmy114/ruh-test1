@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/AuthProvider";
+import { authFetch } from "@/lib/authFetch";
 import {
   Loader2, Play, FileText, Download, CheckCircle,
   BookOpen, ArrowLeft, HelpCircle, Award, Gamepad2,
@@ -151,10 +152,10 @@ export default function CoursePlayerPage() {
   const handleComplete = async () => {
     if (!currentLesson || !user) return;
     setCompleting(true);
-    await fetch("/api/lessons/complete", {
+    await authFetch("/api/lessons/complete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lessonId: currentLesson.id, uid: user.uid }),
+      body: JSON.stringify({ lessonId: currentLesson.id }),
     });
     setCurrentLesson(prev => prev ? { ...prev, completed: true } : prev);
     setCompleting(false);

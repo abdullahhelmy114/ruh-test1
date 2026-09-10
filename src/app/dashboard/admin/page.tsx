@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { T } from "@/components/TranslatedText";
 import { useAuth } from "@/lib/firebase/AuthProvider";
+import { authFetch } from "@/lib/authFetch";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import GamificationSettings from "@/components/admin/GamificationSettings";
@@ -85,7 +86,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (!user) return;
-    fetch(`/api/user?uid=${user.uid}`)
+    authFetch("/api/user")
       .then((r) => r.json())
       .then((d) => {
         if (d.profile && !d.profile.email_verified) {

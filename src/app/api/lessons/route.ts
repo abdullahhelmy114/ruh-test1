@@ -1,6 +1,7 @@
-export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
+import { requireTeacher } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -24,31 +25,35 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json().catch(() => ({}));
-    const { courseId, title, type, scheduledAt, teacherUid } = body;
+// Phase 2.2: the lesson's teacher is the verified caller (user.uid); the
+// ownership check no longer trusts body.teacherUid. courseId is the target.
+// Known mismatch (not fixed here): LessonCreationDialog posts
+// { live_course_id, type, scheduled_at, scenario, teacher_notes } and will
+// still receive 400 from this handler, as it did before this change.
+// Edge runtime removed from this file for firebase-admin compatibility.
+export const POST = withApi(async (req) => {
+  const user = await requireTeacher(req);
 
-    if (!courseId || !title || !teacherUid) {
-      return NextResponse.json({ error: 'Missing required fields: courseId, title, teacherUid' }, { status: 400 });
-    }
+  const body = await req.json().catch(() => ({}));
+  const { courseId, title, type, scheduledAt } = body;
 
-    const [course] = await sql`SELECT id FROM course WHERE id = ${courseId} AND teacher_uid = ${teacherUid}`;
-    if (!course) {
-      return NextResponse.json({ error: 'Course not found or you do not own this course' }, { status: 403 });
-    }
-
-    const [lesson] = await sql`
-      INSERT INTO lessons (course_id, title, type, scheduled_at, teacher_uid, status)
-      VALUES (${courseId}, ${title}, ${type}, ${scheduledAt || null}, ${teacherUid}, 'pending')
-      RETURNING id, title, status
-    `;
-
-    return NextResponse.json({ lesson, message: 'Lesson submitted for review' });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!courseId || !title) {
+    return NextResponse.json({ error: 'Missing required fields: courseId, title' }, { status: 400 });
   }
-}
+
+  const [course] = await sql`SELECT id FROM course WHERE id = ${courseId} AND teacher_uid = ${user.uid}`;
+  if (!course) {
+    return NextResponse.json({ error: 'Course not found or you do not own this course' }, { status: 403 });
+  }
+
+  const [lesson] = await sql`
+    INSERT INTO lessons (course_id, title, type, scheduled_at, teacher_uid, status)
+    VALUES (${courseId}, ${title}, ${type}, ${scheduledAt || null}, ${user.uid}, 'pending')
+    RETURNING id, title, status
+  `;
+
+  return NextResponse.json({ lesson, message: 'Lesson submitted for review' });
+});
 
 export async function PUT(request: Request) {
   try {

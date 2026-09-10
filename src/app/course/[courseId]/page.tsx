@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/AuthProvider";
+import { authFetch } from "@/lib/authFetch";
 import { Loader2, ChevronRight, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { T } from "@/components/TranslatedText";
@@ -47,7 +48,7 @@ export default function CourseDetailPage() {
   // تحديد variant (أطفال / كبار)
   useEffect(() => {
     if (!user) return;
-    fetch(`/api/user?uid=${user.uid}`)
+    authFetch("/api/user")
       .then((r) => r.json())
       .then((data) => {
         if (data.profile?.age && data.profile.age <= 13) {
@@ -129,10 +130,10 @@ function ReviewsSection({ courseId }: { courseId: string }) {
   const handleSubmitReview = async () => {
     if (!user || !myRating) return;
     setSubmitting(true);
-    await fetch("/api/reviews", {
+    await authFetch("/api/reviews", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userUid: user.uid, courseId, rating: myRating, comment }),
+      body: JSON.stringify({ courseId, rating: myRating, comment }),
     });
     setMyRating(0);
     setComment("");

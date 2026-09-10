@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { User, Globe2, Languages, Phone, MessageCircle, Mail, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/firebase/AuthProvider";
+import { authFetch } from "@/lib/authFetch";
 import { AvatarCard } from "./AvatarCard";
 import { Section } from "./Section";
 import { Field, Input, Select } from "./Field";
@@ -39,7 +40,7 @@ export function StudentProfile({ readOnly = false }: { readOnly?: boolean }) {
     if (authLoading || !user) return;
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`/api/user?uid=${user.uid}`);
+        const res = await authFetch("/api/user");
         const data = await res.json();
         if (data.profile) {
           const p = data.profile;

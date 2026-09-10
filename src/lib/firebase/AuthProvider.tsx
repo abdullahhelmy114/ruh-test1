@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "./client";
+import { authFetch } from "@/lib/authFetch";
 
 type AuthContextType = {
   user: User | null;
@@ -29,9 +30,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setRole(newRole);
   };
 
-  const fetchRoleFromServer = async (uid: string) => {
+  const fetchRoleFromServer = async () => {
     try {
-      const res = await fetch(`/api/user?uid=${uid}`);
+      const res = await authFetch("/api/user");
       const data = await res.json();
       if (data?.profile?.role) {
         const serverRole = data.profile.role as "student" | "teacher" | "admin";
@@ -55,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // الدور يأتي من الخادم فقط؛ عند الفشل نفترض "student" (أقل صلاحية)
-      const serverRole = await fetchRoleFromServer(currentUser.uid);
+      const serverRole = await fetchRoleFromServer();
       if (!serverRole) {
         setRole("student");
       }

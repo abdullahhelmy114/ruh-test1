@@ -39,7 +39,7 @@ export default function TeacherStudentsPage() {
     setLoading(true);
     const fetchStudents = async () => {
       const token = await user.getIdToken();
-      const params = new URLSearchParams({ teacherUid: user.uid, filter });
+      const params = new URLSearchParams({ filter });
       if (filter === "certificate-level") params.append("level", certLevel);
       fetch(`/api/teacher/students?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` },

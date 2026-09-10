@@ -13,6 +13,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/lib/firebase/AuthProvider";
+import { authFetch } from "@/lib/authFetch";
 import { signOut, getAuth } from "firebase/auth";
 
 import {
@@ -56,7 +57,7 @@ export function Navbar() {
   useEffect(() => {
     if (!user) return;
     const fetchNotifications = () => {
-      fetch(`/api/notifications?uid=${user.uid}`)
+      authFetch("/api/notifications")
         .then(r => r.json())
         .then(d => setNotifications(d.notifications || []));
     };
@@ -69,15 +70,15 @@ export function Navbar() {
   useEffect(() => {
     if (!user) return;
     const updateUnread = () =>
-      fetch(`/api/messages/unread-count?uid=${user.uid}`)
+      authFetch("/api/messages/unread-count")
         .then((r) => r.json())
         .then((d) => setUnreadMessages(d.count || 0));
     const updateCart = () =>
-      fetch(`/api/cart?uid=${user.uid}`)
+      authFetch("/api/cart")
         .then(r => r.json())
         .then(d => setCartCount(d.items?.length || 0));
     const checkFcm = () =>
-      fetch(`/api/user?uid=${user.uid}`)
+      authFetch("/api/user")
         .then((r) => r.json())
         .then((d) => {
           if (d.profile?.fcm_token) setNotificationsEnabled(true);
@@ -99,10 +100,10 @@ export function Navbar() {
         vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY!,
       });
       if (token) {
-        await fetch("/api/notifications/register", {
+        await authFetch("/api/notifications/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ uid: user!.uid, token }),
+          body: JSON.stringify({ token }),
         });
         setNotificationsEnabled(true);
       }

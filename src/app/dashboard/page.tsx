@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/AuthProvider";
+import { authFetch } from "@/lib/authFetch";
 import { Loader2 } from "lucide-react";
 
 export default function DashboardRedirect() {
@@ -24,7 +25,7 @@ export default function DashboardRedirect() {
     }
 
     // للمعلمين والطلاب: جلب بيانات الملف الشخصي للتحقق من الحالة والبريد الإلكتروني
-    fetch(`/api/user?uid=${user.uid}`)
+    authFetch("/api/user")
       .then(r => r.json())
       .then(d => {
         const profile = d?.profile;

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/AuthProvider";
+import { authFetch } from "@/lib/authFetch";
 import {
   Loader2, ShieldAlert, ArrowLeft, ArrowRight,
   Clock, BookOpen, AlertTriangle,
@@ -139,10 +140,10 @@ export default function ExamPage() {
 
   const handleSubmit = async () => {
     setSubmitting(true);
-    const res = await fetch(`/api/exam/${courseId}/submit`, {
+    const res = await authFetch(`/api/exam/${courseId}/submit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: user?.uid, answers }),
+      body: JSON.stringify({ answers }),
     });
     const data = await res.json();
     setResult(data);
