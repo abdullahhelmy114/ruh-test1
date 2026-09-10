@@ -1,36 +1,21 @@
-import { getAdminAuth } from "@/lib/firebase/admin";
-import { sql } from "@/lib/db/client";
-
 /**
- * Verifies a Firebase ID token from the Authorization header and resolves the
- * user's role from the `profiles` table.
+ * Compatibility shim (Phase 1).
  *
- * Phase 0 containment: the previous implementation accepted unauthenticated
- * `x-user-id` / `x-user-role` headers and a hardcoded admin-email allowlist.
- * Both are removed. Identity now comes only from a verified token, and role
- * only from the database. This helper is slated for replacement by the
- * central auth module in Phase 1/2; do not add new callers.
+ * `verifyIdToken(req)` is kept for the routes that still import it, but it
+ * now delegates to the central auth service. Identity comes only from a
+ * verified Firebase credential and role only from `profiles`. Returns
+ * `{ uid, role, email }` or null, matching the previous shape.
+ *
+ * Deprecated: new code should use `requireAuth` / `requireRole` from
+ * "@/lib/auth". Callers are migrated in Phase 2, after which this file is
+ * removed.
  */
-export async function verifyIdToken(req: Request) {
-  const authHeader = req.headers.get("authorization") || "";
-  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+import { getSession } from "@/lib/auth";
 
-  if (!token) return null;
-
-  try {
-    const auth = getAdminAuth();
-    const decoded = await auth.verifyIdToken(token);
-
-    const [profile] = await sql`
-      SELECT role FROM profiles WHERE firebase_uid = ${decoded.uid}
-    `;
-
-    if (!profile) return null;
-
-    const role: string = profile.role || "student";
-    return { uid: decoded.uid, role, email: decoded.email || "" };
-  } catch (error) {
-    console.error("Token verification failed:", error);
-    return null;
-  }
+export async function verifyIdToken(
+  req: Request
+): Promise<{ uid: string; role: string; email: string } | null> {
+  const user = await getSession(req);
+  if (!user) return null;
+  return { uid: user.uid, role: user.role, email: user.email ?? "" };
 }

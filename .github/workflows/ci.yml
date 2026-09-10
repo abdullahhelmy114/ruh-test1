@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # Phase 1: the repo still carries ~36 pre-existing type errors outside
+      # the auth foundation. Typecheck is reported but not yet blocking; it
+      # becomes required once the baseline is cleared (Phase 5 / Phase 12).
+      - name: Typecheck (advisory until baseline is clean)
+        run: npx tsc --noEmit
+        continue-on-error: true
+
+      - name: Auth tests
+        run: node --test "tests/**/*.test.ts"
