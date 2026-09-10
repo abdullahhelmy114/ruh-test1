@@ -2,11 +2,9 @@ import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
 import { verifyIdToken } from '@/lib/firebase/server';
 
-const ADMIN_EMAILS = ["abdullahhelmy114@gmail.com", "dr.jehanziad@ruhulqudus.com"];
-
 export async function GET(req: Request) {
   const user = await verifyIdToken(req);
-  if (!user || (user.role !== "admin" && !ADMIN_EMAILS.includes(user.email || ""))) {
+  if (!user || user.role !== "admin") {
     return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
   }
 
@@ -25,7 +23,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const user = await verifyIdToken(req);
-  if (!user || (user.role !== "admin" && !ADMIN_EMAILS.includes(user.email || ""))) {
+  if (!user || user.role !== "admin") {
     return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
   }
 

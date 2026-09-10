@@ -23,23 +23,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [role, setRole] = useState<"admin" | "teacher" | "student" | null>(null);
 
+  // Phase 0: role is UI hint only; it is never persisted to localStorage and
+  // never read back from it. The server re-checks role on every request.
   const setStoredRole = (newRole: "teacher" | "student") => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("userRole", newRole);
-    }
     setRole(newRole);
   };
 
-  const fetchRoleFromServer = async (uid: string, email?: string | null) => {
+  const fetchRoleFromServer = async (uid: string) => {
     try {
       const res = await fetch(`/api/user?uid=${uid}`);
       const data = await res.json();
       if (data?.profile?.role) {
         const serverRole = data.profile.role as "student" | "teacher" | "admin";
         setRole(serverRole);
-        if (typeof window !== "undefined") {
-          localStorage.setItem("userRole", serverRole);
-        }
         return serverRole;
       }
     } catch (error) {
@@ -58,20 +54,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // جلب الدور من الخادم كمصدر أساسي
-      const serverRole = await fetchRoleFromServer(currentUser.uid, currentUser.email);
-
-      // إذا لم ينجح الخادم، نعتمد على localStorage
+      // الدور يأتي من الخادم فقط؛ عند الفشل نفترض "student" (أقل صلاحية)
+      const serverRole = await fetchRoleFromServer(currentUser.uid);
       if (!serverRole) {
-        const stored =
-          typeof window !== "undefined"
-            ? localStorage.getItem("userRole")
-            : null;
-        setRole(
-          stored === "teacher" || stored === "student" || stored === "admin"
-            ? stored
-            : "student"
-        );
+        setRole("student");
       }
 
       setIsLoading(false);

@@ -16,7 +16,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { authFetch } from "@/lib/authFetch";
 import { useRouter } from "next/navigation";
 
 // استيراد ديناميكي للمشهد الثلاثي الأبعاد (لن يتم تحميله إلا عند الحاجة)
@@ -52,26 +51,9 @@ export function LibraryView() {
     setShowSubscribeDialog(true);
   }, []);
 
-  const handleMockPurchase = async (plan: "monthly" | "lifetime") => {
-    setSubscribing(true);
-    try {
-      const res = await authFetch("/api/library/mock-purchase", {
-        method: "POST",
-        body: JSON.stringify({ plan }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        // تحديث الحالة في المزوّد (يمكن استدعاء refresh)
-        window.location.reload(); // حل مؤقت لحين دمج refresh من LibraryProvider
-      } else {
-        alert(data.error || "Purchase failed");
-      }
-    } catch {
-      alert("Network error");
-    } finally {
-      setSubscribing(false);
-    }
-  };
+  // Phase 0: the mock purchase endpoint was removed. Library subscriptions will
+  // be sold through Whop in Phase 3; until then the plan buttons are disabled.
+  const purchaseUnavailable = true;
 
   if (loading) {
     return (
@@ -174,8 +156,7 @@ export function LibraryView() {
               <Button
                 variant="outline"
                 className="h-24 flex-col gap-2 border-primary/30 hover:bg-primary/10"
-                onClick={() => handleMockPurchase("monthly")}
-                disabled={subscribing}
+                disabled={purchaseUnavailable || subscribing}
               >
                 <span className="text-lg font-bold">$9.99</span>
                 <span className="text-xs text-muted-foreground">
@@ -185,8 +166,7 @@ export function LibraryView() {
               <Button
                 variant="outline"
                 className="h-24 flex-col gap-2 border-accent/30 hover:bg-accent/10"
-                onClick={() => handleMockPurchase("lifetime")}
-                disabled={subscribing}
+                disabled={purchaseUnavailable || subscribing}
               >
                 <span className="text-lg font-bold">$49.99</span>
                 <span className="text-xs text-muted-foreground">

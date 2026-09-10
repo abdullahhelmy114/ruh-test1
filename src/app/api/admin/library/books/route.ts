@@ -4,13 +4,12 @@ import { uploadFileToGoogleDrive } from '@/lib/google-drive';
 import { processPdfForBook } from '@/lib/pdf-processor';
 import { db } from '@/lib/db';
 import { randomUUID } from 'crypto';
+import { getServerSession } from '@/lib/auth';
 
-// دالة التحقق من صلاحية الأدمن (يجب تعديلها حسب نظام المصادقة الحالي)
+// التحقق من صلاحية الأدمن عبر الجلسة الموثّقة ودور profiles
 async function isAdmin(request: NextRequest): Promise<boolean> {
-  // مثال: تحقق من وجود جلسة أدمن أو تحقق من Firebase Token
-  // يمكنك استيراد دالة التحقق الخاصة بك من src/lib/auth أو firebase-admin
-  // هنا نعيد true للتبسيط، لكن يجب استبدالها بالتحقق الفعلي
-  return true;
+  const session = await getServerSession(request);
+  return !!session && session.role === 'admin';
 }
 
 export async function POST(request: NextRequest) {
@@ -50,8 +49,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'ملف PDF مطلوب' }, { status: 400 });
     }
 
-    if (sourceType === 'url' && !sourceUrl) {
-      return NextResponse.json({ error: 'رابط PDF مطلوب' }, { status: 400 });
+    // Phase 0: import-by-URL fetches an arbitrary server-side URL (SSRF).
+    // Disabled until the storage/PDF pipeline is rebuilt in Phase 3.
+    if (sourceType === 'url') {
+      return NextResponse.json(
+        { error: 'الاستيراد عبر الرابط معطّل مؤقتاً. يرجى رفع ملف PDF مباشرة.' },
+        { status: 400 }
+      );
     }
 
     // معالجة التصنيفات

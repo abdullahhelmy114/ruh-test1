@@ -180,7 +180,7 @@ export default function NewCoursePage() {
           <Select value={level} onValueChange={setLevel}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {["A1","A2","B1","B2","C1","C2"].map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+              {["All Levels","A1","A2","B1","B2","C1","C2"].map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
