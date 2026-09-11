@@ -1,29 +1,31 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
-import { requireTeacher } from '@/lib/auth';
+import { requireAdmin, requireTeacher } from '@/lib/auth';
 import { withApi } from '@/lib/api/handler';
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
+// Phase 2.3a: previously unauthenticated (leaked meeting_url for all lessons).
+// Admins may list freely and filter by ?teacherUid=; a teacher is always
+// scoped to their own lessons regardless of the query parameter.
+export const GET = withApi(async (req) => {
+  const user = await requireTeacher(req);
+
+  const { searchParams } = new URL(req.url);
   const status = searchParams.get('status') || 'pending';
-  const teacherUid = searchParams.get('teacherUid');
+  const requestedTeacher = searchParams.get('teacherUid');
+  const teacherUid = user.role === 'admin' ? requestedTeacher : user.uid;
 
-  try {
-    let query = sql`SELECT l.*, c.title AS course_title FROM lessons l JOIN course c ON l.course_id = c.id`;
-    const conditions = [];
+  let query = sql`SELECT l.*, c.title AS course_title FROM lessons l JOIN course c ON l.course_id = c.id`;
+  const conditions = [];
 
-    if (status) conditions.push(sql`l.status = ${status}`);
-    if (teacherUid) conditions.push(sql`l.teacher_uid = ${teacherUid}`);
+  if (status) conditions.push(sql`l.status = ${status}`);
+  if (teacherUid) conditions.push(sql`l.teacher_uid = ${teacherUid}`);
 
-    if (conditions.length > 0) query = sql`${query} WHERE ${conditions[0]} ${conditions.slice(1).reduce((prev, curr) => sql`${prev} AND ${curr}`, sql``)}`;
-    query = sql`${query} ORDER BY l.created_at DESC`;
+  if (conditions.length > 0) query = sql`${query} WHERE ${conditions[0]} ${conditions.slice(1).reduce((prev, curr) => sql`${prev} AND ${curr}`, sql``)}`;
+  query = sql`${query} ORDER BY l.created_at DESC`;
 
-    const lessons = await query;
-    return NextResponse.json({ lessons });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
+  const lessons = await query;
+  return NextResponse.json({ lessons });
+});
 
 // Phase 2.2: the lesson's teacher is the verified caller (user.uid); the
 // ownership check no longer trusts body.teacherUid. courseId is the target.
@@ -55,16 +57,16 @@ export const POST = withApi(async (req) => {
   return NextResponse.json({ lesson, message: 'Lesson submitted for review' });
 });
 
-export async function PUT(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const lessonId = searchParams.get('id');
-    const { status } = await request.json();
-    if (!lessonId || !status) return NextResponse.json({ error: 'Missing lessonId or status' }, { status: 400 });
+// Phase 2.3a: previously unauthenticated — anyone could set any lesson's
+// status. Admin session required. Status values pass through unchanged.
+export const PUT = withApi(async (req) => {
+  await requireAdmin(req);
 
-    await sql`UPDATE lessons SET status = ${status} WHERE id = ${lessonId}`;
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
+  const { searchParams } = new URL(req.url);
+  const lessonId = searchParams.get('id');
+  const { status } = await req.json();
+  if (!lessonId || !status) return NextResponse.json({ error: 'Missing lessonId or status' }, { status: 400 });
+
+  await sql`UPDATE lessons SET status = ${status} WHERE id = ${lessonId}`;
+  return NextResponse.json({ success: true });
+});

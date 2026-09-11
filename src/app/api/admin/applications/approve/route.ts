@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
-import { verifyIdToken } from '@/lib/firebase/server';
+import { requireAdmin } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
-export async function POST(req: Request) {
+// Phase 2.3a: authorization moved from the legacy verifyIdToken shim to the
+// central requireAdmin guard. Approval logic below is unchanged.
+export const POST = withApi(async (req) => {
+  // 1. تحقق من أن المستخدم أدمن
+  await requireAdmin(req);
+
   try {
-    // 1. تحقق من أن المستخدم أدمن
-    const user = await verifyIdToken(req);
-    if (!user || user.role !== 'admin') {
-      return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-    }
-
     // 2. استلام application_id من الطلب
     const { application_id } = await req.json();
     if (!application_id) {
@@ -68,4 +68,4 @@ export async function POST(req: Request) {
     console.error('Approve error:', error);
     return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
   }
-}
+});

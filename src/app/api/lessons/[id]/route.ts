@@ -3,6 +3,8 @@ export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
 import { sendEmail } from '@/lib/email';
+import { requireAdmin } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
 // ─── دوال Zoom (بدون تغيير) ──────────────────────────────
 async function getZoomAccessToken(): Promise<string> {
@@ -71,13 +73,17 @@ async function createZoomMeeting(topic: string, startTime: string): Promise<{ me
 }
 
 // ─── PUT /api/lessons/[id] ─────────────────────────────────
-export async function PUT(
-  request: Request,
-  context: { params: Promise<{ id: string }> }
-) {
+// Phase 2.3a: previously unauthenticated — anyone could approve/reject any
+// lesson, create a Zoom meeting on the academy account, and trigger the
+// teacher email. Admin session required. Business logic below is unchanged.
+// REVIEW_REQUIRED (Phase 4): the approval email joins a `users` table that
+// the repository schema does not define; left as-is by decision.
+export const PUT = withApi<{ id: string }>(async (req, ctx) => {
+  await requireAdmin(req);
+
   try {
-    const { status, meetingUrl, meetingId } = await request.json();
-    const { id: lessonId } = await context.params;
+    const { status, meetingUrl, meetingId } = await req.json();
+    const { id: lessonId } = await ctx.params;
     if (!lessonId || !status) {
       return NextResponse.json({ error: 'Missing lesson ID or status' }, { status: 400 });
     }
@@ -97,9 +103,9 @@ export async function PUT(
           const zoomMeeting = await createZoomMeeting(lesson.title, lesson.scheduled_at);
           finalMeetingUrl = zoomMeeting.joinUrl;
           finalMeetingId = zoomMeeting.meetingId;
-        } catch (zoomError: any) {
-          console.error('Zoom creation error:', zoomError.message);
-          return NextResponse.json({ error: `Zoom meeting creation failed: ${zoomError.message}` }, { status: 500 });
+        } catch (zoomError) {
+          console.error('Zoom creation error:', zoomError);
+          return NextResponse.json({ error: 'Zoom meeting creation failed' }, { status: 500 });
         }
       }
     }
@@ -155,7 +161,8 @@ export async function PUT(
     }
 
     return NextResponse.json({ lesson: result[0] });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error('Lesson review failed:', error);
+    return NextResponse.json({ error: 'Lesson review failed' }, { status: 500 });
   }
-}
+});

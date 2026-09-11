@@ -1,20 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
-import { cookies } from 'next/headers';
-import { getAuth } from 'firebase-admin/auth';
 import { z } from 'zod';
+import { requireAdmin } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
-async function getCurrentUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('session')?.value;
-  if (!token) return null;
-  try {
-    const decoded = await getAuth().verifyIdToken(token);
-    return decoded;
-  } catch {
-    return null;
-  }
-}
+// Phase 2.3a: the previous guard read a `session` cookie the app never sets,
+// called an uninitialized Firebase Admin instance, and checked a custom claim
+// that is never issued, so it always returned 403. Replaced by the central
+// requireAdmin guard; validation and insert logic are unchanged.
 
 const challengeSchema = z.object({
   title: z.string().min(5, 'العنوان قصير جداً').max(200),
@@ -25,11 +18,8 @@ const challengeSchema = z.object({
   badgeId: z.string().uuid().optional().nullable(),
 });
 
-export async function POST(req: NextRequest) {
-  const user = await getCurrentUser();
-  if (!user || user.role !== 'admin') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-  }
+export const POST = withApi(async (req) => {
+  const user = await requireAdmin(req);
 
   const body = await req.json();
   const validation = challengeSchema.safeParse(body);
@@ -50,4 +40,4 @@ export async function POST(req: NextRequest) {
     console.error(error);
     return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
   }
-}
+});

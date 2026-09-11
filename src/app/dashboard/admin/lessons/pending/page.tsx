@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/AuthProvider";
+import { authFetch } from "@/lib/authFetch";
 import { Loader2, CheckCircle2, XCircle, Clock, Video, FileText, ArrowLeft, Play } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -41,7 +42,7 @@ export default function PendingLessonsPage() {
   const fetchLessons = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/lessons?status=pending");
+      const res = await authFetch("/api/lessons?status=pending");
       if (res.ok) {
         const data = await res.json();
         setLessons(data.lessons || []);
@@ -56,7 +57,7 @@ export default function PendingLessonsPage() {
   const handleAction = async (lessonId: string, status: "approved" | "rejected") => {
     setActionId(lessonId);
     try {
-      const res = await fetch(`/api/lessons/${lessonId}`, {
+      const res = await authFetch(`/api/lessons/${lessonId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

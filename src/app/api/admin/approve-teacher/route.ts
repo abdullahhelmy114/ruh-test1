@@ -1,15 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
-import { verifyIdToken } from "@/lib/firebase/server";
+import { requireAdmin } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 
-export async function POST(req: NextRequest) {
+// Phase 2.3a: AUTH MIGRATION ONLY — the legacy verifyIdToken shim is replaced
+// by the central requireAdmin guard. The database write below is unchanged.
+// REVIEW_REQUIRED (Phase 4): it updates a `users` table that the repository
+// schema does not define, while authorization reads `profiles.role`, so this
+// approval does not currently take effect. Not fixed here by decision.
+export const POST = withApi(async (req) => {
+  // 1. التحقق من صلاحيات المشرف
+  await requireAdmin(req);
+
   try {
-    // 1. التحقق من صلاحيات المشرف
-    const adminUser = await verifyIdToken(req);
-    if (!adminUser || adminUser.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     // 2. قراءة البيانات المرسلة
     const body = await req.json();
     
@@ -42,4 +45,4 @@ export async function POST(req: NextRequest) {
     console.error("Server Error in approve-teacher:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
-}
+});

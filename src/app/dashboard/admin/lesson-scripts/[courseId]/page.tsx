@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/AuthProvider";
+import { authFetch } from "@/lib/authFetch";
 import { T } from "@/components/TranslatedText";
 import { toast } from "sonner";
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -91,7 +92,7 @@ const VoiceGeneratorModal = ({
     if (!voice) return;
     try {
       setIsPreviewing(voice.id);
-      const res = await fetch("/api/tts/generate", {
+      const res = await authFetch("/api/tts/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: voice.sample, voice: voice.id }),
@@ -122,7 +123,7 @@ const VoiceGeneratorModal = ({
     setIsGenerating(true);
     setGeneratedAudio(null);
     try {
-      const res = await fetch("/api/tts/generate", {
+      const res = await authFetch("/api/tts/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text, voice: selectedVoice.id }),
