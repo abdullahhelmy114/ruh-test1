@@ -1,16 +1,12 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
-import { verifyIdToken } from '@/lib/firebase/server';
+import { requireAdmin } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
 // تعديل درس (تحديث العنوان والمحتوى)
-export async function PUT(
-  req: Request, 
-  { params }: { params: { id: string; lessonId: string } }
-) {
-  const user = await verifyIdToken(req);
-  if (!user || user.role !== 'admin') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-  }
+export const PUT = withApi<{ id: string; lessonId: string }>(async (req, ctx) => {
+  await requireAdmin(req);
+  const params = await ctx.params;
 
   try {
     const { title, content } = await req.json();
@@ -35,17 +31,12 @@ export async function PUT(
     console.error('Update lesson error:', error);
     return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
   }
-}
+});
 
 // حذف درس
-export async function DELETE(
-  req: Request, 
-  { params }: { params: { id: string; lessonId: string } }
-) {
-  const user = await verifyIdToken(req);
-  if (!user || user.role !== 'admin') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-  }
+export const DELETE = withApi<{ id: string; lessonId: string }>(async (req, ctx) => {
+  await requireAdmin(req);
+  const params = await ctx.params;
 
   try {
     await sql`
@@ -57,4 +48,4 @@ export async function DELETE(
     console.error('Delete lesson error:', error);
     return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
   }
-}
+});

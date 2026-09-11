@@ -1,17 +1,13 @@
 // src/app/api/categories/[id]/route.ts
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
-import { getServerSession } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 
 // PUT: تعديل تصنيف (أدمن فقط)
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== "admin") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-  }
+export const PUT = withApi<{ id: string }>(async (req, ctx) => {
+  await requireAdmin(req);
+  const params = await ctx.params;
 
   try {
     const { id } = params;
@@ -59,17 +55,12 @@ export async function PUT(
     console.error("Error updating category:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // DELETE: حذف تصنيف (أدمن فقط)
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== "admin") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-  }
+export const DELETE = withApi<{ id: string }>(async (req, ctx) => {
+  await requireAdmin(req);
+  const params = await ctx.params;
 
   try {
     const { id } = params;
@@ -102,4 +93,4 @@ export async function DELETE(
     console.error("Error deleting category:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

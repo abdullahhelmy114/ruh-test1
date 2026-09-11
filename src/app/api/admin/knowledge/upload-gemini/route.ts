@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
-import { verifyIdToken } from "@/lib/firebase/server";
+import { requireAdmin } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 import { GoogleAIFileManager } from "@google/generative-ai/server";
 import fs from "fs";
 import path from "path";
@@ -10,11 +11,10 @@ export const dynamic = "force-dynamic";
 
 const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY!);
 
-export async function POST(req: NextRequest) {
-  try {
-    const user = await verifyIdToken(req);
-    if (!user || user.role !== "admin") return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
+export const POST = withApi(async (req) => {
+  await requireAdmin(req);
 
+  try {
     const formData = await req.formData();
     const file = formData.get("file") as File;
     const bookTitle = formData.get("book_title") as string;
@@ -53,4 +53,4 @@ export async function POST(req: NextRequest) {
     console.error("Gemini Upload Error:", error);
     return NextResponse.json({ error: "فشل الرفع لسيرفرات جوجل" }, { status: 500 });
   }
-}
+});

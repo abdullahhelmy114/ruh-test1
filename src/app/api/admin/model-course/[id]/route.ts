@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
-import { verifyIdToken } from "@/lib/firebase/server";
+import { requireAdmin } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export const DELETE = withApi<{ id: string }>(async (req, ctx) => {
+  await requireAdmin(req);
+  const params = await ctx.params;
+
   try {
     // 1. التحقق من صلاحيات المشرف
-    const adminUser = await verifyIdToken(req);
-    if (!adminUser || adminUser.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     const courseId = params.id;
     if (!courseId) {
@@ -24,4 +24,4 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     console.error("Error deleting model course:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
-}
+});

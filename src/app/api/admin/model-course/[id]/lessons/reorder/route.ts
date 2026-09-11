@@ -1,15 +1,11 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
-import { verifyIdToken } from '@/lib/firebase/server';
+import { requireAdmin } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  const user = await verifyIdToken(req);
-  if (!user || user.role !== 'admin') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-  }
+export const PUT = withApi<{ id: string }>(async (req, ctx) => {
+  await requireAdmin(req);
+  const params = await ctx.params;
 
   try {
     const { orderedIds } = await req.json();
@@ -34,4 +30,4 @@ export async function PUT(
     console.error('Reorder lessons error:', error);
     return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
   }
-}
+});

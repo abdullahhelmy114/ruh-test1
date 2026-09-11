@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
-import { getServerSession } from '@/lib/auth';
+import { requireAdmin } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
-export async function GET(req: Request) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== 'admin') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-  }
+export const GET = withApi(async (req) => {
+  await requireAdmin(req);
 
   try {
     const course = await sql`
@@ -21,13 +19,10 @@ export async function GET(req: Request) {
     console.error('GET error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-}
+});
 
-export async function POST(req: Request) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== 'admin') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-  }
+export const POST = withApi(async (req) => {
+  await requireAdmin(req);
 
   try {
     const body = await req.json();
@@ -83,4 +78,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-}
+});

@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
-import { getServerSession } from "@/lib/auth"; // نفترض وجود دالة لاستخراج الجلسة
+import { requireAdmin } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 
-export async function POST(req: Request) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== "admin") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-  }
+export const POST = withApi(async (req) => {
+  const session = await requireAdmin(req);
 
   const { title, category, level, price, scenario } = await req.json();
 
@@ -20,4 +18,4 @@ export async function POST(req: Request) {
     console.error(error);
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
-}
+});

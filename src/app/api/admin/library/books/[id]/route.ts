@@ -1,17 +1,13 @@
 // src/app/api/admin/library/books/[id]/route.ts
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
-import { getServerSession } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 import { uploadFileToGoogleDrive, driveUrlToCdnUrl } from "@/lib/google-drive";
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== "admin") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-  }
+export const DELETE = withApi<{ id: string }>(async (req, ctx) => {
+  await requireAdmin(req);
+  const params = await ctx.params;
 
   try {
     // حذف الصفحات والتراكبات والتصنيفات المرتبطة أولاً
@@ -24,16 +20,11 @@ export async function DELETE(
     console.error("Delete book error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== "admin") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-  }
+export const PUT = withApi<{ id: string }>(async (req, ctx) => {
+  await requireAdmin(req);
+  const params = await ctx.params;
 
   try {
     const formData = await req.formData();
@@ -87,4 +78,4 @@ export async function PUT(
     console.error("Update book error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

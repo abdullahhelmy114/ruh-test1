@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
-import { getServerSession } from '@/lib/auth';
+import { requireAdmin } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
-export async function PUT(req: Request) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== 'admin') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-  }
+export const PUT = withApi(async (req) => {
+  await requireAdmin(req);
 
   try {
     const body = await req.json();
@@ -26,13 +24,10 @@ export async function PUT(req: Request) {
     console.error('Admin course PUT error:', error);
     return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
   }
-}
+});
 
-export async function DELETE(req: Request) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== 'admin') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-  }
+export const DELETE = withApi(async (req) => {
+  await requireAdmin(req);
 
   try {
     const { id } = await req.json();
@@ -42,4 +37,4 @@ export async function DELETE(req: Request) {
     console.error('Admin course DELETE error:', error);
     return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
   }
-}
+});

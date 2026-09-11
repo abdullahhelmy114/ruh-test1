@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 import { sql } from "@/lib/db/client";
-import { verifyIdToken } from "@/lib/firebase/server";
+import { requireTeacher } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 
 const createLessonSchema = z.object({
   live_course_id: z.string().uuid(),
@@ -11,13 +12,10 @@ const createLessonSchema = z.object({
   teacher_notes: z.string().optional(),
 });
 
-export async function POST(req: NextRequest) {
-  try {
-    const user = await verifyIdToken(req);
-    if (!user || user.role !== "teacher") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const POST = withApi(async (req) => {
+  const user = await requireTeacher(req);
 
+  try {
     const body = await req.json();
     const data = createLessonSchema.parse(body);
     const { live_course_id, type, scheduled_at, scenario, teacher_notes } = data;
@@ -99,4 +97,4 @@ export async function POST(req: NextRequest) {
     console.error(error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
-}
+});

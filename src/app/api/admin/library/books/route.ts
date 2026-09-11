@@ -1,22 +1,16 @@
 // src/app/api/admin/library/books/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { uploadFileToGoogleDrive } from '@/lib/google-drive';
 import { processPdfForBook } from '@/lib/pdf-processor';
 import { db } from '@/lib/db';
 import { randomUUID } from 'crypto';
-import { getServerSession } from '@/lib/auth';
+import { requireAdmin } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
-// التحقق من صلاحية الأدمن عبر الجلسة الموثّقة ودور profiles
-async function isAdmin(request: NextRequest): Promise<boolean> {
-  const session = await getServerSession(request);
-  return !!session && session.role === 'admin';
-}
+export const POST = withApi(async (request) => {
+  await requireAdmin(request);
 
-export async function POST(request: NextRequest) {
   // التحقق من صلاحية الأدمن
-  if (!(await isAdmin(request))) {
-    return NextResponse.json({ error: 'غير مصرح لك بالوصول' }, { status: 401 });
-  }
 
   try {
     const formData = await request.formData();
@@ -186,4 +180,4 @@ export async function POST(request: NextRequest) {
     console.error('خطأ في رفع الكتاب:', error);
     return NextResponse.json({ error: 'حدث خطأ أثناء رفع الكتاب' }, { status: 500 });
   }
-}
+});

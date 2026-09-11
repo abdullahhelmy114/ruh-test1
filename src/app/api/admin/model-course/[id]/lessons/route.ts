@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
-import { verifyIdToken } from '@/lib/firebase/server';
+import { requireAdmin } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
 // 1. جلب الكورس ودروسه (مع حقل content الجديد)
-export async function GET(req: Request, { params }: { params: { id: string } }) {
-  const user = await verifyIdToken(req);
-  if (!user || user.role !== 'admin') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-  }
+export const GET = withApi<{ id: string }>(async (req, ctx) => {
+  await requireAdmin(req);
+  const params = await ctx.params;
 
   try {
     const [course] = await sql`
@@ -30,14 +29,12 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     console.error('Get model lessons error:', error);
     return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
   }
-}
+});
 
 // 2. إنشاء درس جديد
-export async function POST(req: Request, { params }: { params: { id: string } }) {
-  const user = await verifyIdToken(req);
-  if (!user || user.role !== 'admin') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-  }
+export const POST = withApi<{ id: string }>(async (req, ctx) => {
+  await requireAdmin(req);
+  const params = await ctx.params;
 
   try {
     // أضفنا استقبال حقل content
@@ -71,4 +68,4 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     console.error('Create model lesson error:', error);
     return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
   }
-}
+});

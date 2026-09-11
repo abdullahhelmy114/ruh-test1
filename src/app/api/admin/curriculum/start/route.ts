@@ -1,27 +1,11 @@
 // src/app/api/admin/curriculum/start/route.ts
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
-import { firebaseAdmin } from "@/lib/firebase-admin";
+import { requireAdmin } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 import { groqJSONCompletion, simpleGroqCompletion } from "@/lib/groq-client";
 import { generateSpeechBase64 } from "@/lib/tts/edge-tts";
 import { uploadFileToGoogleDrive } from "@/lib/google-drive";
-
-async function verifyAdmin(request: Request): Promise<string | null> {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) return null;
-  const token = authHeader.split("Bearer ")[1];
-  try {
-    const decoded = await firebaseAdmin.auth().verifyIdToken(token);
-    const sql = neon(process.env.DATABASE_URL!);
-    const result = await sql`SELECT id, role FROM profiles WHERE firebase_uid = ${decoded.uid} LIMIT 1`;
-    if (result.length > 0 && result[0].role === "admin") {
-      return result[0].id;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
 
 interface LessonOutline {
   title: string;
@@ -381,11 +365,8 @@ async function processCurriculumTask(taskId: string) {
   }
 }
 
-export async function POST(request: Request) {
-  const adminId = await verifyAdmin(request);
-  if (!adminId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const POST = withApi(async (request) => {
+  const adminId = (await requireAdmin(request)).profileId;
 
   try {
     const body = await request.json();
@@ -428,4 +409,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
+});

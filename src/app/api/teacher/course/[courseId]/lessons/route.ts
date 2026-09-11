@@ -1,16 +1,12 @@
 // app/api/teacher/course/[courseId]/lessons/route.ts
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
-import { getServerSession } from "@/lib/auth";
+import { requireTeacher } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 
-export async function POST(
-  req: Request,
-  { params }: { params: { courseId: string } }
-) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== "teacher") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-  }
+export const POST = withApi<{ courseId: string }>(async (req, ctx) => {
+  const session = await requireTeacher(req);
+  const params = await ctx.params;
 
   const courseId = params.courseId;
   const { type, scheduled_at, scenario } = await req.json();
@@ -89,4 +85,4 @@ export async function POST(
       { status: 500 }
     );
   }
-}
+});

@@ -1,17 +1,15 @@
 // src/app/api/admin/library/books/convert/route.ts
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
-import { getServerSession } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 import { uploadFileToGoogleDrive, driveUrlToCdnUrl } from "@/lib/google-drive";
 import sharp from "sharp";
 
 export const runtime = "nodejs";
 
-export async function POST(req: Request) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== "admin") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-  }
+export const POST = withApi(async (req) => {
+  await requireAdmin(req);
 
   const { bookId } = await req.json();
   const [book] = await sql`SELECT id, pdf_url FROM library_books WHERE id = ${bookId}`;
@@ -58,4 +56,4 @@ export async function POST(req: Request) {
     console.error("PDF conversion error:", error);
     return NextResponse.json({ error: "Conversion failed" }, { status: 500 });
   }
-}
+});

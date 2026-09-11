@@ -1,12 +1,12 @@
 // app/api/admin/library/books/bulk/route.ts
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
-import { getServerSession } from "@/lib/auth";
-import { uploadFileToGoogleDrive, driveUrlToCdnUrl } from "@/lib/google-drive";export async function POST(req: Request) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== "admin") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-  }
+import { requireAdmin } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
+import { uploadFileToGoogleDrive, driveUrlToCdnUrl } from "@/lib/google-drive";
+
+export const POST = withApi(async (req) => {
+  await requireAdmin(req);
 
   try {
     const formData = await req.formData();
@@ -40,4 +40,4 @@ import { uploadFileToGoogleDrive, driveUrlToCdnUrl } from "@/lib/google-drive";e
     console.error("Bulk upload error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

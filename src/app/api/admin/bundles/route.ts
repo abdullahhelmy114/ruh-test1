@@ -1,36 +1,31 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 import { sql } from "@/lib/db/client";
-import { verifyIdToken } from "@/lib/firebase/server";
+import { requireAdmin } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 
 // ==========================================
 // 1. دالة GET لجلب الباقات (تم إعدادها مسبقاً)
 // ==========================================
-export async function GET(req: NextRequest) {
-  try {
-    const adminUser = await verifyIdToken(req);
-    if (!adminUser || adminUser.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const GET = withApi(async (req) => {
+  await requireAdmin(req);
 
+  try {
     const bundles = await sql.query(`SELECT * FROM bundles ORDER BY created_at DESC`);
     return NextResponse.json(bundles || []);
   } catch (error) {
     console.error("Error fetching bundles:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
-}
+});
 
 // ==========================================
 // 2. دالة POST لإنشاء باقة جديدة (التي تسببت بالخطأ 405)
 // ==========================================
-export async function POST(req: NextRequest) {
-  try {
-    const adminUser = await verifyIdToken(req);
-    if (!adminUser || adminUser.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const POST = withApi(async (req) => {
+  await requireAdmin(req);
 
+  try {
     // استقبال البيانات من الواجهة
     const body = await req.json();
     console.log("بيانات الباقة المستلمة:", body);
@@ -53,4 +48,4 @@ export async function POST(req: NextRequest) {
     console.error("Error creating bundle:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
-}
+});

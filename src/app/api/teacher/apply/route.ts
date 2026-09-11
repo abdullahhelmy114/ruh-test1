@@ -1,17 +1,15 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { sql } from '@/lib/db/client';
-import { getServerSession } from '@/lib/auth';
+import { requireTeacher } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
 const applySchema = z.object({
   model_course_id: z.string().uuid(),
 });
 
-export async function POST(req: Request) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== 'teacher') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-  }
+export const POST = withApi(async (req) => {
+  const session = await requireTeacher(req);
 
   try {
     const body = await req.json();
@@ -60,4 +58,4 @@ export async function POST(req: Request) {
     console.error('Apply error:', error);
     return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
   }
-}
+});
