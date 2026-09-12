@@ -19,6 +19,7 @@ type Language = 'en' | 'tr' | 'it' | 'es' | 'ar';
 // later batch. Prompts, model and reply contract are unchanged.
 const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent';
 const SALES_IP_LIMIT = { limit: 20, windowMs: 10 * 60 * 1000 }; // 20 anonymous turns / 10 min per client
+const AUTH_USER_LIMIT = { limit: 30, windowMs: 10 * 60 * 1000 }; // 30 authenticated turns / 10 min per uid (batch 5)
 const MESSAGE_MAX = 2000;        // chars
 const HISTORY_MAX_ENTRIES = 20;  // turns kept from the client transcript
 const HISTORY_ENTRY_MAX = 2000;  // chars per turn
@@ -109,6 +110,18 @@ export const POST = withApi(async (req) => {
         return NextResponse.json(
           { error: 'Too many requests' },
           { status: 429, headers: { 'Retry-After': String(retryAfterSeconds(ipCheck)) } }
+        );
+      }
+    } else {
+      // Phase 3 batch 5: authenticated contexts (onboarding/dashboard) cost up
+      // to two Gemini calls per turn and had no quota. Keyed by the verified
+      // uid, checked before any provider work; the anonymous limiter above is
+      // not applied to authenticated callers.
+      const userCheck = checkRateLimit(`tutor-auth:${user.uid}`, AUTH_USER_LIMIT);
+      if (!userCheck.allowed) {
+        return NextResponse.json(
+          { error: 'Too many requests' },
+          { status: 429, headers: { 'Retry-After': String(retryAfterSeconds(userCheck)) } }
         );
       }
     }

@@ -6,6 +6,30 @@ import { withApi } from "@/lib/api/handler";
 import { groqJSONCompletion, simpleGroqCompletion } from "@/lib/groq-client";
 import { generateSpeechBase64 } from "@/lib/tts/edge-tts";
 import { uploadFileToGoogleDrive } from "@/lib/google-drive";
+import { checkRateLimit, retryAfterSeconds } from "@/lib/security/rate-limit";
+import { boundedPositiveInt, boundedString, optionalBoundedString } from "@/lib/security/input-policy";
+
+// Phase 3 batch 5 — request boundary for the largest accidental-cost
+// multiplier in the codebase. Each lesson costs two Gemini calls (plus
+// optional TTS, Drive and YouTube work) inside a detached loop, and the
+// request previously accepted any number of lessons, any quizCount and any
+// source text. The boundary below is enforced BEFORE a task row is created:
+//   - 3 starts / hour per admin uid
+//   - lessons 1..50, each { title <= 200, description <= 1000 }
+//   - quizCount 1..30 (default 10), sourceText <= 200,000 chars,
+//     level <= 20, instructions <= 2,000; booleans must be booleans
+//   - only the validated fields are persisted (no unchecked nested values)
+//   - oversized requests are rejected, never silently sliced
+// The task table, detached execution, Drive/YouTube/TTS steps and prompts
+// are unchanged. Lesson HTML generation uses the shared client's explicit
+// 180-second per-attempt timeout; the client now caps retries at 3.
+const ADMIN_LIMIT = { limit: 3, windowMs: 60 * 60 * 1000 };
+const LESSONS_MAX = 50;
+const TITLE_MAX = 200;
+const DESCRIPTION_MAX = 1000;
+const QUIZ_COUNT_MAX = 30;
+const SOURCE_MAX = 200_000;
+const LESSON_HTML_TIMEOUT_MS = 180_000;
 
 interface LessonOutline {
   title: string;
@@ -121,6 +145,7 @@ ${allSourceText.slice(0, 12000)}
     model: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
     temperature: 0.7,
     max_tokens: 30000,
+    timeoutMs: LESSON_HTML_TIMEOUT_MS,
   });
 
   // تنظيف الناتج: إزالة علامات code fences إن وجدت
@@ -366,19 +391,65 @@ async function processCurriculumTask(taskId: string) {
 }
 
 export const POST = withApi(async (request) => {
-  const adminId = (await requireAdmin(request)).profileId;
+  const admin = await requireAdmin(request);
+  const adminId = admin.profileId;
+
+  const check = checkRateLimit(`curriculum-start:${admin.uid}`, ADMIN_LIMIT);
+  if (!check.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": String(retryAfterSeconds(check)) } }
+    );
+  }
+
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  const { courseId: rawCourseId, lessons: rawLessons, settings: rawSettings } = body as Record<string, unknown>;
+
+  const courseId = boundedString(rawCourseId, { max: 100 });
+  if (!courseId || !Array.isArray(rawLessons) || rawLessons.length === 0) {
+    return NextResponse.json(
+      { error: "courseId and lessons array are required" },
+      { status: 400 }
+    );
+  }
+  if (rawLessons.length > LESSONS_MAX) {
+    return NextResponse.json({ error: `At most ${LESSONS_MAX} lessons per task` }, { status: 413 });
+  }
+
+  // Rebuild every lesson from validated fields only.
+  const lessons: LessonOutline[] = [];
+  for (const item of rawLessons) {
+    if (!item || typeof item !== "object") {
+      return NextResponse.json({ error: "Invalid lesson entry" }, { status: 400 });
+    }
+    const { title: rawTitle, description: rawDescription } = item as Record<string, unknown>;
+    const title = boundedString(rawTitle, { max: TITLE_MAX });
+    const description = optionalBoundedString(rawDescription, DESCRIPTION_MAX);
+    if (!title || description === null) {
+      return NextResponse.json({ error: "Invalid lesson title or description" }, { status: 400 });
+    }
+    lessons.push(description ? { title, description } : { title });
+  }
+
+  const s = (rawSettings && typeof rawSettings === "object" ? rawSettings : {}) as Record<string, unknown>;
+  const level = optionalBoundedString(s.level, 20);
+  const instructions = optionalBoundedString(s.instructions, 2000);
+  const sourceText = optionalBoundedString(s.sourceText, SOURCE_MAX);
+  const quizCount = s.quizCount === undefined ? 10 : boundedPositiveInt(s.quizCount, 1, QUIZ_COUNT_MAX);
+  const generateAudio = s.generateAudio === undefined ? false : s.generateAudio;
+  const generateVideo = s.generateVideo === undefined ? false : s.generateVideo;
+  if (
+    level === null || instructions === null || sourceText === null || quizCount === null ||
+    typeof generateAudio !== "boolean" || typeof generateVideo !== "boolean"
+  ) {
+    return NextResponse.json({ error: "Invalid or oversized settings" }, { status: 400 });
+  }
+  const settings: GenerationSettings = { courseId, level, instructions, generateAudio, generateVideo, quizCount };
 
   try {
-    const body = await request.json();
-    const { courseId, lessons, settings } = body;
-
-    if (!courseId || !Array.isArray(lessons) || lessons.length === 0) {
-      return NextResponse.json(
-        { error: "courseId and lessons array are required" },
-        { status: 400 }
-      );
-    }
-
     const sql = neon(process.env.DATABASE_URL!);
 
     const taskRes = await sql`
@@ -388,13 +459,11 @@ export const POST = withApi(async (request) => {
     `;
     const taskId = taskRes[0].id;
 
-    const sourceText = settings?.sourceText || "";
-
     await sql`
       UPDATE curriculum_tasks
       SET
         lessons_json = ${JSON.stringify(lessons)},
-        settings_json = ${JSON.stringify(settings || {})},
+        settings_json = ${JSON.stringify(settings)},
         source_text = ${sourceText}
       WHERE id = ${taskId}
     `;
@@ -402,11 +471,8 @@ export const POST = withApi(async (request) => {
     processCurriculumTask(taskId);
 
     return NextResponse.json({ success: true, taskId });
-  } catch (error: any) {
-    console.error("Error starting curriculum task:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to start task" },
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error("curriculum/start failed:", error instanceof Error ? error.name : "unknown");
+    return NextResponse.json({ error: "Failed to start task" }, { status: 500 });
   }
 });

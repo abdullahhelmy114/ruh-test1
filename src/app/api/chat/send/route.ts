@@ -4,6 +4,8 @@ import Pusher from 'pusher';
 import { sql } from '@/lib/db/client';
 import { requireAuth } from '@/lib/auth';
 import { withApi } from '@/lib/api/handler';
+import { checkRateLimit, retryAfterSeconds } from '@/lib/security/rate-limit';
+import { boundedString, isPusherChannelShape } from '@/lib/security/input-policy';
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID!,
@@ -17,11 +19,36 @@ const pusher = new Pusher({
 // caller's profile, never from body.user. `room` remains the target channel.
 // REVIEW_REQUIRED: room membership rules are not defined; any authenticated
 // user may still publish to any room. Do not treat this as a messaging policy.
+//
+// Phase 3 batch 5 — mechanical abuse controls only:
+//   - 60 messages / 10 min per verified sender uid
+//   - message 1..1,000 chars
+//   - room must be a Pusher-shaped channel name (<= 164 chars, letters,
+//     digits and _ - = @ , . ;)
+// OPEN (PRODUCT-POLICY DEPENDENCY, not solved by rate limiting): WHO MAY
+// PUBLISH TO WHICH PUSHER CHANNEL. Rate limiting bounds volume, it does not
+// authorise the target.
+const SENDER_LIMIT = { limit: 60, windowMs: 10 * 60 * 1000 };
+const MESSAGE_MAX = 1000;
+
 export const POST = withApi(async (req) => {
   const user = await requireAuth(req);
 
-  const { room, message } = await req.json();
-  if (typeof room !== 'string' || !room || typeof message !== 'string' || !message.trim()) {
+  const check = checkRateLimit(`chat-send:${user.uid}`, SENDER_LIMIT);
+  if (!check.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      { status: 429, headers: { 'Retry-After': String(retryAfterSeconds(check)) } }
+    );
+  }
+
+  const body = await req.json().catch(() => null);
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+  }
+  const { room, message: rawMessage } = body as Record<string, unknown>;
+  const message = boundedString(rawMessage, { max: MESSAGE_MAX });
+  if (!isPusherChannelShape(room) || !message) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
   }
 

@@ -5,18 +5,43 @@ import { sql } from '@/lib/db/client';
 import { getAdminMessaging } from '@/lib/firebase/admin';
 import { requireAuth } from '@/lib/auth';
 import { withApi } from '@/lib/api/handler';
+import { checkRateLimit, retryAfterSeconds } from '@/lib/security/rate-limit';
+import { boundedString, isFirebaseUidShape } from '@/lib/security/input-policy';
 
 // Phase 2.2: the sender is always the verified caller (user.uid); the client
 // no longer supplies senderUid. receiverUid remains the target.
 // REVIEW_REQUIRED: who may message whom is not defined; any authenticated
 // user may still message any uid. Do not treat this as a messaging policy.
+//
+// Phase 3 batch 5 — mechanical spam/amplification controls only (each send
+// writes two rows and can trigger one push):
+//   - 30 messages / 10 min per verified sender uid
+//   - message 1..2,000 chars; receiverUid must be a bounded uid-shaped string
+//   - malformed input gets one generic 400; no existence oracle is added
+//     (the insert does not require the receiver to exist, so none is needed)
+// Messaging relationships / conversation membership remain undefined.
+const SENDER_LIMIT = { limit: 30, windowMs: 10 * 60 * 1000 };
+const MESSAGE_MAX = 2000;
 
 // POST: إرسال رسالة جديدة
 export const POST = withApi(async (req) => {
   const user = await requireAuth(req);
 
-  const { receiverUid, message } = await req.json();
-  if (typeof receiverUid !== 'string' || !receiverUid || typeof message !== 'string' || !message) {
+  const check = checkRateLimit(`messages:${user.uid}`, SENDER_LIMIT);
+  if (!check.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      { status: 429, headers: { 'Retry-After': String(retryAfterSeconds(check)) } }
+    );
+  }
+
+  const body = await req.json().catch(() => null);
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+  }
+  const { receiverUid, message: rawMessage } = body as Record<string, unknown>;
+  const message = boundedString(rawMessage, { max: MESSAGE_MAX });
+  if (!isFirebaseUidShape(receiverUid) || !message) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
   }
 
@@ -50,7 +75,7 @@ export const POST = withApi(async (req) => {
         },
       });
     } catch (e) {
-      console.error('Push notification failed:', e);
+      console.error('Push notification failed:', e instanceof Error ? e.name : 'unknown');
     }
   }
 
