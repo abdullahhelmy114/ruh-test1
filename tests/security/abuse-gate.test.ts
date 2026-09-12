@@ -145,7 +145,8 @@ describe("POST /api/send-verification-code gate", () => {
     assert.ok(src.includes("checkRateLimit(`verify-send:email:${email}`"));
     assert.ok(src.includes("checkRateLimit(`verify-send:cooldown:${email}`"));
     assert.ok(src.includes("RESEND_COOLDOWN"));
-    assert.ok(src.includes("randomInt(100000, 1000000)"));
+    // Batch 4 moved generation into the OTP helper (crypto.randomInt inside).
+    assert.ok(src.includes("generateOtp()"));
     assert.equal(src.includes("Math.random"), false);
     assert.ok(src.includes("normalizeEmail("));
     assert.equal(src.includes("error.message"), false);

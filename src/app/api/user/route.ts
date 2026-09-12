@@ -24,6 +24,10 @@ export const GET = withApi(async (req) => {
 // Phase 0 containment: identity comes from the verified session, never from the
 // body, and `role` can no longer be set by the client. Existing rows keep their
 // role; new rows default to 'student'.
+// Phase 3 batch 4: `email_verified` is no longer part of this upsert at all.
+// New rows take the column default (false) and existing rows keep their
+// value; only the OTP verifiers set it. Only the explicitly listed fields
+// (email, fullName, referred_by) are taken from the request.
 export async function POST(request: Request) {
   const session = await getServerSession(request);
   if (!session) {
@@ -38,17 +42,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ skipped: true });
     }
 
-    const emailVerified = body.email_verified === true;
     const referredBy = typeof body.referred_by === 'string' ? body.referred_by : null;
     const fullName = typeof body.fullName === 'string' ? body.fullName : '';
 
     await sql`
-      INSERT INTO profiles (firebase_uid, email, full_name, role, email_verified, referred_by)
-      VALUES (${session.uid}, ${email}, ${fullName}, 'student', ${emailVerified}, ${referredBy})
+      INSERT INTO profiles (firebase_uid, email, full_name, role, referred_by)
+      VALUES (${session.uid}, ${email}, ${fullName}, 'student', ${referredBy})
       ON CONFLICT (firebase_uid) DO UPDATE SET
         email = ${email},
         full_name = ${fullName},
-        email_verified = ${emailVerified},
         referred_by = COALESCE(profiles.referred_by, ${referredBy})
     `;
     return NextResponse.json({ success: true });

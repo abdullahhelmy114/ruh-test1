@@ -1,10 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminAuth } from "@/lib/firebase/admin";
 import { sql } from "@/lib/db/client";
-import { sendEmailVerificationCode } from "@/lib/email";
+import { sendEmail, verificationCodeEmail } from "@/lib/email";
 import { generateReferralCode } from "@/lib/referral";
+import { checkRateLimit, clientKey, retryAfterSeconds } from "@/lib/security/rate-limit";
+import { generateOtp, hashOtp, otpExpiry } from "@/lib/security/otp";
+
+// Phase 3 batch 4 — OTP generation path only. The code now comes from the
+// OTP helper (crypto.randomInt) and is stored as an HMAC digest in
+// verification_codes (one live row per account); sendEmailVerificationCode
+// (Math.random, plaintext) is no longer used by this flow. A per-client
+// limiter bounds account creation against addresses the caller may not
+// own. Firebase creation (emailVerified: false), profile insert
+// (status = 'pending'), referral handling and the response are unchanged.
+const SIGNUP_LIMIT = { limit: 10, windowMs: 60 * 60 * 1000 }; // 10 signups / hour per client
 
 export async function POST(req: NextRequest) {
+  const ipCheck = checkRateLimit(`signup-account:${clientKey(req)}`, SIGNUP_LIMIT);
+  if (!ipCheck.allowed) {
+    return NextResponse.json(
+      { message: "Too many requests" },
+      { status: 429, headers: { "Retry-After": String(retryAfterSeconds(ipCheck)) } }
+    );
+  }
+  // Fail closed before any side effect if the OTP secret is missing.
+  const otpSecret = process.env.INTERNAL_API_SECRET;
+  if (!otpSecret) {
+    return NextResponse.json({ message: "Verification service unavailable" }, { status: 503 });
+  }
+
   try {
     // 1. استقبال البيانات بصيغة JSON من المتصفح
     const data = await req.json();
@@ -101,14 +125,17 @@ export async function POST(req: NextRequest) {
       )
     `;
 
-    // 7. إنشاء وإرسال كود التحقق للبريد الإلكتروني
-    const emailCode = await sendEmailVerificationCode(email);
-
-    // 8. حفظ الكود في قاعدة البيانات لتدقيقه لاحقاً في صفحة /verify-email
+    // 7. توليد كود التحقق (CSPRNG) وتخزين بصمته فقط — كود واحد صالح لكل حساب
+    const emailCode = generateOtp();
+    const digest = hashOtp(userRecord.uid, emailCode, otpSecret);
+    await sql`DELETE FROM verification_codes WHERE user_uid = ${userRecord.uid}`;
     await sql`
       INSERT INTO verification_codes (user_uid, email_code, expires_at)
-      VALUES (${userRecord.uid}, ${emailCode}, NOW() + INTERVAL '15 minutes')
+      VALUES (${userRecord.uid}, ${digest}, ${otpExpiry()})
     `;
+
+    // 8. إرسال الكود للبريد الإلكتروني لتدقيقه لاحقاً في صفحة /verify-email
+    await sendEmail(email, "Your Verification Code", verificationCodeEmail(emailCode));
 
     // 9. إرسال استجابة النجاح للمتصفح
     return NextResponse.json(

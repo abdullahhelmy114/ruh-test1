@@ -6,6 +6,9 @@ import { motion } from "framer-motion";
 import { Mail, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { T } from "@/components/TranslatedText";
 import { Button } from "@/components/ui/button";
+// Phase 3 batch 4: reuse the existing resend control so an expired or
+// undelivered code no longer strands a teacher on this page.
+import { ResendVerificationButton } from "@/components/ResendVerificationButton";
 
 function VerifyTeacherContent() {
   const searchParams = useSearchParams();
@@ -117,6 +120,10 @@ function VerifyTeacherContent() {
               >
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <T>Verify Application</T>}
               </Button>
+
+              <div className="mt-6 flex flex-col items-center gap-4">
+                <ResendVerificationButton />
+              </div>
             </>
           ) : (
             <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-6">
