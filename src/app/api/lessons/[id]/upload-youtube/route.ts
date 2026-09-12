@@ -3,6 +3,24 @@ export const runtime = 'nodejs'; // هذا يجعلها Function عادية عل
 
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
+import { withApi } from '@/lib/api/handler';
+import { AuthError, HttpError } from '@/lib/auth';
+import { checkInternalSecret, isAllowedRecordingUrl } from '@/lib/security/internal-auth';
+
+// Phase 3 batch 1 — trust boundary.
+// This route has NO user-facing caller: its only caller is the Zoom
+// recording webhook (src/app/api/webhooks/zoom), which is itself signature-
+// verified and forwards the internal secret. It used to be reachable by
+// anyone and would download a URL from the DB, upload it with the server's
+// YouTube credentials and overwrite lessons.recording_url.
+// Now:
+//   - requires `x-internal-secret` (INTERNAL_API_SECRET; 503 if unset, 401 if wrong)
+//   - never derives anything from user identity headers
+//   - replay-safe: a lesson whose recording_url already points at YouTube is
+//     not re-uploaded (Zoom retries deliveries)
+//   - the server-side fetch is restricted to Zoom download hosts (no SSRF)
+//   - no error.message is returned to the caller
+// The YouTube upload logic itself is unchanged.
 
 // ── دوال مساعدة لـ YouTube ──────────────────────────
 async function getYouTubeAccessToken(): Promise<string> {
@@ -88,12 +106,22 @@ async function uploadToYouTube(
   return data.id; // YouTube Video ID
 }
 
-// ── API Route Handler ─────────────────────────────
-export async function POST(
-  request: Request,
-  context: { params: Promise<{ id: string }> }
-) {
+function isYouTubeUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host === 'youtu.be' || host === 'youtube.com' || host.endsWith('.youtube.com');
+  } catch {
+    return false;
+  }
+}
+
+// ── API Route Handler (internal only) ─────────────────────────────
+export const POST = withApi<{ id: string }>(async (request, context) => {
+  const internalCheck = checkInternalSecret(request, process.env.INTERNAL_API_SECRET);
+  if (internalCheck === 'unconfigured') throw new HttpError(503, 'Internal authentication is not configured');
+  if (internalCheck !== 'ok') throw new AuthError('UNAUTHORIZED', 'Invalid internal credentials');
   const { id: lessonId } = await context.params;
+  if (!lessonId) throw new HttpError(400, 'Lesson id is required');
 
   try {
     // 1. جلب رابط تسجيل Zoom من قاعدة البيانات (يُفترض أن Zoom Webhook أضافه)
@@ -108,6 +136,15 @@ export async function POST(
     const recordingUrl = lesson.recording_url; // رابط تنزيل فيديو Zoom (مؤقت)
     if (!recordingUrl) {
       return NextResponse.json({ error: 'No recording URL available' }, { status: 400 });
+    }
+
+    // Replay / duplicate delivery: already migrated to YouTube.
+    if (isYouTubeUrl(recordingUrl)) {
+      return NextResponse.json({ success: true, alreadyProcessed: true, url: recordingUrl });
+    }
+
+    if (!isAllowedRecordingUrl(recordingUrl)) {
+      return NextResponse.json({ error: 'Recording URL is not a Zoom download URL' }, { status: 400 });
     }
 
     // 2. تنزيل الفيديو من Zoom
@@ -135,8 +172,9 @@ export async function POST(
       youtubeId: youtubeVideoId,
       url: youtubeUrl,
     });
-  } catch (error: any) {
+  } catch (error) {
+    // Provider responses can contain tokens/quota details: log, never return.
     console.error('Upload failed:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
   }
-}
+});

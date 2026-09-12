@@ -75,8 +75,11 @@ describe("Phase 2.3a privileged routes use the central auth layer", () => {
     assert.match(src, /REVIEW_REQUIRED/);
   });
 
-  test("upload-youtube is NOT migrated in this batch (deferred to Phase 3)", () => {
+  test("upload-youtube is an internal-only route (Phase 3 batch 1), never a user/admin route", () => {
+    // Phase 2.3a deferred this route; Phase 3 batch 1 gave it a server-to-
+    // server boundary (x-internal-secret) instead of a user guard.
     const src = readFileSync(join(API, "lessons/[id]/upload-youtube/route.ts"), "utf8");
-    assert.doesNotMatch(src, /withApi|requireAdmin/);
+    assert.match(src, /checkInternalSecret\(/);
+    assert.doesNotMatch(src, /requireAdmin|requireTeacher|requireStudent|requireAuth\(/);
   });
 });

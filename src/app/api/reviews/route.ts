@@ -10,8 +10,10 @@ export async function GET(request: Request) {
   if (!courseId) return NextResponse.json({ reviews: [], average: 0, count: 0 });
 
   try {
+    // Phase 3 batch 1: public projection — reviewer Firebase uids are not
+    // returned; the display name is enough for the public course page.
     const reviews = await sql`
-      SELECT r.*, p.full_name AS user_name
+      SELECT r.id, r.rating, r.comment, r.created_at, p.full_name AS user_name
       FROM reviews r
       JOIN profiles p ON r.user_uid = p.firebase_uid
       WHERE r.course_id = ${courseId}
@@ -28,8 +30,9 @@ export async function GET(request: Request) {
       average: stats?.average || 0,
       count: stats?.count || 0,
     });
-  } catch (error: any) {
-    return NextResponse.json({ reviews: [], average: 0, count: 0, error: error.message });
+  } catch (error) {
+    console.error('Reviews fetch error:', error);
+    return NextResponse.json({ reviews: [], average: 0, count: 0, error: 'Failed to load reviews' });
   }
 }
 

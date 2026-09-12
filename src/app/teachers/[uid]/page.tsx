@@ -6,18 +6,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { T } from "@/components/TranslatedText";
 import {
-  Loader2, BookOpen, User, MapPin, Globe, Mail, Calendar, ArrowLeft,
+  Loader2, BookOpen, MapPin, Globe, ArrowLeft,
 } from "lucide-react";
 
+// Phase 3 batch 1: the public profile API no longer returns email, age or
+// gender (private fields); the page renders only public profile data.
 interface TeacherProfile {
   full_name: string;
-  email: string;
   nationality: string;
   residence: string;
   native_language: string;
-  other_languages: string[];
-  age: string;
-  gender: string;
   bio: string;
   avatar_url: string | null;
 }
@@ -79,16 +77,11 @@ export default function PublicTeacherPage() {
           <div className="space-y-3 flex-1">
             <div>
               <h1 className="font-serif text-3xl">{teacher.full_name}</h1>
-              <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                <Mail size={14} /> {teacher.email}
-              </p>
             </div>
             <div className="flex flex-wrap gap-2">
               {teacher.nationality && <InfoBadge label={teacher.nationality} icon={<Globe size={12} />} />}
               {teacher.residence && <InfoBadge label={teacher.residence} icon={<MapPin size={12} />} />}
               {teacher.native_language && <InfoBadge label={teacher.native_language} />}
-              {teacher.gender && <InfoBadge label={teacher.gender} icon={<User size={12} />} />}
-              {teacher.age && <InfoBadge label={`${teacher.age} yrs`} icon={<Calendar size={12} />} />}
             </div>
             {teacher.bio && (
               <p className="text-sm text-muted-foreground leading-relaxed mt-2">{teacher.bio}</p>

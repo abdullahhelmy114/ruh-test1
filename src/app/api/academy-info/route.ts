@@ -3,22 +3,29 @@ import { neon } from "@neondatabase/serverless";
 
 export const runtime = "edge";
 
+// Phase 3 batch 1 — public projection.
+// This route is public (its only consumer is the AI assistant in
+// /api/ai/chat, which pastes the whole payload into a prompt). It used to
+// return `SELECT *` from nine tables. Each section below now selects an
+// explicit column list containing only catalog/marketing data:
+//   - no user or teacher identifiers (teacher_uid, user_uid, admin_uid, admin_id)
+//   - no paid or internal content (course.content, recording_url,
+//     model/live course `scenario`, knowledge_base chunk text and embeddings)
+//   - no checkout links (payment_url) or moderation/state columns
+//   - only published/active rows where such a flag exists
+// Response keys are unchanged.
+
 function getSql() {
   return neon(process.env.DATABASE_URL!);
 }
 
-async function fetchAllRows(table: string, limit = 20) {
+async function rows(query: string): Promise<Record<string, unknown>[]> {
   try {
-    const sql = getSql();
-    const result = (await sql.query(`SELECT * FROM "${table}" LIMIT ${limit};`)) as any;
-    const rows = Array.isArray(result) ? result : result?.rows;
-    if (!Array.isArray(rows)) {
-      console.warn(`Unexpected result format for ${table}:`, result);
-      return [];
-    }
-    return rows;
+    const result = (await getSql().query(query)) as any;
+    const data = Array.isArray(result) ? result : result?.rows;
+    return Array.isArray(data) ? data : [];
   } catch (e) {
-    console.warn(`fetchAllRows failed for ${table}:`, e);
+    console.warn("academy-info query failed:", e);
     return [];
   }
 }
@@ -30,12 +37,12 @@ async function countRows(table: string, distinctColumn?: string) {
       const result = (await sql.query(
         `SELECT COUNT(DISTINCT "${distinctColumn}")::int AS count FROM "${table}";`
       )) as any;
-      const rows = Array.isArray(result) ? result : result?.rows;
-      return rows?.[0]?.count || 0;
+      const r = Array.isArray(result) ? result : result?.rows;
+      return r?.[0]?.count || 0;
     }
     const result = (await sql.query(`SELECT COUNT(*)::int AS count FROM "${table}";`)) as any;
-    const rows = Array.isArray(result) ? result : result?.rows;
-    return rows?.[0]?.count || 0;
+    const r = Array.isArray(result) ? result : result?.rows;
+    return r?.[0]?.count || 0;
   } catch (e) {
     console.warn(`countRows failed for ${table}:`, e);
     return 0;
@@ -62,18 +69,44 @@ export async function GET() {
       },
     };
 
-    data.staticPages = await fetchAllRows("static_pages", 10);
-    data.courses = await fetchAllRows("course", 100);
-    data.modelCourses = await fetchAllRows("model_course", 50);
-    data.liveCourses = await fetchAllRows("live_course", 50);
-    data.bundles = await fetchAllRows("bundles", 20);
-    data.categories = await fetchAllRows("categories", 50);
-    data.blogPosts = await fetchAllRows("blog_posts", 10);
-    data.knowledgeBase = await fetchAllRows("knowledge_base", 20);
-    data.reviews = await fetchAllRows("reviews", 20);
+    data.staticPages = await rows(
+      `SELECT slug, title, content FROM static_pages ORDER BY slug LIMIT 10;`
+    );
+    data.courses = await rows(
+      `SELECT id, title, description, level, price, old_price, lessons_count,
+              course_duration, lesson_duration, instructor_name, image_url,
+              thumbnail_url, intro_video_url, launch_date, category_id, theme
+       FROM course WHERE is_published = true ORDER BY created_at DESC LIMIT 100;`
+    );
+    data.modelCourses = await rows(
+      `SELECT id, title, category, level, price, description
+       FROM model_course ORDER BY created_at DESC LIMIT 50;`
+    );
+    data.liveCourses = await rows(
+      `SELECT id, title, category, level, price
+       FROM live_course WHERE status = 'active' ORDER BY created_at DESC LIMIT 50;`
+    );
+    data.bundles = await rows(
+      `SELECT id, title, description, price, course_ids FROM bundles ORDER BY created_at DESC LIMIT 20;`
+    );
+    data.categories = await rows(
+      `SELECT id, name, name_ar, slug, description, parent_id
+       FROM categories WHERE is_active IS DISTINCT FROM false ORDER BY order_index, name LIMIT 50;`
+    );
+    data.blogPosts = await rows(
+      `SELECT id, title, content, image_url, created_at FROM blog_posts ORDER BY created_at DESC LIMIT 10;`
+    );
+    // Library corpus: titles only. Chunk text is protected content and the
+    // embedding vectors are internal.
+    data.knowledgeBase = await rows(
+      `SELECT DISTINCT book_title FROM knowledge_base ORDER BY book_title LIMIT 20;`
+    );
+    data.reviews = await rows(
+      `SELECT course_id, rating, comment, created_at FROM reviews ORDER BY created_at DESC LIMIT 20;`
+    );
 
     data.stats.totalCourses = await countRows("course");
-    data.stats.totalStudents = await countRows("enrollments", "user_uid"); // ✅ تعديل هنا
+    data.stats.totalStudents = await countRows("enrollments", "user_uid");
     data.stats.totalLessons = await countRows("lessons");
     data.stats.totalQuizzes = await countRows("quizzes");
 
