@@ -2,29 +2,50 @@
 import { useState } from "react";
 import { T } from "@/components/TranslatedText";
 import { CheckCircle, XCircle } from "lucide-react";
+import { authFetch } from "@/lib/authFetch";
 
 interface QuizPlayerProps {
   quizzes: any[];
+  /** Lesson the quizzes belong to; answers are checked server-side per lesson. */
+  lessonId: string;
   onComplete?: () => void;          // ✅
 }
 
-export function QuizPlayer({ quizzes, onComplete }: QuizPlayerProps) {
+// Phase 2.4a: the quiz payload no longer contains the answer key. Each
+// selection is checked by POST /api/quizzes/[lessonId], which returns the
+// correct option index so the existing reveal-after-answer feedback and the
+// local score display keep working unchanged.
+export function QuizPlayer({ quizzes, lessonId, onComplete }: QuizPlayerProps) {
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
+  const [correctIndex, setCorrectIndex] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
 
   if (!quizzes.length) return <p className="text-muted-foreground"><T>No quiz for this lesson.</T></p>;
   const q = quizzes[current];
 
-  const handleAnswer = (index: number) => {
+  const handleAnswer = async (index: number) => {
     if (selected !== null) return;
     setSelected(index);
-    if (index === q.correct) setScore(s => s + 1);
+    try {
+      const res = await authFetch(`/api/quizzes/${lessonId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId: q.id, selected: index }),
+      });
+      const data = res.ok ? await res.json() : null;
+      const resolved = typeof data?.correctIndex === "number" ? data.correctIndex : null;
+      setCorrectIndex(resolved);
+      if (data?.correct) setScore(s => s + 1);
+    } catch {
+      setCorrectIndex(null);
+    }
     setTimeout(() => {
       if (current < quizzes.length - 1) {
         setCurrent(c => c + 1);
         setSelected(null);
+        setCorrectIndex(null);
       } else {
         setFinished(true);
         onComplete?.();            // ✅ أُضيف
@@ -57,19 +78,19 @@ export function QuizPlayer({ quizzes, onComplete }: QuizPlayerProps) {
               selected === null
                 ? "hover:bg-accent"
                 : selected === i
-                ? i === q.correct
+                ? i === correctIndex
                   ? "bg-secondary border-primary dark:bg-primary/70/30"
                   : "bg-red-100 border-red-500 dark:bg-red-900/30"
-                : i === q.correct
+                : i === correctIndex
                 ? "bg-secondary border-secondary dark:bg-primary/70/20"
                 : "opacity-50"
             }`}
           >
             {opt}
-            {selected !== null && i === q.correct && (
+            {selected !== null && i === correctIndex && (
               <CheckCircle size={16} className="inline ml-2 text-primary" />
             )}
-            {selected === i && i !== q.correct && (
+            {selected === i && correctIndex !== null && i !== correctIndex && (
               <XCircle size={16} className="inline ml-2 text-red-500" />
             )}
           </button>

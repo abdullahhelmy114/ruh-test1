@@ -4,7 +4,8 @@
 
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
-import { firebaseAdmin } from "@/lib/firebase-admin";
+import { requireStudent, requireEnrolled } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 
 type GameId = "word-order" | "speed-choice" | "matching" | "letter-connect" | "time-race";
 
@@ -101,26 +102,27 @@ function convertGameToSessionQuestion(game: any) {
   };
 }
 
-export async function POST(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const token = authHeader.split("Bearer ")[1];
-  try {
-    const decoded = await firebaseAdmin.auth().verifyIdToken(token);
-    const sql = neon(process.env.DATABASE_URL!);
-    const profile = await sql`SELECT id FROM profiles WHERE firebase_uid = ${decoded.uid} LIMIT 1`;
-    if (profile.length === 0) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
+// Phase 2.4a: caller identity from the central auth layer; the student must be
+// enrolled in the target course (admin bypass); `count` is validated as a
+// small positive integer. Game conversion and response shape are unchanged.
+// REVIEW (Phase 4): games are graded client-side and the session payload
+// carries the answers by design; a server-side game score needs a persisted
+// session model, which is out of scope here.
+export const POST = withApi(async (request) => {
+  const user = await requireStudent(request);
 
+  try {
     const body = await request.json();
-    const { gameId, courseId, count = 10 } = body;
+    const { gameId, courseId } = body;
+    const requestedCount = Number(body.count ?? 10);
+    const count = Number.isInteger(requestedCount) && requestedCount > 0 && requestedCount <= 50 ? requestedCount : 10;
 
     if (!gameId || !courseId) {
       return NextResponse.json({ error: "gameId and courseId are required" }, { status: 400 });
     }
+
+    await requireEnrolled(user, courseId);
+    const sql = neon(process.env.DATABASE_URL!);
 
     // تحويل معرّف اللعبة إلى game_type الصحيح في قاعدة البيانات
     const dbGameType = DB_GAME_TYPE[gameId as GameId];
@@ -177,14 +179,12 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ questions: sessionQuestions });
-  } catch (error: any) {
+  } catch (error) {
+    if (error instanceof Error && (error.name === "AuthError" || error.name === "HttpError")) throw error;
     console.error("Error fetching game session:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to get session" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to get session" }, { status: 500 });
   }
-}
+});
 
 /**
  * لمنع خطأ 405 عند فتح الرابط مباشرة

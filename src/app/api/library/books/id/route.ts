@@ -1,13 +1,20 @@
-// src/app/api/library/books/[id]/route.ts
+// src/app/api/library/books/id/route.ts
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
+import { requireAuth, requireLibraryAccess } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
+// Phase 2.4a: this folder is literally `id` (not `[id]`), so the route only
+// matches /api/library/books/id and never received a real id. It is kept (no
+// route deletions in this phase) but now requires library access and awaits
+// Next 16 params, so it can no longer leak page images. REVIEW (Phase 5):
+// rename to [id] or remove; /api/library/books?id= is the live detail route.
+export const GET = withApi<{ id: string }>(async (req, ctx) => {
+  const user = await requireAuth(req);
+  await requireLibraryAccess(user);
+
   try {
-    const { id } = params;
+    const { id } = await ctx.params;
 
     const [book] = await sql`
       SELECT id, title, author, description, cover_url, created_at
@@ -27,7 +34,6 @@ export async function GET(
         JOIN categories c ON c.id = bc.category_id
         WHERE bc.book_id = ${id}
       `;
-      // تأكيد النوع يدويًا
       categories = (cats as any[]).map((c: any) => ({
         id: c.id as string,
         name: c.name as string,
@@ -60,4 +66,4 @@ export async function GET(
     console.error("Error fetching book details:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

@@ -1,20 +1,21 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
-import { getServerSession } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
-export async function GET(req: Request) {
+// Phase 2.4a: caller identity from the central auth layer; the subscription
+// returned is always the caller's own. Query unchanged (subscriptions.user_uid
+// is profiles.id, joined via profiles.firebase_uid — Phase 4 key decision).
+export const GET = withApi(async (req) => {
+  const user = await requireAuth(req);
+
   try {
-    const session = await getServerSession(req);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     // جلب الاشتراك النشط
     const [subscription] = await sql`
       SELECT s.id, s.max_course, s.course_used, s.expires_at
       FROM subscriptions s
       JOIN profiles p ON s.user_uid = p.id
-      WHERE p.firebase_uid = ${session.uid}
+      WHERE p.firebase_uid = ${user.uid}
         AND s.expires_at > NOW()
       LIMIT 1
     `;
@@ -45,4 +46,4 @@ export async function GET(req: Request) {
     console.error('Get subscription error:', error);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
-}
+});

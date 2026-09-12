@@ -3,40 +3,15 @@
 
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
-import { firebaseAdmin } from "@/lib/firebase-admin";
+import { requireStudent, requireEnrolled } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
+import { safeJsonParse } from "@/lib/exam/grading";
 
-async function getFirebaseUid(request: Request): Promise<string | null> {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) return null;
-  const token = authHeader.split("Bearer ")[1];
-  try {
-    const decoded = await firebaseAdmin.auth().verifyIdToken(token);
-    return decoded.uid;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * تحويل قيمة من قاعدة البيانات إلى JSON بأمان
- */
-function safeJsonParse(value: any): any {
-  if (value === null || value === undefined) return null;
-  if (typeof value === "object") return value; // Postgres JSONB قد يعيد كائنًا
-  if (typeof value !== "string") return value;
-
-  try {
-    return JSON.parse(value);
-  } catch {
-    return value;
-  }
-}
-
-export async function GET(request: Request) {
-  const uid = await getFirebaseUid(request);
-  if (!uid) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+// Phase 2.4a: the enrollment check that was executed and then ignored is now
+// enforced through the central requireEnrolled helper (admin bypass).
+// Query and response shape unchanged.
+export const GET = withApi(async (request) => {
+  const user = await requireStudent(request);
 
   const { searchParams } = new URL(request.url);
   const courseId = searchParams.get("courseId");
@@ -46,21 +21,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "courseId is required" }, { status: 400 });
   }
 
+  await requireEnrolled(user, courseId);
+
   const sql = neon(process.env.DATABASE_URL!);
 
   try {
-    // (اختياري) التحقق من الالتحاق بالكورس
-    const enrollment = await sql`
-      SELECT 1 FROM enrollments
-      WHERE user_uid = ${uid} AND course_id = ${courseId}
-      LIMIT 1
-    `;
-    // نسمح بالوصول مؤقتًا حتى لو لم يكن مسجلاً (للتجربة)
-    // إذا أردت التقييد، أزل التعليق عن السطر التالي
-    // if (enrollment.length === 0) {
-    //   return NextResponse.json({ error: "Not enrolled" }, { status: 403 });
-    // }
-
     let query;
     if (difficulty) {
       query = sql`
@@ -87,11 +52,8 @@ export async function GET(request: Request) {
         created_at: g.created_at,
       })),
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error fetching games:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to fetch games" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch games" }, { status: 500 });
   }
-}
+});

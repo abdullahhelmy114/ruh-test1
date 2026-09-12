@@ -3,69 +3,24 @@
 
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
-import { firebaseAdmin } from "@/lib/firebase-admin";
+import { requireStudent } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 import { addPoints } from "@/lib/gamification/points";
 import { checkAndAwardBadges } from "@/lib/gamification/badges";
+import { gradeAttempt, safeJsonParse, type GradableQuestion } from "@/lib/exam/grading";
 
-async function getUserIdFromRequest(request: Request): Promise<string | null> {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) return null;
-  const token = authHeader.split("Bearer ")[1];
-
-  try {
-    const decoded = await firebaseAdmin.auth().verifyIdToken(token);
-    const sql = neon(process.env.DATABASE_URL!);
-    const result = await sql`SELECT id FROM profiles WHERE firebase_uid = ${decoded.uid} LIMIT 1`;
-    return result.length > 0 ? result[0].id : null;
-  } catch {
-    return null;
-  }
-}
-
-function safeJsonParse(value: any): any {
-  if (value === null || value === undefined) return null;
-  if (typeof value === "object") return value;
-  if (typeof value !== "string") return value;
-  try {
-    return JSON.parse(value);
-  } catch {
-    return value;
-  }
-}
-
-function normalizeText(s: any): string {
-  return String(s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
-}
-
-function isAnswerCorrect(questionType: string, userAnswer: any, correctAnswer: any, options?: any): boolean {
-  let finalCorrect = correctAnswer;
-  if ((typeof correctAnswer === "number" || /^\d+$/.test(String(correctAnswer))) && Array.isArray(options)) {
-    const idx = parseInt(String(correctAnswer), 10);
-    if (idx >= 0 && idx < options.length) {
-      finalCorrect = options[idx];
-    }
-  }
-
-  switch (questionType) {
-    case "choice":
-    case "true_false":
-    case "listening":
-      return normalizeText(userAnswer) === normalizeText(finalCorrect);
-    case "fill_blank":
-      return normalizeText(userAnswer) === normalizeText(finalCorrect);
-    case "word_order":
-    case "matching":
-      return JSON.stringify(userAnswer) === JSON.stringify(finalCorrect);
-    default:
-      return false;
-  }
-}
-
-export async function POST(request: Request) {
-  const userId = await getUserIdFromRequest(request);
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+// Phase 2.4a integrity fixes (grading formula itself unchanged: % correct, pass >= 50):
+//  - caller identity from the central auth layer; attempt must belong to the caller
+//  - valid question set = the attempt's course (cross-course ids are ignored)
+//  - denominator = questions served at start-exam (attempt.total_questions),
+//    never the size of the client-submitted subset; duplicates never count twice
+//  - exam-pass points are awarded at most once per (student, course) using the
+//    existing exam_attempts.points_awarded column, so retakes cannot farm points
+// REVIEW (Phase 4): served question ids are not persisted; retake/attempt
+// policy and a proper ledger idempotency key need schema decisions.
+export const POST = withApi(async (request) => {
+  const user = await requireStudent(request);
+  const userId = user.profileId;
 
   const sql = neon(process.env.DATABASE_URL!);
   try {
@@ -81,7 +36,7 @@ export async function POST(request: Request) {
 
     // جلب بيانات المحاولة
     const attemptRes = await sql`
-      SELECT id, user_id, course_id, passed, score
+      SELECT id, user_id, course_id, passed, score, total_questions
       FROM exam_attempts
       WHERE id = ${examId}
       LIMIT 1
@@ -97,42 +52,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Exam already submitted" }, { status: 400 });
     }
 
-    // جلب جميع أسئلة الكورس بدلاً من استخدام معرّفات الأسئلة
+    // جلب جميع أسئلة الكورس (مجموعة الأسئلة الصالحة يحددها الخادم)
     const questionsRes = await sql`
       SELECT id, question_type, correct_answer, options
       FROM generated_questions
       WHERE course_id = ${attempt.course_id}
     `;
 
-    // بناء خريطة الإجابات الصحيحة
-    const correctMap = new Map<string, { question_type: string; correct_answer: any; options: any }>();
+    const questionMap = new Map<string, GradableQuestion>();
     for (const q of questionsRes) {
-      correctMap.set(q.id, {
+      questionMap.set(String(q.id), {
         question_type: q.question_type,
         correct_answer: safeJsonParse(q.correct_answer),
         options: safeJsonParse(q.options),
       });
     }
 
-    // حساب النتيجة
-    let correctCount = 0;
-    let validCount = 0;
-    for (const ans of answers) {
-      const qInfo = correctMap.get(ans.questionId);
-      if (!qInfo) continue;
-      validCount++;
-      const isCorrect = isAnswerCorrect(
-        qInfo.question_type,
-        ans.answer,
-        qInfo.correct_answer,
-        qInfo.options
-      );
-      if (isCorrect) correctCount++;
-    }
-
-    const totalQuestions = validCount;
-    const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
-    const passed = score >= 50;
+    const graded = gradeAttempt(questionMap, answers, Number(attempt.total_questions));
+    const { correctCount, totalQuestions, score, passed } = graded;
 
     // تحديث المحاولة
     await sql`
@@ -147,22 +84,31 @@ export async function POST(request: Request) {
     let pointsAwarded = 0;
 
     if (passed) {
-      // جلب قيمة نقاط النجاح من الإعدادات
-      const configRes = await sql`
-        SELECT value FROM gamification_config WHERE key_name = 'exam_pass_points'
+      // منح نقاط النجاح مرة واحدة فقط لكل (طالب، كورس)
+      const alreadyAwarded = await sql`
+        SELECT 1 FROM exam_attempts
+        WHERE user_id = ${userId} AND course_id = ${attempt.course_id}
+          AND points_awarded > 0 AND id <> ${examId}
+        LIMIT 1
       `;
-      const examPassPoints = configRes.length > 0 ? parseInt(configRes[0].value, 10) || 100 : 100;
 
-      await addPoints(userId, examPassPoints, "exam_pass", {
-        examId,
-        score,
-        totalQuestions,
-      });
-      pointsAwarded = examPassPoints;
+      if (alreadyAwarded.length === 0) {
+        const configRes = await sql`
+          SELECT value FROM gamification_config WHERE key_name = 'exam_pass_points'
+        `;
+        const examPassPoints = configRes.length > 0 ? parseInt(configRes[0].value, 10) || 100 : 100;
 
-      await sql`
-        UPDATE exam_attempts SET points_awarded = ${examPassPoints} WHERE id = ${examId}
-      `;
+        await addPoints(userId, examPassPoints, "exam_pass", {
+          examId,
+          score,
+          totalQuestions,
+        });
+        pointsAwarded = examPassPoints;
+
+        await sql`
+          UPDATE exam_attempts SET points_awarded = ${examPassPoints} WHERE id = ${examId}
+        `;
+      }
 
       try {
         await checkAndAwardBadges(userId);
@@ -181,11 +127,9 @@ export async function POST(request: Request) {
         correctCount,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
+    if (error instanceof Error && (error.name === "AuthError" || error.name === "HttpError")) throw error;
     console.error("Error submitting exam:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to submit exam" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to submit exam" }, { status: 500 });
   }
-}
+});

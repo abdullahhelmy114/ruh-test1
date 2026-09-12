@@ -1,10 +1,17 @@
 // src/app/api/library/page-overlay/route.ts
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
-import { getServerSession } from "@/lib/auth";
+import { requireAuth, requireAdmin, requireLibraryAccess } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
+
+// Phase 2.4a: overlays are part of the paid reader; GET now requires library
+// access (shared helper). POST (admin authoring) moved to the central guard.
 
 // GET: جلب تراكبات كتاب معين
-export async function GET(req: Request) {
+export const GET = withApi(async (req) => {
+  const user = await requireAuth(req);
+  await requireLibraryAccess(user);
+
   const { searchParams } = new URL(req.url);
   const bookId = searchParams.get("bookId");
   if (!bookId) {
@@ -22,14 +29,12 @@ export async function GET(req: Request) {
     console.error("Error fetching overlays:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // POST: إضافة تراكب جديد (للأدمن)
-export async function POST(req: Request) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== "admin") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-  }
+export const POST = withApi(async (req) => {
+  await requireAdmin(req);
+
   try {
     const body = await req.json();
     const { book_id, page_number, type, position, content } = body;
@@ -46,4 +51,4 @@ export async function POST(req: Request) {
     console.error("Error creating overlay:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

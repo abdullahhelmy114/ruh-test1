@@ -67,6 +67,20 @@ export class AuthError extends Error {
 
 export const SESSION_COOKIE_NAME = "__session";
 
+/**
+ * Client-facing error with an explicit HTTP status (validation, not-found,
+ * conflict). Message must be safe to return to the client.
+ */
+export class HttpError extends Error {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "HttpError";
+    this.status = status;
+  }
+}
+
 /** Serializable error response used by `withApi`; never leaks internals. */
 export interface ErrorResponseShape {
   status: number;
@@ -77,7 +91,38 @@ export function toErrorResponse(error: unknown): ErrorResponseShape {
   if (error instanceof AuthError) {
     return { status: error.status, body: { error: error.message, code: error.code } };
   }
+  if (error instanceof HttpError) {
+    return { status: error.status, body: { error: error.message } };
+  }
   return { status: 500, body: { error: "Internal server error" } };
+}
+
+// ---------------------------------------------------------------------------
+// Enrollment guard (Phase 2.4a)
+// ---------------------------------------------------------------------------
+
+/**
+ * Enrollment is membership in `enrollments(user_uid = firebase uid, course_id)`.
+ * It is NOT paid entitlement (library access, subscriptions) — those are
+ * separate concepts with their own helpers.
+ */
+export interface EnrollmentDeps {
+  isEnrolled(uid: string, courseId: string): Promise<boolean>;
+}
+
+export type RequireEnrolled = (user: AuthUser, courseId: unknown) => Promise<void>;
+
+export function createEnrollmentGuard(deps: EnrollmentDeps): RequireEnrolled {
+  return async function requireEnrolled(user, courseId) {
+    if (typeof courseId !== "string" || courseId.trim() === "") {
+      throw new HttpError(400, "courseId is required");
+    }
+    // Admin bypass mirrors the existing semantics in student/course/[courseId]
+    // and the Phase 1 requireStudent/requireTeacher helpers.
+    if (user.role === "admin") return;
+    const enrolled = await deps.isEnrolled(user.uid, courseId);
+    if (!enrolled) throw new AuthError("FORBIDDEN", "Not enrolled");
+  };
 }
 
 /** Extracts the raw credential from a request. Returns null when absent. */

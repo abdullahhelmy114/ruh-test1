@@ -1,39 +1,20 @@
 // src/app/api/student/start-exam/route.ts
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
-import { firebaseAdmin } from "@/lib/firebase-admin";
+import { requireStudent, requireEnrolled } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
+import { safeJsonParse } from "@/lib/exam/grading";
 
-async function getUserIdFromRequest(request: Request): Promise<string | null> {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) return null;
-  const token = authHeader.split("Bearer ")[1];
-
-  try {
-    const decoded = await firebaseAdmin.auth().verifyIdToken(token);
-    const sql = neon(process.env.DATABASE_URL!);
-    const result = await sql`SELECT id FROM profiles WHERE firebase_uid = ${decoded.uid} LIMIT 1`;
-    return result.length > 0 ? result[0].id : null;
-  } catch {
-    return null;
-  }
-}
-
-function safeJsonParse(value: any): any {
-  if (value === null || value === undefined) return null;
-  if (typeof value === "object") return value; // JSONB from Postgres
-  if (typeof value !== "string") return value;
-  try {
-    return JSON.parse(value);
-  } catch {
-    return value; // نص عادي مثل "صح,خطأ"
-  }
-}
-
-export async function POST(request: Request) {
-  const userId = await getUserIdFromRequest(request);
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+// Phase 2.4a: caller identity comes from the central auth layer (profileId is
+// the same profiles.id the old inline helper resolved); the student must be
+// enrolled in the course. The served question count is persisted on the
+// attempt (total_questions) and is the authoritative grading denominator in
+// submit-exam. Question set/limit and response shape are unchanged.
+// REVIEW (Phase 4): the attempt does not persist the served question IDs and
+// there is no attempt cap; both need schema/policy decisions.
+export const POST = withApi(async (request) => {
+  const user = await requireStudent(request);
+  const userId = user.profileId;
 
   try {
     const body = await request.json();
@@ -42,6 +23,8 @@ export async function POST(request: Request) {
     if (!courseId) {
       return NextResponse.json({ error: "courseId is required" }, { status: 400 });
     }
+
+    await requireEnrolled(user, courseId);
 
     const sql = neon(process.env.DATABASE_URL!);
 
@@ -90,11 +73,9 @@ export async function POST(request: Request) {
         timeLimitSeconds: null,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
+    if (error instanceof Error && (error.name === "AuthError" || error.name === "HttpError")) throw error;
     console.error("Error starting exam:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to start exam" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to start exam" }, { status: 500 });
   }
-}
+});

@@ -1,30 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
-import { cookies } from 'next/headers';
-import { getAuth } from 'firebase-admin/auth';
+import { requireStudent, requireEnrolled } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 import { publishAchievement } from '@/lib/community';
 
-async function getCurrentUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('session')?.value;
-  if (!token) return null;
-  try {
-    return await getAuth().verifyIdToken(token);
-  } catch {
-    return null;
-  }
-}
-
-export async function POST(req: NextRequest) {
-  const user = await getCurrentUser();
-  if (!user || user.role !== 'student') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-  }
+// Phase 2.4a: the previous guard read a `session` cookie the app never sets
+// and a custom claim that is never issued, so this route always returned 403.
+// It now uses the central auth layer, requires enrollment in the course, and
+// derives eligibility strictly from server rows (lesson_completions vs
+// course.lesson_count) exactly as before. Name and gender come from the
+// caller's profile; if no gender is recorded the achievement post is skipped
+// (the community is gender-scoped and no default is defined).
+// REVIEW (Phase 4): eligibility ignores exams/certificates by design of the
+// existing model; any stronger rule needs a product decision.
+export const POST = withApi(async (req) => {
+  const user = await requireStudent(req);
 
   const { courseId } = await req.json();
   if (!courseId) {
     return NextResponse.json({ error: 'معرّف الكورس مطلوب' }, { status: 400 });
   }
+
+  await requireEnrolled(user, courseId);
 
   try {
     // 1. جلب عدد دروس الكورس
@@ -62,14 +59,17 @@ export async function POST(req: NextRequest) {
       ON CONFLICT DO NOTHING
     `;
 
-    // 5. نشر الإنجاز تلقائياً في المجتمع
-    const userName = user.name || 'طالب';
+    // 5. نشر الإنجاز تلقائياً في المجتمع (إن كان الجنس مسجلاً)
+    const [profile] = await sql`SELECT full_name, gender FROM profiles WHERE firebase_uid = ${user.uid} LIMIT 1`;
+    const userName = profile?.full_name || 'طالب';
     const courseName = course[0].title;
-    await publishAchievement(
-      user.uid,
-      user.gender,
-      `أكمل ${userName} دورة ${courseName}`
-    );
+    if (profile?.gender === 'male' || profile?.gender === 'female') {
+      await publishAchievement(
+        user.uid,
+        profile.gender,
+        `أكمل ${userName} دورة ${courseName}`
+      );
+    }
 
     return NextResponse.json({
       completed: true,
@@ -79,4 +79,4 @@ export async function POST(req: NextRequest) {
     console.error(error);
     return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
   }
-}
+});

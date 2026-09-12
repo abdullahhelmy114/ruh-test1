@@ -3,66 +3,54 @@
 
 import { NextResponse } from "next/server";
 import { redeemPointsForCoupon, getActiveRedemptionOffers } from "@/lib/gamification/redemption";
-import { firebaseAdmin } from "@/lib/firebase-admin";
-import { neon } from "@neondatabase/serverless";
+import { requireAuth } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 
-async function getUserIdFromRequest(request: Request): Promise<string | null> {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) return null;
-  const token = authHeader.split("Bearer ")[1];
+// User-facing business errors thrown by src/lib/gamification/redemption.ts.
+// Only these reach the client verbatim; anything else is a server failure.
+const REDEMPTION_USER_ERRORS = new Set([
+  "Redemption offer not found",
+  "Redemption offer is not active",
+  "Insufficient points balance",
+  "Failed to deduct points",
+]);
 
-  try {
-    const decoded = await firebaseAdmin.auth().verifyIdToken(token);
-    const sql = neon(process.env.DATABASE_URL!);
-    const result = await sql`SELECT id FROM profiles WHERE firebase_uid = ${decoded.uid} LIMIT 1`;
-    return result.length > 0 ? result[0].id : null;
-  } catch {
-    return null;
-  }
-}
-
-export async function GET(request: Request) {
-  const userId = await getUserIdFromRequest(request);
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+// Phase 2.4a: caller identity from the central auth layer; redemption is
+// always against the caller's own balance. Business behaviour unchanged.
+// REVIEW (Phase 4): the deduction and coupon insert run on separate
+// connections inside the redemption lib; making them one transaction is a
+// data-layer change.
+export const GET = withApi(async (request) => {
+  await requireAuth(request);
 
   try {
     const offers = await getActiveRedemptionOffers();
     return NextResponse.json({ offers });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error fetching redemption offers:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to fetch offers" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch offers" }, { status: 500 });
   }
-}
+});
 
-export async function POST(request: Request) {
-  const userId = await getUserIdFromRequest(request);
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const POST = withApi(async (request) => {
+  const user = await requireAuth(request);
 
   try {
     const body = await request.json();
     const { offerId } = body;
 
     if (!offerId) {
-      return NextResponse.json(
-        { error: "offerId is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "offerId is required" }, { status: 400 });
     }
 
-    const coupon = await redeemPointsForCoupon(userId, offerId);
+    const coupon = await redeemPointsForCoupon(user.profileId, offerId);
     return NextResponse.json({ success: true, coupon });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error redeeming points:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to redeem points" },
-      { status: 400 }
-    );
+    const thrown = error instanceof Error ? error : null;
+    if (thrown && REDEMPTION_USER_ERRORS.has(thrown.message)) {
+      return NextResponse.json({ error: thrown.message }, { status: 400 });
+    }
+    return NextResponse.json({ error: "Failed to redeem points" }, { status: 500 });
   }
-}
+});

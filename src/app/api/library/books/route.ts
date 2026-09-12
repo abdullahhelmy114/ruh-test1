@@ -1,13 +1,26 @@
 // src/app/api/library/books/route.ts
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
+import { requireAuth, requireLibraryAccess } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 
-export async function GET(req: Request) {
+// Phase 2.4a:
+//  - the public catalog list no longer includes pdf_url (protected content)
+//  - the single-book detail (?id=), which returns pdf_url and page images,
+//    now requires an authenticated caller with library access (admin, or an
+//    unexpired library_access row) via the shared requireLibraryAccess helper
+// REVIEW (Phase 3/4): pdf_url and page image_url point at Google Drive /
+// public URLs; once known they are fetchable without this API. Private or
+// signed delivery is a storage-architecture change, out of scope here.
+export const GET = withApi(async (req) => {
   const { searchParams } = new URL(req.url);
   const bookId = searchParams.get("id");
 
-  // ---------- جلب كتاب واحد ----------
+  // ---------- جلب كتاب واحد (محتوى محمي) ----------
   if (bookId) {
+    const user = await requireAuth(req);
+    await requireLibraryAccess(user);
+
     try {
       const [book] = await sql`
         SELECT id, title, author, description, cover_url, pdf_url, created_at
@@ -61,10 +74,10 @@ export async function GET(req: Request) {
     }
   }
 
-  // ---------- جلب قائمة الكتب ----------
+  // ---------- جلب قائمة الكتب (كتالوج عام بدون روابط المحتوى) ----------
   try {
     const books = await sql`
-      SELECT id, title, author, description, cover_url, pdf_url, created_at
+      SELECT id, title, author, description, cover_url, created_at
       FROM library_books
       ORDER BY created_at DESC
     `;
@@ -101,7 +114,6 @@ export async function GET(req: Request) {
       author: book.author,
       description: book.description,
       cover_url: book.cover_url,
-      pdf_url: book.pdf_url, // متوفر الآن
       year: null,
       pages_count: null,
       created_at: book.created_at,
@@ -114,4 +126,4 @@ export async function GET(req: Request) {
     console.error("Library books fetch error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

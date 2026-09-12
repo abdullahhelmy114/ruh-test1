@@ -44,7 +44,7 @@ function CourseCompletionSection({
   const [loadingExam, setLoadingExam] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/exam/${courseId}/questions`)
+    authFetch(`/api/exam/${courseId}/questions`)
       .then(r => r.json())
       .then(d => setHasExam(d.questions && d.questions.length > 0))
       .finally(() => setLoadingExam(false));
@@ -101,7 +101,7 @@ function QuizSection({ lessonId }: { lessonId: string }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/quizzes/${lessonId}`)
+    authFetch(`/api/quizzes/${lessonId}`)
       .then(r => r.json())
       .then(d => setQuizzes(d.quizzes || []))
       .finally(() => setLoading(false));
@@ -116,7 +116,7 @@ function QuizSection({ lessonId }: { lessonId: string }) {
         <HelpCircle className="h-5 w-5 text-accent-foreground" />
         <T>Lesson Quiz</T>
       </h3>
-      <QuizPlayer quizzes={quizzes} />
+      <QuizPlayer quizzes={quizzes} lessonId={lessonId} />
     </div>
   );
 }

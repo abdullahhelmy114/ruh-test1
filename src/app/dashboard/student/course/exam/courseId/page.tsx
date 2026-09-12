@@ -24,7 +24,7 @@ export default function ExamPage() {
 
   useEffect(() => {
     if (!user) { router.push("/login"); return; }
-    fetch(`/api/exam/${courseId}/questions`)
+    authFetch(`/api/exam/${courseId}/questions`)
       .then(r => r.json())
       .then(d => setQuestions(d.questions || []))
       .finally(() => setLoading(false));

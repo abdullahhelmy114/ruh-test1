@@ -1,43 +1,16 @@
 // src/app/api/student/dashboard/route.ts
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
-import { firebaseAdmin } from "@/lib/firebase-admin";
+import { requireAuth } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 
-async function getUserIdFromRequest(
-  request: Request
-): Promise<{ id: string; firebase_uid: string } | null> {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) return null;
-  const token = authHeader.split("Bearer ")[1];
+// Phase 2.4a: caller identity from the central auth layer; every query below
+// is keyed on the caller's own profileId / uid. Queries unchanged.
+export const GET = withApi(async (request) => {
+  const user = await requireAuth(request);
 
-  try {
-    const decoded = await firebaseAdmin.auth().verifyIdToken(token);
-    const sql = neon(process.env.DATABASE_URL!);
-    const result = await sql`
-      SELECT id, firebase_uid
-      FROM profiles
-      WHERE firebase_uid = ${decoded.uid}
-      LIMIT 1
-    `;
-    return result.length > 0
-      ? {
-          id: result[0].id,
-          firebase_uid: result[0].firebase_uid,
-        }
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-export async function GET(request: Request) {
-  const userRow = await getUserIdFromRequest(request);
-  if (!userRow) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const userId = userRow.id;
-  const firebaseUid = userRow.firebase_uid;
+  const userId = user.profileId;
+  const firebaseUid = user.uid;
   const sql = neon(process.env.DATABASE_URL!);
 
   try {
@@ -196,11 +169,8 @@ export async function GET(request: Request) {
       sessions,
       referral,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error fetching student dashboard:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to fetch dashboard" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch dashboard" }, { status: 500 });
   }
-}
+});

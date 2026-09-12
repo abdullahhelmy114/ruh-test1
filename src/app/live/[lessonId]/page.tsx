@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/AuthProvider";
+import { authFetch } from "@/lib/authFetch";
 import { Loader2, Users, MessageSquare, Maximize2, Minimize2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -42,7 +43,7 @@ export default function LiveLessonPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`/api/lessons/${params.lessonId}/zoom`);
+      const res = await authFetch(`/api/lessons/${params.lessonId}/zoom`);
       if (!res.ok) {
         const err = await res.json();
         setError(err.error || "Failed to load lesson");

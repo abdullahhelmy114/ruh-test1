@@ -1,24 +1,23 @@
 // src/app/api/library/annotations/route.ts
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
-import { getServerSession } from "@/lib/auth";
+import { requireAuth, requireLibraryAccess } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
+
+// Phase 2.4a: annotations are keyed by the verified caller's uid (ownership
+// unchanged). POST additionally requires library access, matching the reader
+// that produces them. page_number is validated as an integer.
 
 // POST: حفظ رسم جديد أو تحديثه
-export async function POST(req: Request) {
-  const session = await getServerSession(req);
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  // الأدمن لا يحتاج لحفظ رسومات (لكن يمكن السماح به إن أردت)
-  // if (session.role === "admin") {
-  //   return NextResponse.json({ error: "Admins don't save annotations" }, { status: 400 });
-  // }
+export const POST = withApi(async (req) => {
+  const user = await requireAuth(req);
+  await requireLibraryAccess(user);
 
   try {
     const { book_id, page_number, data } = await req.json();
+    const page = Number(page_number);
 
-    if (!book_id || !page_number || !data) {
+    if (!book_id || !Number.isInteger(page) || page < 1 || !data) {
       return NextResponse.json(
         { error: "Missing required fields: book_id, page_number, data" },
         { status: 400 }
@@ -34,7 +33,7 @@ export async function POST(req: Request) {
     // إدراج أو تحديث الرسم (يوجد رسم واحد فقط لكل مستخدم لكل صفحة)
     await sql`
       INSERT INTO page_annotations (user_uid, book_id, page_number, data)
-      VALUES (${session.uid}, ${book_id}, ${page_number}, ${data})
+      VALUES (${user.uid}, ${book_id}, ${page}, ${data})
       ON CONFLICT (user_uid, book_id, page_number)
       DO UPDATE SET data = ${data}, updated_at = now()
     `;
@@ -44,20 +43,17 @@ export async function POST(req: Request) {
     console.error("Error saving annotation:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // GET: استرجاع الرسم للمستخدم الحالي
-export async function GET(req: Request) {
-  const session = await getServerSession(req);
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const GET = withApi(async (req) => {
+  const user = await requireAuth(req);
 
   const { searchParams } = new URL(req.url);
   const bookId = searchParams.get("book_id");
-  const pageNumber = searchParams.get("page_number");
+  const pageNumber = Number(searchParams.get("page_number"));
 
-  if (!bookId || !pageNumber) {
+  if (!bookId || !Number.isInteger(pageNumber)) {
     return NextResponse.json(
       { error: "Missing query params: book_id, page_number" },
       { status: 400 }
@@ -67,9 +63,9 @@ export async function GET(req: Request) {
   try {
     const [annotation] = await sql`
       SELECT data FROM page_annotations
-      WHERE user_uid = ${session.uid}
+      WHERE user_uid = ${user.uid}
         AND book_id = ${bookId}
-        AND page_number = ${parseInt(pageNumber)}
+        AND page_number = ${pageNumber}
       LIMIT 1
     `;
 
@@ -80,4 +76,4 @@ export async function GET(req: Request) {
     console.error("Error fetching annotation:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
