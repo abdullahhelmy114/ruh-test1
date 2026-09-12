@@ -21,6 +21,15 @@ import { checkInternalSecret, isAllowedRecordingUrl } from '@/lib/security/inter
 //   - the server-side fetch is restricted to Zoom download hosts (no SSRF)
 //   - no error.message is returned to the caller
 // The YouTube upload logic itself is unchanged.
+//
+// Phase 3 batch 1 follow-up — recording source of truth.
+// Nothing in the repository ever stored the Zoom download URL in
+// `lessons.recording_url` (that column only ever receives the final YouTube
+// URL, written below), so reading it as the download source could never
+// work. The trusted internal caller (the signature-verified Zoom webhook) now
+// passes `recordingUrl` and Zoom's short-lived `downloadToken` in the body.
+// The body URL is subject to the same Zoom-host allowlist; `recording_url`
+// remains as a fallback source for operator-triggered re-uploads.
 
 // ── دوال مساعدة لـ YouTube ──────────────────────────
 async function getYouTubeAccessToken(): Promise<string> {
@@ -123,8 +132,13 @@ export const POST = withApi<{ id: string }>(async (request, context) => {
   const { id: lessonId } = await context.params;
   if (!lessonId) throw new HttpError(400, 'Lesson id is required');
 
+  // Body from the trusted internal caller (read once; optional).
+  const body = await request.json().catch(() => ({}));
+  const bodyRecordingUrl = typeof body?.recordingUrl === 'string' && body.recordingUrl ? body.recordingUrl : null;
+  const downloadToken = typeof body?.downloadToken === 'string' && body.downloadToken ? body.downloadToken : null;
+
   try {
-    // 1. جلب رابط تسجيل Zoom من قاعدة البيانات (يُفترض أن Zoom Webhook أضافه)
+    // 1. الدرس المستهدف (lessons.id) وحالة التسجيل الحالية
     const [lesson] = await sql`
       SELECT recording_url, title FROM lessons WHERE id = ${lessonId}
     `;
@@ -133,22 +147,25 @@ export const POST = withApi<{ id: string }>(async (request, context) => {
       return NextResponse.json({ error: 'Lesson not found' }, { status: 404 });
     }
 
-    const recordingUrl = lesson.recording_url; // رابط تنزيل فيديو Zoom (مؤقت)
-    if (!recordingUrl) {
-      return NextResponse.json({ error: 'No recording URL available' }, { status: 400 });
+    // Replay / duplicate delivery: already migrated to YouTube.
+    if (typeof lesson.recording_url === 'string' && isYouTubeUrl(lesson.recording_url)) {
+      return NextResponse.json({ success: true, alreadyProcessed: true, url: lesson.recording_url });
     }
 
-    // Replay / duplicate delivery: already migrated to YouTube.
-    if (isYouTubeUrl(recordingUrl)) {
-      return NextResponse.json({ success: true, alreadyProcessed: true, url: recordingUrl });
+    // رابط تنزيل Zoom: من النداء الداخلي الموثوق أولاً، ثم من قاعدة البيانات
+    const recordingUrl: string | null = bodyRecordingUrl ?? (lesson.recording_url || null);
+    if (!recordingUrl) {
+      return NextResponse.json({ error: 'No recording URL available' }, { status: 400 });
     }
 
     if (!isAllowedRecordingUrl(recordingUrl)) {
       return NextResponse.json({ error: 'Recording URL is not a Zoom download URL' }, { status: 400 });
     }
 
-    // 2. تنزيل الفيديو من Zoom
-    const videoRes = await fetch(recordingUrl);
+    // 2. تنزيل الفيديو من Zoom (download_token يُرسل كـ Bearer عند توفره)
+    const videoRes = await fetch(recordingUrl, {
+      headers: downloadToken ? { Authorization: `Bearer ${downloadToken}` } : undefined,
+    });
     if (!videoRes.ok) {
       throw new Error(`Failed to download video from Zoom: ${videoRes.status}`);
     }

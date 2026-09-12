@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { sql } from '@/lib/db/client';
 import {
   INTERNAL_SECRET_HEADER,
   ZOOM_SIGNATURE_HEADER,
@@ -6,6 +7,7 @@ import {
   verifyZoomSignature,
   zoomValidationToken,
 } from '@/lib/security/internal-auth';
+import { extractDownloadToken, normalizeZoomMeetingId, pickRecordingFile } from '@/lib/zoom/recording';
 
 export const runtime = 'nodejs';
 
@@ -18,7 +20,16 @@ export const runtime = 'nodejs';
 //   - Zoom's `endpoint.url_validation` challenge is answered (required to
 //     enable the webhook in the Zoom app settings)
 //   - the internal call to the upload route carries `x-internal-secret`
-// The recording.completed handling itself is unchanged.
+//
+// Phase 3 batch 1 follow-up — identifier/recording correctness.
+// Zoom sends `payload.object.id` as the numeric MEETING id, while the upload
+// route is keyed by `lessons.id` (UUID). The meeting id is stored in
+// `lessons.meeting_id` (as text) by the admin approval route, so the webhook
+// now resolves meeting_id → lessons.id and passes the verified download URL
+// (plus Zoom's short-lived download token) through the trusted internal
+// call; nothing in the repository ever stored the Zoom download URL in the
+// database. Deliveries for meetings without a lesson are acknowledged and
+// ignored (fail closed).
 export async function POST(request: Request) {
   const secretToken = process.env.ZOOM_WEBHOOK_SECRET_TOKEN;
   if (!secretToken) {
@@ -58,21 +69,28 @@ export async function POST(request: Request) {
     if (body?.event === 'recording.completed') {
       const { payload } = body;
 
-      const recordingFile = payload?.object?.recording_files?.find(
-        (file: any) => file.file_type === 'MP4' && file.recording_type === 'shared_screen_with_speaker_view'
-      ) || payload?.object?.recording_files?.[0];
+      const recordingFile = pickRecordingFile(payload?.object?.recording_files);
+      const meetingId = normalizeZoomMeetingId(payload?.object?.id);
+      const internalSecret = process.env.INTERNAL_API_SECRET;
 
-      if (recordingFile) {
-        const downloadUrl = recordingFile.download_url;
-        const lessonId = payload?.object?.id;
+      if (!recordingFile) {
+        console.log('Zoom recording.completed without a downloadable file; ignored.');
+      } else if (!meetingId) {
+        console.log('Zoom recording.completed without a usable meeting id; ignored.');
+      } else if (!internalSecret) {
+        console.error('INTERNAL_API_SECRET is not configured; cannot trigger YouTube upload.');
+      } else {
+        // Resolve the Zoom meeting id to the lesson it was created for.
+        const [lesson] = await sql`
+          SELECT id FROM lessons WHERE meeting_id = ${meetingId} ORDER BY created_at DESC LIMIT 1
+        `;
 
-        const internalSecret = process.env.INTERNAL_API_SECRET;
-        if (!internalSecret) {
-          console.error('INTERNAL_API_SECRET is not configured; cannot trigger YouTube upload.');
-        } else if (typeof lessonId === 'string' && lessonId) {
+        if (!lesson) {
+          console.log(`Zoom recording.completed for meeting ${meetingId}: no matching lesson; ignored.`);
+        } else {
           // استخدام new URL لاستخراج الأصل
           const origin = new URL(request.url).origin;
-          const uploadApiUrl = `${origin}/api/lessons/${encodeURIComponent(lessonId)}/upload-youtube`;
+          const uploadApiUrl = `${origin}/api/lessons/${encodeURIComponent(String(lesson.id))}/upload-youtube`;
 
           fetch(uploadApiUrl, {
             method: 'POST',
@@ -80,7 +98,10 @@ export async function POST(request: Request) {
               'Content-Type': 'application/json',
               [INTERNAL_SECRET_HEADER]: internalSecret,
             },
-            body: JSON.stringify({ recordingUrl: downloadUrl }),
+            body: JSON.stringify({
+              recordingUrl: recordingFile.downloadUrl,
+              downloadToken: extractDownloadToken(body),
+            }),
           }).catch(err => console.error('Failed to trigger YouTube upload:', err));
         }
       }

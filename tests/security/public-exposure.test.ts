@@ -37,7 +37,7 @@ describe("upload-youtube is internal-only", () => {
   });
 
   test("replay guard and Zoom-host restriction are wired; no error.message leak", () => {
-    assert.ok(src.includes("isYouTubeUrl(recordingUrl)"));
+    assert.ok(src.includes("isYouTubeUrl(lesson.recording_url)"));
     assert.ok(src.includes("isAllowedRecordingUrl(recordingUrl)"));
     assert.equal(src.includes("error.message"), false);
   });
@@ -58,6 +58,37 @@ describe("Zoom webhook verifies Zoom signatures and forwards the internal secret
     assert.ok(src.includes("[INTERNAL_SECRET_HEADER]: internalSecret"));
     assert.ok(src.includes("process.env.INTERNAL_API_SECRET"));
     assert.equal(src.includes("x-user-"), false);
+  });
+
+  test("resolves Zoom's numeric meeting id to lessons.id before the internal call (follow-up fix)", () => {
+    assert.ok(src.includes("normalizeZoomMeetingId(payload?.object?.id)"), "meeting id must be normalised (number or string)");
+    assert.equal(src.includes("typeof lessonId === 'string'"), false, "old string-only gate must be gone");
+    const lookup = src.indexOf("WHERE meeting_id = ${meetingId}");
+    assert.ok(lookup > 0, "must look the lesson up by meeting_id");
+    assert.ok(lookup > src.indexOf("verifyZoomSignature("), "lookup only after signature verification");
+    assert.ok(lookup < src.indexOf("fetch(uploadApiUrl"), "lookup must precede the internal call");
+    assert.ok(src.includes("encodeURIComponent(String(lesson.id))"), "internal call must target lessons.id");
+    assert.ok(src.includes("recordingUrl: recordingFile.downloadUrl"), "verified download URL is passed through");
+    assert.ok(src.includes("downloadToken: extractDownloadToken(body)"), "Zoom download token is passed through");
+    assert.equal((src.match(/request\.text\(\)/g) ?? []).length, 1, "raw body read exactly once");
+    assert.equal(src.includes("request.json()"), false, "no second body read");
+  });
+});
+
+describe("upload-youtube reads the recording URL from the trusted caller with the same allowlist", () => {
+  const src = code("app/api/lessons/[id]/upload-youtube/route.ts");
+
+  test("body is read once, after the internal secret check, and the URL still passes the Zoom allowlist", () => {
+    const guard = src.indexOf("checkInternalSecret(request, process.env.INTERNAL_API_SECRET)");
+    const bodyRead = src.indexOf("await request.json()");
+    assert.ok(bodyRead > guard, "body must be read only after the internal secret check");
+    assert.equal((src.match(/request\.json\(\)/g) ?? []).length, 1, "body read exactly once");
+    assert.ok(src.includes("bodyRecordingUrl ?? (lesson.recording_url || null)"), "body URL first, DB fallback");
+    const allow = src.indexOf("isAllowedRecordingUrl(recordingUrl)");
+    assert.ok(allow > 0 && allow < src.indexOf("await fetch(recordingUrl"), "allowlist before download");
+    assert.ok(src.indexOf("Lesson not found") < allow, "lesson existence checked before using the body URL");
+    assert.ok(src.includes("isYouTubeUrl(lesson.recording_url)"), "replay guard still keyed on the stored YouTube URL");
+    assert.ok(src.includes("Authorization: `Bearer ${downloadToken}`"), "download token sent as bearer, never in the URL");
   });
 });
 
