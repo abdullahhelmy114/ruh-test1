@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { T } from "@/components/TranslatedText";
-import { CustomCaptcha } from "@/components/CustomCaptcha";
+import ReCAPTCHA from "react-google-recaptcha";
 import {
   Mail,
   Phone,
@@ -18,6 +18,11 @@ import {
   Loader2,
   LinkIcon,
 } from "lucide-react";
+
+// Phase 3 batch 3: the human-verification step now uses Google reCAPTCHA so
+// /api/contact can verify the token server-side. The site key is public by
+// design (NEXT_PUBLIC_RECAPTCHA_SITE_KEY); the secret stays on the server.
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "";
 
 export function ContactContent() {
   const [name, setName] = useState("");
@@ -38,7 +43,8 @@ export function ContactContent() {
     setShowCaptcha(true);
   };
 
-  const handleCaptchaVerify = async (token: string) => {
+  const handleCaptchaVerify = async (token: string | null) => {
+    if (!token) return; // expired/reset widget: wait for a fresh token
     setSending(true);
     setShowCaptcha(false);
     try {
@@ -224,7 +230,11 @@ export function ContactContent() {
                     <p className="text-sm text-muted-foreground mb-4">
                       <T>Human Verification</T>
                     </p>
-                    <CustomCaptcha onVerify={handleCaptchaVerify} />
+                    {RECAPTCHA_SITE_KEY ? (
+                      <ReCAPTCHA sitekey={RECAPTCHA_SITE_KEY} onChange={handleCaptchaVerify} />
+                    ) : (
+                      <p className="text-sm text-red-500"><T>Verification is temporarily unavailable.</T></p>
+                    )}
                     <button
                       type="button"
                       onClick={() => setShowCaptcha(false)}

@@ -3,8 +3,42 @@ import { buildOnboardingPrompt, buildSalesPrompt, buildDashboardPrompt } from '@
 import { sql } from '@/lib/db/client';
 import { requireAuth, AuthError } from '@/lib/auth';
 import { withApi } from '@/lib/api/handler';
+import { checkRateLimit, clientKey, retryAfterSeconds } from '@/lib/security/rate-limit';
 
 type Language = 'en' | 'tr' | 'it' | 'es' | 'ar';
+
+// Phase 3 batch 3 — abuse/cost gate.
+// The `sales` context is intentionally anonymous (public courses page) and
+// used to relay an unbounded history to Gemini with the API key in the URL
+// query string and no timeout. Now:
+//   - anonymous sales calls are rate-limited per client (429)
+//   - message/history sizes are capped for every context
+//   - the key travels in the `x-goog-api-key` header, never in the URL
+//   - both Gemini calls carry a timeout; failures return fixed messages
+// Authenticated contexts keep their current auth; per-user quotas are a
+// later batch. Prompts, model and reply contract are unchanged.
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent';
+const SALES_IP_LIMIT = { limit: 20, windowMs: 10 * 60 * 1000 }; // 20 anonymous turns / 10 min per client
+const MESSAGE_MAX = 2000;        // chars
+const HISTORY_MAX_ENTRIES = 20;  // turns kept from the client transcript
+const HISTORY_ENTRY_MAX = 2000;  // chars per turn
+const HISTORY_TOTAL_MAX = 20000; // chars across the whole history
+const PROVIDER_TIMEOUT_MS = 30_000;
+
+function boundedHistory(raw: unknown): Array<{ role: 'user' | 'model'; parts: { text: string }[] }> {
+  const out: Array<{ role: 'user' | 'model'; parts: { text: string }[] }> = [];
+  if (!Array.isArray(raw)) return out;
+  let total = 0;
+  for (const msg of raw.slice(-HISTORY_MAX_ENTRIES)) {
+    const content = msg?.content;
+    if (typeof content !== 'string') continue;
+    const text = content.slice(0, HISTORY_ENTRY_MAX);
+    if (total + text.length > HISTORY_TOTAL_MAX) break;
+    total += text.length;
+    out.push({ role: msg?.role === 'assistant' ? 'model' : 'user', parts: [{ text }] });
+  }
+  return out;
+}
 
 // دالة استخراج التقييم بصيغة JSON من رد المعلم
 async function extractAssessment(replyText: string, apiKey: string): Promise<any | null> {
@@ -22,17 +56,15 @@ async function extractAssessment(replyText: string, apiKey: string): Promise<any
 `;
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: extractionPrompt }] }],
-          generationConfig: { temperature: 0, maxOutputTokens: 300 },
-        }),
-      }
-    );
+    const response = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: extractionPrompt }] }],
+        generationConfig: { temperature: 0, maxOutputTokens: 300 },
+      }),
+      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
+    });
 
     const data = await response.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
@@ -70,7 +102,18 @@ export const POST = withApi(async (req) => {
     const user = context === 'sales' ? null : await requireAuth(req);
     const userId = user?.uid ?? null;
 
-    if (!message || typeof message !== 'string') {
+    if (!user) {
+      // Anonymous sales assistant: bounded per client.
+      const ipCheck = checkRateLimit(`tutor-sales:${clientKey(req)}`, SALES_IP_LIMIT);
+      if (!ipCheck.allowed) {
+        return NextResponse.json(
+          { error: 'Too many requests' },
+          { status: 429, headers: { 'Retry-After': String(retryAfterSeconds(ipCheck)) } }
+        );
+      }
+    }
+
+    if (!message || typeof message !== 'string' || message.length > MESSAGE_MAX) {
       return NextResponse.json({ error: 'الرسالة فارغة أو غير صالحة' }, { status: 400 });
     }
 
@@ -91,32 +134,28 @@ export const POST = withApi(async (req) => {
     const contents = [
       { role: 'user', parts: [{ text: systemPrompt }] },
       { role: 'model', parts: [{ text: 'حسنًا، لنبدأ! كيف يمكنني مساعدتك؟' }] },
-      ...history.map((msg: any) => ({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: msg.content }],
-      })),
+      ...boundedHistory(history),
       { role: 'user', parts: [{ text: message }] },
     ];
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents,
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 800,
-          },
-        }),
-      }
-    );
+    const response = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+      body: JSON.stringify({
+        contents,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 800,
+        },
+      }),
+      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
+    });
 
     const data = await response.json();
     if (!response.ok) {
-      console.error('Gemini API error:', data);
-      throw new Error(data.error?.message || 'فشل الاتصال بـ Gemini');
+      // Provider bodies can contain key/quota details: log the status only.
+      console.error('Gemini API error:', response.status);
+      throw new Error('فشل الاتصال بـ Gemini');
     }
 
     const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'عذرًا، لم أستطع الرد.';

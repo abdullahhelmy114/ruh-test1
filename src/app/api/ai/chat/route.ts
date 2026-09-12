@@ -1,14 +1,34 @@
 import { NextResponse } from "next/server";
+import { withApi } from "@/lib/api/handler";
+import { checkRateLimit, clientKey, retryAfterSeconds } from "@/lib/security/rate-limit";
 
-export const runtime = "edge";
+// Node runtime: the abuse limiter is process-memory based and relies on the
+// long-running Railway Node process, not an ephemeral Edge isolate.
+export const runtime = "nodejs";
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "nvidia/nemotron-3-nano-30b-a3b:free";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
+// Phase 3 batch 3 — public abuse gate (this assistant is intentionally
+// public on the marketing site). Previously an unbounded history was relayed
+// to the provider by anyone, with no timeout, and provider error text was
+// returned. Now:
+//   - per-IP rate limit (429)
+//   - caps on the current message, history length, per-entry and total size
+//   - provider request timeout; generic error bodies only
+// Model/provider and the reply contract ({ reply }) are unchanged.
+// Authenticated per-user quotas are a later batch.
+const IP_LIMIT = { limit: 20, windowMs: 10 * 60 * 1000 }; // 20 turns / 10 min per client
+const MESSAGE_MAX = 2000;       // chars
+const HISTORY_MAX_ENTRIES = 20; // turns kept from the client transcript
+const HISTORY_ENTRY_MAX = 2000; // chars per turn
+const HISTORY_TOTAL_MAX = 20000; // chars across the whole history
+const PROVIDER_TIMEOUT_MS = 30_000;
+
 async function fetchAcademyContext(): Promise<string> {
   try {
-    const res = await fetch(`${SITE_URL}/api/academy-info`);
+    const res = await fetch(`${SITE_URL}/api/academy-info`, { signal: AbortSignal.timeout(10_000) });
     if (!res.ok) return "";
     const data = await res.json();
     return JSON.stringify(data, null, 2);
@@ -18,18 +38,40 @@ async function fetchAcademyContext(): Promise<string> {
   }
 }
 
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const message: string = body.message;
-    const history: Array<{ role: "user" | "assistant"; content: string }> =
-      body.history && Array.isArray(body.history) ? body.history : [];
+export const POST = withApi(async (req) => {
+  const ipCheck = checkRateLimit(`ai-chat:${clientKey(req)}`, IP_LIMIT);
+  if (!ipCheck.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": String(retryAfterSeconds(ipCheck)) } }
+    );
+  }
 
-    if (!message || typeof message !== "string") {
+  try {
+    const body = await req.json().catch(() => null);
+    const message: unknown = body?.message;
+    const rawHistory: unknown = body?.history;
+
+    if (!message || typeof message !== "string" || message.length > MESSAGE_MAX) {
       return NextResponse.json(
         { error: "Missing or invalid 'message' field" },
         { status: 400 }
       );
+    }
+
+    // Bounded history: last N well-formed turns, each capped, total capped.
+    const history: Array<{ role: "user" | "assistant"; content: string }> = [];
+    let historyChars = 0;
+    if (Array.isArray(rawHistory)) {
+      for (const msg of rawHistory.slice(-HISTORY_MAX_ENTRIES)) {
+        const role = msg?.role;
+        const content = msg?.content;
+        if ((role !== "user" && role !== "assistant") || typeof content !== "string") continue;
+        const clipped = content.slice(0, HISTORY_ENTRY_MAX);
+        if (historyChars + clipped.length > HISTORY_TOTAL_MAX) break;
+        historyChars += clipped.length;
+        history.push({ role, content: clipped });
+      }
     }
 
     const academyContext = await fetchAcademyContext();
@@ -59,18 +101,9 @@ ${academyContext}
 
     const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
       { role: "system", content: systemPrompt },
+      ...history,
+      { role: "user", content: message },
     ];
-
-    for (const msg of history) {
-      if (msg.role === "user" || msg.role === "assistant") {
-        messages.push({
-          role: msg.role,
-          content: msg.content,
-        });
-      }
-    }
-
-    messages.push({ role: "user", content: message });
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -84,15 +117,13 @@ ${academyContext}
         temperature: 0.3,
         max_tokens: 2048,
       }),
+      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
     });
 
     if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      console.error("OpenRouter API error:", err);
-      return NextResponse.json(
-        { error: err?.error?.message || "OpenRouter API error" },
-        { status: 500 }
-      );
+      // Provider bodies can contain account/quota details: log, never return.
+      console.error("OpenRouter API error:", response.status);
+      return NextResponse.json({ error: "Assistant unavailable" }, { status: 502 });
     }
 
     const data = await response.json();
@@ -106,4 +137,4 @@ ${academyContext}
       { status: 500 }
     );
   }
-}
+});
