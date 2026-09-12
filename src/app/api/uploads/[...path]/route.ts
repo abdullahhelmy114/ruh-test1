@@ -2,9 +2,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import path from "path";
+import { resolveWithinRoot, servePolicyFor } from "@/lib/security/upload-policy";
 
 const UPLOAD_ROOT = path.join(process.cwd(), "uploads");
 
+// Phase 3 batch 2 — file-serving boundary.
+// The requested segments are resolved against the upload root with a
+// separator-aware containment check (no traversal, no sibling-prefix
+// bypass). Only allowlisted extensions are served, each with a fixed
+// content type, `X-Content-Type-Options: nosniff`, and `Content-Disposition:
+// attachment` unless the type is safe to render inline (images, PDF,
+// MP4/MOV). HTML, SVG and script types are never served. Errors never
+// expose filesystem paths. Response codes (403/404) are unchanged.
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }   // ← Next.js 16: params أصبح Promise
@@ -12,37 +21,24 @@ export async function GET(
   try {
     const { path: pathSegments } = await params; // ← انتظار الـ Promise
 
-    const filePath = path.join(UPLOAD_ROOT, ...pathSegments);
-
     // منع الخروج من مجلد uploads
-    if (!filePath.startsWith(UPLOAD_ROOT)) {
+    const filePath = resolveWithinRoot(UPLOAD_ROOT, pathSegments ?? []);
+    if (!filePath) {
       return new NextResponse("Forbidden", { status: 403 });
+    }
+
+    const policy = servePolicyFor(filePath);
+    if (!policy) {
+      return new NextResponse("Not Found", { status: 404 });
     }
 
     const data = await readFile(filePath);
 
-    const ext = path.extname(filePath).toLowerCase();
-    const mimeTypes: Record<string, string> = {
-      ".pdf": "application/pdf",
-      ".mp4": "video/mp4",
-      ".mov": "video/quicktime",
-      ".avi": "video/x-msvideo",
-      ".mkv": "video/x-matroska",
-      ".png": "image/png",
-      ".jpg": "image/jpeg",
-      ".jpeg": "image/jpeg",
-      ".gif": "image/gif",
-      ".webp": "image/webp",
-      ".doc": "application/msword",
-      ".docx":
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    };
-
-    const contentType = mimeTypes[ext] || "application/octet-stream";
-
     return new NextResponse(data, {
       headers: {
-        "Content-Type": contentType,
+        "Content-Type": policy.contentType,
+        "Content-Disposition": `${policy.disposition}; filename="${path.basename(filePath)}"`,
+        "X-Content-Type-Options": "nosniff",
         "Cache-Control": "private, max-age=86400",
       },
     });
