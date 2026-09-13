@@ -17,6 +17,61 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { Label } from "@/components/ui/label";
 import { teacherSignupStep2Schema, type TeacherSignupStep2Data } from "@/lib/validations/teacher-signup-step2";
 import { cn } from "@/lib/utils";
+import { checkFileForPurpose, cloudinaryUploadUrl, type UploadPurpose } from "@/lib/security/upload-purpose";
+
+// Phase 3 closure fix F2 — signed direct upload. The browser validates the
+// file locally, asks /api/cloudinary/sign-upload for a signature over
+// server-chosen parameters for a fixed purpose, then uploads straight to
+// Cloudinary. No unsigned preset, no cloud name or secret in this file, and
+// no file bytes through our server.
+async function uploadSigned(file: File, purpose: UploadPurpose): Promise<string> {
+  const check = checkFileForPurpose(file, purpose);
+  if (!check.ok) {
+    throw new Error(
+      check.reason === "size"
+        ? "الملف أكبر من الحد المسموح."
+        : check.reason === "empty"
+          ? "الملف فارغ."
+          : "نوع الملف غير مدعوم."
+    );
+  }
+
+  const signRes = await fetch("/api/cloudinary/sign-upload", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ purpose }),
+  });
+  if (!signRes.ok) {
+    throw new Error("تعذّر تجهيز الرفع، يرجى المحاولة مرة أخرى.");
+  }
+  const auth = await signRes.json();
+
+  const formData = new FormData();
+  formData.append("file", file);
+  // Exactly the server-signed parameters (server-issued public_id,
+  // overwrite=false and the server-selected signed upload_preset), plus the
+  // non-secret api_key and the signature. Any deviation makes Cloudinary
+  // reject the signature. Local size/type checks above are UX pre-checks;
+  // the signed preset carries the provider-side limits.
+  formData.append("timestamp", String(auth.timestamp));
+  formData.append("folder", auth.folder);
+  formData.append("allowed_formats", auth.allowedFormats);
+  formData.append("public_id", auth.publicId);
+  formData.append("overwrite", "false");
+  formData.append("upload_preset", auth.uploadPreset);
+  formData.append("api_key", auth.apiKey);
+  formData.append("signature", auth.signature);
+
+  const res = await fetch(cloudinaryUploadUrl(auth.cloudName, purpose), { method: "POST", body: formData });
+  if (!res.ok) {
+    throw new Error("فشل رفع الملف إلى السحابة، يرجى المحاولة مرة أخرى.");
+  }
+  const uploaded = await res.json();
+  if (typeof uploaded?.secure_url !== "string") {
+    throw new Error("فشل رفع الملف إلى السحابة، يرجى المحاولة مرة أخرى.");
+  }
+  return uploaded.secure_url; // الرابط السحابي الدائم
+}
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -85,39 +140,16 @@ const onSubmit = async (data: TeacherSignupStep2Data) => {
       
       const step1Data = JSON.parse(step1DataStr);
 
-      // 1. دالة الرفع إلى Cloudinary ببياناتك الخاصة
-      const uploadToCloudinary = async (file: File) => {
-        const formData = new FormData();
-        formData.append("file", file);
-        
-        // بيانات Cloudinary الخاصة بك
-        formData.append("upload_preset", "Ruh-Ul-Qudus"); 
-        const cloudName = "flpsabx6"; 
-
-        // الرفع المباشر (auto تتعرف تلقائياً هل هو pdf أو فيديو)
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!res.ok) {
-          throw new Error("فشل رفع الملف إلى السحابة، يرجى المحاولة مرة أخرى.");
-        }
-
-        const uploadedData = await res.json();
-        return uploadedData.secure_url; // الرابط السحابي الدائم
-      };
-
-      // 2. رفع الـ CV والحصول على الرابط السحابي
+      // 1. رفع الـ CV (رفع موقّع مباشر إلى Cloudinary) والحصول على الرابط السحابي
       let cvUrl = "";
       if (data.cvFile) {
-        cvUrl = await uploadToCloudinary(data.cvFile);
+        cvUrl = await uploadSigned(data.cvFile, "teacher_cv");
       }
 
-      // 3. رفع الفيديو (إذا وجد) والحصول على الرابط
+      // 2. رفع الفيديو (إذا وجد) والحصول على الرابط
       let videoUrl = "";
       if (data.introVideo) {
-        videoUrl = await uploadToCloudinary(data.introVideo);
+        videoUrl = await uploadSigned(data.introVideo, "teacher_intro_video");
       }
 
       // 4. إرسال البيانات כـ JSON نظيف إلى الباك إند الخاص بك

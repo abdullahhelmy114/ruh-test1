@@ -221,10 +221,11 @@ describe("batch boundary", () => {
     }
   });
   test("deferred files were not touched by this batch's helpers", () => {
+    // upload-gemini left this list with Phase 3 closure fix F1
+    // (tests/security/admin-knowledge-upload.test.ts covers it now).
     for (const rel of [
       "app/api/admin/curriculum/outline/route.ts",
       "app/api/admin/curriculum/extract-text/route.ts",
-      "app/api/admin/knowledge/upload-gemini/route.ts",
       "app/api/notifications/register/route.ts",
       "app/api/admin/send-notification/route.ts",
     ]) {

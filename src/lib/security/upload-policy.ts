@@ -130,3 +130,20 @@ export function servePolicyFor(fileName: string): ServePolicy | null {
   if (!rule) return null;
   return { contentType: rule.mimes[0], disposition: rule.inline ? "inline" : "attachment" };
 }
+
+/**
+ * Server-generated temporary file path (Phase 3 closure fix F1).
+ *
+ * Deliberately takes NO client-supplied name: the only variable component is
+ * the caller's uuid and an allowlisted extension, so a multipart filename can
+ * never influence where the file lands. The result is proven to be directly
+ * inside `root` (no traversal, no sibling-prefix bypass) or an error is thrown.
+ */
+export function serverTempFilePath(root: string, uuid: string, ext: string): string {
+  const name = buildStoredFileName(uuid, ext);
+  const target = resolveWithinRoot(root, [name]);
+  if (!target || path.dirname(target) !== path.resolve(root)) {
+    throw new Error("temp path escaped its root");
+  }
+  return target;
+}
