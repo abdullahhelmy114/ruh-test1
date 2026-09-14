@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-function wrapTemplate(title: string, content: string) {
+function wrapTemplate(title: string, content: string): string {
   return `
     <!DOCTYPE html>
     <html lang="en">
@@ -22,7 +22,6 @@ function wrapTemplate(title: string, content: string) {
         .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
         .card { background: #ffffff; border-radius: 24px; padding: 40px; box-shadow: 0 8px 32px rgba(0,0,0,0.06); border: 1px solid #f0e6d3; }
         .logo { text-align: center; margin-bottom: 30px; }
-        .logo img { height: 50px; }
         .title { font-size: 24px; color: #1A3C34; text-align: center; margin-bottom: 20px; }
         .content { font-size: 16px; color: #444444; line-height: 1.7; text-align: center; }
         .button { display: inline-block; background: linear-gradient(135deg, #D4AF37, #C9A02B); color: #1A3C34; text-decoration: none; padding: 14px 36px; border-radius: 50px; font-weight: bold; font-size: 16px; margin-top: 24px; }
@@ -45,8 +44,8 @@ function wrapTemplate(title: string, content: string) {
           <div class="footer">
             <p>© ${new Date().getFullYear()} Ruh-Ul-Qudus Academy. All rights reserved.</p>
             <p>
-              <a href="https://ruhulqudus.com/privacy">Privacy Policy</a> · 
-              <a href="https://ruhulqudus.com/terms">Terms of Service</a> · 
+              <a href="https://ruhulqudus.com/privacy">Privacy Policy</a> ·
+              <a href="https://ruhulqudus.com/terms">Terms of Service</a> ·
               <a href="https://ruhulqudus.com/contact">Contact Us</a>
             </p>
           </div>
@@ -73,8 +72,8 @@ export async function sendEmail(
   });
 }
 
-// دوال القوالب (بقيت كما هي)
-export function welcomeEmail(name: string) {
+// دوال القوالب
+export function welcomeEmail(name: string): string {
   return wrapTemplate(
     "Welcome to Ruh-Ul-Qudus Academy! 🎉",
     `
@@ -87,7 +86,7 @@ export function welcomeEmail(name: string) {
   );
 }
 
-export function verificationCodeEmail(code: string) {
+export function verificationCodeEmail(code: string): string {
   return wrapTemplate(
     "Your Verification Code",
     `
@@ -99,7 +98,7 @@ export function verificationCodeEmail(code: string) {
   );
 }
 
-export function resetPasswordEmail(link: string) {
+export function resetPasswordEmail(link: string): string {
   return wrapTemplate(
     "Reset Your Password 🔑",
     `
@@ -112,7 +111,7 @@ export function resetPasswordEmail(link: string) {
   );
 }
 
-export function courseEnrolledEmail(name: string, course: string) {
+export function courseEnrolledEmail(name: string, course: string): string {
   return wrapTemplate(
     `You're Enrolled! 🎓`,
     `
@@ -125,7 +124,7 @@ export function courseEnrolledEmail(name: string, course: string) {
   );
 }
 
-export function contactFormEmail(name: string, email: string, message: string) {
+export function contactFormEmail(name: string, email: string, message: string): string {
   return wrapTemplate(
     "New Contact Message",
     `
@@ -138,7 +137,6 @@ export function contactFormEmail(name: string, email: string, message: string) {
   );
 }
 
-// دالة إرسال رمز التحقق الجديدة
 export async function sendEmailVerificationCode(email: string): Promise<string> {
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   const html = verificationCodeEmail(code);
@@ -146,7 +144,7 @@ export async function sendEmailVerificationCode(email: string): Promise<string> 
   return code;
 }
 
-export function teacherApprovedEmail(name: string) {
+export function teacherApprovedEmail(name: string): string {
   return wrapTemplate(
     "Your Teacher Account is Approved! 🎉",
     `
