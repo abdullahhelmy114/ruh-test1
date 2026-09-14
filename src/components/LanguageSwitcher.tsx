@@ -3,6 +3,18 @@
 import { useEffect, useState } from "react";
 import { Globe, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE, isLocale, localeDirection } from "@/i18n/config";
+
+/**
+ * Mirror the locale preference into a cookie (same key as localStorage) so the
+ * root layout renders the right <html lang dir> on the next server render.
+ * Only allowlisted locales are ever written.
+ */
+function writeLocaleCookie(locale: string) {
+  if (!isLocale(locale)) return;
+  const secure = window.location.protocol === "https:" ? "; secure" : "";
+  document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}; samesite=lax${secure}`;
+}
 
 const localeOptions = [
   { code: "en", label: "English", flag: "en" },
@@ -20,6 +32,18 @@ export function LanguageSwitcher() {
     const stored = localStorage.getItem("preferred-locale");
     if (stored) setLocale(stored);
 
+    // One-time sync for preferences saved before the cookie existed: the server
+    // rendered the cookie's (or default) locale, so mirror the stored choice into
+    // the cookie for next time and apply lang/dir now.
+    if (isLocale(stored)) {
+      if (!document.cookie.split("; ").includes(`${LOCALE_COOKIE}=${stored}`)) {
+        writeLocaleCookie(stored);
+      }
+      const dir = localeDirection(stored);
+      if (document.documentElement.dir !== dir) document.documentElement.dir = dir;
+      if (document.documentElement.lang !== stored) document.documentElement.lang = stored;
+    }
+
     const handler = (e: Event) => {
       const customEvent = e as CustomEvent<string>;
       setLocale(customEvent.detail);
@@ -30,6 +54,7 @@ export function LanguageSwitcher() {
 
   const changeLocale = (newLocale: string) => {
     localStorage.setItem("preferred-locale", newLocale);
+    writeLocaleCookie(newLocale);
     document.documentElement.dir = newLocale === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = newLocale;
     setLocale(newLocale);

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Script from "next/script";
+import { cookies } from "next/headers";
 import {
   inter,
   playfair,
@@ -16,6 +16,7 @@ import { Toaster } from "@/components/ui/sonner";
 import AIChatBubbleLazy from "@/components/shared/AIChatBubbleLazy";
 import { Footer } from "@/components/shared/Footer";
 import AuthProviderLazy from "@/lib/firebase/AuthProviderLazy";
+import { LOCALE_COOKIE, localeDirection, resolveLocale } from "@/i18n/config";
 
 export const metadata: Metadata = {
   title: "Ruh-Ul-Qudus Academy | Learn Arabic & Quran Online",
@@ -76,24 +77,19 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // ضبط اتجاه الصفحة ولغتها على الخادم من ملف تعريف الارتباط (بدون سكربت تمهيدي).
+  // The locale preference cookie is validated against the project's locale
+  // list; unknown values fall back to the default. This replaces the former
+  // next/script beforeInteractive bootstrap, which React 19 flagged as
+  // "Encountered a script tag while rendering React component".
+  const locale = resolveLocale((await cookies()).get(LOCALE_COOKIE)?.value);
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} dir={localeDirection(locale)} suppressHydrationWarning>
       <head>
-        {/* ضبط اتجاه الصفحة قبل أي عرض */}
-        <Script id="set-direction" strategy="beforeInteractive">
-          {`
-            (function() {
-              try {
-                var locale = localStorage.getItem('preferred-locale') || 'en';
-                document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
-                document.documentElement.lang = locale;
-              } catch (e) {}
-            })();
-          `}
-        </Script>
         <link rel="preconnect" href="https://ruhulqudus-48d29.firebaseapp.com" />
         <link rel="preconnect" href="https://www.gstatic.com" />
       </head>

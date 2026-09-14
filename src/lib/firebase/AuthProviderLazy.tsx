@@ -1,34 +1,19 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useState, useEffect } from "react";
-import { AuthProvider as FirebaseAuthProvider } from "./AuthProvider";
+import { AuthProvider } from "./AuthProvider";
 
-// مكوّن خفيف يبدأ بتحميل AuthProvider بعد التركيب
+// يلفّ التطبيق بـ AuthProvider مباشرة وبنفس البنية على الخادم وأثناء الـ hydration وبعدها.
+// The provider tree must be identical from server render through hydration.
+// The former version rendered children alone first and then swapped to a
+// next/dynamic AuthProvider after mount, which unmounted and remounted the whole
+// page on the client. That remount made React re-create next-themes'
+// anti-flash <script> during client rendering ("Encountered a script tag while
+// rendering React component"). AuthProvider is client-safe to render directly:
+// its Firebase listener runs inside useEffect with cleanup.
 export default function AuthProviderLazy({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  if (!isClient) {
-    // على الخادم أو قبل التحميل، نعرض الأطفال مباشرة بدون أي حجب
-    return <>{children}</>;
-  }
-
-  // الآن عميل، نحمّل AuthProvider الفعلي
-  const AuthProviderComponent = dynamic(
-    () => import("./AuthProvider").then((mod) => mod.AuthProvider),
-    {
-      ssr: false,
-      loading: () => null, // لا سبينر يغطي الصفحة
-    }
-  );
-
-  return <AuthProviderComponent>{children}</AuthProviderComponent>;
+  return <AuthProvider>{children}</AuthProvider>;
 }
