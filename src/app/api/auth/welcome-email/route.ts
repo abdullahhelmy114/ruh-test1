@@ -1,17 +1,11 @@
-import { NextResponse } from "next/server";
-import { sendWelcomeEmail } from "@/lib/email";
-
-export async function POST(request: Request) {
-  try {
-    const { email, firstName } = await request.json();
-    if (!email || !firstName) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-    }
-
-    await sendWelcomeEmail(email, firstName);
-
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+// Containment: this endpoint was published by accident. It sent a welcome email
+// to any caller-supplied address and name with no authentication, captcha or
+// rate limit (an open email relay under the academy's sender) and returned raw
+// error messages. It was never called by the app. Disabled. No imports, so no
+// email code can run.
+export async function POST() {
+  return Response.json(
+    { error: "This endpoint has been removed." },
+    { status: 410 }
+  );
 }

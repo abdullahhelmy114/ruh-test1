@@ -1,26 +1,13 @@
-import { NextResponse } from "next/server";
-import { sql } from "@/lib/db/client";
-import { sendVerificationEmail } from "@/lib/email";
-import { randomBytes } from "crypto";
-
-export async function POST(request: Request) {
-  try {
-    const { email } = await request.json();
-    if (!email) {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 });
-    }
-
-    const code = randomBytes(3).toString("hex").toUpperCase(); // 6 أحرف
-
-    await sendVerificationEmail(email, code);
-
-    await sql`
-      INSERT INTO verification_codes (email, code, expires_at)
-      VALUES (${email}, ${code}, NOW() + INTERVAL '15 minutes')
-    `;
-
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+// Containment: obsolete duplicate of POST /api/send-verification-code, published
+// by accident. It emailed a plaintext code to any caller-supplied address with no
+// authentication or rate limit, targeted verification_codes columns (email, code)
+// that do not exist in the live table, and bypassed the per-user HMAC OTP flow in
+// src/lib/security/otp.ts. It was never called by the app. Disabled; the real
+// resend route is the only verification-code sender. No imports, so no email or
+// database code can run.
+export async function POST() {
+  return Response.json(
+    { error: "This endpoint has been removed." },
+    { status: 410 }
+  );
 }
