@@ -224,4 +224,21 @@ describe("workspace screens", () => {
       for (const key of ["Academy", "My academy"]) assert.equal(typeof messages[key], "string", `${locale}: ${key}`);
     }
   });
+
+  test("site navigation, footer and sitemap links open real pages", () => {
+    const app = join(ROOT, "src", "app");
+    const pageExists = (path: string) => existsSync(join(app, ...path.split("/").filter(Boolean), "page.tsx"));
+    const navbar = readFileSync(join(ROOT, "src", "components", "Navbar.tsx"), "utf8");
+    const footer = readFileSync(join(ROOT, "src", "components", "shared", "Footer.tsx"), "utf8");
+    const sitemap = readFileSync(join(app, "sitemap.ts"), "utf8");
+    const links = new Set([
+      ...[...navbar.matchAll(/(?:href|to)[=:]\s*"(\/[^"?#]*)"/g)].map((m) => m[1]),
+      ...[...footer.matchAll(/href="(\/[^"?#]*)"/g)].map((m) => m[1]),
+      ...[...sitemap.matchAll(/\$\{baseUrl\}(\/[^`]*)`/g)].map((m) => m[1]),
+    ]);
+    assert.ok(links.size >= 20, `only ${links.size} links found`);
+    const broken = [...links].filter((path) => path !== "/" && !pageExists(path));
+    assert.deepEqual(broken, []);
+    assert.ok(pageExists("/"), "home page");
+  });
 });
