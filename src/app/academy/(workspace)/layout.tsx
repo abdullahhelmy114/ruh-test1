@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { WorkspaceProvider } from "@/components/academy/workspace/context";
 import { WorkspaceShell } from "@/components/academy/workspace/shell";
 import { LOCALE_COOKIE, resolveLocale } from "@/i18n/config";
+import { academyDisplayTimeZone } from "@/lib/academy/server";
 import { WORKSPACE_MESSAGES } from "@/lib/academy/workspace/messages";
 
 // Signed-in academy workspace for learners, teachers and administrators.
@@ -16,8 +17,11 @@ export const metadata: Metadata = {
 
 export default async function WorkspaceLayout({ children }: { readonly children: ReactNode }) {
   const locale = resolveLocale((await cookies()).get(LOCALE_COOKIE)?.value);
+  // Resolved here, on the server, so every screen below renders academy times
+  // on the academy's clock rather than the viewer machine's.
+  const timeZone = await academyDisplayTimeZone();
   return (
-    <WorkspaceProvider locale={locale} messages={WORKSPACE_MESSAGES[locale]}>
+    <WorkspaceProvider locale={locale} messages={WORKSPACE_MESSAGES[locale]} timeZone={timeZone}>
       <WorkspaceShell>{children}</WorkspaceShell>
     </WorkspaceProvider>
   );

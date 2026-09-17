@@ -99,9 +99,11 @@ describe("formatting", () => {
   });
 
   test("plain calendar dates are never shifted by a time zone", () => {
-    assert.match(formatDate("2026-10-01", "en"), /1 Oct 2026/);
-    assert.equal(formatDate("not a date", "en"), "");
-    assert.equal(formatDate(null, "tr"), "");
+    for (const zone of ["UTC", "Pacific/Kiritimati", "Pacific/Niue", null]) {
+      assert.match(formatDate("2026-10-01", "en", zone), /1 Oct 2026/, String(zone));
+    }
+    assert.equal(formatDate("not a date", "en", "UTC"), "");
+    assert.equal(formatDate(null, "tr", "UTC"), "");
   });
 
   test("names fall back to a neutral label, never an identifier", () => {
@@ -163,9 +165,23 @@ describe("workspace screens", () => {
       }
       assert.doesNotMatch(src, /localStorage|sessionStorage|indexedDB|document\.cookie/, `${name} uses browser storage`);
       assert.doesNotMatch(src, /dangerouslySetInnerHTML|innerHTML\s*=/, `${name} renders raw HTML`);
-      assert.doesNotMatch(src, /@\/lib\/academy\/server|@\/lib\/db\/client|firebase-admin/, `${name} reaches server-only code`);
+      // Server-only code may be read by a server component, which is how the
+      // workspace gets the academy's time zone; a client component never may.
+      const isClientComponent = /^\s*["']use client["']/.test(src);
+      if (isClientComponent) {
+        assert.doesNotMatch(src, /@\/lib\/academy\/server|@\/lib\/db\/client|firebase-admin/, `${name} reaches server-only code`);
+      }
       assert.doesNotMatch(src, /import (?!type)[^;]*from "@\/lib\/academy\/services\//, `${name} imports a service at runtime`);
     }
+    // And only the layouts are server components at all, so that exemption stays small.
+    const serverComponents = files
+      .filter((path) => path.endsWith(".tsx") && !/^\s*["']use client["']/.test(readFileSync(path, "utf8")))
+      .map(rel);
+    assert.deepEqual(
+      serverComponents.sort(),
+      ["src/app/academy/(workspace)/layout.tsx", "src/app/academy/(workspace)/manage/layout.tsx"],
+      "a new server component in the workspace needs its data access reviewed",
+    );
     const paths = readFileSync(join(componentDir, "paths.ts"), "utf8");
     const apiPaths = [...paths.matchAll(/`(\/api\/[^`$?]+)/g), ...paths.matchAll(/"(\/api\/[^"]+)"/g)].map((m) => m[1]);
     assert.ok(apiPaths.length >= 30);

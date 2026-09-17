@@ -141,13 +141,13 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 glass border-b">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 xl:px-8">
         {/* Logo + Hamburger */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
-            className="md:hidden grid h-10 w-10 place-items-center rounded-full border border-border bg-card transition-colors hover:bg-accent"
+            className="xl:hidden grid h-10 w-10 place-items-center rounded-full border border-border bg-card transition-colors hover:bg-accent"
           >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -170,7 +170,7 @@ export function Navbar() {
               height={48}
               className="h-12 w-12 hidden dark:block"
             />
-            <div className="hidden md:block leading-tight">
+            <div className="hidden xl:block leading-tight">
               <div className="font-serif text-lg font-semibold text-foreground">
                 <T>Ruh-Ul-Qudus</T>
               </div>
@@ -182,7 +182,7 @@ export function Navbar() {
         </div>
 
         {/* Navigation (desktop) */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden xl:flex min-w-0 items-center gap-1 overflow-x-auto">
           {links.map((l) => (
             <Link
               key={l.to}
@@ -241,7 +241,7 @@ export function Navbar() {
         </nav>
 
         {/* Right side (desktop) */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden xl:flex items-center gap-2">
           <LanguageSwitcher />
 
           {user && !notificationsEnabled && (
@@ -369,13 +369,13 @@ export function Navbar() {
             <>
               <Link
                 href="/login"
-                className="hidden rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground shadow-elegant transition-transform hover:scale-[1.02] sm:inline-flex"
+                className="hidden rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground shadow-elegant transition-transform hover:scale-[1.02] xl:inline-flex"
               >
                 <T>Sign in</T>
               </Link>
               <Link
                 href="/signup"
-                className="hidden rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground shadow-elegant transition-transform hover:scale-[1.02] sm:inline-flex"
+                className="hidden rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground shadow-elegant transition-transform hover:scale-[1.02] xl:inline-flex"
               >
                 <T>Sign up</T>
               </Link>
@@ -384,7 +384,7 @@ export function Navbar() {
         </div>
 
         {/* Mobile right side */}
-        <div className="flex md:hidden items-center gap-1">
+        <div className="flex xl:hidden items-center gap-1">
           <LanguageSwitcher />
           <button
             onClick={toggle}
@@ -407,7 +407,7 @@ export function Navbar() {
 
       {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-50">
+        <div className="xl:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-foreground/50" onClick={() => setMobileOpen(false)} />
           <div className="absolute right-0 top-0 h-full w-72 max-w-[85vw] bg-card shadow-elegant p-6 overflow-y-auto animate-slide-in-right">
             <div className="flex items-center justify-between mb-6">

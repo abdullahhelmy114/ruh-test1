@@ -43,6 +43,9 @@ const en = {
   certificateCourse: "Course",
   certificateIssued: "Issued on",
   certificateRevokedOn: "Revoked on",
+  pageNotFoundTitle: "Page not found",
+  pageNotFoundBody: "We could not find that page. It may have moved, or the address may be mistyped.",
+  backToHome: "Back to the home page",
 } as const;
 
 export type PublicMessageKey = keyof typeof en;
@@ -83,6 +86,9 @@ const ar: PublicMessages = {
   certificateCourse: "المقرر",
   certificateIssued: "تاريخ الإصدار",
   certificateRevokedOn: "تاريخ الإلغاء",
+  pageNotFoundTitle: "الصفحة غير موجودة",
+  pageNotFoundBody: "لم نعثر على هذه الصفحة. ربما تم نقلها أو أن العنوان غير صحيح.",
+  backToHome: "العودة إلى الصفحة الرئيسية",
 };
 
 const tr: PublicMessages = {
@@ -120,6 +126,9 @@ const tr: PublicMessages = {
   certificateCourse: "Ders",
   certificateIssued: "Veriliş tarihi",
   certificateRevokedOn: "İptal tarihi",
+  pageNotFoundTitle: "Sayfa bulunamadı",
+  pageNotFoundBody: "Bu sayfayı bulamadık. Taşınmış ya da adres yanlış yazılmış olabilir.",
+  backToHome: "Ana sayfaya dön",
 };
 
 export const PUBLIC_MESSAGES: Readonly<Record<ProductLocale, PublicMessages>> = { en, ar, tr };

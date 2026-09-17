@@ -14,8 +14,9 @@ export const metadata: Metadata = {
 
 export default async function TeacherSignupLayout({ children }: { readonly children: ReactNode }) {
   const locale = resolveLocale((await cookies()).get(LOCALE_COOKIE)?.value);
+  // The application form shows no academy timestamps, so it needs no zone and no policy read.
   return (
-    <WorkspaceProvider locale={locale} messages={WORKSPACE_MESSAGES[locale]}>
+    <WorkspaceProvider locale={locale} messages={WORKSPACE_MESSAGES[locale]} timeZone={null}>
       {children}
     </WorkspaceProvider>
   );

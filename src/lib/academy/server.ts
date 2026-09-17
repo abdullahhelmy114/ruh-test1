@@ -28,6 +28,7 @@ import { createLessonScriptService } from "./services/lesson-script-service.ts";
 import { createLessonSheetService } from "./services/lesson-sheet-service.ts";
 import { createLibraryService } from "./services/library-service.ts";
 import { createParticipationService } from "./services/participation-service.ts";
+import { academyTimeZone } from "./services/policy-lookup.ts";
 import { createPolicyService } from "./services/policy-service.ts";
 import { createPracticeService } from "./services/practice-service.ts";
 import { createProductionService } from "./services/production-service.ts";
@@ -148,3 +149,24 @@ export const teacherService = createTeacherService({
     },
   },
 });
+
+/**
+ * The academy's time zone for display, or null when it has not been set.
+ *
+ * One source for the whole product: the `institution.timezone` policy, which
+ * also decides the Lesson Sheet release week. Server components resolve it
+ * here and hand it to the workspace provider, so a session time reads the same
+ * in the server HTML and in the browser.
+ *
+ * Reading it must never take a screen down, so a failure (the policy unset, or
+ * the academy schema not ready) degrades to null and the screens leave times
+ * blank. Scheduling itself is unaffected: release calculations still fail
+ * closed in the services that own them.
+ */
+export async function academyDisplayTimeZone(): Promise<string | null> {
+  try {
+    return await academyTimeZone(academyExecutor);
+  } catch {
+    return null;
+  }
+}

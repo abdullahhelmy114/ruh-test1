@@ -35,7 +35,7 @@ function pageExists(path: string): boolean {
 
 describe("end-to-end suites", () => {
   test("the browser specs and the HTTP smoke suite exist", () => {
-    assert.deepEqual(specs.sort(), ["public-and-signed-out.spec.mjs", "signed-in-flows.spec.mjs"]);
+    assert.deepEqual(specs.sort(), ["public-and-signed-out.spec.mjs", "responsive-shell.spec.mjs", "signed-in-flows.spec.mjs"]);
     assert.ok(existsSync(join(E2E, "http-smoke.e2e.ts")));
     assert.ok(existsSync(join(E2E, "playwright.config.mjs")));
   });
