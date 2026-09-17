@@ -31,7 +31,8 @@ export async function POST(request: Request) {
     });
 
     return response;
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 401 });
+  } catch {
+    // Token verification details stay on the server.
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 }

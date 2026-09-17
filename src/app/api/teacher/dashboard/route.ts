@@ -114,11 +114,8 @@ export async function GET(request: Request) {
       sessions: sessionsRes,
       certificationProgress: 0,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error fetching teacher dashboard:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to fetch dashboard" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch dashboard" }, { status: 500 });
   }
 }

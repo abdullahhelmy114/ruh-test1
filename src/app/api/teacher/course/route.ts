@@ -17,7 +17,8 @@ export async function GET(req: Request) {
       ORDER BY lc.created_at DESC
     `;
     return NextResponse.json({ course });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err) {
+    console.error('Teacher course error:', err);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

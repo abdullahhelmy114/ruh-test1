@@ -57,6 +57,8 @@ const SPECS: Spec[] = [
   // Launch closure — last synchronous-params teacher routes
   { file: "teacher/live-course/[courseId]/route.ts", guard: "requireTeacher", handlers: ["GET"], params: true },
   { file: "teacher/live-course/[courseId]/model-lessons/route.ts", guard: "requireTeacher", handlers: ["GET"], params: true },
+  // Engineering reinforcement — found open by the anonymous sweep of a running build
+  { file: "teacher/earnings/route.ts", guard: "requireTeacher", handlers: ["GET"] },
 ];
 
 describe("Phase 2.3b legacy-auth sweep", () => {

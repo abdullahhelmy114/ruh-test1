@@ -26,6 +26,7 @@ const FILES = [
   "finance/route.ts",
   "marketing/route.ts",
   "pages/route.ts",
+  "pages/[slug]/route.ts",
   "pending-course/route.ts",
   "send-message/route.ts",
   "send-notification/route.ts",

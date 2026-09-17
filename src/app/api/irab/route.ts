@@ -89,11 +89,8 @@ export async function GET(request: Request) {
     }));
 
     return NextResponse.json({ analyses: result });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error fetching irab:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to fetch irab" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch irab" }, { status: 500 });
   }
 }

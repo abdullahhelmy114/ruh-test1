@@ -98,7 +98,11 @@ INSERT INTO profiles (
 
   } catch (error: any) {
     console.error("Teacher signup error:", error);
-    // إذا كان الخطأ من Firebase (مثل الإيميل مستخدم مسبقاً) أرسله للعميل
-    return NextResponse.json({ message: error.message || "Internal server error" }, { status: 500 });
+    // The one provider error the page can act on keeps a stable code (as in
+    // the student signup); other provider and database text is not returned.
+    if (error.code === "auth/email-already-exists") {
+      return NextResponse.json({ message: "email_already_in_use" }, { status: 409 });
+    }
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }

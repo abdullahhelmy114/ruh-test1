@@ -153,9 +153,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json(
-      { message: error.message || "Internal server error" },
-      { status: 500 }
-    );
+    // Provider and database error text is never returned to the browser.
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }

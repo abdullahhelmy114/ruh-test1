@@ -31,7 +31,8 @@ export async function GET(request: Request) {
       averageRating,
       completedLessons,
     });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err) {
+    console.error('Teacher rating error:', err);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
