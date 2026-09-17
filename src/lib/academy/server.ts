@@ -8,6 +8,8 @@
  */
 import "server-only";
 import { sql } from "@/lib/db/client";
+import { getAdminAuth } from "@/lib/firebase/admin";
+import { privateDownloadLink } from "@/lib/security/cloudinary-sign";
 import { readAcademyFlags } from "./infra/flags.ts";
 import type { SqlExecutor, SqlRow } from "./infra/sql.ts";
 import { createSqlReadingFacts } from "./repo/library-repo.ts";
@@ -32,6 +34,7 @@ import { createProductionService } from "./services/production-service.ts";
 import { createProgressService } from "./services/progress-service.ts";
 import { createPublicService } from "./services/public-service.ts";
 import { createRecordingService } from "./services/recording-service.ts";
+import { createTeacherService } from "./services/teacher-service.ts";
 
 export const academyExecutor: SqlExecutor = {
   async query<T extends SqlRow = SqlRow>(query: { readonly text: string; readonly values: readonly unknown[] }) {
@@ -117,4 +120,31 @@ export const libraryService = createLibraryService({
   flags: academyFlags,
   facts: relationshipFacts,
   readingFacts: createSqlReadingFacts(academyExecutor),
+});
+
+export const teacherService = createTeacherService({
+  executor: academyExecutor,
+  flags: academyFlags,
+  identity: {
+    // The applicant's Firebase account, consulted before approval and shown on the review page.
+    async signInAccount(uid) {
+      try {
+        const account = await getAdminAuth().getUser(uid);
+        return { exists: true, disabled: account.disabled, emailVerified: account.emailVerified };
+      } catch (error) {
+        if ((error as { code?: unknown })?.code === "auth/user-not-found") return { exists: false, disabled: false, emailVerified: false };
+        throw error;
+      }
+    },
+  },
+  documents: {
+    // Short-lived signed links to private application documents; null when Cloudinary is not configured.
+    temporaryLink(kind, storageId) {
+      const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+      const apiKey = process.env.CLOUDINARY_API_KEY;
+      const apiSecret = process.env.CLOUDINARY_API_SECRET;
+      if (!cloudName || !apiKey || !apiSecret) return null;
+      return privateDownloadLink({ cloudName, apiKey, apiSecret }, kind === "cv" ? "teacher_cv" : "teacher_intro_video", storageId);
+    },
+  },
 });

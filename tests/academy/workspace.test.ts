@@ -213,9 +213,14 @@ describe("workspace screens", () => {
 
   test("the site navigation leads into the academy: the public catalog and each role's home", () => {
     assert.equal(academyHome("admin"), "/academy/manage");
-    assert.equal(academyHome("teacher"), "/academy/teach");
-    for (const role of ["student", null, undefined, "", "ADMIN", "unknown"]) assert.equal(academyHome(role), "/academy/learn", String(role));
-    for (const home of ["manage", "teach", "learn"]) assert.ok(existsSync(join(pageDir, home, "page.tsx")), home);
+    assert.equal(academyHome("teacher", "active"), "/academy/teach");
+    // A teacher account that is not active is sent to its application page, never to teaching.
+    for (const status of [undefined, null, "", "pending", "changes_requested", "rejected", "withdrawn", "inactive", "ACTIVE"]) {
+      assert.equal(academyHome("teacher", status), "/academy/teacher-application", String(status));
+    }
+    for (const role of ["student", null, undefined, "", "ADMIN", "unknown"]) assert.equal(academyHome(role, "active"), "/academy/learn", String(role));
+    for (const home of ["manage", "teach", "learn", "teacher-application"]) assert.ok(existsSync(join(pageDir, home, "page.tsx")), home);
+    assert.match(readFileSync(join(ROOT, "src", "components", "Navbar.tsx"), "utf8"), /const academyLink = academyHome\(role, status\);/);
     const navbar = readFileSync(join(ROOT, "src", "components", "Navbar.tsx"), "utf8");
     assert.match(navbar, /\{ to: "\/academy", label: "Academy"/);
     assert.equal(navbar.match(/href=\{academyLink\}/g)?.length, 2, "desktop and mobile account menus");

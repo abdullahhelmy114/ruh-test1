@@ -21,20 +21,24 @@ interface NavItem {
  */
 export function WorkspaceShell({ children }: { readonly children: ReactNode }) {
   const { t, fmt } = useWorkspace();
-  const { role, user } = useAuth();
+  const { role, status, user } = useAuth();
   const pathname = usePathname() ?? "";
 
-  const homeLabel = role === "admin" ? t.nav.manage : role === "teacher" ? t.nav.teach : t.nav.learn;
-  const items: NavItem[] = [
-    { href: academyHome(role), label: homeLabel },
-    { href: "/academy/messages", label: t.nav.messages },
-    { href: "/academy/notifications", label: t.nav.notifications },
-    { href: "/academy/announcements", label: t.nav.announcements },
-    ...(role === "admin" || role === "teacher" ? [{ href: "/academy/approvals", label: t.nav.approvals }] : []),
-    ...(role === "student" ? [{ href: "/academy/certificates", label: t.nav.certificates }] : []),
-  ];
+  // A teacher account that is not active has only its application page.
+  const applicant = role === "teacher" && status !== "active";
+  const homeLabel = role === "admin" ? t.nav.manage : applicant ? t.nav.application : role === "teacher" ? t.nav.teach : t.nav.learn;
+  const items: NavItem[] = applicant
+    ? [{ href: academyHome(role, status), label: homeLabel }]
+    : [
+        { href: academyHome(role, status), label: homeLabel },
+        { href: "/academy/messages", label: t.nav.messages },
+        { href: "/academy/notifications", label: t.nav.notifications },
+        { href: "/academy/announcements", label: t.nav.announcements },
+        ...(role === "admin" || role === "teacher" ? [{ href: "/academy/approvals", label: t.nav.approvals }] : []),
+        ...(role === "student" ? [{ href: "/academy/certificates", label: t.nav.certificates }] : []),
+      ];
 
-  const unread = useApi<{ unreadCount: number }>(user ? "/api/academy/notifications?unreadOnly=true" : null);
+  const unread = useApi<{ unreadCount: number }>(user && !applicant ? "/api/academy/notifications?unreadOnly=true" : null);
   const unreadCount = unread.state.status === "ready" ? unread.state.data.unreadCount : 0;
 
   return (

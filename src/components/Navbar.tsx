@@ -10,6 +10,7 @@ import {
   Info, Phone, Library, Shield, ShoppingCart, Heart, Menu, X, Users, GraduationCap,
 } from "lucide-react";
 import { academyHome } from "@/components/academy/workspace/paths";
+import { accountHome } from "@/lib/auth/home";
 import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
@@ -43,7 +44,7 @@ const moreLinks = [
 export function Navbar() {
   const { theme, toggle } = useTheme();
   const pathname = usePathname();
-  const { user, isLoading, role } = useAuth();
+  const { user, isLoading, role, status } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -129,10 +130,12 @@ export function Navbar() {
     setMobileOpen(false);
   };
 
-  // ── تم إخفاء دور المعلم: أي مستخدم بدور "teacher" يُعامل كطالب ──
-  const dashboardLink = role === "admin" ? "/dashboard/admin" : "/dashboard/student";
+  // Destinations follow the stored role and status (navigation only): approved
+  // teachers go to the teacher workspace, other teacher accounts to their
+  // application page.
+  const dashboardLink = accountHome(role, status);
   const profileLink = role === "admin" ? "/profile/admin" : "/profile/student";
-  const academyLink = academyHome(role);
+  const academyLink = academyHome(role, status);
 
   const initial = user?.email ? user.email.charAt(0).toUpperCase() : "U";
 

@@ -14,8 +14,11 @@ import type { ParticipationService } from "@/lib/academy/services/participation-
 import type { PracticeService } from "@/lib/academy/services/practice-service";
 import type { ProgressService } from "@/lib/academy/services/progress-service";
 import type { RecordingService } from "@/lib/academy/services/recording-service";
+import type { TeacherService } from "@/lib/academy/services/teacher-service";
 
 type Result<F> = F extends (...args: never[]) => Promise<infer R> ? R : never;
+
+export type TeacherApplicationView = Result<TeacherService["myApplication"]>;
 
 export type MyLearning = Result<ParticipationService["myLearning"]>;
 export type MyTeaching = Result<ParticipationService["myTeaching"]>;

@@ -10,10 +10,11 @@ import {
 } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import { motion } from "framer-motion";
-import { Mail, Lock, Loader2, AlertCircle, ShieldAlert } from "lucide-react";
+import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { T } from "@/components/TranslatedText";
 import { CustomCaptcha } from "@/components/CustomCaptcha";
+import { accountHome } from "@/lib/auth/home";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -21,25 +22,15 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showCaptcha, setShowCaptcha] = useState(false);
-  const [pendingTeacher, setPendingTeacher] = useState(false); // حالة المعلم المعلق
   const router = useRouter();
 
-  const redirectAfterLogin = (userRole: string, accountStatus?: string) => {
-    // إذا كان معلماً ولم يتم تفعيله بعد
-    if (userRole === "teacher" && accountStatus !== "active") {
-      setPendingTeacher(true);
-      setLoading(false);
-      setShowCaptcha(false);
-      return;
-    }
-
-    if (userRole === "admin") {
-      window.location.href = "/dashboard/admin";
-    } else if (userRole === "teacher") {
-      window.location.href = "/dashboard/teacher";
-    } else {
-      window.location.href = "/dashboard/student";
-    }
+  // The session endpoint decides the destination from the stored role and
+  // status: teachers reach their workspace only once approved, and every other
+  // teacher account goes to its application page (pending, changes requested,
+  // rejected or deactivated). Navigation only; the server authorizes again.
+  const redirectAfterLogin = (data: { role?: unknown; status?: unknown; home?: unknown }) => {
+    const home = typeof data.home === "string" && data.home.startsWith("/") && !data.home.startsWith("//") ? data.home : null;
+    window.location.href = home ?? accountHome(typeof data.role === "string" ? data.role : null, typeof data.status === "string" ? data.status : null);
   };
 
   const performLogin = async () => {
@@ -54,7 +45,7 @@ export default function LoginPage() {
       });
       const data = await res.json();
 
-      redirectAfterLogin(data.role, data.status);
+      redirectAfterLogin(data);
     } catch (err: any) {
       setError(err.message || "Login failed");
       setShowCaptcha(false);
@@ -87,7 +78,7 @@ export default function LoginPage() {
       });
       const data = await res.json();
 
-      redirectAfterLogin(data.role, data.status);
+      redirectAfterLogin(data);
     } catch (err: any) {
       setError(err.message || "Login failed");
       setLoading(false);
@@ -96,38 +87,6 @@ export default function LoginPage() {
 
   const handleGoogleLogin = () => handleSocialLogin(new GoogleAuthProvider());
   const handleFacebookLogin = () => handleSocialLogin(new FacebookAuthProvider());
-
-  // إذا كان المعلم معلقاً، نعرض رسالة خاصة
-  if (pendingTeacher) {
-    return (
-      <div className="grid min-h-[calc(100vh-4rem)] place-items-center bg-background px-4 py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass rounded-3xl bg-card p-8 text-center shadow-elegant max-w-md"
-        >
-          <ShieldAlert className="mx-auto h-12 w-12 text-amber-500 mb-4" />
-          <h2 className="font-serif text-2xl text-foreground mb-2">
-            <T>حسابك قيد المراجعة</T>
-          </h2>
-          <p className="text-muted-foreground mb-6">
-            <T>تم استلام طلبك للتدريس. سيتم مراجعة حسابك من قبل الإدارة وتفعيله قريبًا. ستتمكن من الوصول إلى لوحة التحكم بعد التفعيل.</T>
-          </p>
-          <button
-            onClick={() => {
-              setPendingTeacher(false);
-              setEmail("");
-              setPassword("");
-              setError("");
-            }}
-            className="rounded-full bg-primary text-primary-foreground px-6 py-2 text-sm font-semibold hover:bg-primary/90 transition"
-          >
-            <T>العودة إلى تسجيل الدخول</T>
-          </button>
-        </motion.div>
-      </div>
-    );
-  }
 
   return (
     <div className="grid min-h-[calc(100vh-4rem)] place-items-center bg-background px-4 py-12">

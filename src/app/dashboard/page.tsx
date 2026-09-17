@@ -4,8 +4,14 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/AuthProvider";
 import { authFetch } from "@/lib/authFetch";
+import { accountHome } from "@/lib/auth/home";
 import { Loader2 } from "lucide-react";
 
+// Sends a signed-in account to its home: administrators to administration,
+// approved teachers to the teacher workspace, every other teacher account to
+// its application page, everyone else to the student dashboard. Unverified
+// email addresses are verified first. Navigation only; pages and APIs
+// authorize on the server.
 export default function DashboardRedirect() {
   const { user, isLoading, role } = useAuth();
   const router = useRouter();
@@ -18,43 +24,29 @@ export default function DashboardRedirect() {
       return;
     }
 
-    // توجيه الأدمن مباشرة بناءً على الدور (بدون الحاجة إلى جلب /api/user)
     if (role === "admin") {
-      router.replace("/dashboard/admin");
+      router.replace(accountHome("admin", null));
       return;
     }
 
-    // للمعلمين والطلاب: جلب بيانات الملف الشخصي للتحقق من الحالة والبريد الإلكتروني
     authFetch("/api/user")
-      .then(r => r.json())
-      .then(d => {
+      .then((r) => r.json())
+      .then((d) => {
         const profile = d?.profile;
         if (!profile) {
           router.replace("/login");
           return;
         }
-
-        // إذا لم يتم التحقق، أرسله إلى صفحة التحقق مع البريد
         if (!profile.email_verified) {
-          router.replace(`/verify-email?email=${encodeURIComponent(profile.email)}`);
+          const verifyPage = profile.role === "teacher" ? "/verify-teacher" : "/verify-email";
+          router.replace(`${verifyPage}?email=${encodeURIComponent(profile.email)}`);
           return;
         }
-
-        // توجيه حسب الدور من الملف الشخصي
-        if (profile.role === "teacher") {
-          router.replace("/dashboard/teacher");
-        } else {
-          router.replace("/dashboard/student");
-        }
+        router.replace(accountHome(profile.role, profile.status));
       })
       .catch(() => {
-        // في حالة الفشل، الاعتماد على الدور المخزن محليًا
-        const fallbackRole = localStorage.getItem("userRole");
-        if (fallbackRole === "teacher") {
-          router.replace("/dashboard/teacher");
-        } else {
-          router.replace("/dashboard/student");
-        }
+        // Without the profile the least-privileged destination is used; the server decides access there.
+        router.replace("/dashboard/student");
       });
   }, [user, isLoading, role, router]);
 

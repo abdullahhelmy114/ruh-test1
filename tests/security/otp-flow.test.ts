@@ -20,7 +20,7 @@ const VERIFY_TEACHER = "app/api/verify-teacher/route.ts";
 const RESEND = "app/api/send-verification-code/route.ts";
 const USER = "app/api/user/route.ts";
 
-function assertIssuer(rel: string) {
+function assertIssuer(rel: string, profileInsert: string = rel) {
   const src = code(rel);
   assert.equal(src.includes("sendEmailVerificationCode"), false, `${rel} must not use the legacy generator`);
   assert.equal(src.includes("Math.random"), false);
@@ -36,7 +36,7 @@ function assertIssuer(rel: string) {
   assert.ok(src.includes("process.env.INTERNAL_API_SECRET"), "secret sourced from the server environment");
   assert.ok(src.indexOf("if (!otpSecret)") < src.indexOf("auth.createUser("), "fails closed before creating the Firebase user");
   assert.ok(src.includes("emailVerified: false"), "Firebase user still created unverified");
-  assert.ok(src.includes("'pending'"), "profile still created pending");
+  assert.ok(code(profileInsert).includes("'pending'"), "profile still created pending");
 }
 
 describe("student signup issues a hashed OTP", () => {
@@ -50,14 +50,25 @@ describe("student signup issues a hashed OTP", () => {
 });
 
 describe("teacher signup issues a hashed OTP", () => {
-  test("wiring", () => assertIssuer(TEACHER));
-  test("no approval side effect and payload untouched", () => {
+  test("wiring", () => assertIssuer(TEACHER, "lib/academy/repo/teacher-repo.ts"));
+  test("no approval side effect: the account is an application under review, with private document references", () => {
     const src = code(TEACHER);
     assert.equal(src.includes("status = 'active'"), false);
     assert.equal(src.includes("'approved'"), false);
-    for (const needle of ["cv_url", "intro_video_url", "{ success: true, uid: userRecord.uid }"]) {
-      assert.ok(src.includes(needle), `teacher signup must still contain ${needle}`);
+    assert.equal(/'teacher',\s*'active'/.test(code("lib/academy/repo/teacher-repo.ts")), false);
+    assert.match(code("lib/academy/repo/teacher-repo.ts"), /'teacher', 'pending', \$\{input\.createdAt\}::timestamptz/, "the signup profile is a pending teacher account");
+    assert.ok(src.includes("{ success: true, uid: userRecord.uid }"), "page contract kept");
+    // Documents are referenced by server-proven upload ids, never by client-supplied links.
+    assert.ok(src.includes('verifyUploadReference("teacher_cv", body.cv, otpSecret)'));
+    assert.equal(/cv_url|intro_video_url|secure_url/.test(src), false, "no public document link is accepted or stored");
+    // Everything is validated before the Firebase account exists; a failed database transaction deletes it again.
+    for (const check of ["normalizeEmail(account.email)", "parseApplicationDetails(body.details)", 'verifyUploadReference("teacher_cv"', "academyFlags.coreSchemaReady"]) {
+      assert.ok(src.indexOf(check) > 0 && src.indexOf(check) < src.indexOf("auth.createUser("), `${check} precedes account creation`);
     }
+    assert.ok(src.indexOf("teacherService.planSignupApplication(") > src.indexOf("auth.createUser("));
+    assert.ok(src.includes("await auth.deleteUser(userRecord.uid)"), "compensation when the application cannot be recorded");
+    assert.equal(/const referralCode = generateReferralCode\(\);/.test(src.slice(0, src.indexOf("export async function POST"))), false, "no referral code shared by every signup in a process");
+    assert.ok(src.includes("referralCode: generateReferralCode()"));
   });
 });
 

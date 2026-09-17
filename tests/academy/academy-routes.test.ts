@@ -67,6 +67,7 @@ describe("academy participant routes", () => {
       "sessions/[sessionId]/attendance/route.ts",
       "sessions/[sessionId]/preparation/route.ts",
       "sessions/[sessionId]/route.ts",
+      "teacher-application/route.ts",
     ].sort());
   });
 

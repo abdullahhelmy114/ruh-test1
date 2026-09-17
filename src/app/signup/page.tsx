@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BookOpen, ArrowRight } from "lucide-react";
+import { BookOpen, ArrowRight, GraduationCap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { T } from "@/components/TranslatedText";
@@ -75,6 +75,43 @@ export default function SignupRolePage() {
           >
             <T>Join as Student</T>
             <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+        </motion.section>
+
+        {/* Teacher: an application reviewed by the academy, never an immediate teacher account */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="glass mt-6 rounded-3xl p-6 sm:p-8 border border-primary/10 shadow-elegant flex flex-col hover:border-primary/30 transition-all duration-300 bg-card group"
+        >
+          <header className="flex items-center gap-4 mb-6">
+            <div className="p-3.5 rounded-2xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+              <GraduationCap className="h-7 w-7" />
+            </div>
+            <h2 className="text-2xl font-bold font-serif text-foreground">
+              <T>Teacher</T>
+            </h2>
+          </header>
+
+          <ul className="space-y-4 mb-8 text-muted-foreground flex-1">
+            <li className="flex items-start gap-3">
+              <span className="text-primary mt-0.5">✓</span>
+              <span className="text-sm"><T>Your application is reviewed by the academy before you can teach.</T></span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-primary mt-0.5">✓</span>
+              <span className="text-sm"><T>Once approved: your assigned classes, lesson preparation, attendance and grading.</T></span>
+            </li>
+          </ul>
+
+          <Button
+            onClick={() => router.push("/signup/teacher")}
+            variant="outline"
+            className="w-full rounded-full py-6 text-base font-semibold transition-transform hover:scale-[1.02]"
+          >
+            <T>Apply to teach</T>
+            <ArrowRight className="ms-2 h-5 w-5 rtl:rotate-180" />
           </Button>
         </motion.section>
 

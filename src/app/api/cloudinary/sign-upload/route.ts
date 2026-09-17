@@ -5,7 +5,7 @@ import { HttpError } from "@/lib/auth";
 import { withApi } from "@/lib/api/handler";
 import { checkRateLimit, clientKey, retryAfterSeconds } from "@/lib/security/rate-limit";
 import { isUploadPurpose, type UploadPurpose } from "@/lib/security/upload-purpose";
-import { signUploadForPurpose } from "@/lib/security/cloudinary-sign";
+import { signUploadForPurpose, storageIdOf, uploadReferenceProof } from "@/lib/security/cloudinary-sign";
 
 // Phase 3 closure fix F2 — narrow, purpose-scoped Cloudinary upload
 // authorisation for the teacher signup flow.
@@ -75,9 +75,16 @@ export const POST = withApi(async (req) => {
   if (!cloudName || !apiKey || !apiSecret || !uploadPreset) {
     return NextResponse.json({ error: "Upload service unavailable" }, { status: 503 });
   }
+  // Applications refer to an upload by its storage id plus a proof that this
+  // server issued it; without the proof secret no upload could be used.
+  const referenceSecret = process.env.INTERNAL_API_SECRET;
+  if (!referenceSecret) {
+    return NextResponse.json({ error: "Upload service unavailable" }, { status: 503 });
+  }
 
   try {
     const signed = signUploadForPurpose(purpose, apiSecret, uploadPreset);
+    const storageId = storageIdOf(signed);
     return NextResponse.json({
       cloudName,
       apiKey,
@@ -88,6 +95,8 @@ export const POST = withApi(async (req) => {
       publicId: signed.params.public_id,
       overwrite: signed.params.overwrite,
       uploadPreset: signed.params.upload_preset,
+      deliveryType: signed.params.type,
+      reference: { storageId, proof: uploadReferenceProof(purpose, storageId, referenceSecret) },
       signature: signed.signature,
     });
   } catch (error) {

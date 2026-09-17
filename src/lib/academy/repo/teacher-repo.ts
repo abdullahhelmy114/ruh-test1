@@ -116,6 +116,28 @@ export function setTeacherAccountStatusQuery(account: { readonly uid: string; re
     RETURNING firebase_uid`;
 }
 
+/**
+ * The profile of a teacher account created by signup: role 'teacher' and
+ * status 'pending', so it has no teaching privileges until an administrator
+ * approves the application recorded in the same transaction.
+ */
+export function insertTeacherProfileQuery(input: {
+  readonly uid: string;
+  readonly email: string;
+  readonly details: TeacherApplicationDetails;
+  readonly referralCode: string;
+  readonly createdAt: string;
+}): SqlQuery {
+  const d = input.details;
+  return sqlQuery`INSERT INTO profiles
+      (firebase_uid, email, full_name, country_of_residence, nationality, gender, languages, whatsapp, telegram, social_links, bio,
+       referral_code, role, status, created_at)
+    VALUES (${input.uid}, ${input.email}, ${fullNameOf(d)}, ${d.countryOfResidence}, ${d.nationality}, ${d.gender},
+      ${jsonParam(d.languages)}, ${d.whatsapp}, ${d.telegram}, ${jsonParam(d.socialLinks)}, ${d.bio}, ${input.referralCode},
+      'teacher', 'pending', ${input.createdAt}::timestamptz)
+    RETURNING firebase_uid`;
+}
+
 /** Keeps the display fields existing teacher pages read in step with the submitted application. */
 export function updateTeacherDisplayFieldsQuery(uid: string, details: TeacherApplicationDetails): SqlQuery {
   return sqlQuery`UPDATE profiles SET

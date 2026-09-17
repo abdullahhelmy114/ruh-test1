@@ -22,14 +22,24 @@ import {
   cloudinaryUploadUrl,
   isUploadPurpose,
 } from "../../src/lib/security/upload-purpose.ts";
-import { SIGNATURE_ALGORITHM, SIGNATURE_VERSION, cloudinaryStringToSign, signUploadForPurpose } from "../../src/lib/security/cloudinary-sign.ts";
+import {
+  SIGNATURE_ALGORITHM,
+  SIGNATURE_VERSION,
+  cloudinaryStringToSign,
+  privateDownloadLink,
+  signUploadForPurpose,
+  storageIdOf,
+  uploadReferenceProof,
+  verifyUploadReference,
+} from "../../src/lib/security/cloudinary-sign.ts";
 
 const SRC = join(import.meta.dirname, "..", "..", "src");
 const raw = (rel: string) => readFileSync(join(SRC, rel), "utf8");
 const code = (rel: string) => raw(rel).replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "");
 
 const ROUTE = "app/api/cloudinary/sign-upload/route.ts";
-const PAGE = "app/signup/teacher/details/page.tsx";
+const PAGE = "lib/security/signed-upload-client.ts";
+const FORM = "components/academy/workspace/teacher/application-form.tsx";
 const SIGNER = "lib/security/cloudinary-sign.ts";
 const POLICY = "lib/security/upload-purpose.ts";
 const SECRET = "unit-test-cloudinary-secret-not-real";
@@ -97,9 +107,10 @@ describe("purpose policy", () => {
 });
 
 describe("signer", () => {
-  test("signs exactly timestamp + folder + allowed_formats + public_id + overwrite + upload_preset (SHA-256 v2), matching the SDK and a hand computation", () => {
+  test("signs exactly timestamp + folder + allowed_formats + public_id + overwrite + upload_preset + type (SHA-256 v2), matching the SDK and a hand computation", () => {
     const signed = signUploadForPurpose("teacher_cv", SECRET, CV_PRESET, NOW, { randomId: fixedId });
-    assert.deepEqual(Object.keys(signed.params).sort(), ["allowed_formats", "folder", "overwrite", "public_id", "timestamp", "upload_preset"]);
+    assert.deepEqual(Object.keys(signed.params).sort(), ["allowed_formats", "folder", "overwrite", "public_id", "timestamp", "type", "upload_preset"]);
+    assert.equal(signed.params.type, "authenticated", "application documents are never publicly deliverable");
     assert.equal(signed.params.timestamp, Math.floor(NOW / 1000));
     assert.equal(signed.params.folder, "teacher-signup/cv");
     assert.equal(signed.params.allowed_formats, "pdf");
@@ -108,7 +119,7 @@ describe("signer", () => {
     assert.equal(signed.params.upload_preset, CV_PRESET);
     assert.equal(signed.resourceType, "raw");
     // Protocol oracle: sorted key=value joined by &, then the secret, SHA-256 hex.
-    const toSign = `allowed_formats=pdf&folder=teacher-signup/cv&overwrite=false&public_id=${FIXED_ID}.pdf&timestamp=${signed.params.timestamp}&upload_preset=${CV_PRESET}`;
+    const toSign = `allowed_formats=pdf&folder=teacher-signup/cv&overwrite=false&public_id=${FIXED_ID}.pdf&timestamp=${signed.params.timestamp}&type=authenticated&upload_preset=${CV_PRESET}`;
     assert.equal(cloudinaryStringToSign(signed.params), toSign);
     assert.equal(signed.signature, createHash("sha256").update(toSign + SECRET).digest("hex"));
     // Official SDK oracle (configured for SHA-256, signature version 2 is its default).
@@ -219,6 +230,74 @@ describe("replay resistance within a resource-type namespace", () => {
   });
 });
 
+describe("private application documents", () => {
+  const REFERENCE_SECRET = "unit-test-reference-secret-not-real";
+
+  test("the server-issued reference proves the storage id and purpose; anything else is refused", () => {
+    const signed = signUploadForPurpose("teacher_cv", SECRET, CV_PRESET, NOW, { randomId: fixedId });
+    const storageId = storageIdOf(signed);
+    assert.equal(storageId, `teacher-signup/cv/${FIXED_ID}.pdf`);
+    const proof = uploadReferenceProof("teacher_cv", storageId, REFERENCE_SECRET);
+    assert.equal(verifyUploadReference("teacher_cv", { storageId, proof }, REFERENCE_SECRET), storageId);
+    const otherId = `teacher-signup/cv/1f6d2b1e-8a4c-4f5e-9b7d-3c2a1e0f9d8b.pdf`;
+    for (const reference of [
+      { storageId: otherId, proof },
+      { storageId, proof: uploadReferenceProof("teacher_cv", storageId, REFERENCE_SECRET + "x") },
+      { storageId, proof: proof.slice(0, 63) },
+      { storageId, proof: proof.toUpperCase() },
+      { storageId: `https://res.cloudinary.com/x/raw/upload/${storageId}`, proof },
+      { storageId },
+      storageId,
+      null,
+    ]) {
+      assert.equal(verifyUploadReference("teacher_cv", reference, REFERENCE_SECRET), null, JSON.stringify(reference));
+    }
+    assert.equal(verifyUploadReference("teacher_intro_video", { storageId, proof }, REFERENCE_SECRET), null, "a CV proof is not a video proof");
+    assert.throws(() => uploadReferenceProof("teacher_cv", storageId, ""), "no secret, no proof");
+  });
+
+  test("download links are short-lived, signed over id, type and expiry, and equal the SDK's private_download_url", () => {
+    const config = { cloudName: "demo-cloud", apiKey: "123456789012345", apiSecret: SECRET };
+    const storageId = `teacher-signup/cv/${FIXED_ID}.pdf`;
+    const link = privateDownloadLink(config, "teacher_cv", storageId, NOW, 300);
+    const url = new URL(link.url);
+    assert.equal(`${url.origin}${url.pathname}`, "https://api.cloudinary.com/v1_1/demo-cloud/raw/download");
+    assert.equal(url.searchParams.get("type"), "authenticated");
+    assert.equal(Number(url.searchParams.get("expires_at")) - Number(url.searchParams.get("timestamp")), 300);
+    assert.equal(link.expiresAt, new Date((Math.floor(NOW / 1000) + 300) * 1000).toISOString());
+    assert.equal(url.searchParams.has("api_secret"), false);
+    assert.equal(link.url.includes(SECRET), false, "the secret never appears in a link");
+    (cloudinary.config as (c: Record<string, unknown>) => unknown)({ signature_algorithm: "sha256", signature_version: 2 });
+    // The SDK's type definitions omit options its implementation reads (timestamp, credentials, algorithm).
+    const sdkDownloadUrl = cloudinary.utils.private_download_url as unknown as (id: string, format: string, options: Record<string, unknown>) => string;
+    const sdk = new URL(
+      sdkDownloadUrl(storageId, "", {
+        resource_type: "raw",
+        type: "authenticated",
+        expires_at: Math.floor(NOW / 1000) + 300,
+        timestamp: Math.floor(NOW / 1000),
+        cloud_name: "demo-cloud",
+        api_key: config.apiKey,
+        api_secret: SECRET,
+        signature_algorithm: "sha256",
+      }),
+    );
+    assert.equal(`${sdk.origin}${sdk.pathname}`, `${url.origin}${url.pathname}`);
+    assert.deepEqual(Object.fromEntries([...url.searchParams].sort()), Object.fromEntries([...sdk.searchParams].sort()), "same parameters and signature as the SDK");
+    assert.throws(() => privateDownloadLink(config, "teacher_intro_video", storageId, NOW), "a CV id is not a video");
+    assert.throws(() => privateDownloadLink({ ...config, apiSecret: "" }, "teacher_cv", storageId, NOW));
+    assert.throws(() => privateDownloadLink(config, "teacher_cv", storageId, NOW, 86400), "links never live long");
+  });
+
+  test("the sign route hands out the reference and fails closed without its secret", () => {
+    const src = code(ROUTE);
+    assert.ok(src.includes("const referenceSecret = process.env.INTERNAL_API_SECRET;") && src.includes("if (!referenceSecret)"));
+    assert.ok(src.includes("reference: { storageId, proof: uploadReferenceProof(purpose, storageId, referenceSecret) }"));
+    assert.ok(src.includes("deliveryType: signed.params.type"));
+    assert.ok(src.indexOf("if (!referenceSecret)") < src.indexOf("signUploadForPurpose(purpose"), "no signature is issued without the proof secret");
+  });
+});
+
 describe("sign-upload route wiring", () => {
   const src = code(ROUTE);
   test("limiter, purpose-only body, five required config values, fail-closed, server-selected preset, no secret in the response", () => {
@@ -265,20 +344,26 @@ describe("teacher signup page wiring", () => {
     assert.ok(src.includes('fetch("/api/cloudinary/sign-upload"'), "asks the server for a signature");
     assert.ok(src.includes('JSON.stringify({ purpose })'), "sends only the purpose");
     assert.ok(src.includes("cloudinaryUploadUrl(auth.cloudName, purpose)"), "uploads directly to Cloudinary");
-    for (const field of ['"timestamp"', '"folder"', '"allowed_formats"', '"public_id"', '"overwrite"', '"upload_preset"', '"api_key"', '"signature"', '"file"']) {
+    for (const field of ['"timestamp"', '"folder"', '"allowed_formats"', '"public_id"', '"overwrite"', '"upload_preset"', '"type"', '"api_key"', '"signature"', '"file"']) {
       assert.ok(src.includes(`formData.append(${field}`), `client sends ${field}`);
     }
-    assert.equal((src.match(/formData\.append\(/g) ?? []).length, 9, "exactly the signed params + api_key + signature + file");
+    assert.equal((src.match(/formData\.append\(/g) ?? []).length, 10, "exactly the signed params + api_key + signature + file");
     assert.ok(src.includes('formData.append("public_id", auth.publicId)'), "client forwards the server-issued public id verbatim");
     assert.ok(src.includes('formData.append("overwrite", "false")'), "client sends the literal signed overwrite=false");
     assert.ok(src.includes('formData.append("upload_preset", auth.uploadPreset)'), "client forwards the server-selected preset verbatim");
+    assert.ok(src.includes('formData.append("type", auth.deliveryType)'), "client forwards the server-selected private delivery type");
     assert.equal(/append\("overwrite", *(auth|"true")/.test(src), false, "overwrite cannot be anything but the literal false");
     assert.equal(/append\("upload_preset", *"/.test(src), false, "client never supplies a preset literal");
+    assert.equal(/append\("type", *"/.test(src), false, "client never supplies a delivery type literal");
     assert.equal(/randomUUID|crypto\.|public_id", *(file|name|`)/.test(src), false, "client never generates or derives a public id");
     assert.ok(src.indexOf("checkFileForPurpose(file, purpose)") < src.indexOf('fetch("/api/cloudinary/sign-upload"'), "local pre-check before signature request");
-    assert.ok(src.includes('uploadSigned(data.cvFile, "teacher_cv")') && src.includes('uploadSigned(data.introVideo, "teacher_intro_video")'));
     assert.equal(src.includes("uploadToCloudinary"), false, "old helper removed");
-    assert.ok(src.includes("typeof uploaded?.secure_url !== \"string\""), "consumes only secure_url");
+    assert.equal(src.includes("secure_url"), false, "no delivery link is kept: documents are private");
+    assert.ok(src.includes("uploaded?.public_id !== auth.reference?.storageId"), "the stored asset must be the one the server signed for");
+    assert.ok(src.includes("return { storageId: auth.reference.storageId, proof: auth.reference.proof };"), "only the server-issued reference is returned");
+    const form = code(FORM);
+    assert.ok(form.includes('uploadSigned(cv, "teacher_cv")') && form.includes('uploadSigned(video, "teacher_intro_video")'), "the application form uploads through the signed client");
+    assert.equal(/cloudinary\.com|formData/.test(form), false, "the form never talks to Cloudinary itself");
   });
 });
 

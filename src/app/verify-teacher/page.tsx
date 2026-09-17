@@ -132,8 +132,9 @@ function VerifyTeacherContent() {
               <p className="text-muted-foreground leading-relaxed">
                 <T>Your application has been received and will be reviewed shortly. We will contact you soon.</T>
               </p>
-              <Button onClick={() => router.push("/")} className="w-full rounded-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 font-semibold">
-                <T>Back to Home</T>
+              {/* Email verification does not approve a teacher: the applicant follows the review after signing in. */}
+              <Button onClick={() => router.push("/login")} className="w-full rounded-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 font-semibold">
+                <T>Sign in to follow your application</T>
               </Button>
             </motion.div>
           )}

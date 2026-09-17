@@ -9,7 +9,7 @@
  *
  * Policy is derived from the existing teacher-signup UX: the CV input accepts
  * .pdf up to 10 MB and the intro-video input accepts mp4/quicktime/webm up to
- * 50 MB (src/lib/validations/teacher-signup-step2.ts).
+ * 50 MB (src/components/academy/workspace/teacher/application-form.tsx).
  */
 
 export type UploadPurpose = "teacher_cv" | "teacher_intro_video";
@@ -37,6 +37,12 @@ export interface UploadPurposePolicy {
    * URL keeps ".pdf"; video public IDs carry no extension.
    */
   publicIdSuffix: "" | ".pdf";
+  /**
+   * Cloudinary delivery type (signed). Application documents are
+   * "authenticated": they cannot be fetched by URL alone, only through a
+   * short-lived signed download link the server issues to administrators.
+   */
+  deliveryType: "authenticated";
 }
 
 export const UPLOAD_PURPOSES: Readonly<Record<UploadPurpose, UploadPurposePolicy>> = {
@@ -48,6 +54,7 @@ export const UPLOAD_PURPOSES: Readonly<Record<UploadPurpose, UploadPurposePolicy
     extensions: [".pdf"],
     maxBytes: 10 * 1024 * 1024,
     publicIdSuffix: ".pdf",
+    deliveryType: "authenticated",
   },
   teacher_intro_video: {
     resourceType: "video",
@@ -57,6 +64,7 @@ export const UPLOAD_PURPOSES: Readonly<Record<UploadPurpose, UploadPurposePolicy
     extensions: [".mp4", ".mov", ".webm"],
     maxBytes: 50 * 1024 * 1024,
     publicIdSuffix: "",
+    deliveryType: "authenticated",
   },
 };
 

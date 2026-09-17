@@ -11,6 +11,7 @@ export const pages = {
   announcements: "/academy/announcements",
   certificates: "/academy/certificates",
   approvals: "/academy/approvals",
+  teacherApplication: "/academy/teacher-application",
   verifyCertificate: (code: string) => `/academy/certificates/verify?code=${e(code)}`,
   classGroup: (id: string, tab?: string) => `/academy/class-groups/${e(id)}${tab ? `?tab=${e(tab)}` : ""}`,
   lessonSheet: (classGroupId: string, lessonId: string) => `/academy/class-groups/${e(classGroupId)}/lessons/${e(lessonId)}`,
@@ -24,15 +25,22 @@ export const pages = {
   approval: (id: string) => `/academy/approvals/${e(id)}`,
 };
 
-/** The academy home for a signed-in role (navigation only; pages and APIs authorize on the server). */
-export function academyHome(role: string | null | undefined): string {
-  return role === "admin" ? pages.manage : role === "teacher" ? pages.teach : pages.learn;
+/**
+ * The academy home for a signed-in account (navigation only; pages and APIs
+ * authorize on the server). A teacher account reaches teaching only when its
+ * status is "active"; otherwise its home is its application page.
+ */
+export function academyHome(role: string | null | undefined, status?: string | null): string {
+  if (role === "admin") return pages.manage;
+  if (role === "teacher") return status === "active" ? pages.teach : pages.teacherApplication;
+  return pages.learn;
 }
 
 export const api = {
   myLearning: "/api/academy/me/learning",
   myTeaching: "/api/academy/me/teaching",
   myCertificates: "/api/academy/me/certificates",
+  teacherApplication: "/api/academy/teacher-application",
   myAttendance: (classGroupId: string) => `/api/academy/me/attendance?classGroupId=${e(classGroupId)}`,
   classGroup: (id: string) => `/api/academy/class-groups/${e(id)}`,
   roster: (id: string) => `/api/academy/class-groups/${e(id)}/roster`,

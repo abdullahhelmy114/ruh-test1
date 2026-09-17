@@ -36,7 +36,7 @@
  * signed string, per the protocol. The secret is consumed here and never
  * appears in the returned object.
  */
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { UPLOAD_PURPOSES, type UploadPurpose } from "./upload-purpose.ts";
 
 export const SIGNATURE_ALGORITHM = "sha256";
@@ -50,6 +50,8 @@ export type SignedUploadParams = {
   public_id: string;
   overwrite: "false";
   upload_preset: string;
+  /** Delivery type: application documents are never publicly deliverable. */
+  type: "authenticated";
 };
 
 export interface SignedUpload {
@@ -107,9 +109,89 @@ export function signUploadForPurpose(
     public_id: `${id}${policy.publicIdSuffix}`,
     overwrite: "false",
     upload_preset: uploadPreset,
+    type: policy.deliveryType,
   };
   const signature = createHash(SIGNATURE_ALGORITHM)
     .update(cloudinaryStringToSign(params) + apiSecret)
     .digest("hex");
   return { purpose, resourceType: policy.resourceType, params, signature };
+}
+
+// ---------------------------------------------------------------------------
+// Upload references
+// ---------------------------------------------------------------------------
+
+/** The storage id Cloudinary gives an upload: the signed folder and the signed public id. */
+export function storageIdOf(signed: SignedUpload): string {
+  return `${signed.params.folder}/${signed.params.public_id}`;
+}
+
+function referenceMessage(purpose: UploadPurpose, storageId: string): string {
+  return `upload-reference:v1:${purpose}:${storageId}`;
+}
+
+/**
+ * Proof that THIS server issued the signature for a storage id, handed to the
+ * browser with the signature and required again when an application refers
+ * to the upload. An application therefore cannot point at an arbitrary or
+ * someone else's asset. HMAC-SHA256 with a server secret (not the Cloudinary
+ * secret).
+ */
+export function uploadReferenceProof(purpose: UploadPurpose, storageId: string, referenceSecret: string): string {
+  if (typeof referenceSecret !== "string" || referenceSecret.length === 0) throw new Error("Upload reference secret is not configured");
+  return createHmac("sha256", referenceSecret).update(referenceMessage(purpose, storageId)).digest("hex");
+}
+
+/** The storage id when its proof is valid for the purpose, otherwise null (constant-time comparison). */
+export function verifyUploadReference(purpose: UploadPurpose, reference: unknown, referenceSecret: string): string | null {
+  if (!reference || typeof reference !== "object") return null;
+  const { storageId, proof } = reference as { storageId?: unknown; proof?: unknown };
+  if (typeof storageId !== "string" || typeof proof !== "string" || !/^[0-9a-f]{64}$/.test(proof)) return null;
+  const policy = UPLOAD_PURPOSES[purpose];
+  if (!storageId.startsWith(`${policy.folder}/`)) return null;
+  const expected = Buffer.from(uploadReferenceProof(purpose, storageId, referenceSecret), "hex");
+  const given = Buffer.from(proof, "hex");
+  return expected.length === given.length && timingSafeEqual(expected, given) ? storageId : null;
+}
+
+// ---------------------------------------------------------------------------
+// Private download links
+// ---------------------------------------------------------------------------
+
+export interface PrivateDownloadConfig {
+  cloudName: string;
+  apiKey: string;
+  apiSecret: string;
+}
+
+/**
+ * A short-lived link to an authenticated asset through Cloudinary's download
+ * API (the SDK's `private_download_url`): the timestamp, storage id, delivery
+ * type and expiry are signed, so the link cannot be altered or extended.
+ */
+export function privateDownloadLink(
+  config: PrivateDownloadConfig,
+  purpose: UploadPurpose,
+  storageId: string,
+  now: number = Date.now(),
+  ttlSeconds = 300,
+): { url: string; expiresAt: string } {
+  if (!config.cloudName || !config.apiKey || !config.apiSecret) throw new Error("Cloudinary is not configured");
+  if (!Number.isInteger(ttlSeconds) || ttlSeconds < 30 || ttlSeconds > 3600) throw new Error("ttl out of range");
+  const policy = UPLOAD_PURPOSES[purpose];
+  if (!storageId.startsWith(`${policy.folder}/`)) throw new Error("storage id does not belong to the purpose");
+  const timestamp = Math.floor(now / 1000);
+  const expiresAt = timestamp + ttlSeconds;
+  const signed = { timestamp, public_id: storageId, type: policy.deliveryType, expires_at: expiresAt };
+  const signature = createHash(SIGNATURE_ALGORITHM).update(cloudinaryStringToSign(signed) + config.apiSecret).digest("hex");
+  const query = new URLSearchParams({
+    timestamp: String(timestamp),
+    public_id: storageId,
+    type: policy.deliveryType,
+    expires_at: String(expiresAt),
+    signature,
+    api_key: config.apiKey,
+  });
+  const url = `https://api.cloudinary.com/v1_1/${encodeURIComponent(config.cloudName)}/${policy.resourceType}/download?${query.toString()}`;
+  return { url, expiresAt: new Date(expiresAt * 1000).toISOString() };
 }
