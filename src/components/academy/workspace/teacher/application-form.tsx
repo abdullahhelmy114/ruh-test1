@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useId, useState, type FormEvent, type ReactNode } from "react";
 import { ALL_COUNTRIES } from "@/lib/constants/countries";
 import { ALL_LANGUAGES } from "@/lib/constants/languages";
 import { SignedUploadError, uploadSigned, type UploadReference } from "@/lib/security/signed-upload-client";
@@ -44,6 +44,33 @@ export const EMPTY_DETAILS: ApplicationDetailsInput = {
 const PROFICIENCIES = ["native", "advanced", "intermediate", "beginner"] as const;
 const BIO_MIN = 50;
 
+/**
+ * Country and language options.
+ *
+ * The names come from the lists this repository authors, never from the
+ * runtime's own locale database: `Intl.DisplayNames` answers from whatever
+ * CLDR the engine was built with, so Node and the browser disagreed and the
+ * server HTML did not match the first client render (React hydration error
+ * #418). Node called PS "Palestinian Territories" where Chrome said
+ * "Palestine", and Chrome had no name at all for 47 of the languages, so it
+ * rendered bare codes ("aa" instead of "Afar") and sorted them into a
+ * different order.
+ *
+ * Sorting uses a fixed key (diacritics folded, letters only) rather than
+ * `localeCompare`, whose collation is also the engine's to choose. Both lists
+ * are therefore identical everywhere and stay in alphabetical order even if a
+ * future entry is added out of place.
+ */
+const sortKey = (name: string) =>
+  name
+    .normalize("NFD")
+    .replace(/[^A-Za-z]/g, "")
+    .toLowerCase();
+const byName = <T extends { readonly name: string }>(list: readonly T[]) =>
+  [...list].sort((a, b) => (sortKey(a.name) < sortKey(b.name) ? -1 : sortKey(a.name) > sortKey(b.name) ? 1 : 0));
+const COUNTRY_OPTIONS = byName(ALL_COUNTRIES);
+const LANGUAGE_OPTIONS = byName(ALL_LANGUAGES);
+
 type Part = "personal" | "teaching";
 
 /**
@@ -71,7 +98,7 @@ export function ApplicationForm({
   readonly before?: ReactNode;
   readonly after?: ReactNode;
 }) {
-  const { t, locale } = useWorkspace();
+  const { t } = useWorkspace();
   const f = t.application.fields;
   const id = useId();
   const [details, setDetails] = useState<ApplicationDetailsInput>(initial ?? EMPTY_DETAILS);
@@ -79,35 +106,6 @@ export function ApplicationForm({
   const [video, setVideo] = useState<File | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-
-  const countryName = useMemo(() => {
-    const names = typeof Intl.DisplayNames === "function" ? new Intl.DisplayNames([locale], { type: "region" }) : null;
-    return (code: string, fallback: string) => {
-      try {
-        return names?.of(code) ?? fallback;
-      } catch {
-        return fallback;
-      }
-    };
-  }, [locale]);
-  const languageName = useMemo(() => {
-    const names = typeof Intl.DisplayNames === "function" ? new Intl.DisplayNames([locale], { type: "language" }) : null;
-    return (code: string, fallback: string) => {
-      try {
-        return names?.of(code) ?? fallback;
-      } catch {
-        return fallback;
-      }
-    };
-  }, [locale]);
-  const countries = useMemo(
-    () => ALL_COUNTRIES.map((c) => ({ code: c.code, name: countryName(c.code, c.name) })).sort((a, b) => a.name.localeCompare(b.name, locale)),
-    [countryName, locale],
-  );
-  const languages = useMemo(
-    () => ALL_LANGUAGES.map((l) => ({ code: l.code, name: languageName(l.code, l.name) })).sort((a, b) => a.name.localeCompare(b.name, locale)),
-    [languageName, locale],
-  );
 
   const set = <K extends keyof ApplicationDetailsInput>(key: K, value: ApplicationDetailsInput[K]) => setDetails((d) => ({ ...d, [key]: value }));
   const fid = (name: string) => `${id}-${name}`;
@@ -182,7 +180,7 @@ export function ApplicationForm({
               <Field label={f.countryOfResidence} htmlFor={fid("residence")}>
                 <SelectInput id={fid("residence")} required value={details.countryOfResidence} onChange={(e) => set("countryOfResidence", e.target.value)}>
                   <option value="">—</option>
-                  {countries.map((c) => (
+                  {COUNTRY_OPTIONS.map((c) => (
                     <option key={c.code} value={c.code}>
                       {c.name}
                     </option>
@@ -192,7 +190,7 @@ export function ApplicationForm({
               <Field label={f.nationality} htmlFor={fid("nationality")}>
                 <SelectInput id={fid("nationality")} required value={details.nationality} onChange={(e) => set("nationality", e.target.value)}>
                   <option value="">—</option>
-                  {countries.map((c) => (
+                  {COUNTRY_OPTIONS.map((c) => (
                     <option key={c.code} value={c.code}>
                       {c.name}
                     </option>
@@ -223,7 +221,7 @@ export function ApplicationForm({
                       onChange={(e) => set("languages", details.languages.map((l, i) => (i === index ? { ...l, code: e.target.value } : l)))}
                     >
                       <option value="">—</option>
-                      {languages.map((l) => (
+                      {LANGUAGE_OPTIONS.map((l) => (
                         <option key={l.code} value={l.code}>
                           {l.name}
                         </option>

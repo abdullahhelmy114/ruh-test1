@@ -154,7 +154,20 @@ describe("security headers", { skip }, () => {
       assert.equal(h.get("referrer-policy"), "strict-origin-when-cross-origin", path);
       assert.match(h.get("strict-transport-security") ?? "", /max-age=\d+/, path);
       assert.match(h.get("permissions-policy") ?? "", /camera=\(\)/, path);
-      assert.match(h.get("content-security-policy") ?? "", /frame-ancestors 'self'.*object-src 'none'/, path);
+      const csp = h.get("content-security-policy") ?? "";
+      assert.match(csp, /frame-ancestors 'self'.*object-src 'none'/, path);
+      // The header the browser actually receives, not just the configured string: the teacher
+      // application's direct upload needs this one host, and nothing broader (see tests/security/csp.test.ts).
+      const connect = /(?:^|; )connect-src ([^;]*)/.exec(csp)?.[1]?.split(/\s+/) ?? [];
+      assert.ok(connect.includes("https://api.cloudinary.com"), `${path}: connect-src allows the signed upload host`);
+      for (const tooBroad of ["*", "https:", "https://*.cloudinary.com", "https://res.cloudinary.com"]) {
+        assert.equal(connect.includes(tooBroad), false, `${path}: connect-src must not include ${tooBroad}`);
+      }
+      for (const host of ["'self'", "https://*.googleapis.com", "https://*.firebaseio.com", "wss://*.firebaseio.com"]) {
+        assert.ok(connect.includes(host), `${path}: connect-src keeps ${host}`);
+      }
+      assert.doesNotMatch(csp, /'unsafe-eval'/, `${path}: a production build allows no eval`);
+      assert.doesNotMatch(csp.replace(/connect-src [^;]*/, ""), /cloudinary/i, `${path}: no Cloudinary host outside connect-src`);
       assert.equal(h.get("x-powered-by"), null, path);
       await response.arrayBuffer();
     }
@@ -180,6 +193,30 @@ describe("public academy pages", { skip }, () => {
       }
       const catalogPage = await (await get("/academy", cookie)).text();
       assert.ok(catalogPage.includes(t.catalogTitle), `${locale}: catalog title`);
+    }
+  });
+
+  test("teacher signup labels its options from the authored lists, so hydration matches", async () => {
+    for (const locale of LOCALES) {
+      const html = await (await get("/signup/teacher", { cookie: `preferred-locale=${locale}` })).text();
+      const options = [...html.matchAll(/<option value="([A-Za-z]{2,3})"[^>]*>([^<]+)<\/option>/g)].map((m) => ({ code: m[1]!, text: m[2]! }));
+      assert.ok(options.length > 600, `${locale}: both country selects and the language select render (${options.length})`);
+      const named = new Map(options.map((option) => [option.code, option.text]));
+      // Resolving these through the engine's locale database is what broke hydration
+      // (React error #418): Node and Chrome name them differently, and Chrome names 47 of
+      // the languages not at all, falling back to the bare code.
+      for (const [code, name] of [["PS", "Palestine, State of"], ["HK", "Hong Kong"], ["FK", "Falkland Islands (Malvinas)"], ["aa", "Afar"], ["za", "Zhuang"]]) {
+        assert.equal(named.get(code!), name, `${locale}: ${code} carries its authored name`);
+      }
+      for (const option of options) {
+        assert.notEqual(option.text.toLowerCase(), option.code.toLowerCase(), `${locale}: ${option.code} is labelled with its own code`);
+      }
+      // Alphabetical, by a key no engine gets a say in.
+      const key = (name: string) => name.normalize("NFD").replace(/[^A-Za-z]/g, "").toLowerCase();
+      const countries = options.filter((option) => /^[A-Z]{2}$/.test(option.code)).slice(0, 248);
+      for (let i = 1; i < countries.length; i++) {
+        assert.ok(key(countries[i - 1]!.text) <= key(countries[i]!.text), `${locale}: country order breaks at ${countries[i]!.text}`);
+      }
     }
   });
 

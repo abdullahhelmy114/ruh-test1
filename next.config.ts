@@ -15,7 +15,13 @@ const securityHeaders = [
       `script-src 'self' 'unsafe-inline'${
         isDevelopment ? " 'unsafe-eval'" : ""
       } https://apis.google.com https://www.gstatic.com https://*.firebaseio.com https://www.google.com https://static.cloudflareinsights.com`,
-      "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.google-analytics.com https://generativelanguage.googleapis.com",
+      // api.cloudinary.com: the teacher application uploads its CV and introduction video
+      // straight from the browser to Cloudinary, with a signature this server issues first
+      // (/api/cloudinary/sign-upload). Only the upload/download API host is allowed — not
+      // a wildcard and not the res.cloudinary.com delivery host, which the app never fetches:
+      // application documents are private (authenticated delivery) and are opened through a
+      // short-lived signed link instead.
+      "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.google-analytics.com https://generativelanguage.googleapis.com https://api.cloudinary.com",
       "frame-src 'self' https://www.youtube.com https://*.firebaseapp.com https://*.google.com",
       "frame-ancestors 'self'",
       "object-src 'none'",
