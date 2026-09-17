@@ -20,7 +20,7 @@ export const GET = withApi(async (request) => {
   } catch (error: any) {
     console.error("Error fetching offers:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to fetch offers" },
+      { error: "Failed to fetch offers" },
       { status: 500 }
     );
   }
@@ -51,7 +51,7 @@ export const POST = withApi(async (request) => {
   } catch (error: any) {
     console.error("Error creating offer:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to create offer" },
+      { error: "Failed to create offer" },
       { status: 500 }
     );
   }
@@ -82,7 +82,7 @@ export const PUT = withApi(async (request) => {
   } catch (error: any) {
     console.error("Error updating offer:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to update offer" },
+      { error: "Failed to update offer" },
       { status: 500 }
     );
   }
@@ -109,7 +109,7 @@ export const DELETE = withApi(async (request) => {
   } catch (error: any) {
     console.error("Error deleting offer:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to delete offer" },
+      { error: "Failed to delete offer" },
       { status: 500 }
     );
   }

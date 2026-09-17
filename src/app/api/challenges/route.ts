@@ -1,25 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { withApi } from '@/lib/api/handler';
+import { requireCommunityMember } from '@/lib/community-auth';
 import { sql } from '@/lib/db/client';
-import { cookies } from 'next/headers';
-import { getAuth } from 'firebase-admin/auth';
 
-async function getCurrentUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('session')?.value;
-  if (!token) return null;
-  try {
-    const decoded = await getAuth().verifyIdToken(token);
-    return decoded;
-  } catch {
-    return null;
-  }
-}
 
-export async function GET(req: NextRequest) {
-  const user = await getCurrentUser();
-  if (!user || user.role !== 'student') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-  }
+export const GET = withApi(async (req) => {
+  const user = await requireCommunityMember(req);
 
   const gender = user.gender;
 
@@ -56,4 +42,4 @@ export async function GET(req: NextRequest) {
     console.error(error);
     return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
   }
-}
+});

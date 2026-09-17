@@ -15,7 +15,7 @@
  */
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { PUBLIC_API_ROUTES as PUBLIC, PUBLIC_HANDLERS } from "./public-api-routes.ts";
 
@@ -35,8 +35,15 @@ const ROUTES = walk(API)
   .map((path) => ({ rel: relative(API, path).replace(/\\/g, "/"), code: stripComments(readFileSync(path, "utf8")) }))
   .sort((a, b) => a.rel.localeCompare(b.rel));
 
-/** Identity established by the central auth layer (or its compatibility shim, which delegates to it). */
-const CENTRAL_AUTH = /\b(?:requireAuth|requireAdmin|requireTeacher|requireStudent|requireRole|requireSelfOrAdmin|getServerSession|getSession|verifyIdToken)\(/;
+/**
+ * Identity established by the central auth layer. A route that verifies a
+ * Firebase token itself does not count: the community, forum, challenge,
+ * course-lesson and student course routes did, and it hid that they read a
+ * cookie the application never sets and role claims it never issues.
+ */
+const CENTRAL_AUTH = /\b(?:requireAuth|requireAdmin|requireTeacher|requireStudent|requireRole|requireSelfOrAdmin|getServerSession|getSession|requireCommunityMember)\(/;
+/** The one route that verifies a Firebase credential itself: the sign-in exchange that sets the session cookie. */
+const SIGN_IN_EXCHANGE = "auth/session/route.ts";
 const REMOVED = /This endpoint has been removed\./;
 
 describe("API route access inventory", () => {
@@ -78,15 +85,28 @@ describe("API route access inventory", () => {
     const leaked = Object.keys(PUBLIC).filter((rel) => rel.startsWith("admin/") || (rel.startsWith("teacher/") && !/^teacher\/(public|rating)\//.test(rel)));
     assert.deepEqual(leaked, []);
     for (const route of ROUTES.filter((r) => r.rel.startsWith("admin/"))) {
-      assert.match(route.code, /\b(?:requireAdmin|verifyIdToken|getServerSession)\(/, `${route.rel} must require an administrator`);
+      assert.match(route.code, /\brequireAdmin\(/, `${route.rel} must require an administrator`);
     }
   });
 
-  test("outside the administrator API, no route returns raw exception text", () => {
-    const leaking = ROUTES.filter((r) => !r.rel.startsWith("admin/"))
-      .filter((r) => /(?:error|message|details)\s*:\s*(?:error|err|e)\.message/.test(r.code))
-      .map((r) => r.rel);
+  test("no route returns raw exception text, administrator routes included", () => {
+    const leaking = ROUTES.filter((r) => /(?:error|message|details?)\s*:\s*(?:error|err|e)\.(?:message|toString\(\))/.test(r.code)).map((r) => r.rel);
     assert.deepEqual(leaking, []);
+  });
+
+  test("only the sign-in exchange verifies a Firebase credential itself; every other route uses the central layer", () => {
+    const manual = ROUTES.filter((r) => r.rel !== SIGN_IN_EXCHANGE)
+      .filter((r) => /\.verifyIdToken\(|\.verifySessionCookie\(|firebaseAdmin|from ['"]firebase-admin\/auth['"]|@\/lib\/firebase\/server|@\/lib\/firebase-admin['"]/.test(r.code))
+      .map((r) => r.rel);
+    assert.deepEqual(manual, []);
+    // The legacy helpers (a token shim and an eagerly initialised Admin SDK) had no users left and are removed.
+    for (const legacy of [["lib", "firebase", "server.ts"], ["lib", "firebase-admin.ts"]]) {
+      assert.equal(existsSync(join(API, "..", "..", ...legacy)), false, legacy.join("/"));
+    }
+    for (const route of ROUTES.filter((r) => /^(community|forum|challenges)\//.test(r.rel))) {
+      assert.match(route.code, /const user = await requireCommunityMember\(req\);/, route.rel);
+      assert.doesNotMatch(route.code, /JOIN users |cookies\(\)|searchParams\.get\(['"]gender['"]\)/, route.rel);
+    }
   });
 
   test("the formerly open administrator page read and teacher earnings now require the right role", () => {

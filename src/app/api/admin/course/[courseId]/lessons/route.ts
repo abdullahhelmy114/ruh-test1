@@ -1,33 +1,12 @@
 // src/app/api/admin/course/[courseId]/lessons/route.ts
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
-import { firebaseAdmin } from "@/lib/firebase-admin";
+import { requireAdmin } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 
-async function verifyAdmin(request: Request): Promise<string | null> {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) return null;
-  const token = authHeader.split("Bearer ")[1];
-  try {
-    const decoded = await firebaseAdmin.auth().verifyIdToken(token);
-    const sql = neon(process.env.DATABASE_URL!);
-    const result = await sql`SELECT firebase_uid, role FROM profiles WHERE firebase_uid = ${decoded.uid} LIMIT 1`;
-    if (result.length > 0 && result[0].role === "admin") {
-      return result[0].firebase_uid;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
 
-export async function GET(
-  request: Request,
-  context: { params: Promise<{ courseId: string }> }
-) {
-  const adminUid = await verifyAdmin(request);
-  if (!adminUid) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const GET = withApi<{ courseId: string }>(async (request, context) => {
+  const adminUid = (await requireAdmin(request)).uid;
 
   const { courseId } = await context.params;
   const sql = neon(process.env.DATABASE_URL!);
@@ -44,20 +23,14 @@ export async function GET(
   } catch (error: any) {
     console.error("Error fetching lessons:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to fetch lessons" },
+      { error: "Failed to fetch lessons" },
       { status: 500 }
     );
   }
-}
+});
 
-export async function POST(
-  request: Request,
-  context: { params: Promise<{ courseId: string }> }
-) {
-  const adminUid = await verifyAdmin(request);
-  if (!adminUid) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const POST = withApi<{ courseId: string }>(async (request, context) => {
+  const adminUid = (await requireAdmin(request)).uid;
 
   const { courseId } = await context.params;
 
@@ -81,8 +54,8 @@ export async function POST(
   } catch (error: any) {
     console.error("Error creating lesson:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to create lesson" },
+      { error: "Failed to create lesson" },
       { status: 500 }
     );
   }
-}
+});

@@ -1,29 +1,13 @@
 // app/api/student/course/[courseId]/route.ts
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
-import { firebaseAdmin } from "@/lib/firebase-admin";
+import { requireAuth } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 
-async function getFirebaseUid(request: Request): Promise<string | null> {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) return null;
-  const token = authHeader.split("Bearer ")[1];
 
-  try {
-    const decoded = await firebaseAdmin.auth().verifyIdToken(token);
-    return decoded.uid;
-  } catch {
-    return null;
-  }
-}
-
-export async function GET(
-  request: Request,
-  context: { params: Promise<{ courseId: string }> }
-) {
-  const firebaseUid = await getFirebaseUid(request);
-  if (!firebaseUid) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const GET = withApi<{ courseId: string }>(async (request, context) => {
+  const user = await requireAuth(request);
+  const firebaseUid = user.uid;
 
   const { courseId } = await context.params;
 
@@ -31,10 +15,7 @@ export async function GET(
 
   try {
     // جلب دور المستخدم للسماح للأدمن بتجاوز قيد الالتحاق
-    const profileRes = await sql`
-      SELECT role FROM profiles WHERE firebase_uid = ${firebaseUid} LIMIT 1
-    `;
-    const isAdmin = profileRes.length > 0 && profileRes[0].role === "admin";
+    const isAdmin = user.role === "admin";
 
     if (!isAdmin) {
       const enrollment = await sql`
@@ -76,4 +57,4 @@ export async function GET(
     console.error("Error fetching course:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

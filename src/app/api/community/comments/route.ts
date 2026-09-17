@@ -1,20 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { withApi } from '@/lib/api/handler';
+import { requireCommunityMember } from '@/lib/community-auth';
 import { sql } from '@/lib/db/client';
-import { cookies } from 'next/headers';
-import { getAuth } from 'firebase-admin/auth';
 import { z } from 'zod';
 
-async function getCurrentUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('session')?.value;
-  if (!token) return null;
-  try {
-    const decoded = await getAuth().verifyIdToken(token);
-    return decoded;
-  } catch {
-    return null;
-  }
-}
 
 const commentSchema = z.object({
   postId: z.string().uuid(),
@@ -22,13 +11,10 @@ const commentSchema = z.object({
 });
 
 // POST /api/community/comments
-export async function POST(req: NextRequest) {
-  const user = await getCurrentUser();
-  if (!user || user.role !== 'student') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-  }
+export const POST = withApi(async (req) => {
+  const user = await requireCommunityMember(req);
 
-  const body = await req.json();
+  const body = await req.json().catch(() => null);
   const validation = commentSchema.safeParse(body);
   if (!validation.success) {
     return NextResponse.json({ error: validation.error.flatten() }, { status: 400 });
@@ -59,4 +45,4 @@ export async function POST(req: NextRequest) {
     console.error(error);
     return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
   }
-}
+});

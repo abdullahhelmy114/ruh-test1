@@ -1,21 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { withApi } from '@/lib/api/handler';
+import { requireCommunityMember } from '@/lib/community-auth';
 import { sql } from '@/lib/db/client';
-import { cookies } from 'next/headers';
-import { getAuth } from 'firebase-admin/auth';
 import { z } from 'zod';
 
-// دالة استخراج المستخدم الحالي من الكوكي
-async function getCurrentUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('session')?.value;
-  if (!token) return null;
-  try {
-    const decoded = await getAuth().verifyIdToken(token);
-    return decoded;
-  } catch {
-    return null;
-  }
-}
 
 // مخطط التحقق من صحة البيانات
 const postSchema = z.object({
@@ -24,15 +12,12 @@ const postSchema = z.object({
 });
 
 // GET /api/community/posts?page=1
-export async function GET(req: NextRequest) {
-  const user = await getCurrentUser();
-  if (!user || user.role !== 'student') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-  }
+export const GET = withApi(async (req) => {
+  const user = await requireCommunityMember(req);
 
   const gender = user.gender;
   const { searchParams } = new URL(req.url);
-  const page = parseInt(searchParams.get('page') || '1', 10);
+  const page = Math.max(1, Math.min(1000, parseInt(searchParams.get('page') || '1', 10) || 1));
   const limit = 20;
   const offset = (page - 1) * limit;
 
@@ -44,8 +29,8 @@ export async function GET(req: NextRequest) {
         cp.type,
         cp.content,
         cp.created_at AS "createdAt",
-        u.name AS "userName",
-        u.avatar_url AS "userAvatar",
+        u.full_name AS "userName",
+        NULL AS "userAvatar",
         (SELECT COUNT(*) FROM community_likes WHERE post_id = cp.id)::int AS "likes",
         (SELECT COUNT(*) FROM community_comments WHERE post_id = cp.id)::int AS "commentsCount",
         EXISTS (
@@ -53,7 +38,7 @@ export async function GET(req: NextRequest) {
           WHERE post_id = cp.id AND user_uid = ${user.uid}
         ) AS "isLiked"
       FROM community_posts cp
-      JOIN users u ON cp.user_uid = u.uid
+      JOIN profiles u ON u.firebase_uid = cp.user_uid
       WHERE cp.gender = ${gender}
       ORDER BY cp.created_at DESC
       LIMIT ${limit} OFFSET ${offset}
@@ -63,16 +48,13 @@ export async function GET(req: NextRequest) {
     console.error(error);
     return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
   }
-}
+});
 
 // POST /api/community/posts
-export async function POST(req: NextRequest) {
-  const user = await getCurrentUser();
-  if (!user || user.role !== 'student') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-  }
+export const POST = withApi(async (req) => {
+  const user = await requireCommunityMember(req);
 
-  const body = await req.json();
+  const body = await req.json().catch(() => null);
   const validation = postSchema.safeParse(body);
   if (!validation.success) {
     return NextResponse.json({ error: validation.error.flatten() }, { status: 400 });
@@ -92,4 +74,4 @@ export async function POST(req: NextRequest) {
     console.error(error);
     return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
   }
-}
+});

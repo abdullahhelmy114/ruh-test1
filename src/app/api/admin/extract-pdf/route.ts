@@ -25,7 +25,7 @@ export const POST = withApi(async (request) => {
   } catch (error: any) {
     console.error("Error extracting PDF:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to extract text" },
+      { error: "Failed to extract text" },
       { status: 500 }
     );
   }

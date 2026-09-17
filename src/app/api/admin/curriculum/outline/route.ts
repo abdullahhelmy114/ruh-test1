@@ -84,7 +84,7 @@ ${instructions || "لا توجد تعليمات إضافية."}
   } catch (error: any) {
     console.error("Error generating outline:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to generate outline" },
+      { error: "Failed to generate outline" },
       { status: 500 }
     );
   }

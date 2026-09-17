@@ -26,7 +26,7 @@ export const GET = withApi(async (request) => {
   } catch (error: any) {
     console.error("Error fetching gamification config:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to fetch config" },
+      { error: "Failed to fetch config" },
       { status: 500 }
     );
   }
@@ -61,7 +61,7 @@ export const PUT = withApi(async (request) => {
   } catch (error: any) {
     console.error("Error updating gamification config:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to update config" },
+      { error: "Failed to update config" },
       { status: 500 }
     );
   }

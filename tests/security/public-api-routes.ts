@@ -8,6 +8,7 @@
 export const PUBLIC_API_ROUTES: Readonly<Record<string, { readonly reason: string; readonly control?: RegExp }>> = {
   "academy-info/route.ts": { reason: "curated public site information for the assistant" },
   "ai/chat/route.ts": { reason: "public site assistant", control: /checkRateLimit\(/ },
+  "auth/session/route.ts": { reason: "the sign-in exchange: verifies a Firebase ID token, then sets the session cookie", control: /verifyIdToken\(idToken\)/ },
   "bundles/route.ts": { reason: "public catalog" },
   "certification/route.ts": { reason: "public certification information" },
   "cloudinary/sign-upload/route.ts": { reason: "teacher signup uploads before an account exists", control: /checkRateLimit\(/ },
@@ -47,7 +48,6 @@ export const PUBLIC_API_ROUTES: Readonly<Record<string, { readonly reason: strin
  * other handlers (or other query modes) require sign-in.
  */
 export const PUBLIC_HANDLERS: Readonly<Record<string, { readonly methods: readonly string[]; readonly reason: string }>> = {
-  "auth/session/route.ts": { methods: ["POST"], reason: "the sign-in exchange: verifies a Firebase ID token, then sets the session cookie" },
   "categories/route.ts": { methods: ["GET"], reason: "public category list; changes require an administrator" },
   "library/access/route.ts": { methods: ["GET"], reason: "tells signed-out readers to sign in (hasAccess false)" },
   "library/books/route.ts": { methods: ["GET"], reason: "public catalog list; a single book's content requires library access" },

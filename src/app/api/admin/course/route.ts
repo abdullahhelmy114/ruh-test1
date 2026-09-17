@@ -17,7 +17,7 @@ export const GET = withApi(async (req) => {
     return NextResponse.json({ course });
   } catch (error: any) {
     console.error('GET error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 });
 
@@ -74,7 +74,7 @@ export const POST = withApi(async (req) => {
   } catch (error: any) {
     console.error('POST error:', error);
     return NextResponse.json(
-      { error: error.message || 'خطأ في الخادم', detail: error.toString() },
+      { error: 'خطأ في الخادم' },
       { status: 500 }
     );
   }

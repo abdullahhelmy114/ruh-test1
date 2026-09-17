@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
-import { verifyIdToken } from '@/lib/firebase/server';
+import { requireAdmin } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
-export async function GET(req: Request) {
-  const user = await verifyIdToken(req);
-  if (!user || user.role !== 'admin') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-  }
+export const GET = withApi(async (req) => {
+  await requireAdmin(req);
 
   try {
     const applications = await sql`
@@ -31,4 +29,4 @@ export async function GET(req: Request) {
     console.error('Fetch applications error:', error);
     return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 });
   }
-}
+});

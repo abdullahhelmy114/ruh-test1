@@ -39,7 +39,7 @@ export const GET = withApi(async (request) => {
   } catch (error: any) {
     console.error("Error fetching gamification stats:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to fetch stats" },
+      { error: "Failed to fetch stats" },
       { status: 500 }
     );
   }

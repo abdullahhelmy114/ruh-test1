@@ -16,7 +16,7 @@ export const GET = withApi(async (request) => {
   } catch (error: any) {
     console.error("Error fetching badges:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to fetch badges" },
+      { error: "Failed to fetch badges" },
       { status: 500 }
     );
   }
@@ -47,7 +47,7 @@ export const POST = withApi(async (request) => {
   } catch (error: any) {
     console.error("Error creating badge:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to create badge" },
+      { error: "Failed to create badge" },
       { status: 500 }
     );
   }
@@ -72,7 +72,7 @@ export const DELETE = withApi(async (request) => {
   } catch (error: any) {
     console.error("Error deleting badge:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to delete badge" },
+      { error: "Failed to delete badge" },
       { status: 500 }
     );
   }

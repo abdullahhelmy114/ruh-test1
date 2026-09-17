@@ -46,7 +46,7 @@ export const GET = withApi(async (request) => {
   } catch (error: any) {
     console.error("Error fetching curriculum task status:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to fetch status" },
+      { error: "Failed to fetch status" },
       { status: 500 }
     );
   }

@@ -24,7 +24,7 @@ export const DELETE = withApi(async (request) => {
   } catch (error: any) {
     console.error("Error deleting question:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to delete question" },
+      { error: "Failed to delete question" },
       { status: 500 }
     );
   }

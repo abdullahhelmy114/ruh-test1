@@ -24,7 +24,7 @@ export const DELETE = withApi(async (request) => {
   } catch (error: any) {
     console.error("Error deleting game:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to delete game" },
+      { error: "Failed to delete game" },
       { status: 500 }
     );
   }

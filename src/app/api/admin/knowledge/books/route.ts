@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
-import { verifyIdToken } from "@/lib/firebase/server";
+import { requireAdmin } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest) {
+export const GET = withApi(async (req) => {
   try {
     // التحقق من الصلاحية
-    const user = await verifyIdToken(req);
-    if (!user || user.role !== "admin") {
-      return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
-    }
+    await requireAdmin(req);
 
     // جلب قائمة الكتب من قاعدة المعرفة
     const books = await sql`
@@ -24,4 +22,4 @@ export async function GET(req: NextRequest) {
     console.error("خطأ في جلب كتب Gemini:", error);
     return NextResponse.json({ error: "فشل جلب الكتب من قاعدة البيانات" }, { status: 500 });
   }
-}
+});
