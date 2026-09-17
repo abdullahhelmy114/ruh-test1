@@ -2,7 +2,7 @@ export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
-import { sendEmail, verificationCodeEmail } from '@/lib/email';
+import { describeMailFailure, sendEmail, verificationCodeEmail } from '@/lib/email';
 import { HttpError } from '@/lib/auth';
 import { withApi } from '@/lib/api/handler';
 import { checkRateLimit, clientKey, normalizeEmail, retryAfterSeconds } from '@/lib/security/rate-limit';
@@ -72,7 +72,7 @@ export const POST = withApi(async (request) => {
 
     await sendEmail(email, 'Your Verification Code', verificationCodeEmail(code));
   } catch (error) {
-    console.error('Verification code send error:', error instanceof Error ? error.name : 'unknown');
+    console.error('Verification code send error:', describeMailFailure(error));
     return NextResponse.json({ error: 'Failed to send verification code' }, { status: 500 });
   }
 

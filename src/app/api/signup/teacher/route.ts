@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminAuth } from "@/lib/firebase/admin";
 import { sql } from "@/lib/db/client";
-import { sendEmail, verificationCodeEmail } from "@/lib/email";
+import { describeMailFailure, sendEmail, verificationCodeEmail } from "@/lib/email";
 import { newReferralCode } from "@/lib/referral-db";
 import { checkRateLimit, clientKey, normalizeEmail, retryAfterSeconds } from "@/lib/security/rate-limit";
 import { generateOtp, hashOtp, otpExpiry } from "@/lib/security/otp";
@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
     await sendEmail(email, "Your Verification Code", verificationCodeEmail(emailCode));
   } catch (error) {
     // The account and application exist; the applicant can request a new code from the verification page.
-    console.error("Teacher signup: verification code not sent:", error instanceof Error ? error.name : "unknown");
+    console.error("Teacher signup: verification code not sent:", describeMailFailure(error));
   }
 
   return NextResponse.json({ success: true, uid: userRecord.uid }, { status: 201 });

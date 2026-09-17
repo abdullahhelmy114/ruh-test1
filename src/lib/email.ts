@@ -77,6 +77,25 @@ function wrapTemplate(title: string, content: string): string {
   `;
 }
 
+/**
+ * What went wrong with a send, in terms a log may carry: the transport's error
+ * code and the server's numeric reply, never an address or a credential.
+ *
+ * Authentication and delivery fail differently and are fixed differently -
+ * "EAUTH/535" is a password Google no longer accepts, "EENVELOPE/553" is a
+ * sender address this account is not allowed to send as - and logging only
+ * `error.name` ("Error") told us neither.
+ */
+export function describeMailFailure(error: unknown): string {
+  const e = (error ?? {}) as { code?: unknown; responseCode?: unknown; command?: unknown };
+  const parts = [
+    typeof e.code === "string" ? e.code : "unknown",
+    typeof e.responseCode === "number" ? String(e.responseCode) : null,
+    typeof e.command === "string" ? e.command : null,
+  ].filter(Boolean);
+  return parts.join("/");
+}
+
 export async function sendEmail(
   to: string,
   subject: string,
