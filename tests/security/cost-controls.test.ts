@@ -177,7 +177,18 @@ describe("messages", () => {
 });
 
 describe("chat/send", () => {
-  test("verified sender, uid limiter, message cap, room shape; authorization explicitly open", () => {
+  test("publishing is limited to administrators before any limiter, parsing or publish", () => {
+    const src = code(R.chat);
+    const handler = src.slice(src.indexOf("export const POST"));
+    const gate = handler.indexOf("if (user.role !== 'admin')");
+    assert.ok(gate > handler.indexOf("await requireAuth(req)"), "role check follows central authentication");
+    for (const later of ["checkRateLimit(", "req.json()", "pusher.trigger("]) {
+      assert.ok(gate < handler.indexOf(later), `role check precedes ${later}`);
+    }
+    assert.match(handler, /\{ error: 'Forbidden' \}, \{ status: 403 \}/);
+  });
+
+  test("verified sender, uid limiter, message cap, room shape; no room membership invented", () => {
     assertCommon(R.chat, "requireAuth", "chat-send");
     const src = code(R.chat);
     assert.ok(src.includes("SENDER_LIMIT = { limit: 60, windowMs: 10 * 60 * 1000 }"));

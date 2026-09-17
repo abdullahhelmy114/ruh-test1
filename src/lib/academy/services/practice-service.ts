@@ -161,7 +161,11 @@ export function createPracticeService(deps: PracticeDeps) {
     async applyRemediationRules(user: AuthUser, attemptId: unknown, input: Correlated = {}) {
       assertAcademyCoreAvailable(deps.flags);
       const attempt = await loadOptional(executor, selectAttemptQuery(parseUuid(attemptId, "attemptId")), mapAttemptRow);
-      if (!attempt) throw new DomainError("NOT_FOUND", "Attempt not found.");
+      if (!attempt) {
+        // Outside administrators, a missing attempt is refused like someone else's.
+        if (user.role !== "admin") throw new AuthError("FORBIDDEN");
+        throw new DomainError("NOT_FOUND", "Attempt not found.");
+      }
       await authorize(user, { action: "assessment.grade", classGroupId: attempt.classGroupId }, facts);
       const assignment = await loadOptional(executor, selectAssignmentQuery(attempt.assignmentId), mapAssignmentRow);
       if (!assignment) throw new DomainError("NOT_FOUND", "Assignment not found.");

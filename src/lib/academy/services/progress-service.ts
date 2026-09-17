@@ -115,6 +115,11 @@ export function createProgressService(deps: ProgressDeps) {
       } else {
         await authorize(user, { action: "class_group.read_roster", classGroupId: group.id }, facts);
         learnerUid = parseUid(options.learnerUid, "learnerUid");
+        // Staff read the progress of this class group's learners only (any
+        // enrollment state, so former learners stay reviewable).
+        if ((await executor.query(selectLatestEnrollmentQuery(group.id, learnerUid))).length === 0) {
+          throw new DomainError("NOT_FOUND", "This learner is not part of the class group.");
+        }
       }
       const progress = await snapshot(group, learnerUid);
       let completion: { configured: true; evaluation: ReturnType<typeof evaluateCompletion> } | { configured: false } = { configured: false };

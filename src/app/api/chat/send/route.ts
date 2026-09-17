@@ -25,14 +25,23 @@ const pusher = new Pusher({
 //   - message 1..1,000 chars
 //   - room must be a Pusher-shaped channel name (<= 164 chars, letters,
 //     digits and _ - = @ , . ;)
-// OPEN (PRODUCT-POLICY DEPENDENCY, not solved by rate limiting): WHO MAY
-// PUBLISH TO WHICH PUSHER CHANNEL. Rate limiting bounds volume, it does not
-// authorise the target.
+// PRODUCT-POLICY DEPENDENCY, not solved by rate limiting: WHO MAY PUBLISH TO
+// WHICH PUSHER CHANNEL. Rate limiting bounds volume, it does not authorise the
+// target.
+//
+// Launch closure: until live rooms have a membership model, publishing is
+// limited to administrators. Otherwise any signed-in account could broadcast
+// into any channel, including learner-to-learner, which the academy's
+// messaging rules do not offer. No page mounts the chat widget today, and
+// relationship-checked academy messaging is the supported channel.
 const SENDER_LIMIT = { limit: 60, windowMs: 10 * 60 * 1000 };
 const MESSAGE_MAX = 1000;
 
 export const POST = withApi(async (req) => {
   const user = await requireAuth(req);
+  if (user.role !== 'admin') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
 
   const check = checkRateLimit(`chat-send:${user.uid}`, SENDER_LIMIT);
   if (!check.allowed) {

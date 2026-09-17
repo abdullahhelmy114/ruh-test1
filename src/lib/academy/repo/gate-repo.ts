@@ -107,6 +107,26 @@ export function listDecisionsQuery(gateId: string): SqlQuery {
     WHERE gate_id = ${gateId}::uuid ORDER BY decided_at ASC`;
 }
 
+/**
+ * Serialises decisions on one gate. Runs first in the decision transaction:
+ * a concurrent decision waits here until the other transaction finishes.
+ */
+export function lockGateQuery(gateId: string): SqlQuery {
+  return sqlQuery`SELECT id FROM academy_approval_gates WHERE id = ${gateId}::uuid FOR UPDATE`;
+}
+
+/**
+ * Raises (RQ409) unless the gate still has exactly the decisions the new
+ * decision was planned against. Runs after `lockGateQuery`, so it sees any
+ * decision committed while this transaction waited; without it, two approvals
+ * made at the same time could each count only themselves and leave a gate
+ * that has enough approvals open forever.
+ */
+export function expectDecisionCountQuery(gateId: string, expected: number): SqlQuery {
+  return sqlQuery`SELECT academy_expect_rows(
+      (SELECT count(*) FROM academy_approval_decisions WHERE gate_id = ${gateId}::uuid), ${expected}::bigint) AS ok`;
+}
+
 /** Records a decision only while its gate is still open. */
 export function insertDecisionQuery(decision: GateDecision): SqlQuery {
   return sqlQuery`INSERT INTO academy_approval_decisions (id, gate_id, decided_by, decided_role, decision, reason, decided_at)

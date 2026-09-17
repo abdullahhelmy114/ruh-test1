@@ -126,9 +126,41 @@ describe("approval gate decisions", () => {
     const executor = fakeExecutor(world());
     const result = await governance(executor).decide(admin2, GATE, { decision: "approve" });
     assert.equal(result.gate.state, "approved");
-    const [decision, resolve] = executor.transactions[0];
+    const [lock, count, decision, resolve] = executor.transactions[0];
+    assert.match(lock.text, /FROM academy_approval_gates WHERE id = \$1::uuid FOR UPDATE/);
+    assert.match(count.text, /academy_expect_rows\(\s*\(SELECT count\(\*\) FROM academy_approval_decisions WHERE gate_id = \$1::uuid\), \$2::bigint\)/);
     assert.match(decision.text, /INSERT INTO academy_approval_decisions[\s\S]*g\.state = 'open'[\s\S]*academy_audit_events/);
     assert.match(resolve.text, /UPDATE academy_approval_gates[\s\S]*state = 'open'/);
+  });
+
+  test("concurrent decisions cannot each count only themselves: the transaction locks the gate and re-checks the decision set", async () => {
+    // Reproduces the race: two approvers load the same (empty) decision set for a
+    // two-approval gate. Each plan alone keeps the gate open, so without a guard
+    // both commits would leave an approved-twice gate open forever.
+    const twoRequired = world({ gate: [gateRow({ required_approvals: 2 })] });
+    const executorA = fakeExecutor(twoRequired);
+    const executorB = fakeExecutor(twoRequired);
+    await governance(executorA).decide(admin2, GATE, { decision: "approve" });
+    await governance(executorB).decide(admin3, GATE, { decision: "approve" });
+    for (const executor of [executorA, executorB]) {
+      const [lock, count, insert] = executor.transactions[0];
+      assert.ok(lock.values.includes(GATE) && /FOR UPDATE/.test(lock.text), "the gate row is locked first");
+      assert.deepEqual(count.values, [GATE, 0], "the decision set the plan was made against is asserted after the lock");
+      assert.match(insert.text, /INSERT INTO academy_approval_decisions/);
+      assertWellFormed(lock);
+      assertWellFormed(count);
+    }
+    // In the database the second transaction's count check sees the first
+    // approval and raises RQ409, which the service reports as a conflict.
+    const loser = fakeExecutor(twoRequired);
+    loser.failTransactionWith = Object.assign(new Error("stale"), { code: "RQ409" });
+    await rejectsDomain(governance(loser).decide(admin3, GATE, { decision: "approve" }), "CONFLICT");
+    // Planned against the committed approval, the retry resolves the gate.
+    const prior = [{ id: "9d000000-0000-4000-8000-000000000001", gate_id: GATE, decided_by: "admin-2", decided_role: "admin", decision: "approve", reason: null, decided_at: "2026-09-17T00:00:00Z" }];
+    const retry = fakeExecutor(world({ gate: [gateRow({ required_approvals: 2 })], decisions: prior }));
+    assert.equal((await governance(retry).decide(admin3, GATE, { decision: "approve" })).gate.state, "approved");
+    assert.deepEqual(retry.transactions[0][1].values, [GATE, 1]);
+    assert.equal(retry.transactions[0].length, 4);
   });
 
   test("with two required approvals the first keeps the gate open; the same person cannot decide twice", async () => {
@@ -136,7 +168,8 @@ describe("approval gate decisions", () => {
     const first = fakeExecutor(twoRequired);
     const result = await governance(first).decide(admin2, GATE, { decision: "approve" });
     assert.equal(result.gate.state, "open");
-    assert.equal(first.transactions[0].length, 1);
+    // lock, decision-count guard and the decision; no resolution yet.
+    assert.equal(first.transactions[0].length, 3);
     const prior = [{ id: "9d000000-0000-4000-8000-000000000001", gate_id: GATE, decided_by: "admin-2", decided_role: "admin", decision: "approve", reason: null, decided_at: "2026-09-17T00:00:00Z" }];
     await rejectsDomain(governance(fakeExecutor(world({ gate: [gateRow({ required_approvals: 2 })], decisions: prior }))).decide(admin2, GATE, { decision: "approve" }), "CONFLICT");
     const second = await governance(fakeExecutor(world({ gate: [gateRow({ required_approvals: 2 })], decisions: prior }))).decide(admin3, GATE, { decision: "approve" });

@@ -15,6 +15,7 @@
 import { AuthError, type AuthUser } from "../../auth/core.ts";
 import { projectForLearner, readStoredAssessmentContent, type AssessmentContent } from "../assessment/content.ts";
 import {
+  learnerAssignmentView,
   learnerAttemptView,
   planCancelAssignment,
   planCreateAssignment,
@@ -89,9 +90,18 @@ export function createAssessmentService(deps: AssessmentDeps) {
     return { assignment, group: await loadGroupFor(user, assignment.classGroupId) };
   }
 
-  async function loadAttempt(attemptId: unknown): Promise<AttemptRecord> {
+  /**
+   * Learners get "not found" for missing attempts and for anyone else's.
+   * Staff outside the class group get the same refusal for a missing attempt
+   * as for an existing one, so attempt ids cannot be probed; administrators
+   * are told it is missing.
+   */
+  async function loadAttempt(user: AuthUser, attemptId: unknown, audience: "learner" | "staff"): Promise<AttemptRecord> {
     const attempt = await loadOptional(executor, selectAttemptQuery(parseUuid(attemptId, "attemptId")), mapAttemptRow);
-    if (!attempt) throw new DomainError("NOT_FOUND", "Attempt not found.");
+    if (!attempt) {
+      if (audience === "staff" && user.role !== "admin") throw new AuthError("FORBIDDEN");
+      throw new DomainError("NOT_FOUND", "Attempt not found.");
+    }
     return attempt;
   }
 
@@ -181,7 +191,7 @@ export function createAssessmentService(deps: AssessmentDeps) {
           .filter((a) => a.state === "active")
           .map((a) => {
             const mine = attempts.filter((attempt) => attempt.assignmentId === a.id).map(learnerAttemptView);
-            return { assignment: a, attempts: mine };
+            return { assignment: learnerAssignmentView(a), attempts: mine };
           });
       }
       const counts = await executor.query(selectAssignmentAttemptCountsQuery(group.id));
@@ -202,7 +212,7 @@ export function createAssessmentService(deps: AssessmentDeps) {
           contentOf(assignment),
           loadMany(executor, selectLearnerAttemptsQuery(assignment.id, user.uid), mapAttemptRow),
         ]);
-        return { assignment, content: projectForLearner(content), attempts: attempts.map(learnerAttemptView) };
+        return { assignment: learnerAssignmentView(assignment), content: projectForLearner(content), attempts: attempts.map(learnerAttemptView) };
       }
       await authorize(user, { action: "assessment.grade", classGroupId: group.id }, facts);
       return { assignment, content: await contentOf(assignment) };
@@ -232,7 +242,7 @@ export function createAssessmentService(deps: AssessmentDeps) {
 
     async saveAttempt(user: AuthUser, attemptId: unknown, input: { readonly responses: unknown; readonly expectedRevision: unknown }) {
       assertAcademyCoreAvailable(deps.flags);
-      const attempt = await loadAttempt(attemptId);
+      const attempt = await loadAttempt(user, attemptId, "learner");
       if (user.role !== "student" || attempt.learnerUid !== user.uid) throw new DomainError("NOT_FOUND", "Attempt not found.");
       const { assignment, group } = await loadAssignmentFor(user, attempt.assignmentId);
       await authorizeLearner(user, group);
@@ -243,7 +253,7 @@ export function createAssessmentService(deps: AssessmentDeps) {
 
     async submitAttempt(user: AuthUser, attemptId: unknown, input: Correlated & { readonly responses?: unknown; readonly expectedRevision: unknown }) {
       assertAcademyCoreAvailable(deps.flags);
-      const attempt = await loadAttempt(attemptId);
+      const attempt = await loadAttempt(user, attemptId, "learner");
       if (user.role !== "student" || attempt.learnerUid !== user.uid) throw new DomainError("NOT_FOUND", "Attempt not found.");
       const { assignment, group } = await loadAssignmentFor(user, attempt.assignmentId);
       await authorizeLearner(user, group);
@@ -257,7 +267,7 @@ export function createAssessmentService(deps: AssessmentDeps) {
     /** Learners see their own attempt (results once released); graders see the full record. */
     async getAttempt(user: AuthUser, attemptId: unknown) {
       assertAcademyCoreAvailable(deps.flags);
-      const attempt = await loadAttempt(attemptId);
+      const attempt = await loadAttempt(user, attemptId, user.role === "student" ? "learner" : "staff");
       if (user.role === "student") {
         if (attempt.learnerUid !== user.uid) throw new DomainError("NOT_FOUND", "Attempt not found.");
         return learnerAttemptView(attempt);
@@ -291,7 +301,7 @@ export function createAssessmentService(deps: AssessmentDeps) {
 
     async gradeAttempt(user: AuthUser, attemptId: unknown, input: Correlated & { readonly scores?: unknown; readonly feedback?: unknown; readonly expectedRevision: unknown }) {
       assertAcademyCoreAvailable(deps.flags);
-      const attempt = await loadAttempt(attemptId);
+      const attempt = await loadAttempt(user, attemptId, "staff");
       await authorizeGrader(user, attempt.classGroupId);
       const { assignment } = await loadAssignmentFor(user, attempt.assignmentId);
       const releaseMode = await (await policiesFor(assignment.courseId)).releaseMode();
@@ -304,7 +314,7 @@ export function createAssessmentService(deps: AssessmentDeps) {
 
     async releaseAttempt(user: AuthUser, attemptId: unknown, input: Correlated & { readonly expectedRevision: unknown }) {
       assertAcademyCoreAvailable(deps.flags);
-      const attempt = await loadAttempt(attemptId);
+      const attempt = await loadAttempt(user, attemptId, "staff");
       await authorizeGrader(user, attempt.classGroupId);
       const { assignment } = await loadAssignmentFor(user, attempt.assignmentId);
       const plan = planReleaseAttempt(attempt, input, contextFor(user, deps, input.correlationId));
@@ -314,7 +324,7 @@ export function createAssessmentService(deps: AssessmentDeps) {
 
     async returnAttempt(user: AuthUser, attemptId: unknown, input: Correlated & { readonly feedback: unknown; readonly expectedRevision: unknown }) {
       assertAcademyCoreAvailable(deps.flags);
-      const attempt = await loadAttempt(attemptId);
+      const attempt = await loadAttempt(user, attemptId, "staff");
       await authorizeGrader(user, attempt.classGroupId);
       const { assignment } = await loadAssignmentFor(user, attempt.assignmentId);
       const [revisionPolicy, learnerAttempts] = await Promise.all([

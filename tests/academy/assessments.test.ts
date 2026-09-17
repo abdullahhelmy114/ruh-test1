@@ -432,6 +432,7 @@ const R = {
   groupAttempts: /FROM academy_assessment_attempts WHERE class_group_id = \$1::uuid AND learner_uid/,
   policy: /FROM academy_policy_values/,
   enrollment: /FROM academy_enrollments WHERE id = \$1::uuid$/,
+  latestEnrollment: /FROM academy_enrollments WHERE class_group_id = \$1::uuid AND learner_uid/,
   completionByEnrollment: /FROM academy_completions WHERE enrollment_id/,
 };
 
@@ -447,6 +448,7 @@ function world(overrides: Partial<Record<keyof typeof R, Rule["rows"]>> = {}): R
     groupAttempts: [],
     policy: policyRows(POLICY_VALUES),
     enrollment: [enrollmentRow({ revision: 2 })],
+    latestEnrollment: [enrollmentRow({ revision: 2 })],
     completionByEnrollment: [],
     ...overrides,
   };
@@ -537,6 +539,39 @@ describe("assessment services", () => {
   test("only administrators assign assessments", async () => {
     await rejectsForbidden(assessments(fakeExecutor(world())).createAssignment(teacher, IDS.classGroup, { assessmentId: ASSESSMENT, opensAt: T0 }));
   });
+
+  test("learners receive assignments without staff identifiers or the pinned version", async () => {
+    const listed = await assessments(fakeExecutor(world())).listAssignments(student, IDS.classGroup);
+    const opened = await assessments(fakeExecutor(world())).getAssignment(student, ASSIGNMENT);
+    assert.equal(listed.length, 1, "the check below would be vacuous without an assignment");
+    for (const view of [listed, opened]) {
+      const json = JSON.stringify(view);
+      for (const hidden of ["admin-1", A_VERSION, ASSESSMENT, "createdBy", "updatedBy", "cancelReason", "assessmentVersionId"]) {
+        assert.equal(json.includes(hidden), false, hidden);
+      }
+    }
+    assert.deepEqual(Object.keys(listed[0].assignment).sort(), ["classGroupId", "dueAt", "id", "mode", "opensAt", "state", "title"]);
+    assert.deepEqual(Object.keys(opened.assignment).sort(), ["classGroupId", "dueAt", "id", "mode", "opensAt", "state", "title"]);
+    const staff = await assessments(fakeExecutor(world())).listAssignments(teacher, IDS.classGroup);
+    assert.equal(JSON.stringify(staff).includes(A_VERSION), true, "staff keep the full record");
+  });
+
+  test("attempt ids cannot be probed: a missing attempt is refused exactly like someone else's", async () => {
+    const missing = () => fakeExecutor(world({ attempt: [] }));
+    // Unrelated staff: existing and missing attempts both answer 403.
+    await rejectsForbidden(assessments(fakeExecutor(world())).getAttempt(otherTeacher, ATTEMPT));
+    await rejectsForbidden(assessments(missing()).getAttempt(otherTeacher, ATTEMPT));
+    await rejectsForbidden(assessments(fakeExecutor(world())).gradeAttempt(otherTeacher, ATTEMPT, { scores: {}, expectedRevision: 1 }));
+    await rejectsForbidden(assessments(missing()).gradeAttempt(otherTeacher, ATTEMPT, { scores: {}, expectedRevision: 1 }));
+    await rejectsForbidden(assessments(fakeExecutor(world())).releaseAttempt(student, ATTEMPT, { expectedRevision: 1 }));
+    await rejectsForbidden(assessments(missing()).releaseAttempt(student, ATTEMPT, { expectedRevision: 1 }));
+    // Learners: someone else's attempt and a missing one both answer 404.
+    await rejectsDomain(assessments(fakeExecutor(world())).getAttempt(outsider, ATTEMPT), "NOT_FOUND");
+    await rejectsDomain(assessments(missing()).getAttempt(outsider, ATTEMPT), "NOT_FOUND");
+    await rejectsDomain(assessments(missing()).submitAttempt(student, ATTEMPT, { expectedRevision: 1 }), "NOT_FOUND");
+    // Administrators are told it is missing.
+    await rejectsDomain(assessments(missing()).getAttempt(admin, ATTEMPT), "NOT_FOUND");
+  });
 });
 
 describe("progress service", () => {
@@ -553,6 +588,21 @@ describe("progress service", () => {
     await rejectsDomain(progress(fakeExecutor(world())).progress(teacher, IDS.classGroup), "VALIDATION");
     const staff = await progress(fakeExecutor(world({ policy: policyRows({}) }))).progress(teacher, IDS.classGroup, { learnerUid: "student-1" });
     assert.deepEqual(staff.completion, { configured: false });
+  });
+
+  test("staff read progress only for learners of that class group", async () => {
+    const latestEnrollment = /FROM academy_enrollments WHERE class_group_id = \$1::uuid AND learner_uid/;
+    const withEnrollment = (rows: Rule["rows"]) => [{ match: latestEnrollment, rows }, ...world()];
+    // A learner of another class group: refused before any progress data is read.
+    const stranger = fakeExecutor(withEnrollment([]));
+    await rejectsDomain(progress(stranger).progress(teacher, IDS.classGroup, { learnerUid: "student-7" }), "NOT_FOUND");
+    assert.equal(stranger.queries.some((q) => /academy_assessment_attempts|academy_attendance_records/.test(q.text)), false);
+    const lookup = stranger.queries.find((q) => latestEnrollment.test(q.text));
+    assert.deepEqual(lookup?.values, [IDS.classGroup, "student-7"]);
+    // A former learner of this class group stays reviewable.
+    const former = fakeExecutor(withEnrollment([enrollmentRow({ state: "withdrawn" })]));
+    const view = await progress(former).progress(teacher, IDS.classGroup, { learnerUid: "student-1" });
+    assert.equal(view.learnerUid, "student-1");
   });
 
   test("only administrators record completion, and unmet criteria need an override", async () => {

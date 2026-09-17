@@ -469,6 +469,22 @@ export function planReturnAttempt(
   };
 }
 
+/**
+ * What a learner receives about an assignment: when it opens and is due, never
+ * staff identifiers, the internal version pinned to it or administrative fields.
+ */
+export function learnerAssignmentView(assignment: AssignmentRecord) {
+  return {
+    id: assignment.id,
+    classGroupId: assignment.classGroupId,
+    mode: assignment.mode,
+    title: assignment.title,
+    opensAt: assignment.opensAt,
+    dueAt: assignment.dueAt,
+    state: assignment.state,
+  };
+}
+
 /** What a learner sees of their own attempt: results and feedback only once released. */
 export function learnerAttemptView(attempt: AttemptRecord) {
   const released = attempt.releasedAt !== null;

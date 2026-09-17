@@ -22,12 +22,14 @@ import type { SqlQuery } from "../infra/sql.ts";
 import { authorizeAdminAction } from "../permissions/permissions.ts";
 import { expectRows } from "../repo/audit-repo.ts";
 import {
+  expectDecisionCountQuery,
   insertDecisionQuery,
   insertGateQuery,
   listDecisionsQuery,
   listGateDefinitionsQuery,
   listOpenGatesQuery,
   listSubjectGatesQuery,
+  lockGateQuery,
   mapDecisionRow,
   mapGateDefinitionRow,
   mapGateRow,
@@ -134,7 +136,13 @@ export function createGovernanceService(deps: ServiceDeps) {
         { decision: input.decision as GateDecisionKind, reason: input.reason as string | undefined },
         contextFor(user, deps, input.correlationId),
       );
-      const statements: SqlQuery[] = [audited(deps, insertDecisionQuery(plan.decision), plan.audit)];
+      // Decisions on one gate are serialised and must be planned against the
+      // current decision set; a concurrent decision surfaces as a conflict.
+      const statements: SqlQuery[] = [
+        lockGateQuery(gate.id),
+        expectDecisionCountQuery(gate.id, prior.length),
+        audited(deps, insertDecisionQuery(plan.decision), plan.audit),
+      ];
       if (plan.gate.state !== gate.state) statements.push(expectRows(resolveGateQuery(plan.gate), 1));
       await runGuarded(executor, statements, { unique: "You have already recorded a decision on this request." });
       return { gate: plan.gate, decision: plan.decision };
