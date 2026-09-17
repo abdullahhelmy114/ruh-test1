@@ -7,11 +7,18 @@ import { requireAuth } from '@/lib/auth';
 import { withApi } from '@/lib/api/handler';
 import { checkRateLimit, retryAfterSeconds } from '@/lib/security/rate-limit';
 import { boundedString, isFirebaseUidShape } from '@/lib/security/input-policy';
+import { mayDirectMessage, type LegacyMessagingFacts } from '@/lib/security/messaging-guard';
+import { academyFlags, relationshipFacts } from '@/lib/academy/server';
+import type { Role } from '@/lib/auth/core';
 
 // Phase 2.2: the sender is always the verified caller (user.uid); the client
 // no longer supplies senderUid. receiverUid remains the target.
-// REVIEW_REQUIRED: who may message whom is not defined; any authenticated
-// user may still message any uid. Do not treat this as a messaging policy.
+//
+// Launch closure: who may message whom is now enforced before any write
+// (mayDirectMessage): administrators with anyone, a learner and a teacher only
+// inside an active academic relationship, and never learner-to-learner or
+// teacher-to-teacher. An unknown recipient and a forbidden one get the same
+// generic 403, so no account-existence oracle is added.
 //
 // Phase 3 batch 5 — mechanical spam/amplification controls only (each send
 // writes two rows and can trigger one push):
@@ -22,6 +29,28 @@ import { boundedString, isFirebaseUidShape } from '@/lib/security/input-policy';
 // Messaging relationships / conversation membership remain undefined.
 const SENDER_LIMIT = { limit: 30, windowMs: 10 * 60 * 1000 };
 const MESSAGE_MAX = 2000;
+
+const ROLES: readonly Role[] = ['admin', 'teacher', 'student'];
+
+const legacyMessagingFacts: LegacyMessagingFacts = {
+  async roleOf(uid) {
+    const [profile] = await sql`SELECT role FROM profiles WHERE firebase_uid = ${uid}`;
+    const role = profile?.role;
+    return typeof role === 'string' && (ROLES as readonly string[]).includes(role) ? (role as Role) : null;
+  },
+  async hasTeachingRelationship(teacherUid, learnerUid) {
+    // Legacy relationship: an enrollment that is still in progress in a course the teacher teaches.
+    const [legacy] = await sql`
+      SELECT 1 FROM enrollments e
+      JOIN course c ON c.id = e.course_id
+      WHERE e.user_uid = ${learnerUid} AND c.teacher_uid = ${teacherUid} AND COALESCE(e.completed, false) = false
+      LIMIT 1
+    `;
+    if (legacy) return true;
+    // Academy relationship, once the academy schema is live.
+    return academyFlags.coreSchemaReady ? relationshipFacts.hasActiveTeachingRelationship(teacherUid, learnerUid) : false;
+  },
+};
 
 // POST: إرسال رسالة جديدة
 export const POST = withApi(async (req) => {
@@ -43,6 +72,10 @@ export const POST = withApi(async (req) => {
   const message = boundedString(rawMessage, { max: MESSAGE_MAX });
   if (!isFirebaseUidShape(receiverUid) || !message) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+  }
+
+  if (!(await mayDirectMessage({ uid: user.uid, role: user.role }, receiverUid, legacyMessagingFacts))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   // إدراج الرسالة
