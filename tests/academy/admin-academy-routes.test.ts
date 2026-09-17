@@ -77,6 +77,11 @@ describe("academy admin routes", () => {
       "programs/route.ts",
       "sessions/[sessionId]/preparations/route.ts",
       "sessions/[sessionId]/route.ts",
+      "teacher-applications/route.ts",
+      "teacher-applications/[applicationId]/route.ts",
+      "teacher-applications/[applicationId]/documents/[kind]/route.ts",
+      "teachers/route.ts",
+      "teachers/[teacherUid]/route.ts",
     ].sort());
   });
 

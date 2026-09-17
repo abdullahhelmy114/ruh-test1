@@ -285,7 +285,8 @@ describe("teacher repository", () => {
     for (const query of [
       repo.selectApplicationQuery(APPLICATION_ID),
       repo.selectApplicationForApplicantQuery("applicant-1"),
-      repo.listApplicationsQuery({ state: "submitted" }),
+      repo.listApplicationsQuery({ states: ["submitted", "in_review"] }),
+      repo.listApplicationsQuery({ states: null }),
       repo.lockApplicationQuery(APPLICATION_ID),
       repo.insertApplicationQuery(record),
       repo.updateApplicationQuery(record, { revision: 3, state: "submitted" }),

@@ -195,7 +195,13 @@ export interface TeacherApplicationEventRecord {
 // Account status mirror
 // ---------------------------------------------------------------------------
 
-export type TeacherAccountStatus = "pending" | "changes_requested" | "active" | "rejected" | "withdrawn" | "inactive";
+export const TEACHER_ACCOUNT_STATUSES = ["pending", "changes_requested", "active", "rejected", "withdrawn", "inactive"] as const;
+export type TeacherAccountStatus = (typeof TEACHER_ACCOUNT_STATUSES)[number];
+
+/** A stored teacher account status, or "none" for a missing or unrecognised one (never shown as a teacher). */
+export function teacherAccountStatusKey(status: string | null | undefined): TeacherAccountStatus | "none" {
+  return (TEACHER_ACCOUNT_STATUSES as readonly string[]).includes(status ?? "") ? (status as TeacherAccountStatus) : "none";
+}
 
 export function accountStatusFor(state: TeacherApplicationState): TeacherAccountStatus {
   switch (state) {
@@ -260,6 +266,15 @@ export const REASON_REQUIRED_COMMANDS: readonly AdminCommand[] = ["request_chang
 export function adminCommandsFor(state: TeacherApplicationState): readonly AdminCommand[] {
   return ADMIN_COMMANDS.filter((command) => TEACHER_APPLICATION_MACHINE.transitions[state].includes(ADMIN_COMMAND_TARGET[command]));
 }
+
+/**
+ * Applications waiting for the academy (not for the applicant): the ones an
+ * administrator can approve. A change request waits for the applicant.
+ */
+export const AWAITING_DECISION_STATES: readonly TeacherApplicationState[] = ["submitted", "in_review", "interview"];
+
+/** The application list filter: "awaiting" (the review queue), one state, or everything (null). */
+export const AWAITING_DECISION_FILTER = "awaiting";
 
 /** Facts about the applicant's sign-in account, checked before approval. */
 export interface ApplicantAccountFacts {

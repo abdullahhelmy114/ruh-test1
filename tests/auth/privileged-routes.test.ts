@@ -69,10 +69,15 @@ describe("Phase 2.3a privileged routes use the central auth layer", () => {
     assert.match(src, /WHERE id = \$\{id\} AND receiver_uid = \$\{user\.uid\}/);
   });
 
-  test("admin/approve-teacher: DB write intentionally unchanged (REVIEW_REQUIRED)", () => {
-    const src = readFileSync(join(API, "admin/approve-teacher/route.ts"), "utf8");
-    assert.match(src, /UPDATE users/);
-    assert.match(src, /REVIEW_REQUIRED/);
+  test("admin/approve-teacher: the broken approval (it updated a users table that does not exist) is retired", () => {
+    // Teacher approval now happens in the academy administration, activating the account in one transaction.
+    for (const rel of ["admin/approve-teacher/route.ts", "admin/teacher-applications/route.ts"]) {
+      const src = readFileSync(join(API, rel), "utf8");
+      assert.doesNotMatch(src, /\bsql\b|UPDATE |SELECT /, `${rel} touches no data`);
+      assert.match(src, /await requireAdmin\(req\);\s*return NextResponse\.json\(\s*\{ error: "Teacher applications are reviewed in the academy administration\.", moved: "\/academy\/manage\/teachers" \},\s*\{ status: 410 \}/);
+    }
+    const legacyScreen = readFileSync(join(API, "..", "dashboard", "admin", "page.tsx"), "utf8");
+    assert.doesNotMatch(legacyScreen, /\/api\/admin\/approve-teacher|\/api\/admin\/teacher-applications/, "the legacy dashboard no longer calls the retired routes");
   });
 
   test("upload-youtube is an internal-only route (Phase 3 batch 1), never a user/admin route", () => {

@@ -8,6 +8,7 @@ import { commandsFor, REASON_REQUIRED, type ReviewCommand } from "@/lib/academy/
 import { displayName } from "@/lib/academy/workspace/format";
 import { cn } from "@/lib/utils";
 import { useAction, useApi } from "../api";
+import { adminApi } from "./api-paths";
 import { useWorkspace } from "../context";
 import { Button, FailureNotice, Field, Notice, ReasonField, SelectInput } from "../ui";
 
@@ -43,6 +44,8 @@ export const managePages = {
   production: "/academy/manage/production",
   productionItem: (id: string) => `/academy/manage/production/items/${encodeURIComponent(id)}`,
   productionVersion: (id: string) => `/academy/manage/production/versions/${encodeURIComponent(id)}`,
+  teachers: "/academy/manage/teachers",
+  teacherApplication: (id: string) => `/academy/manage/teachers/applications/${encodeURIComponent(id)}`,
 };
 
 /** Administration section navigation. Every page and API enforces administrator access on the server. */
@@ -53,6 +56,7 @@ export function ManageNav() {
     { href: managePages.overview, label: text.nav.overview, exact: true },
     { href: managePages.catalog, label: text.nav.catalog },
     { href: managePages.classGroups, label: text.nav.classGroups },
+    { href: managePages.teachers, label: text.nav.teachers },
     { href: managePages.policies, label: text.nav.policies },
     { href: managePages.gates, label: text.nav.gates },
     { href: managePages.reviewQueue, label: text.nav.reviewQueue },
@@ -278,12 +282,29 @@ const selectUsers = (body: unknown): Person[] => {
   return Array.isArray(users) ? (users as Person[]) : [];
 };
 
-/** Chooses an account of a role from the administrator-only people directory. */
+const selectActiveTeachers = (body: unknown): Person[] => {
+  const data = body && typeof body === "object" ? (body as { data?: unknown }).data : undefined;
+  return Array.isArray(data)
+    ? (data as { uid: string; name: string | null; email: string | null; status: string | null }[])
+        .filter((teacher) => teacher.status === "active")
+        .map((teacher) => ({ firebase_uid: teacher.uid, full_name: teacher.name, email: teacher.email, role: "teacher" }))
+    : [];
+};
+
+/**
+ * Chooses an account of a role from the administrator-only directories.
+ * Teachers come from the teacher directory filtered to active accounts, so
+ * applicants and deactivated teachers are never offered (the server refuses
+ * them anyway).
+ */
 export function PersonSelect({ id, role, value, onChange }: { readonly id: string; readonly role: "teacher" | "student"; readonly value: string; readonly onChange: (uid: string) => void }) {
   const text = useAdminText();
   const { t } = useWorkspace();
-  const { state } = useApi<Person[]>("/api/admin/users", selectUsers);
+  const { state } = useApi<Person[]>(role === "teacher" ? adminApi.teachers(true) : adminApi.people, role === "teacher" ? selectActiveTeachers : selectUsers);
   const people = state.status === "ready" ? state.data.filter((p) => p.role === role) : [];
+  if (role === "teacher" && state.status === "ready" && people.length === 0) {
+    return <Notice>{text.people.noActiveTeachers}</Notice>;
+  }
   return (
     <SelectInput id={id} required value={value} onChange={(e) => onChange(e.target.value)} disabled={state.status !== "ready"}>
       <option value="">{state.status === "loading" ? t.common.loading : text.people.choose}</option>

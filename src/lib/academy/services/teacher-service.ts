@@ -39,6 +39,8 @@ import {
   updateTeacherDisplayFieldsQuery,
 } from "../repo/teacher-repo.ts";
 import {
+  AWAITING_DECISION_FILTER,
+  AWAITING_DECISION_STATES,
   accountStatusFor,
   adminCommandsFor,
   fullNameOf,
@@ -209,10 +211,16 @@ export function createTeacherService(deps: TeacherServiceDeps) {
 
     // -- Administrator ----------------------------------------------------------
 
+    /** ?state: "awaiting" (the review queue), one application state, or absent for every application. */
     async listApplications(user: AuthUser, options: { readonly state?: unknown } = {}) {
       guardAdmin(user);
-      const state = options.state === undefined || options.state === null || options.state === "" ? null : parseState(TEACHER_APPLICATION_MACHINE, options.state);
-      const rows = await executor.query(listApplicationsQuery({ state }));
+      const states =
+        options.state === undefined || options.state === null || options.state === ""
+          ? null
+          : options.state === AWAITING_DECISION_FILTER
+            ? AWAITING_DECISION_STATES
+            : [parseState(TEACHER_APPLICATION_MACHINE, options.state)];
+      const rows = await executor.query(listApplicationsQuery({ states }));
       return rows.map((row) => {
         const application = mapApplicationRow(row);
         return {

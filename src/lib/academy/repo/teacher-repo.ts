@@ -41,16 +41,20 @@ export function selectApplicationForApplicantQuery(uid: string): SqlQuery {
   };
 }
 
-/** Applications with the applicant's account facts (email and its verification, current status). */
-export function listApplicationsQuery(filter: { readonly state: TeacherApplicationState | null }): SqlQuery {
+/**
+ * Applications with the applicant's account facts (email and its verification,
+ * current status), limited to the given states (null: every state), oldest
+ * submission first.
+ */
+export function listApplicationsQuery(filter: { readonly states: readonly TeacherApplicationState[] | null }): SqlQuery {
   return {
     text: `SELECT ${APPLICATION_COLUMNS}, p.email, COALESCE(p.email_verified, false) AS email_verified, p.status AS account_status
       FROM academy_teacher_applications a
       LEFT JOIN profiles p ON p.firebase_uid = a.applicant_uid
-      WHERE ($1::text IS NULL OR a.state = $1::text)
+      WHERE ($1::text[] IS NULL OR a.state = ANY($1::text[]))
       ORDER BY a.submitted_at ASC NULLS LAST, a.id ASC
       LIMIT ${MAX_ROWS}`,
-    values: [filter.state],
+    values: [filter.states === null ? null : [...filter.states]],
   };
 }
 

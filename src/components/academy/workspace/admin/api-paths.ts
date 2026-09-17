@@ -58,4 +58,9 @@ export const adminApi = {
   productionVersion: (id: string) => `${A}/production/versions/${e(id)}`,
   productionReport: `${A}/production/report`,
   people: "/api/admin/users",
+  teacherApplications: (state?: string) => `${A}/teacher-applications${state ? `?state=${e(state)}` : ""}`,
+  teacherApplication: (id: string) => `${A}/teacher-applications/${e(id)}`,
+  teacherApplicationDocument: (id: string, kind: "cv" | "intro_video") => `${A}/teacher-applications/${e(id)}/documents/${kind}`,
+  teachers: (activeOnly = false) => `${A}/teachers${activeOnly ? "?activeOnly=true" : ""}`,
+  teacher: (uid: string) => `${A}/teachers/${e(uid)}`,
 };

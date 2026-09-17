@@ -251,6 +251,8 @@ describe("administration screens", () => {
       "assessment-versions/[versionId]",
       "class-groups",
       "class-groups/[classGroupId]",
+      "teachers",
+      "teachers/applications/[applicationId]",
       "policies",
       "approval-gates",
       "review-queue",

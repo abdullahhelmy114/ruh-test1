@@ -12,8 +12,15 @@ import type { LessonSheetService } from "@/lib/academy/services/lesson-sheet-ser
 import type { LibraryService } from "@/lib/academy/services/library-service";
 import type { ProductionService } from "@/lib/academy/services/production-service";
 import type { RecordingService } from "@/lib/academy/services/recording-service";
+import type { TeacherService } from "@/lib/academy/services/teacher-service";
 
 type Result<F> = F extends (...args: never[]) => Promise<infer R> ? R : never;
+
+export type TeacherApplications = Result<TeacherService["listApplications"]>;
+export type TeacherApplicationReview = Result<TeacherService["getApplication"]>;
+export type TeacherDecision = Result<TeacherService["decide"]>;
+export type TeacherDocumentLink = Result<TeacherService["openDocument"]>;
+export type TeacherAccounts = Result<TeacherService["listTeachers"]>;
 
 export type Overview = Result<AdminService["overview"]>;
 export type ContentReviewQueue = Result<AdminService["reviewQueue"]>;

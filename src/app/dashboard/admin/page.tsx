@@ -461,167 +461,22 @@ function ManagecourseTab() {
 }
 
 // Teacher Verification Tab
+// Teacher applications moved to the academy administration, where approval
+// activates the account in one guarded transaction and every decision has a
+// history. The old tab's approve button called a route that updated a table
+// the application does not have, and its reject button only hid the card.
 function TeacherVerificationTab() {
-  const { user } = useAuth();
-  const [applications, setApplications] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [approvingId, setApprovingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!user) return;
-    user.getIdToken().then((token) =>
-      fetch("/api/admin/teacher-applications", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((r) => r.json())
-        .then((data) => {
-          setApplications(Array.isArray(data) ? data : data.applications || []);
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error("Failed to fetch applications", err);
-          setLoading(false);
-        })
-    );
-  }, [user]);
-
-  const handleApprove = async (uid: string) => {
-    if (!user) return;
-    setApprovingId(uid);
-    try {
-      const token = await user.getIdToken();
-      const res = await fetch("/api/admin/approve-teacher", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ teacherId: uid, uid: uid }), 
-      });
-      
-      if (res.ok) {
-        setApplications((prev) => prev.filter((app) => app.uid !== uid));
-      } else {
-        const errorData = await res.json();
-        alert(`Failed to approve: ${errorData.message || "Bad Request"}`);
-      }
-    } catch (error) {
-      alert("Network error");
-    } finally {
-      setApprovingId(null);
-    }
-  };
-
-  const handleReject = (uid: string) => {
-    setApplications((prev) => prev.filter((app) => app.uid !== uid));
-  };
-
-  const formatLanguages = (langs: any) => {
-    if (!langs) return "—";
-    if (Array.isArray(langs)) return langs.map((l: any) => typeof l === "string" ? l : l.code).join(", ");
-    if (typeof langs === "string") {
-      try {
-        return JSON.parse(langs).map((l: any) => typeof l === "string" ? l : l.code).join(", ");
-      } catch {
-        return langs;
-      }
-    }
-    return "—";
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 rounded-3xl border bg-card p-8 shadow-elegant">
       <h2 className="font-serif text-2xl">
         <T>Pending Teacher Applications</T>
       </h2>
-      
-      {applications.length === 0 ? (
-        <div className="rounded-3xl border bg-card p-12 text-center text-muted-foreground shadow-elegant">
-          <T>No pending applications</T>
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {applications.map((app) => (
-            <div key={app.uid} className="rounded-3xl border bg-card p-5 shadow-elegant space-y-4 transition-all hover:shadow-md">
-              <div>
-                <h3 className="font-serif text-lg font-semibold text-foreground">
-                  {app.first_name} {app.last_name}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {app.email} · {app.country_of_residence} · {app.nationality}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm bg-secondary/30 p-3 rounded-2xl">
-                <span><strong>WhatsApp:</strong> {app.whatsapp || "—"}</span>
-                <span><strong>Telegram:</strong> {app.telegram || "—"}</span>
-                <span><strong>Gender:</strong> {app.gender || "—"}</span>
-                <span><strong>Languages:</strong> {formatLanguages(app.languages)}</span>
-              </div>
-
-              {app.bio && (
-                <p className="text-sm text-muted-foreground italic bg-background p-3 rounded-xl border">
-                  "{app.bio}"
-                </p>
-              )}
-
-              <div className="flex flex-wrap gap-3 text-sm">
-                <button
-                  onClick={() => window.open(app.cv_url, "_blank", "noopener,noreferrer")}
-                  disabled={!app.cv_url}
-                  className="inline-flex items-center gap-1.5 text-accent-foreground underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed"
-                >
-                  <ExternalLink size={14} /> <T>View CV</T>
-                </button>
-
-                {app.intro_video_url && (
-                  <button
-                    onClick={() => window.open(app.intro_video_url, "_blank", "noopener,noreferrer")}
-                    className="inline-flex items-center gap-1.5 text-accent-foreground underline"
-                  >
-                    <Video size={14} /> <T>Intro Video</T>
-                  </button>
-                )}
-
-                {app.social_links && Array.isArray(app.social_links) && app.social_links.map((link: any, idx: number) => (
-                  <button
-                    key={idx}
-                    onClick={() => window.open(link.url, "_blank", "noopener,noreferrer")}
-                    className="inline-flex items-center gap-1.5 text-secondary-foreground underline"
-                  >
-                    <ExternalLink size={14} /> {link.platform}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={() => handleReject(app.uid)}
-                  className="px-4 py-2 rounded-full border border-destructive/30 text-destructive text-sm hover:bg-destructive/10 transition-colors"
-                >
-                  <T>Reject</T>
-                </button>
-                <button
-                  onClick={() => handleApprove(app.uid)}
-                  disabled={approvingId === app.uid}
-                  className="flex items-center gap-2 px-6 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
-                >
-                  {approvingId === app.uid && <Loader2 size={14} className="animate-spin" />}
-                  <T>Approve</T>
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <p className="text-muted-foreground">
+        <T>Teacher applications are reviewed in the academy administration.</T>
+      </p>
+      <Link href="/academy/manage/teachers" className="inline-flex rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+        <T>Open teacher applications</T>
+      </Link>
     </div>
   );
 }

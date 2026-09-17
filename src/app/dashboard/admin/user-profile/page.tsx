@@ -22,25 +22,6 @@ function AdminUserProfileContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const approveTeacher = async () => {
-    try {
-      const res = await fetch("/api/admin/approve-teacher", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setProfile((prev: any) => ({ ...prev, status: "active" }));
-        alert("Teacher approved!");
-      } else {
-        alert(data.message || "Failed to approve");
-      }
-    } catch {
-      alert("Error approving teacher");
-    }
-  };
-
   useEffect(() => {
     if (!user || role !== "admin" || !uid) {
       if (!user) router.push("/login");
@@ -175,10 +156,13 @@ function AdminUserProfileContent() {
               </div>
             </div>
 
-            {profile.status === "pending" && (
+            {/* Teacher applications are decided in the academy administration, where approval activates the account. */}
+            {profile.status !== "active" && (
               <div className="mt-6">
-                <Button onClick={approveTeacher} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                  Approve Teacher
+                <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Link href="/academy/manage/teachers">
+                    <T>Open teacher applications</T>
+                  </Link>
                 </Button>
               </div>
             )}
