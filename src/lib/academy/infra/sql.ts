@@ -63,3 +63,19 @@ export function joinQueries(parts: readonly SqlQuery[], separator = " "): SqlQue
 export function isUniqueViolation(error: unknown): boolean {
   return typeof error === "object" && error !== null && (error as { code?: unknown }).code === "23505";
 }
+
+/** Postgres foreign-key violation (a referenced row does not exist). */
+export function isForeignKeyViolation(error: unknown): boolean {
+  return typeof error === "object" && error !== null && (error as { code?: unknown }).code === "23503";
+}
+
+/**
+ * SQLSTATE raised by `academy_expect_rows` (migration 0002) when a guarded
+ * write matched an unexpected number of rows. Raising inside a transaction
+ * rolls back every statement in it.
+ */
+export const STALE_WRITE_SQLSTATE = "RQ409";
+
+export function isStaleWrite(error: unknown): boolean {
+  return typeof error === "object" && error !== null && (error as { code?: unknown }).code === STALE_WRITE_SQLSTATE;
+}

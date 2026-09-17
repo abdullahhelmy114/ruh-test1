@@ -108,6 +108,44 @@ export const CONTENT_VERSION_MACHINE = defineMachine<ContentVersionState>({
 export const MUTABLE_CONTENT_STATES: readonly ContentVersionState[] = ["draft", "changes_requested"];
 
 // ---------------------------------------------------------------------------
+// Catalog entities (programs and courses)
+// ---------------------------------------------------------------------------
+
+export const CATALOG_STATES = ["draft", "active", "retired"] as const;
+export type CatalogState = (typeof CATALOG_STATES)[number];
+
+export const CATALOG_MACHINE = defineMachine<CatalogState>({
+  name: "catalog item",
+  states: CATALOG_STATES,
+  initial: "draft",
+  transitions: {
+    draft: ["active"],
+    // Retiring stops new class groups; it never removes history.
+    active: ["retired"],
+    retired: ["active"],
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Class groups (one delivery of a course)
+// ---------------------------------------------------------------------------
+
+export const CLASS_GROUP_STATES = ["planned", "active", "completed", "cancelled"] as const;
+export type ClassGroupState = (typeof CLASS_GROUP_STATES)[number];
+
+export const CLASS_GROUP_MACHINE = defineMachine<ClassGroupState>({
+  name: "class group",
+  states: CLASS_GROUP_STATES,
+  initial: "planned",
+  transitions: {
+    planned: ["active", "cancelled"],
+    active: ["completed", "cancelled"],
+    completed: [],
+    cancelled: [],
+  },
+});
+
+// ---------------------------------------------------------------------------
 // Sessions (one scheduled occurrence of a lesson for a class group)
 // ---------------------------------------------------------------------------
 

@@ -58,6 +58,40 @@ export function withAudit(mutation: SqlQuery, event: AuditEvent): SqlQuery {
   ], "");
 }
 
+function assertReturning(mutation: SqlQuery): void {
+  if (!/\bRETURNING\b/i.test(mutation.text)) {
+    throw new Error("Guarded writes require a mutation with a RETURNING clause.");
+  }
+}
+
+/**
+ * Couples a single-row mutation with its audit event and RAISES (SQLSTATE
+ * RQ409) unless exactly one row was changed and audited. Use inside
+ * `executor.transaction([...])`: a stale edit then rolls back every statement
+ * of the transaction, not just this one.
+ */
+export function withAuditExpectOne(mutation: SqlQuery, event: AuditEvent): SqlQuery {
+  assertReturning(mutation);
+  return joinQueries([
+    { text: "WITH mutated AS (", values: [] },
+    mutation,
+    { text: `), audited AS (INSERT INTO academy_audit_events (${AUDIT_COLUMNS}) SELECT `, values: [] },
+    auditValues(event),
+    { text: " FROM mutated RETURNING id) SELECT academy_expect_rows((SELECT count(*) FROM audited), 1) AS ok", values: [] },
+  ], "");
+}
+
+/** Raises (SQLSTATE RQ409) unless the mutation changed exactly `expected` rows. */
+export function expectRows(mutation: SqlQuery, expected: number): SqlQuery {
+  assertReturning(mutation);
+  if (!Number.isInteger(expected) || expected < 0) throw new Error("expected must be a non-negative integer.");
+  return joinQueries([
+    { text: "WITH mutated AS (", values: [] },
+    mutation,
+    sqlQuery`) SELECT academy_expect_rows((SELECT count(*) FROM mutated), ${expected}::bigint) AS ok`,
+  ], "");
+}
+
 export interface AuditListFilter {
   readonly objectKind?: string;
   readonly objectId?: string;

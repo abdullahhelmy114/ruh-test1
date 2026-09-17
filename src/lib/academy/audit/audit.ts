@@ -61,6 +61,26 @@ export const AUDIT_ACTIONS = {
   "approval_gate.configure": { impact: "high", reasonRequired: true },
   "relationship.link": { impact: "standard", reasonRequired: false },
   "relationship.unlink": { impact: "standard", reasonRequired: true },
+  // Core academic structure
+  "program.create": { impact: "standard", reasonRequired: false },
+  "program.update": { impact: "standard", reasonRequired: false },
+  "program.change_status": { impact: "high", reasonRequired: false },
+  "course.create": { impact: "standard", reasonRequired: false },
+  "course.update": { impact: "standard", reasonRequired: false },
+  "course.change_status": { impact: "high", reasonRequired: false },
+  "course.move_program": { impact: "high", reasonRequired: true },
+  "curriculum_version.save_outline": { impact: "standard", reasonRequired: false },
+  "class_group.create": { impact: "standard", reasonRequired: false },
+  "class_group.update": { impact: "standard", reasonRequired: false },
+  "class_group.change_status": { impact: "high", reasonRequired: false },
+  "class_group.repin_curriculum": { impact: "high", reasonRequired: true },
+  "class_group.assign_teacher": { impact: "high", reasonRequired: false },
+  "class_group.unassign_teacher": { impact: "high", reasonRequired: true },
+  "session.schedule": { impact: "standard", reasonRequired: false },
+  "session.reschedule": { impact: "standard", reasonRequired: true },
+  "session.change_status": { impact: "standard", reasonRequired: false },
+  "enrollment.create": { impact: "standard", reasonRequired: false },
+  "enrollment.change_status": { impact: "high", reasonRequired: false },
 } as const satisfies Record<string, AuditActionDefinition>;
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;

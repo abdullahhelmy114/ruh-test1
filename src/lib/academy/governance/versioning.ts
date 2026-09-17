@@ -71,8 +71,12 @@ export interface VersionContext {
   readonly correlationId?: string | null;
 }
 
-export interface VersionChange {
-  readonly version: VersionRecord;
+/**
+ * Stored versions may carry extra fields (for example a `revision`). The
+ * helpers below are generic so those fields survive every transition.
+ */
+export interface VersionChange<V extends VersionRecord = VersionRecord> {
+  readonly version: V;
   readonly audit: AuditEventInput;
 }
 
@@ -189,7 +193,7 @@ export function createDraftVersion(input: CreateDraftInput, ctx: VersionContext)
 }
 
 /** Records a content edit on a mutable version (bumps updatedAt). */
-export function touchDraftVersion(version: VersionRecord, ctx: VersionContext): VersionRecord {
+export function touchDraftVersion<V extends VersionRecord>(version: V, ctx: VersionContext): V {
   assertContentMutable(version);
   return Object.freeze({ ...version, updatedAt: toIso((ctx.clock ?? systemClock)()) });
 }
@@ -207,18 +211,18 @@ export type ReviewTransition =
  * Moves a version through review. Publication and supersession are not
  * available here: they only happen through `publishVersion`.
  */
-export function transitionVersion(
-  version: VersionRecord,
+export function transitionVersion<V extends VersionRecord>(
+  version: V,
   transition: ReviewTransition,
   ctx: VersionContext,
-): VersionChange {
+): VersionChange<V> {
   assertTransition(CONTENT_VERSION_MACHINE, version.state, transition.to);
   const now = toIso((ctx.clock ?? systemClock)());
   const actorUid = parseUid(ctx.actor.uid, "actor");
 
   switch (transition.to) {
     case "in_review": {
-      const next = Object.freeze({ ...version, state: "in_review" as const, submittedAt: now, updatedAt: now });
+      const next: V = Object.freeze({ ...version, state: "in_review" as const, submittedAt: now, updatedAt: now });
       if (version.state === "approved") {
         const reason = requireReason(transition.reason);
         return { version: next, audit: audit(ctx, "version.unapprove", next, { reason }) };
@@ -226,12 +230,12 @@ export function transitionVersion(
       return { version: next, audit: audit(ctx, "version.submit_for_review", next) };
     }
     case "draft": {
-      const next = Object.freeze({ ...version, state: "draft" as const, submittedAt: null, updatedAt: now });
+      const next: V = Object.freeze({ ...version, state: "draft" as const, submittedAt: null, updatedAt: now });
       return { version: next, audit: audit(ctx, "version.withdraw", next) };
     }
     case "changes_requested": {
       const reason = requireReason(transition.reason);
-      const next = Object.freeze({
+      const next: V = Object.freeze({
         ...version,
         state: "changes_requested" as const,
         reviewedBy: actorUid,
@@ -244,7 +248,7 @@ export function transitionVersion(
       if (!transition.reviewerMayBeAuthor && actorUid === version.createdBy) {
         throw new AuthError("FORBIDDEN", "You cannot approve a version you created.");
       }
-      const next = Object.freeze({
+      const next: V = Object.freeze({
         ...version,
         state: "approved" as const,
         reviewedBy: actorUid,
@@ -258,7 +262,7 @@ export function transitionVersion(
     }
     case "rejected": {
       const reason = requireReason(transition.reason);
-      const next = Object.freeze({
+      const next: V = Object.freeze({
         ...version,
         state: "rejected" as const,
         reviewedBy: actorUid,
@@ -269,23 +273,23 @@ export function transitionVersion(
     }
     case "archived": {
       const reason = requireReason(transition.reason);
-      const next = Object.freeze({ ...version, state: "archived" as const, archivedAt: now, updatedAt: now });
+      const next: V = Object.freeze({ ...version, state: "archived" as const, archivedAt: now, updatedAt: now });
       return { version: next, audit: audit(ctx, "version.archive", next, { reason }) };
     }
   }
 }
 
 /** Unapproval is a transition back to review and always needs a reason. */
-export function unapproveVersion(version: VersionRecord, reason: string, ctx: VersionContext): VersionChange {
+export function unapproveVersion<V extends VersionRecord>(version: V, reason: string, ctx: VersionContext): VersionChange<V> {
   if (version.state !== "approved") {
     throw new DomainError("INVALID_TRANSITION", "Only an approved version can be unapproved.");
   }
   return transitionVersion(version, { to: "in_review", reason }, ctx);
 }
 
-export interface PublishResult {
-  readonly published: VersionRecord;
-  readonly superseded: VersionRecord | null;
+export interface PublishResult<V extends VersionRecord = VersionRecord> {
+  readonly published: V;
+  readonly superseded: V | null;
   readonly audits: readonly AuditEventInput[];
 }
 
@@ -295,16 +299,16 @@ export interface PublishResult {
  * item has never been published. The caller persists both records and all
  * audit inputs in one transaction.
  */
-export function publishVersion(
-  target: VersionRecord,
-  currentPublished: VersionRecord | null,
+export function publishVersion<V extends VersionRecord>(
+  target: V,
+  currentPublished: V | null,
   ctx: VersionContext,
-): PublishResult {
+): PublishResult<V> {
   assertTransition(CONTENT_VERSION_MACHINE, target.state, "published");
   const actorUid = parseUid(ctx.actor.uid, "actor");
   const now = toIso((ctx.clock ?? systemClock)());
 
-  let superseded: VersionRecord | null = null;
+  let superseded: V | null = null;
   if (currentPublished) {
     if (currentPublished.parentId !== target.parentId || currentPublished.parentKind !== target.parentKind) {
       throw new DomainError("CONFLICT", "The published version belongs to a different item.");
@@ -319,7 +323,7 @@ export function publishVersion(
     superseded = Object.freeze({ ...currentPublished, state: "superseded" as const, supersededAt: now, updatedAt: now });
   }
 
-  const published: VersionRecord = Object.freeze({
+  const published: V = Object.freeze({
     ...target,
     state: "published" as const,
     publishedBy: actorUid,

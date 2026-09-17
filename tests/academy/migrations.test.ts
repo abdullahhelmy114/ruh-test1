@@ -69,10 +69,30 @@ describe("academy migrations", () => {
     });
   }
 
-  for (const name of upFiles) {
+  /** Only foreign keys between academy tables may be added to an existing academy table. */
+  const ADD_FOREIGN_KEY =
+    /^ALTER TABLE (academy_[a-z0-9_]+) ADD CONSTRAINT (academy_[a-z0-9_]+) FOREIGN KEY \([a-z0-9_, ]+\) REFERENCES (academy_[a-z0-9_]+) \([a-z0-9_, ]+\)$/;
+  const DROP_FOREIGN_KEY = /^ALTER TABLE (academy_[a-z0-9_]+) DROP CONSTRAINT IF EXISTS (academy_[a-z0-9_]+)$/;
+
+  const tablesCreatedUpTo = (index: number): Set<string> =>
+    new Set(
+      upFiles
+        .slice(0, index + 1)
+        .flatMap((file) => statements(read(join(MIGRATIONS, file))))
+        .flatMap((s) => [...s.matchAll(/^CREATE TABLE (academy_[a-z0-9_]+)/g)].map((m) => m[1])),
+    );
+
+  upFiles.forEach((name, index) => {
     test(`${name}: strictly additive, academy_* objects only`, () => {
+      const known = tablesCreatedUpTo(index);
       for (const statement of statements(read(join(MIGRATIONS, name)))) {
         if (statement === "BEGIN" || statement === "COMMIT") continue;
+        const alter = ADD_FOREIGN_KEY.exec(statement);
+        if (alter) {
+          assert.ok(known.has(alter[1]), `${alter[1]} was not created by an academy migration`);
+          assert.ok(known.has(alter[3]), `${alter[3]} was not created by an academy migration`);
+          continue;
+        }
         assert.match(
           statement,
           /^CREATE (TABLE|UNIQUE INDEX|INDEX|FUNCTION|TRIGGER) academy_[a-z0-9_]+/,
@@ -81,10 +101,10 @@ describe("academy migrations", () => {
         for (const match of statement.matchAll(/\b(?:ON|REFERENCES) ([a-z_][a-z0-9_]*)/gi)) {
           assert.ok(match[1].startsWith("academy_"), `${statement.slice(0, 60)} targets ${match[1]}`);
         }
-        assert.equal(/\b(ALTER|DROP|TRUNCATE TABLE|DELETE FROM|UPDATE [a-z_]+ SET|INSERT INTO)\b/i.test(statement), false, statement.slice(0, 80));
+        assert.equal(/\b(ALTER|DROP|TRUNCATE TABLE|DELETE FROM|UPDATE [a-z_]+ SET|INSERT INTO|ON DELETE|ON UPDATE)\b/i.test(statement), false, statement.slice(0, 80));
       }
     });
-  }
+  });
 
   for (const name of downFiles) {
     test(`${name}: drops exactly what its forward migration created`, () => {
@@ -93,18 +113,30 @@ describe("academy migrations", () => {
 
       const createdTables = new Set(up.flatMap((s) => [...s.matchAll(/^CREATE TABLE (academy_[a-z0-9_]+)/g)].map((m) => m[1])));
       const createdFunctions = new Set(up.flatMap((s) => [...s.matchAll(/^CREATE FUNCTION (academy_[a-z0-9_]+)/g)].map((m) => m[1])));
+      const addedConstraints = new Set(up.map((s) => ADD_FOREIGN_KEY.exec(s)).filter(Boolean).map((m) => `${m?.[1]}.${m?.[2]}`));
 
       const droppedTables = new Set<string>();
       const droppedFunctions = new Set<string>();
+      const droppedConstraints = new Set<string>();
+      let sawTableDrop = false;
       for (const statement of down) {
         const table = /^DROP TABLE IF EXISTS (academy_[a-z0-9_]+)$/.exec(statement);
-        const fn = /^DROP FUNCTION IF EXISTS (academy_[a-z0-9_]+)\(\)$/.exec(statement);
-        assert.ok(table || fn, `unexpected rollback statement: ${statement}`);
-        if (table) droppedTables.add(table[1]);
+        const fn = /^DROP FUNCTION IF EXISTS (academy_[a-z0-9_]+)\([a-z, ]*\)$/.exec(statement);
+        const constraint = DROP_FOREIGN_KEY.exec(statement);
+        assert.ok(table || fn || constraint, `unexpected rollback statement: ${statement}`);
+        if (table) {
+          droppedTables.add(table[1]);
+          sawTableDrop = true;
+        }
         if (fn) droppedFunctions.add(fn[1]);
+        if (constraint) {
+          assert.equal(sawTableDrop, false, "added foreign keys are removed before any table is dropped");
+          droppedConstraints.add(`${constraint[1]}.${constraint[2]}`);
+        }
       }
       assert.deepEqual([...droppedTables].sort(), [...createdTables].sort());
       assert.deepEqual([...droppedFunctions].sort(), [...createdFunctions].sort());
+      assert.deepEqual([...droppedConstraints].sort(), [...addedConstraints].sort());
     });
   }
 
