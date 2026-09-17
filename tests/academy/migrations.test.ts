@@ -212,6 +212,10 @@ describe("academy migrations", () => {
       academy_content_links_active_uq: /ON academy_content_links \(item_id, target_kind, target_id, purpose\) WHERE removed_at IS NULL/,
       academy_remediation_assignments_open_uq: /ON academy_remediation_assignments \(class_group_id, learner_uid, item_id\) WHERE state = 'assigned'/,
       academy_course_resources_active_uq: /ON academy_course_resources \( course_id, library_book_id,[^;]*WHERE removed_at IS NULL/,
+      // one open or approved teacher application per account (duplicate applications)
+      academy_teacher_applications_live_uq: /ON academy_teacher_applications \(applicant_uid\) WHERE state NOT IN \('rejected', 'withdrawn'\)/,
+      // one history event per application revision (two decisions on the same revision)
+      academy_teacher_application_events_revision_uq: /ON academy_teacher_application_events \(application_id, application_revision\)/,
     };
     for (const kind of ["curriculum_versions", "lesson_script_versions", "assessment_versions", "content_item_versions"]) {
       expected[`academy_${kind}_one_working_uq`] = new RegExp(`ON academy_${kind} \\(\\w+\\) WHERE state IN \\('draft', 'in_review', 'changes_requested', 'approved'\\)`);

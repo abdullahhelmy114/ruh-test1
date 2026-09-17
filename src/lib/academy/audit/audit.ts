@@ -124,6 +124,17 @@ export const AUDIT_ACTIONS = {
   "remediation_rule.retire": { impact: "high", reasonRequired: true },
   "remediation.assign": { impact: "standard", reasonRequired: false },
   "remediation.resolve": { impact: "standard", reasonRequired: false },
+  // Teacher applications and teacher accounts
+  "teacher_application.submit": { impact: "standard", reasonRequired: false },
+  "teacher_application.resubmit": { impact: "standard", reasonRequired: false },
+  "teacher_application.start_review": { impact: "standard", reasonRequired: false },
+  "teacher_application.schedule_interview": { impact: "standard", reasonRequired: false },
+  "teacher_application.request_changes": { impact: "standard", reasonRequired: true },
+  "teacher_application.approve": { impact: "high", reasonRequired: false },
+  "teacher_application.reject": { impact: "high", reasonRequired: true },
+  "teacher_application.open_document": { impact: "standard", reasonRequired: false },
+  "teacher.deactivate": { impact: "high", reasonRequired: true },
+  "teacher.reactivate": { impact: "high", reasonRequired: false },
 } as const satisfies Record<string, AuditActionDefinition>;
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;

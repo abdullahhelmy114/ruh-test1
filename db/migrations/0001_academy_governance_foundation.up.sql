@@ -64,7 +64,7 @@ CREATE TABLE academy_audit_events (
   id                    uuid PRIMARY KEY,
   occurred_at           timestamptz NOT NULL,
   actor_uid             text NOT NULL CHECK (length(actor_uid) BETWEEN 1 AND 128),
-  actor_role            text NOT NULL CHECK (actor_role IN ('admin', 'teacher', 'student', 'system')),
+  actor_role            text NOT NULL CHECK (actor_role IN ('admin', 'teacher', 'student', 'applicant', 'system')),
   action                text NOT NULL CHECK (action ~ '^[a-z_]+\.[a-z_]+$'),
   impact                text NOT NULL CHECK (impact IN ('low', 'standard', 'high')),
   object_kind           text NOT NULL,

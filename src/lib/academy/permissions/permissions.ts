@@ -77,6 +77,7 @@ export const ADMIN_ONLY_ACTIONS = [
   "production.manage",
   "production.publish",
   "remediation.manage",
+  "teacher.review",
 ] as const;
 
 export type AdminOnlyAction = (typeof ADMIN_ONLY_ACTIONS)[number];

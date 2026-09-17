@@ -274,21 +274,28 @@ export const TEACHER_APPLICATION_STATES = [
   "submitted",
   "in_review",
   "interview",
+  "changes_requested",
   "approved",
   "rejected",
   "withdrawn",
 ] as const;
 export type TeacherApplicationState = (typeof TEACHER_APPLICATION_STATES)[number];
 
+/**
+ * Administrators may decide from any open review state; an applicant revises
+ * only when changes were requested. Approval and rejection are final (a
+ * rejected application is not reopened).
+ */
 export const TEACHER_APPLICATION_MACHINE = defineMachine<TeacherApplicationState>({
   name: "teacher application",
   states: TEACHER_APPLICATION_STATES,
   initial: "draft",
   transitions: {
     draft: ["submitted", "withdrawn"],
-    submitted: ["in_review", "withdrawn"],
-    in_review: ["interview", "approved", "rejected", "withdrawn"],
-    interview: ["approved", "rejected", "withdrawn"],
+    submitted: ["in_review", "changes_requested", "approved", "rejected", "withdrawn"],
+    in_review: ["interview", "changes_requested", "approved", "rejected", "withdrawn"],
+    interview: ["changes_requested", "approved", "rejected", "withdrawn"],
+    changes_requested: ["submitted", "rejected", "withdrawn"],
     approved: [],
     rejected: [],
     withdrawn: [],
