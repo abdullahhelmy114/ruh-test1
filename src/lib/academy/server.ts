@@ -30,6 +30,7 @@ import { createPolicyService } from "./services/policy-service.ts";
 import { createPracticeService } from "./services/practice-service.ts";
 import { createProductionService } from "./services/production-service.ts";
 import { createProgressService } from "./services/progress-service.ts";
+import { createPublicService } from "./services/public-service.ts";
 import { createRecordingService } from "./services/recording-service.ts";
 
 export const academyExecutor: SqlExecutor = {
@@ -50,6 +51,8 @@ export const relationshipFacts = createSqlRelationshipFacts(academyExecutor);
 export const governanceService = createGovernanceService({ executor: academyExecutor, flags: academyFlags });
 
 export const adminService = createAdminService({ executor: academyExecutor, flags: academyFlags });
+
+export const publicService = createPublicService({ executor: academyExecutor, flags: academyFlags });
 
 export const productionService = createProductionService({ executor: academyExecutor, flags: academyFlags });
 

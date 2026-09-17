@@ -53,6 +53,9 @@ export function readStringParam(req: Request, name: string): string | null {
  */
 export const PRIVATE_NO_STORE: Readonly<Record<string, string>> = Object.freeze({ "Cache-Control": "private, no-store" });
 
+/** Published catalog data: safe for shared caches for a short time. */
+export const PUBLIC_SHORT_CACHE: Readonly<Record<string, string>> = Object.freeze({ "Cache-Control": "public, max-age=60, s-maxage=60" });
+
 /** Headers for a 429 response: private, not storable, with Retry-After. */
 export function rateLimitHeaders(retryAfterSeconds: number): Record<string, string> {
   return { ...PRIVATE_NO_STORE, "Retry-After": String(Math.max(1, Math.ceil(retryAfterSeconds))) };
