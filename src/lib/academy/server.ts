@@ -10,6 +10,7 @@ import "server-only";
 import { sql } from "@/lib/db/client";
 import { readAcademyFlags } from "./infra/flags.ts";
 import type { SqlExecutor, SqlRow } from "./infra/sql.ts";
+import { createSqlReadingFacts } from "./repo/library-repo.ts";
 import { createSqlRelationshipFacts } from "./repo/relationship-facts.ts";
 import { createAssessmentAuthoringService } from "./services/assessment-authoring-service.ts";
 import { createAssessmentService } from "./services/assessment-service.ts";
@@ -19,6 +20,7 @@ import { createCurriculumService } from "./services/curriculum-service.ts";
 import { createDeliveryService } from "./services/delivery-service.ts";
 import { createLessonScriptService } from "./services/lesson-script-service.ts";
 import { createLessonSheetService } from "./services/lesson-sheet-service.ts";
+import { createLibraryService } from "./services/library-service.ts";
 import { createParticipationService } from "./services/participation-service.ts";
 import { createPolicyService } from "./services/policy-service.ts";
 import { createProgressService } from "./services/progress-service.ts";
@@ -76,4 +78,11 @@ export const progressService = createProgressService({
   executor: academyExecutor,
   flags: academyFlags,
   facts: relationshipFacts,
+});
+
+export const libraryService = createLibraryService({
+  executor: academyExecutor,
+  flags: academyFlags,
+  facts: relationshipFacts,
+  readingFacts: createSqlReadingFacts(academyExecutor),
 });

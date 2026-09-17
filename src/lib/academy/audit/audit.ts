@@ -99,6 +99,9 @@ export const AUDIT_ACTIONS = {
   // Completion
   "completion.record": { impact: "high", reasonRequired: false },
   "completion.revoke": { impact: "high", reasonRequired: true },
+  // Library
+  "course_resource.add": { impact: "standard", reasonRequired: false },
+  "course_resource.remove": { impact: "standard", reasonRequired: true },
 } as const satisfies Record<string, AuditActionDefinition>;
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;
