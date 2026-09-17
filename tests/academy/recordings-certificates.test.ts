@@ -319,6 +319,18 @@ describe("certificate service", () => {
     assert.equal(executor.queries[0].values[0], "student-1");
   });
 
+  test("eligibility (administrators only) lists the enrollment's existing certificates so one can be revoked", async () => {
+    await rejectsForbidden(certificates(fakeExecutor(world())).eligibility(teacher, IDS.enrollment));
+    const issued = { id: "ce000000-0000-4000-8000-000000000002", code: "RQ-7777-7777-7777", enrollment_id: IDS.enrollment, completion_id: COMPLETION, learner_uid: "student-1", course_id: IDS.course, class_group_id: IDS.classGroup, learner_name_snapshot: "Amina Yusuf", course_title_snapshot: "Nahw 1", issued_at: "2026-12-21T00:00:00Z", issued_by: "admin-1", state: "issued", revoked_at: null, revoked_by: null, revoke_reason: null };
+    const executor = fakeExecutor(world({ enrollmentCertificates: [issued] }));
+    const view = await certificates(executor).eligibility(admin, IDS.enrollment);
+    assert.equal(view.completionId, COMPLETION);
+    assert.equal(view.completionRevoked, false);
+    assert.deepEqual(view.certificates, [{ id: issued.id, code: "RQ-7777-7777-7777", state: "issued", issuedAt: "2026-12-21T00:00:00.000Z", revokedAt: null }]);
+    const lookup = executor.queries.find((q) => R.enrollmentCertificates.test(q.text));
+    assert.deepEqual(lookup?.values, [IDS.enrollment]);
+  });
+
   test("a completion with an issued certificate cannot be revoked first", async () => {
     const progress = createProgressService({ executor: fakeExecutor(world({ issuedForCompletion: [{ n: "1" }] })), flags: { coreSchemaReady: true }, clock: fixedClock, facts });
     await rejectsDomain(progress.revokeCompletion(admin, COMPLETION, { reason: "Error" }), "CONFLICT");

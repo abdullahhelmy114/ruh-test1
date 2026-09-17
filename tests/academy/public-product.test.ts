@@ -159,7 +159,13 @@ describe("public routes", () => {
 
 describe("public pages", () => {
   const APP = join(ROOT, "src", "app", "academy");
-  const pages = walk(APP).filter((path) => path.endsWith("page.tsx"));
+  // The signed-in workspace lives in its own route group and is covered by workspace.test.ts.
+  const pages = walk(APP).filter((path) => path.endsWith("page.tsx") && !relative(APP, path).replace(/\\/g, "/").startsWith("(workspace)/"));
+  // Public pages are only outside route groups, so a new public page cannot hide in one.
+  test("route groups under /academy hold only the signed-in workspace", () => {
+    const groups = readdirSync(APP).filter((entry) => entry.startsWith("("));
+    assert.deepEqual(groups, ["(workspace)"]);
+  });
 
   test("the expected public pages exist", () => {
     assert.deepEqual(pages.map((path) => relative(APP, path).replace(/\\/g, "/")).sort(), ["certificates/verify/page.tsx", "courses/[slug]/page.tsx", "page.tsx"]);

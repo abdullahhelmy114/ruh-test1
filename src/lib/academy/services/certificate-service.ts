@@ -60,7 +60,15 @@ export function createCertificateService(deps: CertificateDeps) {
       assertAcademyCoreAvailable(deps.flags);
       authorizeAdminAction(user, "certificate.issue");
       const { enrollment, completion, eligibility } = await eligibilityFor(enrollmentId);
-      return { enrollmentId: enrollment.id, completionId: completion?.id ?? null, eligibility };
+      const certificates = await loadMany(executor, listEnrollmentCertificatesQuery(enrollment.id), mapCertificateRow);
+      return {
+        enrollmentId: enrollment.id,
+        completionId: completion?.id ?? null,
+        completionRevoked: completion ? completion.revokedAt !== null : null,
+        eligibility,
+        // Certificates already issued for this enrollment, so an administrator can revoke one.
+        certificates: certificates.map((c) => ({ id: c.id, code: c.code, state: c.state, issuedAt: c.issuedAt, revokedAt: c.revokedAt })),
+      };
     },
 
     async issue(user: AuthUser, enrollmentId: unknown, input: Correlated = {}) {

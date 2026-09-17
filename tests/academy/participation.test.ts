@@ -361,5 +361,15 @@ describe("attendance service", () => {
     const mine = await attendance(executor).myAttendance(student, IDS.classGroup);
     assert.equal(executor.queries[0].values[0], "student-1");
     assert.deepEqual(mine.summary, { recordedSessions: 1, attendedSessions: 1, attendedRatio: 1 });
+
+    // With the class group and vocabulary available, the learner receives the labels for their marks.
+    const labelled = fakeExecutor([{ match: /FROM academy_attendance_records a/, rows: [{ session_id: IDS.session, mark_code: "present", counts_as_attended: true, updated_at: "2026-10-05T18:00:00Z", starts_at: "2026-10-05T16:00:00Z", lesson_title: "Prepositions" }] }, ...world()]);
+    const withLabels = await attendance(labelled).myAttendance(student, IDS.classGroup);
+    assert.equal(withLabels.vocabulary?.marks.find((m) => m.code === "present")?.labels.tr, "Var");
+    // Without any attendance, nothing else is looked up.
+    const none = fakeExecutor(world());
+    const empty = await attendance(none).myAttendance(student, IDS.classGroup);
+    assert.equal(empty.vocabulary, null);
+    assert.equal(none.queries.length, 1);
   });
 });

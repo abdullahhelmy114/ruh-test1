@@ -141,7 +141,13 @@ export function createAttendanceService(deps: AttendanceDeps) {
         markCode: str(row.mark_code),
         countsAsAttended: row.counts_as_attended === true,
       }));
-      return { classGroupId: id, records, summary: summariseAttendance(records) };
+      // Labels for the marks, only once the learner has attendance in this class group.
+      let vocabulary: AttendanceVocabulary | null = null;
+      if (records.length > 0) {
+        const group = await loadOptional(executor, selectClassGroupQuery(id), mapClassGroupRow);
+        if (group) vocabulary = await displayVocabulary(group.courseId);
+      }
+      return { classGroupId: id, records, summary: summariseAttendance(records), vocabulary };
     },
   };
 }
