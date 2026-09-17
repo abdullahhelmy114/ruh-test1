@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState, type FormEvent, type ReactNode } from "react";
+import { TELEGRAM_PATTERN, WHATSAPP_PATTERN } from "@/lib/academy/teachers/applications";
 import { ALL_COUNTRIES } from "@/lib/constants/countries";
 import { ALL_LANGUAGES } from "@/lib/constants/languages";
 import { SignedUploadError, uploadSigned, type UploadReference } from "@/lib/security/signed-upload-client";
@@ -204,8 +205,20 @@ export function ApplicationForm({
                   <option value="female">{f.genders.female}</option>
                 </SelectInput>
               </Field>
-              <Field label={f.whatsapp} htmlFor={fid("whatsapp")}>
-                <TextInput id={fid("whatsapp")} required type="tel" dir="ltr" autoComplete="tel" maxLength={32} value={details.whatsapp} onChange={(e) => set("whatsapp", e.target.value)} />
+              <Field label={f.whatsapp} htmlFor={fid("whatsapp")} hint={f.whatsappHint}>
+                <TextInput
+                  id={fid("whatsapp")}
+                  required
+                  type="tel"
+                  dir="ltr"
+                  autoComplete="tel"
+                  maxLength={32}
+                  pattern={WHATSAPP_PATTERN}
+                  title={f.whatsappHint}
+                  aria-describedby={`${fid("whatsapp")}-hint`}
+                  value={details.whatsapp}
+                  onChange={(e) => set("whatsapp", e.target.value)}
+                />
               </Field>
             </div>
             <fieldset className="space-y-3 rounded-md border p-3">
@@ -259,8 +272,19 @@ export function ApplicationForm({
 
         {parts.includes("teaching") && (
           <div className="space-y-4">
-            <Field label={f.telegram} htmlFor={fid("telegram")}>
-              <TextInput id={fid("telegram")} required dir="ltr" maxLength={33} placeholder="@username" value={details.telegram} onChange={(e) => set("telegram", e.target.value)} />
+            <Field label={f.telegram} htmlFor={fid("telegram")} hint={f.telegramHint}>
+              <TextInput
+                id={fid("telegram")}
+                required
+                dir="ltr"
+                maxLength={33}
+                placeholder="@username"
+                pattern={TELEGRAM_PATTERN}
+                title={f.telegramHint}
+                aria-describedby={`${fid("telegram")}-hint`}
+                value={details.telegram}
+                onChange={(e) => set("telegram", e.target.value)}
+              />
             </Field>
             <Field label={f.bio} htmlFor={fid("bio")} hint={f.bioHint}>
               <TextArea id={fid("bio")} required minLength={BIO_MIN} maxLength={5000} rows={6} dir="auto" aria-describedby={`${fid("bio")}-hint`} value={details.bio} onChange={(e) => set("bio", e.target.value)} />

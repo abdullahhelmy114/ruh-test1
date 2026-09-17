@@ -96,16 +96,33 @@ export function parseLanguages(value: unknown): TeacherApplicationDetails["langu
   return languages;
 }
 
+/*
+ * The two contact formats, as source both sides share.
+ *
+ * The signup form marks these fields required but used to state no format, so
+ * an applicant could type a t.me link or a short handle, submit, and be
+ * refused by this module with a 400 the form could only echo. The form now
+ * applies these same expressions as its `pattern`, so what it accepts is what
+ * this parser accepts. Written without anchors because an HTML pattern is
+ * anchored already; the parsers add them. The parentheses and dash are
+ * escaped because a browser compiles `pattern` with the `v` flag, where they
+ * are reserved inside a character class - and a pattern it cannot compile is
+ * one it silently ignores, which is how the number field came to accept
+ * "call me".
+ */
+export const WHATSAPP_PATTERN = "\\+?[0-9][0-9 \\(\\)\\-]{5,30}";
+export const TELEGRAM_PATTERN = "@?[A-Za-z0-9_]{5,32}";
+
 export function parseWhatsapp(value: unknown): string {
   const whatsapp = field(value, "whatsapp", 32);
-  if (!/^\+?[0-9][0-9 ()-]{5,30}$/.test(whatsapp)) throw new DomainError("VALIDATION", "whatsapp must be a phone number.");
+  if (!new RegExp(`^${WHATSAPP_PATTERN}$`).test(whatsapp)) throw new DomainError("VALIDATION", "whatsapp must be a phone number.");
   return whatsapp;
 }
 
 /** A Telegram username, stored with its leading "@". */
 export function parseTelegram(value: unknown): string {
   const telegram = field(value, "telegram", 33);
-  if (!/^@?[A-Za-z0-9_]{5,32}$/.test(telegram)) throw new DomainError("VALIDATION", "telegram must be a Telegram username.");
+  if (!new RegExp(`^${TELEGRAM_PATTERN}$`).test(telegram)) throw new DomainError("VALIDATION", "telegram must be a Telegram username.");
   return telegram.startsWith("@") ? telegram : `@${telegram}`;
 }
 

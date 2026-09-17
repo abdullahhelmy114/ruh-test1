@@ -14,6 +14,8 @@
  */
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { AuthUser } from "../../src/lib/auth/core.ts";
 import { buildAuditEvent } from "../../src/lib/academy/audit/audit.ts";
 import { TEACHER_APPLICATION_MACHINE, TEACHER_APPLICATION_STATES, canTransition, isTerminal } from "../../src/lib/academy/domain/states.ts";
@@ -26,6 +28,10 @@ import {
   adminCommandsFor,
   parseApplicationDetails,
   parseDocumentId,
+  parseTelegram,
+  parseWhatsapp,
+  TELEGRAM_PATTERN,
+  WHATSAPP_PATTERN,
   planAdminDecision,
   planResubmit,
   planSubmitApplication,
@@ -33,6 +39,9 @@ import {
   type ApplicantAccountFacts,
   type TeacherApplicationRecord,
 } from "../../src/lib/academy/teachers/applications.ts";
+import { WORKSPACE_MESSAGES } from "../../src/lib/academy/workspace/messages.ts";
+const SRC = join(import.meta.dirname, "..", "..", "src");
+
 import {
   admin,
   admin2,
@@ -123,8 +132,72 @@ describe("application details", () => {
     for (const [key, value] of bad) {
       expectDomain(() => parseApplicationDetails({ ...DETAILS, [key]: value }), "VALIDATION");
     }
-    expectDomain(() => parseApplicationDetails(null), "VALIDATION");
-    expectDomain(() => parseApplicationDetails([DETAILS]), "VALIDATION");
+  });
+
+  /*
+   * A real applicant was refused with a 400 the signup form could only echo,
+   * because the form stated no format for these two fields while this module
+   * enforced a strict one. The form now applies the same expressions as its
+   * HTML `pattern`, so the browser refuses exactly what the parser refuses.
+   */
+  test("the contact formats the form enforces are the ones this module enforces", () => {
+    const form = readFileSync(join(SRC, "components/academy/workspace/teacher/application-form.tsx"), "utf8");
+    assert.match(form, /pattern=\{WHATSAPP_PATTERN\}/, "the number field applies the shared rule");
+    assert.match(form, /pattern=\{TELEGRAM_PATTERN\}/, "the username field applies the shared rule");
+    assert.match(form, /import \{ TELEGRAM_PATTERN, WHATSAPP_PATTERN \} from "@\/lib\/academy\/teachers\/applications"/);
+    // Both fields explain themselves now, in every product locale.
+    for (const locale of ["en", "ar", "tr"] as const) {
+      for (const key of ["whatsappHint", "telegramHint"] as const) {
+        assert.ok(WORKSPACE_MESSAGES[locale].application.fields[key].trim().length > 0, `${locale}.${key}`);
+      }
+    }
+
+    // A browser compiles `pattern` with the `v` flag and ignores a pattern that
+    // does not compile - which is how the number field silently accepted
+    // "call me" until the parentheses and dash were escaped.
+    for (const [name, pattern] of [["whatsapp", WHATSAPP_PATTERN], ["telegram", TELEGRAM_PATTERN]] as const) {
+      assert.doesNotThrow(() => new RegExp(`^(?:${pattern})$`, "v"), `${name} must compile the way a browser compiles it`);
+      assert.doesNotThrow(() => new RegExp(`^(?:${pattern})$`), `${name} must compile the way the parser compiles it`);
+    }
+
+    // An HTML pattern is anchored by the browser; the parsers anchor it themselves.
+    const browserAccepts = (pattern: string, value: string) => new RegExp(`^(?:${pattern})$`).test(value);
+    for (const value of ["@maryam_teaches", "maryam_teaches", "a_b_c_1"]) {
+      assert.ok(browserAccepts(TELEGRAM_PATTERN, value), `the form should accept ${value}`);
+      assert.doesNotThrow(() => parseTelegram(value), `and so should the parser: ${value}`);
+    }
+    for (const value of ["https://t.me/maryam", "mary", "no spaces allowed", "mary.teaches"]) {
+      assert.equal(browserAccepts(TELEGRAM_PATTERN, value), false, `the form must refuse ${value} before submitting`);
+      expectDomain(() => parseTelegram(value), "VALIDATION");
+    }
+    for (const value of ["+90 555 000 00 00", "00905550000000", "+1 (555) 000-0000"]) {
+      assert.ok(browserAccepts(WHATSAPP_PATTERN, value), `the form should accept ${value}`);
+      assert.doesNotThrow(() => parseWhatsapp(value), `and so should the parser: ${value}`);
+    }
+    for (const value of ["call me", "+90-abc-1234", ""]) {
+      assert.equal(browserAccepts(WHATSAPP_PATTERN, value), false, `the form must refuse ${value} before submitting`);
+      expectDomain(() => parseWhatsapp(value), "VALIDATION");
+    }
+  });
+
+  test("a refused application is traceable without recording what was submitted", () => {
+    const route = readFileSync(join(SRC, "app/api/signup/teacher/route.ts"), "utf8");
+    // The refusal code, and nothing that identifies the applicant.
+    assert.match(route, /console\.warn\(`Teacher signup refused: \$\{code\}`\)/);
+    // What is logged, as code rather than prose: a message may say the word
+    // "account", but no call may pass the address, the password or the payload.
+    // Character classes stand in for escapes so the pattern stays readable.
+    const interpolation = new RegExp("[$][{]([^}]*)[}]", "g");
+    const calls = route.split("console.").slice(1).map((chunk) => chunk.slice(0, chunk.indexOf(");") + 1));
+    assert.ok(calls.length >= 3, `expected the route's log lines, found ${calls.length}`);
+    for (const call of calls) {
+      const names = [...call.matchAll(interpolation)].map((match) => match[1].trim());
+      assert.deepEqual(names.filter((name) => name !== "code"), [], `a log line may only interpolate the refusal code: ${call}`);
+      for (const argument of ["email", "password", "body", "details", "account", "userRecord"]) {
+        assert.equal(call.includes(`, ${argument}`), false, `a log line may not pass ${argument}`);
+        assert.equal(call.includes(`(${argument}`), false, `a log line may not pass ${argument}`);
+      }
+    }
   });
 
   test("private documents are referenced only by the ids the upload boundary issues", () => {

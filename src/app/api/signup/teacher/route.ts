@@ -41,6 +41,10 @@ const PASSWORD_MIN = 8;
 const PASSWORD_MAX = 128;
 
 function invalid(message: string, code = "invalid") {
+  // Which rule refused the application, and nothing else: no address, no
+  // password, no payload. Without this a support report of "signup returned
+  // 400" left no trace on the server at all, and the branch had to be guessed.
+  console.warn(`Teacher signup refused: ${code}`);
   return NextResponse.json({ message, code }, { status: 400 });
 }
 

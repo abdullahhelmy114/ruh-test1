@@ -1,3 +1,24 @@
+/**
+ * Outgoing mail: verification codes, welcome and notification messages.
+ *
+ * Transport is Gmail's submission endpoint (smtp.gmail.com:587, STARTTLS),
+ * which needs three environment variables and rejects the login without all
+ * three being right:
+ *
+ *   EMAIL_USER  the Google account that authenticates, as a full address.
+ *   EMAIL_PASS  a 16-character Google App Password for that account (an
+ *               ordinary password is refused; App Passwords require 2-Step
+ *               Verification to be on). Revoking it or turning 2-Step off
+ *               makes Gmail answer 535-5.7.8 "Username and Password not
+ *               accepted" on every send.
+ *   EMAIL_FROM  the visible sender. Gmail only accepts the authenticated
+ *               account or one of its verified aliases here, so a different
+ *               address is rewritten or refused.
+ *
+ * Sending fails closed: with any of them missing this throws before reaching
+ * the network, and every caller treats a failure as "the code was not sent"
+ * rather than pretending it was.
+ */
 import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
@@ -61,7 +82,9 @@ export async function sendEmail(
   subject: string,
   htmlContent: string
 ): Promise<void> {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  // EMAIL_FROM belongs in this check too: without it the From header reads
+  // "<undefined>", which the server rejects after the message has been built.
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || !process.env.EMAIL_FROM) {
     throw new Error("Email credentials not configured");
   }
   await transporter.sendMail({
