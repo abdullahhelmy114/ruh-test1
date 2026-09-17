@@ -165,15 +165,60 @@ describe("catalog service", () => {
     const deleted = await services(idle).catalog.deleteCourse(admin, IDS.course, { reason: "Duplicate", expectedRevision: 3 });
     assert.equal(deleted.deletionReason, "Duplicate");
     assert.equal(deleted.revision, 4);
-    const [write] = idle.transactions[0];
+    const [lock, check, write] = idle.transactions[0];
+    assert.equal(lock.text, "SELECT id FROM academy_courses WHERE id = $1::uuid FOR UPDATE");
+    assert.match(check.text, /FROM academy_class_groups\s+WHERE course_id = \$1::uuid AND deleted_at IS NULL AND status IN \('planned', 'active'\)\), 0\)/);
+    assert.deepEqual(check.values, [IDS.course]);
     assert.ok(write.values.includes("entity.soft_delete"));
     await rejectsDomain(services(idle).catalog.deleteCourse(admin, IDS.course, { reason: "Duplicate", expectedRevision: 2 }), "CONFLICT");
+
+    // A class group opened between the read and the write: the database check aborts the deletion.
+    const raced = fakeExecutor(rules([R.course, [courseRow()]], [R.openClassGroups, [{ n: "0" }]]));
+    raced.failTransactionWith = Object.assign(new Error("expected 0 row(s), matched 1"), { code: "RQ409" });
+    await rejectsDomain(services(raced).catalog.deleteCourse(admin, IDS.course, { reason: "Duplicate", expectedRevision: 3 }), "CONFLICT");
   });
 
-  test("a program with courses cannot be deleted", async () => {
+  test("a program with courses cannot be deleted, including courses added while deleting", async () => {
     const executor = fakeExecutor(rules([R.program, [programRow()]], [R.programCourses, [{ n: "2" }]]));
     await rejectsDomain(services(executor).catalog.deleteProgram(admin, IDS.program, { reason: "Merge", expectedRevision: 1 }), "CONFLICT");
     assert.equal(executor.transactions.length, 0);
+
+    const empty = fakeExecutor(rules([R.program, [programRow()]], [R.programCourses, [{ n: "0" }]]));
+    await services(empty).catalog.deleteProgram(admin, IDS.program, { reason: "Merge", expectedRevision: 1 });
+    const [lock, check, write] = empty.transactions[0];
+    assert.equal(lock.text, "SELECT id FROM academy_programs WHERE id = $1::uuid FOR UPDATE");
+    assert.match(check.text, /\(SELECT count\(\*\) FROM academy_courses WHERE program_id = \$1::uuid AND deleted_at IS NULL\), 0\)/);
+    assert.deepEqual(check.values, [IDS.program]);
+    assert.ok(write.values.includes("entity.soft_delete"));
+
+    const raced = fakeExecutor(rules([R.program, [programRow()]], [R.programCourses, [{ n: "0" }]]));
+    raced.failTransactionWith = Object.assign(new Error("expected 0 row(s), matched 1"), { code: "RQ409" });
+    await rejectsDomain(services(raced).catalog.deleteProgram(admin, IDS.program, { reason: "Merge", expectedRevision: 1 }), "CONFLICT");
+  });
+
+  test("adding or moving a course into a program holds the program until the course is written", async () => {
+    const programLock = "SELECT id FROM academy_programs WHERE id = $1::uuid FOR SHARE";
+    const created = fakeExecutor(rules([R.program, [programRow()]]));
+    await services(created).catalog.createCourse(admin, { programId: IDS.program, slug: "nahw-2", title: "Nahw 2" });
+    const [lock, check, courseWrite, curriculumWrite] = created.transactions[0];
+    assert.equal(lock.text, programLock);
+    assert.deepEqual(lock.values, [IDS.program]);
+    assert.match(check.text, /\(SELECT count\(\*\) FROM academy_programs WHERE id = \$1::uuid AND deleted_at IS NULL\), 1\)/);
+    assert.match(courseWrite.text, /^WITH mutated AS \(INSERT INTO academy_courses/);
+    assert.match(curriculumWrite.text, /INSERT INTO academy_curricula/);
+
+    const moved = fakeExecutor(rules([R.course, [courseRow({ program_id: null })]], [R.program, [programRow()]]));
+    await services(moved).catalog.moveCourse(admin, IDS.course, { programId: IDS.program, reason: "Belongs here", expectedRevision: 3 });
+    assert.equal(moved.transactions[0][0].text, programLock);
+    assert.match(moved.transactions[0][2].text, /UPDATE academy_courses/);
+
+    const leaving = fakeExecutor(rules([R.course, [courseRow()]]));
+    await services(leaving).catalog.moveCourse(admin, IDS.course, { programId: null, reason: "Standalone", expectedRevision: 3 });
+    assert.equal(leaving.transactions[0].length, 1, "leaving a program needs no program lock");
+
+    const raced = fakeExecutor(rules([R.program, [programRow()]]));
+    raced.failTransactionWith = Object.assign(new Error("expected 1 row(s), matched 0"), { code: "RQ409" });
+    await rejectsDomain(services(raced).catalog.createCourse(admin, { programId: IDS.program, slug: "nahw-2", title: "Nahw 2" }), "CONFLICT");
   });
 });
 
@@ -279,7 +324,16 @@ describe("delivery service", () => {
     const executor = fakeExecutor(rules([R.course, [courseRow()]], [R.curriculumByCourse, [curriculumRow()]], [R.versions, [versionRow()]]));
     const group = await services(executor).delivery.createClassGroup(admin, { courseId: IDS.course, name: "Autumn cohort", capacity: 12 });
     assert.equal(group.curriculumVersionId, IDS.version1);
-    assert.match(executor.transactions[0][0].text, /INSERT INTO academy_class_groups[\s\S]*v\.state = 'published'/);
+    const [lock, check, insert] = executor.transactions[0];
+    assert.equal(lock.text, "SELECT id FROM academy_courses WHERE id = $1::uuid FOR SHARE", "a concurrent course deletion waits for this class group");
+    assert.deepEqual(lock.values, [IDS.course]);
+    assert.match(check.text, /academy_expect_rows\(\s*\(SELECT count\(\*\) FROM academy_courses WHERE id = \$1::uuid AND deleted_at IS NULL\), 1\)/);
+    assert.deepEqual(check.values, [IDS.course]);
+    assert.match(insert.text, /INSERT INTO academy_class_groups[\s\S]*v\.state = 'published'/);
+
+    const raced = fakeExecutor(rules([R.course, [courseRow()]], [R.curriculumByCourse, [curriculumRow()]], [R.versions, [versionRow()]]));
+    raced.failTransactionWith = Object.assign(new Error("expected 1 row(s), matched 0"), { code: "RQ409" });
+    await rejectsDomain(services(raced).delivery.createClassGroup(admin, { courseId: IDS.course, name: "Autumn cohort" }), "CONFLICT");
 
     const unpublished = fakeExecutor(
       rules([R.course, [courseRow()]], [R.curriculumByCourse, [curriculumRow()]], [R.versions, [versionRow({ state: "draft", published_at: null, published_by: null })]]),

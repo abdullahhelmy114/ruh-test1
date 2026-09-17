@@ -10,16 +10,22 @@ import { DomainError } from "../domain/errors.ts";
 import { parseUuid, systemClock, toIso } from "../domain/ids.ts";
 import { assertRevision, parseRequiredRevision } from "../domain/text.ts";
 import { assertAcademyCoreAvailable } from "../infra/flags.ts";
+import type { SqlQuery } from "../infra/sql.ts";
 import { authorizeAdminAction } from "../permissions/permissions.ts";
 import {
   countOf,
   countOpenClassGroupsQuery,
   countProgramCoursesQuery,
+  expectCourseHasNoOpenClassGroupsQuery,
+  expectProgramHasNoCoursesQuery,
+  expectProgramNotDeletedQuery,
   insertCourseQuery,
   insertCurriculumQuery,
   insertProgramQuery,
   listCoursesQuery,
   listProgramsQuery,
+  lockCourseQuery,
+  lockProgramQuery,
   mapCourseRow,
   mapCurriculumRow,
   mapProgramRow,
@@ -78,6 +84,11 @@ export function createCatalogService(deps: ServiceDeps) {
     return toIso((deps.clock ?? systemClock)());
   }
 
+  /** Statements that keep a course's program from being deleted until this transaction ends. */
+  function programStillThere(programId: string | null): SqlQuery[] {
+    return programId === null ? [] : [lockProgramQuery(programId, "shared"), expectProgramNotDeletedQuery(programId)];
+  }
+
   return {
     // -- Programs ------------------------------------------------------------
 
@@ -129,7 +140,11 @@ export function createCatalogService(deps: ServiceDeps) {
       const ctx = contextFor(user, deps, input.correlationId);
       const result = softDelete(current, { kind: "program", id: current.id }, { ...ctx, reason: input.reason as string });
       const next = touched(result.record, current.revision, user.uid, now());
-      await runGuarded(executor, [audited(deps, updateProgramQuery(next, current.revision), result.audit)]);
+      await runGuarded(executor, [
+        lockProgramQuery(current.id, "exclusive"),
+        expectProgramHasNoCoursesQuery(current.id),
+        audited(deps, updateProgramQuery(next, current.revision), result.audit),
+      ]);
       return next;
     },
 
@@ -178,7 +193,11 @@ export function createCatalogService(deps: ServiceDeps) {
       const plan = planCreateCourse({ ...input, program }, contextFor(user, deps, input.correlationId));
       await runGuarded(
         executor,
-        [audited(deps, insertCourseQuery(plan.record), plan.audit), expectRows(insertCurriculumQuery(plan.curriculum), 1)],
+        [
+          ...programStillThere(plan.record.programId),
+          audited(deps, insertCourseQuery(plan.record), plan.audit),
+          expectRows(insertCurriculumQuery(plan.curriculum), 1),
+        ],
         { unique: "A course with this slug or catalog link already exists." },
       );
       return { course: plan.record, curriculum: plan.curriculum };
@@ -209,7 +228,7 @@ export function createCatalogService(deps: ServiceDeps) {
       const current = await loadCourse(courseId);
       const program = await loadOptionalProgram(input.programId);
       const plan = planMoveCourse(current, { ...input, program }, contextFor(user, deps, input.correlationId));
-      await runGuarded(executor, [audited(deps, updateCourseQuery(plan.record, current.revision), plan.audit)]);
+      await runGuarded(executor, [...programStillThere(plan.record.programId), audited(deps, updateCourseQuery(plan.record, current.revision), plan.audit)]);
       return plan.record;
     },
 
@@ -223,7 +242,11 @@ export function createCatalogService(deps: ServiceDeps) {
       const ctx = contextFor(user, deps, input.correlationId);
       const result = softDelete(current, { kind: "course", id: current.id }, { ...ctx, reason: input.reason as string });
       const next = touched(result.record, current.revision, user.uid, now());
-      await runGuarded(executor, [audited(deps, updateCourseQuery(next, current.revision), result.audit)]);
+      await runGuarded(executor, [
+        lockCourseQuery(current.id, "exclusive"),
+        expectCourseHasNoOpenClassGroupsQuery(current.id),
+        audited(deps, updateCourseQuery(next, current.revision), result.audit),
+      ]);
       return next;
     },
 

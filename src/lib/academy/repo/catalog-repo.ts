@@ -147,6 +147,49 @@ export function countOpenClassGroupsQuery(courseId: string): SqlQuery {
 }
 
 // ---------------------------------------------------------------------------
+// Serialising deletion with additions
+//
+// Deleting a program or course takes an exclusive lock on its row; adding a
+// course to a program, or a class group to a course, takes a shared lock on
+// the same row. Each side then re-checks its condition inside the
+// transaction (RQ409 on failure), so a deletion and an addition that raced
+// each other cannot both succeed.
+// ---------------------------------------------------------------------------
+
+export type RowLock = "exclusive" | "shared";
+
+const LOCK_CLAUSE: Readonly<Record<RowLock, string>> = { exclusive: "FOR UPDATE", shared: "FOR SHARE" };
+
+export function lockProgramQuery(programId: string, lock: RowLock): SqlQuery {
+  return { text: `SELECT id FROM academy_programs WHERE id = $1::uuid ${LOCK_CLAUSE[lock]}`, values: [programId] };
+}
+
+export function lockCourseQuery(courseId: string, lock: RowLock): SqlQuery {
+  return { text: `SELECT id FROM academy_courses WHERE id = $1::uuid ${LOCK_CLAUSE[lock]}`, values: [courseId] };
+}
+
+export function expectProgramHasNoCoursesQuery(programId: string): SqlQuery {
+  return sqlQuery`SELECT academy_expect_rows(
+      (SELECT count(*) FROM academy_courses WHERE program_id = ${programId}::uuid AND deleted_at IS NULL), 0) AS ok`;
+}
+
+export function expectProgramNotDeletedQuery(programId: string): SqlQuery {
+  return sqlQuery`SELECT academy_expect_rows(
+      (SELECT count(*) FROM academy_programs WHERE id = ${programId}::uuid AND deleted_at IS NULL), 1) AS ok`;
+}
+
+export function expectCourseHasNoOpenClassGroupsQuery(courseId: string): SqlQuery {
+  return sqlQuery`SELECT academy_expect_rows(
+      (SELECT count(*) FROM academy_class_groups
+       WHERE course_id = ${courseId}::uuid AND deleted_at IS NULL AND status IN ('planned', 'active')), 0) AS ok`;
+}
+
+export function expectCourseNotDeletedQuery(courseId: string): SqlQuery {
+  return sqlQuery`SELECT academy_expect_rows(
+      (SELECT count(*) FROM academy_courses WHERE id = ${courseId}::uuid AND deleted_at IS NULL), 1) AS ok`;
+}
+
+// ---------------------------------------------------------------------------
 // Curricula
 // ---------------------------------------------------------------------------
 

@@ -14,7 +14,14 @@ import { restoreSoftDeleted, softDelete } from "../governance/soft-delete.ts";
 import { assertAcademyCoreAvailable } from "../infra/flags.ts";
 import type { SqlQuery } from "../infra/sql.ts";
 import { authorizeAdminAction, type AdminOnlyAction } from "../permissions/permissions.ts";
-import { mapCourseRow, mapCurriculumRow, selectCourseQuery, selectCurriculumByCourseQuery } from "../repo/catalog-repo.ts";
+import {
+  expectCourseNotDeletedQuery,
+  lockCourseQuery,
+  mapCourseRow,
+  mapCurriculumRow,
+  selectCourseQuery,
+  selectCurriculumByCourseQuery,
+} from "../repo/catalog-repo.ts";
 import {
   listVersionsQuery,
   mapLessonIdSet,
@@ -158,7 +165,12 @@ export function createDeliveryService(deps: ServiceDeps) {
       const course = await loadCourse(parseUuid(input.courseId, "courseId"));
       const { curriculum, version } = await pinnableVersion(course, input.curriculumVersionId);
       const plan = planCreateClassGroup({ ...input, course, curriculum, version }, contextFor(user, deps, input.correlationId));
-      await runGuarded(executor, [audited(deps, insertClassGroupQuery(plan.record), plan.audit)]);
+      // The shared course lock makes a concurrent course deletion wait for (and then count) this class group.
+      await runGuarded(executor, [
+        lockCourseQuery(course.id, "shared"),
+        expectCourseNotDeletedQuery(course.id),
+        audited(deps, insertClassGroupQuery(plan.record), plan.audit),
+      ]);
       return plan.record;
     },
 
