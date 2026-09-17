@@ -1,7 +1,15 @@
 # Academy product migrations
 
-These migrations build the academy product schema. **None of them has been
-executed against any database.**
+These migrations build the academy product schema.
+
+**Execution log.** 2026-09-17: 0001–0010 applied, in order, to the isolated
+Neon test branch `ruh-e2e-test` only (authorised for end-to-end testing; no
+real user data), after confirming the connection's Neon endpoint and that
+every user and business table was empty. Result: 47 `academy_*` tables,
+2 functions, 6 append-only triggers, 143 indexes; no foreign key between
+academy and legacy tables. **They have not been applied to production or to
+the historical source database.** The "NOT EXECUTED" header in each file
+refers to those databases.
 
 Rules that every migration here follows, and that
 `tests/academy/migrations.test.ts` enforces:
