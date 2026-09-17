@@ -59,6 +59,8 @@ const SPECS: Spec[] = [
   { file: "teacher/live-course/[courseId]/model-lessons/route.ts", guard: "requireTeacher", handlers: ["GET"], params: true },
   // Engineering reinforcement — found open by the anonymous sweep of a running build
   { file: "teacher/earnings/route.ts", guard: "requireTeacher", handlers: ["GET"] },
+  // Teacher lifecycle — verified the token itself and admitted any role = 'teacher' profile, approved or not
+  { file: "teacher/dashboard/route.ts", guard: "requireTeacher", handlers: ["GET"] },
 ];
 
 describe("Phase 2.3b legacy-auth sweep", () => {

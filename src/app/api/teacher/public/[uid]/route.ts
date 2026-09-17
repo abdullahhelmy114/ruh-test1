@@ -10,6 +10,8 @@ import { sql } from '@/lib/db/client';
 // projection: name, bio, nationality, country of residence and languages.
 // Private fields (email, age, gender, contact handles, CV) are never
 // returned here. Response keys expected by the page are preserved.
+// Only active teacher accounts have a public profile: applicants (pending,
+// changes requested, rejected) and deactivated teachers are not found.
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ uid: string }> }
@@ -25,7 +27,7 @@ export async function GET(
              country_of_residence AS residence,
              languages AS native_language
       FROM profiles
-      WHERE firebase_uid = ${teacherUid} AND role = 'teacher'
+      WHERE firebase_uid = ${teacherUid} AND role = 'teacher' AND status = 'active'
     `;
 
     if (!teacher) {

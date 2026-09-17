@@ -11,7 +11,7 @@
  * Metadata is redacted recursively before it is stored, so credentials, answer
  * keys and private note content can never land in the audit trail.
  */
-import type { Role } from "../../auth/core.ts";
+import type { SessionRole } from "../../auth/core.ts";
 import { DomainError, optionalReason, requireReason } from "../domain/errors.ts";
 import {
   defaultIdGenerator,
@@ -132,7 +132,7 @@ export function isAuditAction(value: unknown): value is AuditAction {
   return typeof value === "string" && Object.prototype.hasOwnProperty.call(AUDIT_ACTIONS, value);
 }
 
-export type AuditActorRole = Role | "system";
+export type AuditActorRole = SessionRole | "system";
 
 export interface AuditActor {
   readonly uid: string;
@@ -195,7 +195,7 @@ export interface AuditEvent {
   readonly metadata: Record<string, unknown>;
 }
 
-const AUDIT_ROLES: readonly AuditActorRole[] = ["admin", "teacher", "student", "system"];
+const AUDIT_ROLES: readonly AuditActorRole[] = ["admin", "teacher", "student", "applicant", "system"];
 
 /**
  * Keys whose values must never be written to the audit trail. Keys are

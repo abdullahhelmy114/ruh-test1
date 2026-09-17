@@ -99,6 +99,15 @@ describe("API route access inventory", () => {
     assert.doesNotMatch(earnings, /current-teacher-id|te\.\*/);
   });
 
+  test("teacher applicants have no public profile and teacher routes use no private role checks", () => {
+    const publicProfile = ROUTES.find((r) => r.rel === "teacher/public/[uid]/route.ts")?.code ?? "";
+    assert.match(publicProfile, /WHERE firebase_uid = \$\{teacherUid\} AND role = 'teacher' AND status = 'active'/);
+    // Every teacher API route that checks the role does so through the central layer (which knows about applicants).
+    for (const route of ROUTES.filter((r) => r.rel.startsWith("teacher/"))) {
+      assert.doesNotMatch(route.code, /verifyIdToken\(token\)|firebaseAdmin|role = 'teacher'\s*\n?\s*LIMIT/, route.rel);
+    }
+  });
+
   test("the waitlist form is limited, changes no schema and does not reveal who is already listed", () => {
     const waitlist = ROUTES.find((r) => r.rel === "waitlist/route.ts")?.code ?? "";
     const limitAt = waitlist.indexOf("checkRateLimit(");

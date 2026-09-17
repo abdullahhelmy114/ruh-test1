@@ -22,14 +22,31 @@ export type Role = "admin" | "teacher" | "student";
 
 export const ROLES: readonly Role[] = ["admin", "teacher", "student"] as const;
 
+/**
+ * What a session may act as. It equals the stored account role, except that a
+ * teacher account whose status is not exactly "active" (an application that is
+ * pending, needs changes, was rejected or withdrawn, or a deactivated teacher)
+ * acts as an "applicant": it may manage only its own account and application,
+ * and holds neither teacher nor student privileges.
+ */
+export type SessionRole = Role | "applicant";
+
+/** The only profile status that grants a teacher account its teaching role. */
+export const ACTIVE_ACCOUNT_STATUS = "active";
+
 /** Minimal, non-sensitive view of the authenticated caller. */
 export interface AuthUser {
   /** Firebase UID; canonical application identity (profiles.firebase_uid). */
   uid: string;
   /** profiles.id (UUID) for tables that key on it. */
   profileId: string;
-  role: Role;
+  /** The role this session acts as (see SessionRole). Authorization uses this. */
+  role: SessionRole;
   email: string | null;
+  /** The stored profiles.role, for routing and account views (never for authorization). */
+  accountRole?: Role;
+  /** The stored profiles.status. */
+  accountStatus?: string | null;
 }
 
 /** Row shape returned by the profile lookup dependency. */
@@ -38,6 +55,12 @@ export interface ProfileRecord {
   firebase_uid: string;
   role: string | null;
   email: string | null;
+  status?: string | null;
+}
+
+/** The session role for a stored role and status (see SessionRole). */
+export function sessionRoleFor(role: Role, status: string | null | undefined): SessionRole {
+  return role === "teacher" && status !== ACTIVE_ACCOUNT_STATUS ? "applicant" : role;
 }
 
 export interface VerifiedCredential {
@@ -191,11 +214,15 @@ export function createAuthService(deps: AuthDeps): AuthService {
     const profile = await deps.findProfileByFirebaseUid(verified.uid);
     if (!profile) return null;
 
+    const accountRole = normalizeRole(profile.role);
+    const accountStatus = typeof profile.status === "string" ? profile.status : null;
     return {
       uid: verified.uid,
       profileId: profile.id,
-      role: normalizeRole(profile.role),
+      role: sessionRoleFor(accountRole, accountStatus),
       email: profile.email ?? verified.email ?? null,
+      accountRole,
+      accountStatus,
     };
   }
 
@@ -210,7 +237,8 @@ export function createAuthService(deps: AuthDeps): AuthService {
     roles: Role | readonly Role[]
   ): Promise<AuthUser> {
     const user = await requireAuth(req);
-    const allowed = typeof roles === "string" ? [roles] : roles;
+    const allowed: readonly SessionRole[] = typeof roles === "string" ? [roles] : roles;
+    // An applicant session is never one of the allowed roles, so it passes no role guard.
     if (!allowed.includes(user.role)) throw new AuthError("FORBIDDEN");
     return user;
   }

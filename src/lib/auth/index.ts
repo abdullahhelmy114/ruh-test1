@@ -20,9 +20,12 @@ import {
 } from "./core";
 
 export {
+  ACTIVE_ACCOUNT_STATUS,
   AuthError,
   HttpError,
   ROLES,
+  sessionRoleFor,
+  type SessionRole,
   SESSION_COOKIE_NAME,
   type AuthUser,
   type Role,
@@ -42,7 +45,7 @@ const deps: AuthDeps = {
   },
   async findProfileByFirebaseUid(uid) {
     const rows = (await sql`
-      SELECT id, firebase_uid, role, email
+      SELECT id, firebase_uid, role, email, status
       FROM profiles
       WHERE firebase_uid = ${uid}
       LIMIT 1

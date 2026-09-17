@@ -23,9 +23,19 @@ import {
 // ---------------------------------------------------------------------------
 
 const PROFILES: Record<string, ProfileRecord> = {
-  "uid-admin": { id: "p-admin", firebase_uid: "uid-admin", role: "admin", email: "admin@example.com" },
-  "uid-teacher": { id: "p-teacher", firebase_uid: "uid-teacher", role: "teacher", email: "t@example.com" },
-  "uid-student": { id: "p-student", firebase_uid: "uid-student", role: "student", email: "s@example.com" },
+  "uid-admin": { id: "p-admin", firebase_uid: "uid-admin", role: "admin", email: "admin@example.com", status: "active" },
+  "uid-teacher": { id: "p-teacher", firebase_uid: "uid-teacher", role: "teacher", email: "t@example.com", status: "active" },
+  "uid-student": { id: "p-student", firebase_uid: "uid-student", role: "student", email: "s@example.com", status: "active" },
+  // Teacher accounts whose application is not approved, or that were deactivated.
+  "uid-t-pending": { id: "p-t1", firebase_uid: "uid-t-pending", role: "teacher", email: null, status: "pending" },
+  "uid-t-changes": { id: "p-t2", firebase_uid: "uid-t-changes", role: "teacher", email: null, status: "changes_requested" },
+  "uid-t-rejected": { id: "p-t3", firebase_uid: "uid-t-rejected", role: "teacher", email: null, status: "rejected" },
+  "uid-t-withdrawn": { id: "p-t4", firebase_uid: "uid-t-withdrawn", role: "teacher", email: null, status: "withdrawn" },
+  "uid-t-inactive": { id: "p-t5", firebase_uid: "uid-t-inactive", role: "teacher", email: null, status: "inactive" },
+  "uid-t-nostatus": { id: "p-t6", firebase_uid: "uid-t-nostatus", role: "teacher", email: null, status: null },
+  "uid-t-shouting": { id: "p-t7", firebase_uid: "uid-t-shouting", role: "teacher", email: null, status: "ACTIVE" },
+  "uid-s-unverified": { id: "p-s2", firebase_uid: "uid-s-unverified", role: "student", email: null, status: "pending" },
+  "uid-a-odd": { id: "p-a2", firebase_uid: "uid-a-odd", role: "admin", email: null, status: "pending" },
   "uid-nullrole": { id: "p-null", firebase_uid: "uid-nullrole", role: null, email: null },
   "uid-weird": { id: "p-weird", firebase_uid: "uid-weird", role: "superuser", email: null },
 };
@@ -127,6 +137,8 @@ describe("getSession / requireAuth", () => {
       profileId: "p-teacher",
       role: "teacher",
       email: "t@example.com",
+      accountRole: "teacher",
+      accountStatus: "active",
     });
   });
 
@@ -164,9 +176,11 @@ describe("getSession / requireAuth", () => {
     assert.equal(b.role, "student");
   });
 
-  test("returned context exposes only uid, profileId, role, email", async () => {
+  test("returned context exposes only uid, profileId, role, email and the stored account role and status", async () => {
     const user = await auth.requireAuth(req({ bearer: "tok:uid-admin" }));
-    assert.deepEqual(Object.keys(user).sort(), ["email", "profileId", "role", "uid"]);
+    assert.deepEqual(Object.keys(user).sort(), ["accountRole", "accountStatus", "email", "profileId", "role", "uid"]);
+    assert.equal(user.accountRole, "admin");
+    assert.equal(user.accountStatus, "active");
   });
 });
 
@@ -244,6 +258,31 @@ describe("role authorization", () => {
     assert.equal((await auth.requireStudent(student())).role, "student");
     assert.equal((await auth.requireStudent(admin())).role, "admin");
     await expectAuthError(auth.requireStudent(teacher()), 403);
+  });
+
+  test("a teacher account acts as a teacher only while its status is exactly 'active'", async () => {
+    for (const uid of ["uid-t-pending", "uid-t-changes", "uid-t-rejected", "uid-t-withdrawn", "uid-t-inactive", "uid-t-nostatus", "uid-t-shouting"]) {
+      const r = () => req({ bearer: `tok:${uid}` });
+      const user = await auth.requireAuth(r());
+      assert.equal(user.role, "applicant", uid);
+      assert.equal(user.accountRole, "teacher", uid);
+      await expectAuthError(auth.requireTeacher(r()), 403);
+      await expectAuthError(auth.requireStudent(r()), 403);
+      await expectAuthError(auth.requireAdmin(r()), 403);
+      await expectAuthError(auth.requireRole(r(), ["admin", "teacher", "student"]), 403);
+      await auth.requireSelfOrAdmin(r(), uid);
+      await expectAuthError(auth.requireSelfOrAdmin(r(), "uid-student"), 403);
+    }
+  });
+
+  test("an x-user-role header or a status claimed by the client cannot activate a teacher application", async () => {
+    const r = req({ bearer: "tok:uid-t-pending", headers: { "x-user-role": "teacher", "x-user-status": "active" } });
+    await expectAuthError(auth.requireTeacher(r), 403);
+  });
+
+  test("status gates only teacher accounts: unverified students stay students, administrators stay administrators", async () => {
+    assert.equal((await auth.requireStudent(req({ bearer: "tok:uid-s-unverified" }))).role, "student");
+    assert.equal((await auth.requireAdmin(req({ bearer: "tok:uid-a-odd" }))).role, "admin");
   });
 
   test("requireRole accepts a single role or a list", async () => {

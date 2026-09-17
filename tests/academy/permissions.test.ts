@@ -209,6 +209,45 @@ describe("messaging", () => {
   });
 });
 
+describe("teacher applicants", () => {
+  // teacher-1's uid, but the account is not an active teacher (pending, changes requested, rejected or deactivated).
+  const applicant: AuthUser = { uid: "teacher-1", profileId: "p2", role: "applicant", email: null, accountRole: "teacher", accountStatus: "pending" };
+
+  test("hold no academy permission, even for a class group the same uid is still assigned to, without consulting facts", async () => {
+    const requests: AccessRequest[] = [
+      { action: "course.read_content", courseId: COURSE, classGroupId: GROUP },
+      { action: "class_group.view", courseId: COURSE, classGroupId: GROUP },
+      { action: "lesson_sheet.read", courseId: COURSE, classGroupId: GROUP },
+      { action: "annotation.create", courseId: COURSE, classGroupId: GROUP },
+      { action: "annotation.read", ownerUid: "teacher-1" },
+      { action: "annotation.modify", ownerUid: "teacher-1" },
+      { action: "class_group.read_roster", classGroupId: GROUP },
+      { action: "attendance.record", classGroupId: GROUP },
+      { action: "submission.review", classGroupId: GROUP },
+      { action: "assessment.grade", classGroupId: GROUP },
+      { action: "feedback.write", classGroupId: GROUP },
+      { action: "session.conduct", classGroupId: GROUP },
+      { action: "session.prepare", classGroupId: GROUP },
+      { action: "announcement.publish", classGroupId: GROUP },
+      { action: "recording.view", courseId: COURSE, classGroupId: GROUP },
+      { action: "message.send", recipient: { uid: "student-1", role: "student" } },
+      { action: "message.send", recipient: { uid: "admin-1", role: "admin" } },
+      ...ADMIN_ONLY_ACTIONS.map((action) => ({ action })),
+    ];
+    for (const request of requests) {
+      const facts = world();
+      const decision = await evaluateAccess(applicant, request, facts);
+      assert.deepEqual(decision, { allowed: false, reason: "role" }, request.action);
+      assert.deepEqual(facts.calls, [], `${request.action} consulted no relationship fact`);
+    }
+  });
+
+  test("cannot be messaged, even by their would-be learners or by administrators", async () => {
+    assert.equal(await allowed(learner, { action: "message.send", recipient: { uid: "teacher-1", role: "applicant" } }), false);
+    assert.equal(await allowed(admin, { action: "message.send", recipient: { uid: "teacher-1", role: "applicant" } }), false);
+  });
+});
+
 describe("authorize", () => {
   test("throws a generic 403 that does not disclose the reason", async () => {
     await assert.rejects(

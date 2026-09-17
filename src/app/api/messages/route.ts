@@ -9,7 +9,7 @@ import { checkRateLimit, retryAfterSeconds } from '@/lib/security/rate-limit';
 import { boundedString, isFirebaseUidShape } from '@/lib/security/input-policy';
 import { mayDirectMessage, type LegacyMessagingFacts } from '@/lib/security/messaging-guard';
 import { academyFlags, relationshipFacts } from '@/lib/academy/server';
-import type { Role } from '@/lib/auth/core';
+import { sessionRoleFor, type Role } from '@/lib/auth/core';
 
 // Phase 2.2: the sender is always the verified caller (user.uid); the client
 // no longer supplies senderUid. receiverUid remains the target.
@@ -34,9 +34,11 @@ const ROLES: readonly Role[] = ['admin', 'teacher', 'student'];
 
 const legacyMessagingFacts: LegacyMessagingFacts = {
   async roleOf(uid) {
-    const [profile] = await sql`SELECT role FROM profiles WHERE firebase_uid = ${uid}`;
+    const [profile] = await sql`SELECT role, status FROM profiles WHERE firebase_uid = ${uid}`;
     const role = profile?.role;
-    return typeof role === 'string' && (ROLES as readonly string[]).includes(role) ? (role as Role) : null;
+    if (typeof role !== 'string' || !(ROLES as readonly string[]).includes(role)) return null;
+    // The role the account acts as now: a teacher account that is not active cannot be messaged.
+    return sessionRoleFor(role as Role, typeof profile.status === 'string' ? profile.status : null);
   },
   async hasTeachingRelationship(teacherUid, learnerUid) {
     // Legacy relationship: an enrollment that is still in progress in a course the teacher teaches.

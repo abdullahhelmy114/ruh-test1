@@ -351,7 +351,8 @@ export function planAssignTeacher(
   if (input.teacher.role !== "teacher") {
     throw new DomainError("VALIDATION", "Only teacher accounts can be assigned to teach a class group.");
   }
-  if (input.teacher.status !== null && input.teacher.status !== "active") {
+  // Only an approved, active teacher account may teach (the same rule the auth layer applies).
+  if (input.teacher.status !== "active") {
     throw new DomainError("CONFLICT", "This teacher account is not active.");
   }
   if (input.activeAssignments.some((a) => a.teacherUid === input.teacher?.uid && a.unassignedAt === null)) {

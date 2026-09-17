@@ -184,6 +184,7 @@ export function fanOutAnnouncementNotificationsQuery(record: AnnouncementRecord,
       UNION
       SELECT t.teacher_uid AS uid FROM academy_class_group_teachers t
       JOIN academy_class_groups cg ON cg.id = t.class_group_id
+      JOIN profiles tp ON tp.firebase_uid = t.teacher_uid AND tp.role = 'teacher' AND tp.status = 'active'
       WHERE t.unassigned_at IS NULL AND cg.deleted_at IS NULL AND cg.status IN ('planned', 'active')
         AND ((${record.scope}::text = 'class_group' AND cg.id = ${record.classGroupId}::uuid)
           OR (${record.scope}::text = 'course' AND cg.course_id = ${record.courseId}::uuid))

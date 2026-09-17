@@ -6,7 +6,7 @@
  * has ended (an unassigned teacher, a withdrawn learner) stops new messages
  * immediately. Reading one's own conversation history stays available.
  */
-import { AuthError, type AuthUser } from "../../auth/core.ts";
+import { AuthError, sessionRoleFor, type AuthUser } from "../../auth/core.ts";
 import {
   assertPolicyAllows,
   isParticipant,
@@ -79,7 +79,7 @@ export function createCommunicationService(deps: CommunicationDeps) {
       if (user.role === "admin") throw new DomainError("NOT_FOUND", "Recipient not found.");
       throw new AuthError("FORBIDDEN");
     }
-    return { uid: profile.uid, role: profile.role };
+    return { uid: profile.uid, role: sessionRoleFor(profile.role, profile.status) };
   }
 
   async function loadVisibleClassGroup(user: AuthUser, classGroupId: string): Promise<ClassGroupRecord> {

@@ -214,6 +214,10 @@ describe("SQL relationship facts", () => {
     assert.equal(await facts.hasActiveTeachingRelationship("teacher-1", "student-1"), true);
 
     const [teacherQ, learnerQ, belongsQ, accessQ, relationQ] = executor.queries;
+    // A teacher counts only while the account is an active teacher: applicants and deactivated teachers lose access at once.
+    for (const query of [teacherQ, relationQ]) {
+      assert.match(query.text, /JOIN profiles p ON p\.firebase_uid = t\.teacher_uid AND p\.role = 'teacher' AND p\.status = 'active'/);
+    }
     assert.match(teacherQ.text, /t\.unassigned_at IS NULL/);
     assert.match(teacherQ.text, /cg\.deleted_at IS NULL/);
     assert.match(learnerQ.text, /e\.state = 'active'/);

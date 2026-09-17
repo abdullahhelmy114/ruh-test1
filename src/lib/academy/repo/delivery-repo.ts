@@ -145,11 +145,23 @@ export function selectAssignmentQuery(id: string): SqlQuery {
   return { text: `SELECT ${ASSIGNMENT_COLUMNS} FROM academy_class_group_teachers WHERE id = $1::uuid`, values: [id] };
 }
 
+/**
+ * Locks the teacher's profile row (shared) so a concurrent deactivation waits for
+ * the assignment, or the assignment sees the deactivation. Run before inserting.
+ */
+export function lockTeacherProfileQuery(teacherUid: string): SqlQuery {
+  return sqlQuery`SELECT firebase_uid FROM profiles WHERE firebase_uid = ${teacherUid} FOR SHARE`;
+}
+
+/** Inserts only while the class group is live and the account is an active teacher (re-checked in the database). */
 export function insertAssignmentQuery(record: TeacherAssignmentRecord): SqlQuery {
   return sqlQuery`INSERT INTO academy_class_group_teachers (id, class_group_id, teacher_uid, assigned_by, assigned_at)
     SELECT ${record.id}::uuid, cg.id, ${record.teacherUid}::text, ${record.assignedBy}::text, ${record.assignedAt}::timestamptz
     FROM academy_class_groups cg
     WHERE cg.id = ${record.classGroupId}::uuid AND cg.deleted_at IS NULL AND cg.status IN ('planned', 'active')
+      AND EXISTS (
+        SELECT 1 FROM profiles p
+        WHERE p.firebase_uid = ${record.teacherUid}::text AND p.role = 'teacher' AND p.status = 'active')
     RETURNING id`;
 }
 

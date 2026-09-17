@@ -257,7 +257,7 @@ describe("participation service", () => {
 });
 
 describe("participant reads for the workspace screens", () => {
-  const teachersRule = { match: /FROM academy_class_group_teachers t\s+LEFT JOIN profiles/, rows: [{ teacher_uid: "teacher-1", full_name: "Ustadha Maryam" }] };
+  const teachersRule = { match: /FROM academy_class_group_teachers t\s+JOIN profiles p ON p\.firebase_uid = t\.teacher_uid AND p\.role = 'teacher'/, rows: [{ teacher_uid: "teacher-1", full_name: "Ustadha Maryam" }] };
   const titleRule = { match: /SELECT vl\.title, vl\.summary/, rows: [{ title: "The nominal sentence", summary: null }] };
   const namesRule = { match: /SELECT e\.learner_uid, max\(p\.full_name\)/, rows: [{ learner_uid: "student-1", full_name: "Amina" }] };
 
@@ -268,7 +268,9 @@ describe("participant reads for the workspace screens", () => {
     const query = participationRepo.selectClassGroupTeachersQuery(IDS.classGroup);
     assertWellFormed(query);
     assert.match(query.text, /t\.unassigned_at IS NULL/);
-    assert.doesNotMatch(query.text, /email|phone|whatsapp|country|gender|age|status/i);
+    const selected = query.text.slice(0, query.text.indexOf("FROM"));
+    assert.doesNotMatch(selected, /email|phone|whatsapp|country|gender|age|status/i, "only the uid and name are selected");
+    assert.match(query.text, /JOIN profiles p ON p\.firebase_uid = t\.teacher_uid AND p\.role = 'teacher' AND p\.status = 'active'/, "only active teachers are shown");
   });
 
   test("session detail: outsiders are refused before anything else is read; missing looks forbidden", async () => {

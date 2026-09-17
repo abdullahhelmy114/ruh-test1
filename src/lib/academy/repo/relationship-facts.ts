@@ -12,6 +12,10 @@
  *   - learners of a completed class group keep no access through this fact.
  *   - a teacher of a completed class group still counts as its teacher
  *     (grading and feedback after the last session).
+ *   - a teacher counts only while their account is an active teacher
+ *     (profiles.role = 'teacher' AND status = 'active'): deactivating a
+ *     teacher, or an application that is not approved, ends access at once,
+ *     without touching their class group assignments.
  */
 import { isUid, isUuid } from "../domain/ids.ts";
 import { sqlQuery, type SqlExecutor } from "../infra/sql.ts";
@@ -30,6 +34,7 @@ export function createSqlRelationshipFacts(executor: SqlExecutor): RelationshipF
         executor,
         sqlQuery`SELECT 1 FROM academy_class_group_teachers t
           JOIN academy_class_groups cg ON cg.id = t.class_group_id
+          JOIN profiles p ON p.firebase_uid = t.teacher_uid AND p.role = 'teacher' AND p.status = 'active'
           WHERE t.class_group_id = ${classGroupId}::uuid AND t.teacher_uid = ${teacherUid}
             AND t.unassigned_at IS NULL AND cg.deleted_at IS NULL AND cg.status IN ('planned', 'active', 'completed')
           LIMIT 1`,
@@ -79,6 +84,7 @@ export function createSqlRelationshipFacts(executor: SqlExecutor): RelationshipF
         executor,
         sqlQuery`SELECT 1 FROM academy_class_group_teachers t
           JOIN academy_class_groups cg ON cg.id = t.class_group_id
+          JOIN profiles p ON p.firebase_uid = t.teacher_uid AND p.role = 'teacher' AND p.status = 'active'
           JOIN academy_enrollments e ON e.class_group_id = t.class_group_id
           WHERE t.teacher_uid = ${teacherUid} AND t.unassigned_at IS NULL
             AND e.learner_uid = ${learnerUid} AND e.state = 'active'

@@ -14,18 +14,18 @@
  * Every refusal, including an unknown recipient, gives the same answer, so the
  * route cannot be used to discover which accounts exist.
  */
-import type { Role } from "../auth/core.ts";
+import type { SessionRole } from "../auth/core.ts";
 import { messagingRequirement } from "../academy/communication/messaging.ts";
 
 export interface LegacyMessagingFacts {
-  /** The recipient's role, or null when there is no such account. */
-  roleOf(uid: string): Promise<Role | null>;
+  /** The role the recipient currently acts as (see SessionRole), or null when there is no such account. */
+  roleOf(uid: string): Promise<SessionRole | null>;
   /** The teacher currently teaches the learner (legacy enrollment or academy class group). */
   hasTeachingRelationship(teacherUid: string, learnerUid: string): Promise<boolean>;
 }
 
 export async function mayDirectMessage(
-  sender: { readonly uid: string; readonly role: Role },
+  sender: { readonly uid: string; readonly role: SessionRole },
   receiverUid: string,
   facts: LegacyMessagingFacts,
 ): Promise<boolean> {

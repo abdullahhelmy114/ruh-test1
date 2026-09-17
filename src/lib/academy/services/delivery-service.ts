@@ -42,6 +42,7 @@ import {
   listEnrollmentsQuery,
   listSessionsQuery,
   lockClassGroupQuery,
+  lockTeacherProfileQuery,
   mapAssignmentRow,
   mapClassGroupRow,
   mapEnrollmentRow,
@@ -271,7 +272,7 @@ export function createDeliveryService(deps: ServiceDeps) {
       const teacher = await loadProfile(input.teacherUid, "teacherUid");
       const active = await loadMany(executor, listAssignmentsQuery(classGroup.id, true), mapAssignmentRow);
       const plan = planAssignTeacher({ classGroup, teacher, activeAssignments: active }, contextFor(user, deps, input.correlationId));
-      await runGuarded(executor, [audited(deps, insertAssignmentQuery(plan.record), plan.audit)], {
+      await runGuarded(executor, [lockTeacherProfileQuery(plan.record.teacherUid), audited(deps, insertAssignmentQuery(plan.record), plan.audit)], {
         unique: "This teacher is already assigned to the class group.",
       });
       return plan.record;

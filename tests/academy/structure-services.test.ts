@@ -474,9 +474,37 @@ describe("delivery service", () => {
     );
     const assignment = await services(executor).delivery.assignTeacher(admin, IDS.classGroup, { teacherUid: "teacher-1" });
     assert.equal(assignment.teacherUid, "teacher-1");
-    assert.match(executor.transactions[0][0].text, /INSERT INTO academy_class_group_teachers[\s\S]*academy_audit_events/);
+    const [lock, insert] = executor.transactions[0];
+    assert.equal(lock.text, "SELECT firebase_uid FROM profiles WHERE firebase_uid = $1 FOR SHARE", "a concurrent deactivation waits for the assignment");
+    assert.deepEqual(lock.values, ["teacher-1"]);
+    assert.match(insert.text, /INSERT INTO academy_class_group_teachers[\s\S]*p\.role = 'teacher' AND p\.status = 'active'[\s\S]*academy_audit_events/);
 
     const missing = fakeExecutor(rules([R.classGroup, [classGroupRow()]], [R.profile, []], [R.assignments, []]));
     await rejectsDomain(services(missing).delivery.assignTeacher(admin, IDS.classGroup, { teacherUid: "ghost-1" }), "NOT_FOUND");
+  });
+
+  test("only an approved, active teacher account can be assigned; students, applicants and duplicates are refused before writing", async () => {
+    const cases: [Record<string, unknown>, string][] = [
+      [{ firebase_uid: "student-1", role: "student", status: "active" }, "VALIDATION"],
+      [{ firebase_uid: "admin-9", role: "admin", status: "active" }, "VALIDATION"],
+      [{ firebase_uid: "applicant-1", role: "teacher", status: "pending" }, "CONFLICT"],
+      [{ firebase_uid: "applicant-2", role: "teacher", status: "changes_requested" }, "CONFLICT"],
+      [{ firebase_uid: "applicant-3", role: "teacher", status: "rejected" }, "CONFLICT"],
+      [{ firebase_uid: "former-1", role: "teacher", status: "inactive" }, "CONFLICT"],
+      [{ firebase_uid: "legacy-1", role: "teacher", status: null }, "CONFLICT"],
+    ];
+    for (const [profile, code] of cases) {
+      const executor = fakeExecutor(rules([R.classGroup, [classGroupRow()]], [R.profile, [profile]], [R.assignments, []]));
+      await rejectsDomain(services(executor).delivery.assignTeacher(admin, IDS.classGroup, { teacherUid: profile.firebase_uid }), code);
+      assert.equal(executor.transactions.length, 0, String(profile.firebase_uid));
+    }
+    const assigned = { id: IDS.assignment, class_group_id: IDS.classGroup, teacher_uid: "teacher-1", assigned_by: "admin-1", assigned_at: "2026-09-01T00:00:00Z", unassigned_by: null, unassigned_at: null, unassign_reason: null };
+    const duplicate = fakeExecutor(rules([R.classGroup, [classGroupRow()]], [R.profile, [{ firebase_uid: "teacher-1", role: "teacher", status: "active" }]], [R.assignments, [assigned]]));
+    await rejectsDomain(services(duplicate).delivery.assignTeacher(admin, IDS.classGroup, { teacherUid: "teacher-1" }), "CONFLICT");
+    assert.equal(duplicate.transactions.length, 0);
+    // Deactivated between the read and the write: the database re-check aborts the assignment.
+    const raced = fakeExecutor(rules([R.classGroup, [classGroupRow()]], [R.profile, [{ firebase_uid: "teacher-1", role: "teacher", status: "active" }]], [R.assignments, []]));
+    raced.failTransactionWith = Object.assign(new Error("expected 1 row(s), matched 0"), { code: "RQ409" });
+    await rejectsDomain(services(raced).delivery.assignTeacher(admin, IDS.classGroup, { teacherUid: "teacher-1" }), "CONFLICT");
   });
 });

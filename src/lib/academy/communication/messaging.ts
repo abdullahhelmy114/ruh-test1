@@ -14,7 +14,7 @@
  * Notifications never contain message text or private content: they name
  * what happened and link to where it can be read with normal access checks.
  */
-import { AuthError, type AuthUser, type Role } from "../../auth/core.ts";
+import { AuthError, type AuthUser, type SessionRole } from "../../auth/core.ts";
 import type { AuditEventInput } from "../audit/audit.ts";
 import { DomainError, requireReason } from "../domain/errors.ts";
 import { defaultIdGenerator, parseUid, systemClock, toIso, type Clock, type IdGenerator } from "../domain/ids.ts";
@@ -45,7 +45,8 @@ export interface MessageRecord {
 
 export interface Participant {
   readonly uid: string;
-  readonly role: Role;
+  /** The role the account currently acts as (a teacher account that is not active is an applicant). */
+  readonly role: SessionRole;
 }
 
 export function orderedPair(a: string, b: string): [string, string] {
@@ -68,6 +69,8 @@ export type MessagingContextNeed = "none" | "class_group";
  */
 export function messagingRequirement(sender: Participant, recipient: Participant): MessagingContextNeed {
   if (sender.uid === recipient.uid) throw new DomainError("VALIDATION", "You cannot message yourself.");
+  // Accounts without an active role (teacher applicants) take part in no conversation.
+  if (sender.role === "applicant" || recipient.role === "applicant") throw new AuthError("FORBIDDEN");
   if (sender.role === "admin" || recipient.role === "admin") return "none";
   const pair = new Set([sender.role, recipient.role]);
   if (pair.has("student") && pair.has("teacher")) return "class_group";

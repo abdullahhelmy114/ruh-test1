@@ -64,6 +64,11 @@ describe("messaging rules", () => {
     assert.equal(messagingRequirement({ uid: "t", role: "teacher" }, { uid: "s", role: "student" }), "class_group");
     expectForbidden(() => messagingRequirement({ uid: "s1", role: "student" }, { uid: "s2", role: "student" }));
     expectForbidden(() => messagingRequirement({ uid: "t1", role: "teacher" }, { uid: "t2", role: "teacher" }));
+    // Teacher applicants take part in no conversation, not even with administrators.
+    for (const other of ["admin", "teacher", "student"] as const) {
+      expectForbidden(() => messagingRequirement({ uid: "ap", role: "applicant" }, { uid: "x", role: other }));
+      expectForbidden(() => messagingRequirement({ uid: "x", role: other }, { uid: "ap", role: "applicant" }));
+    }
   });
 
   test("course policy can close either direction", () => {

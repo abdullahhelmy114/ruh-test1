@@ -80,7 +80,8 @@ interface OpenedSheet {
 }
 
 function audienceOf(user: AuthUser): ContentAudience {
-  return user.role === "student" ? "learner" : user.role;
+  // Applicants are refused before content is opened; if one ever got here, they would get the least-privileged projection.
+  return user.role === "admin" || user.role === "teacher" ? user.role : "learner";
 }
 
 const NOT_YET = "This Lesson Sheet is not available yet.";

@@ -1,44 +1,15 @@
 import { NextResponse } from "next/server";
-import { neon } from "@neondatabase/serverless";
-import { firebaseAdmin } from "@/lib/firebase-admin";
+import { sql } from "@/lib/db/client";
+import { requireTeacher } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 
-async function getTeacherFromRequest(
-  request: Request
-): Promise<{ id: string; firebase_uid: string } | null> {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) return null;
-  const token = authHeader.split("Bearer ")[1];
-
-  try {
-    const decoded = await firebaseAdmin.auth().verifyIdToken(token);
-    const sql = neon(process.env.DATABASE_URL!);
-    const result = await sql`
-      SELECT id, firebase_uid
-      FROM profiles
-      WHERE firebase_uid = ${decoded.uid}
-        AND role = 'teacher'
-      LIMIT 1
-    `;
-    return result.length > 0
-      ? {
-          id: result[0].id,
-          firebase_uid: result[0].firebase_uid,
-        }
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-export async function GET(request: Request) {
-  const teacher = await getTeacherFromRequest(request);
-
-  if (!teacher) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const firebaseUid = teacher.firebase_uid;
-  const sql = neon(process.env.DATABASE_URL!);
+// Legacy teacher dashboard summary. It verified the Firebase token itself and
+// accepted any profile with role = 'teacher', so a teacher whose application
+// was not approved could read it. It now uses the central guard, which admits
+// only active teacher accounts (and administrators).
+export const GET = withApi(async (request) => {
+  const teacher = await requireTeacher(request);
+  const firebaseUid = teacher.uid;
 
   try {
     // 1) بيانات المعلم الأساسية
@@ -118,4 +89,4 @@ export async function GET(request: Request) {
     console.error("Error fetching teacher dashboard:", error);
     return NextResponse.json({ error: "Failed to fetch dashboard" }, { status: 500 });
   }
-}
+});

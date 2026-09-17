@@ -6,15 +6,17 @@ import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { Role } from "../../src/lib/auth/core.ts";
+import type { SessionRole } from "../../src/lib/auth/core.ts";
 import { mayDirectMessage, type LegacyMessagingFacts } from "../../src/lib/security/messaging-guard.ts";
 
-const ROLES: Record<string, Role> = {
+const ROLES: Record<string, SessionRole> = {
   "admin-1": "admin",
   "teacher-1": "teacher",
   "teacher-2": "teacher",
   "student-1": "student",
   "student-2": "student",
+  // A teacher account whose application is pending (or a deactivated teacher).
+  "applicant-1": "applicant",
 };
 
 function facts(relationships: [string, string][] = [["teacher-1", "student-1"]]): LegacyMessagingFacts & { relationshipChecks: number } {
@@ -55,6 +57,18 @@ describe("legacy direct-message authorization", () => {
     assert.equal(await mayDirectMessage(as("teacher-1"), "teacher-2", f), false);
     assert.equal(await mayDirectMessage(as("student-1"), "student-1", f), false);
     assert.equal(f.relationshipChecks, 0);
+  });
+
+  test("teacher applicants neither send nor receive, even with a legacy teaching relationship or an administrator", async () => {
+    const f = facts([["applicant-1", "student-1"]]);
+    assert.equal(await mayDirectMessage(as("applicant-1"), "student-1", f), false);
+    assert.equal(await mayDirectMessage(as("student-1"), "applicant-1", f), false);
+    assert.equal(await mayDirectMessage(as("applicant-1"), "admin-1", f), false);
+    assert.equal(await mayDirectMessage(as("admin-1"), "applicant-1", f), false);
+    assert.equal(f.relationshipChecks, 0);
+    const route = readFileSync(join(import.meta.dirname, "..", "..", "src", "app", "api", "messages", "route.ts"), "utf8");
+    assert.match(route, /SELECT role, status FROM profiles WHERE firebase_uid = \$\{uid\}/);
+    assert.match(route, /return sessionRoleFor\(role as Role, /);
   });
 
   test("an unknown recipient is refused exactly like a forbidden one", async () => {

@@ -95,9 +95,10 @@ export function selectClassGroupSessionsWithTitlesQuery(classGroupId: string): S
  * participants can recognise and contact them.
  */
 export function selectClassGroupTeachersQuery(classGroupId: string): SqlQuery {
+  // Only active teacher accounts are shown as a class's teachers.
   return sqlQuery`SELECT t.teacher_uid, p.full_name
     FROM academy_class_group_teachers t
-    LEFT JOIN profiles p ON p.firebase_uid = t.teacher_uid
+    JOIN profiles p ON p.firebase_uid = t.teacher_uid AND p.role = 'teacher' AND p.status = 'active'
     WHERE t.class_group_id = ${classGroupId}::uuid AND t.unassigned_at IS NULL
     ORDER BY p.full_name NULLS LAST, t.teacher_uid`;
 }

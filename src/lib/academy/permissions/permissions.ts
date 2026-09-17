@@ -19,7 +19,7 @@
  * recording availability) are applied by services on top of these checks and
  * can only narrow access further.
  */
-import { AuthError, type AuthUser, type Role } from "../../auth/core.ts";
+import { AuthError, type AuthUser, type SessionRole } from "../../auth/core.ts";
 
 export interface RelationshipFacts {
   /** The teacher is assigned to teach this class group. */
@@ -50,7 +50,7 @@ export type AccessRequest =
   | { readonly action: "session.prepare"; readonly classGroupId: string }
   | { readonly action: "announcement.publish"; readonly classGroupId: string }
   | { readonly action: "recording.view"; readonly courseId: string; readonly classGroupId: string }
-  | { readonly action: "message.send"; readonly recipient: { readonly uid: string; readonly role: Role } }
+  | { readonly action: "message.send"; readonly recipient: { readonly uid: string; readonly role: SessionRole } }
   | { readonly action: AdminOnlyAction };
 
 export const ADMIN_ONLY_ACTIONS = [
@@ -136,11 +136,13 @@ async function teacherOfClassGroup(user: AuthUser, classGroupId: string, facts: 
 
 async function messaging(
   user: AuthUser,
-  recipient: { readonly uid: string; readonly role: Role },
+  recipient: { readonly uid: string; readonly role: SessionRole },
   facts: RelationshipFacts,
 ): Promise<AccessDecision> {
   if (!recipient || !nonEmpty(recipient.uid)) return deny("invalid");
   if (recipient.uid === user.uid) return deny("self");
+  // Teacher applicants take part in no conversation, in either direction.
+  if (user.role === "applicant" || recipient.role === "applicant") return deny("role");
   // Academy staff may contact anyone, and anyone may contact academy staff.
   if (user.role === "admin" || recipient.role === "admin") return ALLOW;
   if (user.role === "student" && recipient.role === "teacher") {
@@ -159,6 +161,8 @@ export async function evaluateAccess(
   facts: RelationshipFacts,
 ): Promise<AccessDecision> {
   if (!user || !nonEmpty(user.uid)) return deny("invalid");
+  // A teacher account that is not active holds no academy permission at all.
+  if (user.role === "applicant") return deny("role");
 
   if (isAdminOnlyAction(request.action)) {
     return user.role === "admin" ? ALLOW : deny("role");
