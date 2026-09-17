@@ -16,6 +16,7 @@ import { createAssessmentAuthoringService } from "./services/assessment-authorin
 import { createAssessmentService } from "./services/assessment-service.ts";
 import { createAttendanceService } from "./services/attendance-service.ts";
 import { createCatalogService } from "./services/catalog-service.ts";
+import { createCertificateService } from "./services/certificate-service.ts";
 import { createCommunicationService } from "./services/communication-service.ts";
 import { createCurriculumService } from "./services/curriculum-service.ts";
 import { createDeliveryService } from "./services/delivery-service.ts";
@@ -25,6 +26,7 @@ import { createLibraryService } from "./services/library-service.ts";
 import { createParticipationService } from "./services/participation-service.ts";
 import { createPolicyService } from "./services/policy-service.ts";
 import { createProgressService } from "./services/progress-service.ts";
+import { createRecordingService } from "./services/recording-service.ts";
 
 export const academyExecutor: SqlExecutor = {
   async query<T extends SqlRow = SqlRow>(query: { readonly text: string; readonly values: readonly unknown[] }) {
@@ -80,6 +82,14 @@ export const progressService = createProgressService({
   flags: academyFlags,
   facts: relationshipFacts,
 });
+
+export const recordingService = createRecordingService({
+  executor: academyExecutor,
+  flags: academyFlags,
+  facts: relationshipFacts,
+});
+
+export const certificateService = createCertificateService({ executor: academyExecutor, flags: academyFlags });
 
 export const communicationService = createCommunicationService({
   executor: academyExecutor,

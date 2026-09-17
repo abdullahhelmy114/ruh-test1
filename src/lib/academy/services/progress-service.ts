@@ -35,7 +35,8 @@ import {
   selectLearnerAttendanceFlagsQuery,
   selectLearnerClassGroupAttemptsQuery,
 } from "../repo/assessment-repo.ts";
-import { mapCourseRow, selectCourseQuery } from "../repo/catalog-repo.ts";
+import { countOf, mapCourseRow, selectCourseQuery } from "../repo/catalog-repo.ts";
+import { countIssuedCertificatesForCompletionQuery } from "../repo/recording-certificate-repo.ts";
 import { mapLessonIdSet, selectLessonIdsInVersionQuery } from "../repo/curriculum-repo.ts";
 import { mapClassGroupRow, mapEnrollmentRow, selectClassGroupQuery, selectEnrollmentQuery, updateEnrollmentQuery } from "../repo/delivery-repo.ts";
 import type { ClassGroupRecord } from "../structure/delivery.ts";
@@ -157,6 +158,10 @@ export function createProgressService(deps: ProgressDeps) {
       assertAcademyCoreAvailable(deps.flags);
       authorizeAdminAction(user, "enrollment.manage");
       const completion = await loadRequired(executor, selectCompletionQuery(parseUuid(completionId, "completionId")), mapCompletionRow, "Completion not found.");
+      // An issued certificate rests on this completion: it must be revoked deliberately first.
+      if (countOf(await executor.query(countIssuedCertificatesForCompletionQuery(completion.id))) > 0) {
+        throw new DomainError("CONFLICT", "Revoke the certificate issued for this completion first.");
+      }
       const plan = planRevokeCompletion(completion, input, contextFor(user, deps, input.correlationId));
       await runGuarded(executor, [audited(deps, revokeCompletionQuery(plan.record), plan.audit)]);
       return plan.record;

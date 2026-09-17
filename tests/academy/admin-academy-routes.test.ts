@@ -28,6 +28,10 @@ describe("academy admin routes", () => {
     const rels = routes.map((path) => relative(API, path).replace(/\\/g, "/")).sort();
     assert.deepEqual(rels, [
       "announcements/route.ts",
+      "sessions/[sessionId]/recordings/route.ts",
+      "recordings/[recordingId]/route.ts",
+      "enrollments/[enrollmentId]/certificate/route.ts",
+      "certificates/[certificateId]/route.ts",
       "courses/[courseId]/resources/route.ts",
       "course-resources/[resourceId]/route.ts",
       "assessment-versions/[versionId]/route.ts",

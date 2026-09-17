@@ -105,6 +105,11 @@ export const AUDIT_ACTIONS = {
   // Communication
   "announcement.publish": { impact: "standard", reasonRequired: false },
   "announcement.withdraw": { impact: "standard", reasonRequired: true },
+  // Recordings and certificates
+  "recording.create": { impact: "standard", reasonRequired: false },
+  "recording.change_status": { impact: "high", reasonRequired: false },
+  "certificate.issue": { impact: "high", reasonRequired: false },
+  "certificate.revoke": { impact: "high", reasonRequired: true },
 } as const satisfies Record<string, AuditActionDefinition>;
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;
