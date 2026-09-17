@@ -111,6 +111,24 @@ describe("teacher signup", () => {
     assert.match(form, /const BIO_MIN = 50;/);
     assert.match(read("src", "lib", "academy", "teachers", "applications.ts"), /export const BIO_MIN = 50;/);
   });
+
+  test("one submission asks for one upload signature per file: no repeat, no duplicate, no unbounded retry", () => {
+    const form = read("src", "components", "academy", "workspace", "teacher", "application-form.tsx");
+    // A second run is refused while one is in flight, and the control is disabled meanwhile.
+    assert.match(form, /if \(busy \|\| uploading\) return;/);
+    assert.match(form, /<fieldset disabled=\{busy \|\| uploading\}/);
+    assert.match(form, /<Button type="submit" busy=\{busy \|\| uploading\}>/);
+    // Exactly one call per file, guarded by "is there a file at all".
+    assert.equal((form.match(/uploadSigned\(/g) ?? []).length, 2);
+    assert.match(form, /if \(cv\) cvReference = await uploadSigned\(cv, "teacher_cv"\);\s*if \(video\) videoReference = await uploadSigned\(video, "teacher_intro_video"\);/);
+    assert.doesNotMatch(form, /for \(|while \(|setTimeout|retry/i);
+    // The client requests one signature per upload and never retries it.
+    const client = stripComments(read("src", "lib", "security", "signed-upload-client.ts"));
+    assert.equal((client.match(/\/api\/cloudinary\/sign-upload/g) ?? []).length, 1);
+    assert.doesNotMatch(client, /for \(|while \(|retry|setTimeout/i);
+    // Empty files never reach the signing route: the pre-check refuses them first.
+    assert.match(client, /const check = checkFileForPurpose\(file, purpose\);\s*if \(!check\.ok\) throw new SignedUploadError\(check\.reason\);/);
+  });
 });
 
 describe("the applicant's own application", () => {

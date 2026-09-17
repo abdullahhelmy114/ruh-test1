@@ -120,6 +120,10 @@ export function ApplicationForm({
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+    // One submission at a time: the button is disabled while uploading or submitting, and this
+    // guard also stops a second run (a double click, a stray Enter) from asking for more upload
+    // signatures for the same files.
+    if (busy || uploading) return;
     setProblem(null);
     if (parts.includes("personal") && !details.languages.some((l) => l.code && l.proficiency === "native")) {
       setProblem(f.languageHint);
