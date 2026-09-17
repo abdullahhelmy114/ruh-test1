@@ -187,7 +187,16 @@ describe("public academy pages", { skip }, () => {
         const html = await response.text();
         const label = `${locale} ${path}`;
         assert.ok(response.status === 200 || (ready && response.status === 404), `${label}: ${response.status}`);
-        assert.match(html, new RegExp(`<html lang="${locale}" dir="${locale === "ar" ? "rtl" : "ltr"}"`), label);
+        if (response.status === 200) {
+          assert.match(html, new RegExp(`<html lang="${locale}" dir="${locale === "ar" ? "rtl" : "ltr"}"`), label);
+        } else {
+          // An unknown slug: the page calls notFound(), which Next 16.3.1 recovers above the
+          // root layout, so the served document carries the tree in its payload rather than in
+          // its <html> tag (see src/app/not-found.tsx). What must hold is that it is a 404, in
+          // the reader's language, and closed to search engines.
+          assert.match(html, /<meta name="robots" content="noindex/, `${label}: a missing page is not indexed`);
+          assert.ok(html.includes(PUBLIC_MESSAGES[locale].pageNotFoundTitle), `${label}: the 404 speaks the reader's language`);
+        }
         if (!ready) assert.ok(html.includes(t.notAvailable), `${label}: shows the not-available state`);
         assertNoPrivateValues(html, label);
       }
