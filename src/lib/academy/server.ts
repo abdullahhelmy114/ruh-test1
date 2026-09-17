@@ -16,6 +16,7 @@ import { createAssessmentAuthoringService } from "./services/assessment-authorin
 import { createAssessmentService } from "./services/assessment-service.ts";
 import { createAttendanceService } from "./services/attendance-service.ts";
 import { createCatalogService } from "./services/catalog-service.ts";
+import { createCommunicationService } from "./services/communication-service.ts";
 import { createCurriculumService } from "./services/curriculum-service.ts";
 import { createDeliveryService } from "./services/delivery-service.ts";
 import { createLessonScriptService } from "./services/lesson-script-service.ts";
@@ -75,6 +76,12 @@ export const assessmentService = createAssessmentService({
 });
 
 export const progressService = createProgressService({
+  executor: academyExecutor,
+  flags: academyFlags,
+  facts: relationshipFacts,
+});
+
+export const communicationService = createCommunicationService({
   executor: academyExecutor,
   flags: academyFlags,
   facts: relationshipFacts,

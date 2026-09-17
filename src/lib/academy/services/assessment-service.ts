@@ -27,6 +27,7 @@ import {
   type AssignmentRecord,
   type AttemptRecord,
 } from "../assessment/delivery.ts";
+import { planNotification } from "../communication/messaging.ts";
 import { DomainError } from "../domain/errors.ts";
 import { parseUuid, systemClock } from "../domain/ids.ts";
 import { assertAcademyCoreAvailable } from "../infra/flags.ts";
@@ -53,6 +54,7 @@ import {
   updateAttemptQuery,
 } from "../repo/assessment-repo.ts";
 import { mapCourseRow, selectCourseQuery } from "../repo/catalog-repo.ts";
+import { upsertNotificationQuery } from "../repo/communication-repo.ts";
 import { mapClassGroupRow, selectClassGroupQuery } from "../repo/delivery-repo.ts";
 import { iso, num, str } from "../repo/rows.ts";
 import type { ClassGroupRecord } from "../structure/delivery.ts";
@@ -114,6 +116,21 @@ export function createAssessmentService(deps: AssessmentDeps) {
   async function authorizeLearner(user: AuthUser, group: ClassGroupRecord): Promise<void> {
     if (user.role !== "student") throw new AuthError("FORBIDDEN");
     await authorize(user, { action: "class_group.view", courseId: group.courseId, classGroupId: group.id }, facts);
+  }
+
+  /** Tells the learner their result is available (title only; the result itself stays behind access checks). */
+  function resultNotification(attempt: AttemptRecord, assignmentTitle: string) {
+    const notification = planNotification(
+      {
+        recipientUid: attempt.learnerUid,
+        kind: "assessment_result",
+        title: `Your result for "${assignmentTitle}" is available`.slice(0, 200),
+        link: `/academy/attempts/${attempt.id}`,
+        sourceId: attempt.id,
+      },
+      { clock: deps.clock, newId: deps.newId },
+    );
+    return expectRows(upsertNotificationQuery(notification), 1);
   }
 
   async function authorizeGrader(user: AuthUser, classGroupId: string): Promise<void> {
@@ -279,7 +296,9 @@ export function createAssessmentService(deps: AssessmentDeps) {
       const { assignment } = await loadAssignmentFor(user, attempt.assignmentId);
       const releaseMode = await (await policiesFor(assignment.courseId)).releaseMode();
       const plan = planGradeAttempt(attempt, input, { releaseMode }, contextFor(user, deps, input.correlationId));
-      await runGuarded(executor, [audited(deps, updateAttemptQuery(plan.record, attempt), plan.audit)]);
+      const statements = [audited(deps, updateAttemptQuery(plan.record, attempt), plan.audit)];
+      if (plan.record.releasedAt !== null) statements.push(resultNotification(plan.record, assignment.title));
+      await runGuarded(executor, statements);
       return plan.record;
     },
 
@@ -287,8 +306,9 @@ export function createAssessmentService(deps: AssessmentDeps) {
       assertAcademyCoreAvailable(deps.flags);
       const attempt = await loadAttempt(attemptId);
       await authorizeGrader(user, attempt.classGroupId);
+      const { assignment } = await loadAssignmentFor(user, attempt.assignmentId);
       const plan = planReleaseAttempt(attempt, input, contextFor(user, deps, input.correlationId));
-      await runGuarded(executor, [audited(deps, updateAttemptQuery(plan.record, attempt), plan.audit)]);
+      await runGuarded(executor, [audited(deps, updateAttemptQuery(plan.record, attempt), plan.audit), resultNotification(plan.record, assignment.title)]);
       return plan.record;
     },
 
@@ -303,7 +323,17 @@ export function createAssessmentService(deps: AssessmentDeps) {
       ]);
       const revisionsUsed = learnerAttempts.filter((a) => a.kind === "revision").length;
       const plan = planReturnAttempt(attempt, input, { revisionPolicy, revisionsUsed }, contextFor(user, deps, input.correlationId));
-      await runGuarded(executor, [audited(deps, updateAttemptQuery(plan.record, attempt), plan.audit)]);
+      const notification = planNotification(
+        {
+          recipientUid: plan.record.learnerUid,
+          kind: "assessment_returned",
+          title: `"${assignment.title}" was returned for revision`.slice(0, 200),
+          link: `/academy/attempts/${plan.record.id}`,
+          sourceId: plan.record.id,
+        },
+        { clock: deps.clock, newId: deps.newId },
+      );
+      await runGuarded(executor, [audited(deps, updateAttemptQuery(plan.record, attempt), plan.audit), expectRows(upsertNotificationQuery(notification), 1)]);
       return plan.record;
     },
   };

@@ -102,6 +102,9 @@ export const AUDIT_ACTIONS = {
   // Library
   "course_resource.add": { impact: "standard", reasonRequired: false },
   "course_resource.remove": { impact: "standard", reasonRequired: true },
+  // Communication
+  "announcement.publish": { impact: "standard", reasonRequired: false },
+  "announcement.withdraw": { impact: "standard", reasonRequired: true },
 } as const satisfies Record<string, AuditActionDefinition>;
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;

@@ -53,6 +53,11 @@ export function readStringParam(req: Request, name: string): string | null {
  */
 export const PRIVATE_NO_STORE: Readonly<Record<string, string>> = Object.freeze({ "Cache-Control": "private, no-store" });
 
+/** Headers for a 429 response: private, not storable, with Retry-After. */
+export function rateLimitHeaders(retryAfterSeconds: number): Record<string, string> {
+  return { ...PRIVATE_NO_STORE, "Retry-After": String(Math.max(1, Math.ceil(retryAfterSeconds))) };
+}
+
 const CORRELATION_ID = /^[A-Za-z0-9._:-]{8,128}$/;
 
 /** Optional client-supplied correlation id for grouping audit events. Invalid values are ignored. */

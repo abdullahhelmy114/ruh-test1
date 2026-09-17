@@ -48,6 +48,7 @@ export type AccessRequest =
   | { readonly action: "feedback.write"; readonly classGroupId: string }
   | { readonly action: "session.conduct"; readonly classGroupId: string }
   | { readonly action: "session.prepare"; readonly classGroupId: string }
+  | { readonly action: "announcement.publish"; readonly classGroupId: string }
   | { readonly action: "recording.view"; readonly courseId: string; readonly classGroupId: string }
   | { readonly action: "message.send"; readonly recipient: { readonly uid: string; readonly role: Role } }
   | { readonly action: AdminOnlyAction };
@@ -72,6 +73,7 @@ export const ADMIN_ONLY_ACTIONS = [
   "assessment.author",
   "assessment.publish",
   "assessment.assign",
+  "announcement.manage",
 ] as const;
 
 export type AdminOnlyAction = (typeof ADMIN_ONLY_ACTIONS)[number];
@@ -182,6 +184,7 @@ export async function evaluateAccess(
     case "assessment.grade":
     case "feedback.write":
     case "session.conduct":
+    case "announcement.publish":
       return teacherOfClassGroup(user, request.classGroupId, facts);
 
     case "session.prepare":

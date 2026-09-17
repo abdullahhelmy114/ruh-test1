@@ -26,6 +26,13 @@ const routes = walk(API).filter((path) => path.endsWith("route.ts"));
 describe("academy participant routes", () => {
   test("the expected route files exist", () => {
     assert.deepEqual(routes.map((path) => relative(API, path).replace(/\\/g, "/")).sort(), [
+      "announcements/[announcementId]/route.ts",
+      "announcements/route.ts",
+      "class-groups/[classGroupId]/announcements/route.ts",
+      "messages/threads/[threadId]/route.ts",
+      "messages/threads/route.ts",
+      "notifications/[notificationId]/route.ts",
+      "notifications/route.ts",
       "class-groups/[classGroupId]/readings/route.ts",
       "library/books/[bookId]/route.ts",
       "library/books/[bookId]/pages/[pageNumber]/route.ts",
@@ -91,7 +98,8 @@ describe("academy participant routes", () => {
     test(`${rel}: every response is marked private and not storable`, () => {
       const responses = [...src.matchAll(/NextResponse\.json\(/g)].length;
       assert.ok(responses > 0);
-      assert.equal([...src.matchAll(/headers: PRIVATE_NO_STORE/g)].length, responses, "a response without no-store headers");
+      const privateResponses = [...src.matchAll(/headers: (PRIVATE_NO_STORE|rateLimitHeaders\()/g)].length;
+      assert.equal(privateResponses, responses, "a response without no-store headers");
     });
   }
 });

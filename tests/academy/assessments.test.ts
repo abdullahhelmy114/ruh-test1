@@ -523,6 +523,15 @@ describe("assessment services", () => {
     assert.equal(graded.scorePercent, 70);
     assert.notEqual(graded.releasedAt, null);
     assert.match(executor.transactions[0][0].text, /UPDATE academy_assessment_attempts[\s\S]*academy_audit_events/);
+    // The learner is told a result is available, without the score or feedback in the notification.
+    const notification = executor.transactions[0][1];
+    assert.match(notification.text, /INSERT INTO academy_notifications/);
+    assert.ok(notification.values.includes("student-1"));
+    assert.equal(notification.values.some((v) => typeof v === "string" && (v.includes("70") || v.includes("Clear."))), false);
+
+    const manual = fakeExecutor(world({ attempt: [pending], policy: policyRows({ ...POLICY_VALUES, "assessment.result_release": { mode: "manual_release" } }) }));
+    await assessments(manual).gradeAttempt(teacher, ATTEMPT, { scores: { q6: 7 }, expectedRevision: 2 });
+    assert.equal(manual.transactions[0].length, 1, "nothing is announced while results stay unreleased");
   });
 
   test("only administrators assign assessments", async () => {
