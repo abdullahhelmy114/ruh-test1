@@ -26,6 +26,12 @@ const routes = walk(API).filter((path) => path.endsWith("route.ts"));
 describe("academy participant routes", () => {
   test("the expected route files exist", () => {
     assert.deepEqual(routes.map((path) => relative(API, path).replace(/\\/g, "/")).sort(), [
+      "assignments/[assignmentId]/attempts/route.ts",
+      "assignments/[assignmentId]/route.ts",
+      "attempts/[attemptId]/route.ts",
+      "class-groups/[classGroupId]/assignments/route.ts",
+      "class-groups/[classGroupId]/progress/route.ts",
+      "class-groups/[classGroupId]/review-queue/route.ts",
       "annotations/[annotationId]/route.ts",
       "class-groups/[classGroupId]/lesson-sheets/[lessonId]/annotations/route.ts",
       "class-groups/[classGroupId]/lesson-sheets/[lessonId]/route.ts",
@@ -38,7 +44,7 @@ describe("academy participant routes", () => {
       "sessions/[sessionId]/attendance/route.ts",
       "sessions/[sessionId]/preparation/route.ts",
       "sessions/[sessionId]/route.ts",
-    ]);
+    ].sort());
   });
 
   for (const path of routes) {
@@ -66,7 +72,7 @@ describe("academy participant routes", () => {
       assert.doesNotMatch(src, /@\/lib\/db\/client|@neondatabase|from "@\/lib\/academy\/(services|repo|lessons|permissions)\//);
       assert.doesNotMatch(src, /x-user-id|x-user-role|x-forwarded-for|localStorage/i);
       assert.doesNotMatch(src, /body\.(uid|userId|ownerUid|teacherUid|learnerUid|role)\b/);
-      assert.doesNotMatch(src, /user\.role\s*===|releaseAt|sheetAvailability/, "routes must not make access or release decisions");
+      assert.doesNotMatch(src, /user\.role\s*[!=]==|\breleaseAt\b|sheetAvailability|lessonSheetReleaseAt/, "routes must not make access or release decisions");
       assert.doesNotMatch(src, /error\.message|err\.message|e\.message|catch\s*\(/);
       assert.doesNotMatch(src, /runtime\s*=\s*["']edge["']/);
       if (rel.includes("[")) {

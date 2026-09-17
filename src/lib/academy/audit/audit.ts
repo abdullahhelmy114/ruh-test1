@@ -87,6 +87,18 @@ export const AUDIT_ACTIONS = {
   // Attendance
   "attendance.record": { impact: "standard", reasonRequired: false },
   "attendance.correct": { impact: "high", reasonRequired: true },
+  // Assessments
+  "assessment.create": { impact: "standard", reasonRequired: false },
+  "assessment_version.save_content": { impact: "standard", reasonRequired: false },
+  "assessment_assignment.create": { impact: "standard", reasonRequired: false },
+  "assessment_assignment.cancel": { impact: "high", reasonRequired: true },
+  "assessment_attempt.submit": { impact: "standard", reasonRequired: false },
+  "assessment_attempt.grade": { impact: "high", reasonRequired: false },
+  "assessment_attempt.release": { impact: "standard", reasonRequired: false },
+  "assessment_attempt.return": { impact: "standard", reasonRequired: false },
+  // Completion
+  "completion.record": { impact: "high", reasonRequired: false },
+  "completion.revoke": { impact: "high", reasonRequired: true },
 } as const satisfies Record<string, AuditActionDefinition>;
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;

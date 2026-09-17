@@ -27,6 +27,13 @@ describe("academy admin routes", () => {
   test("the expected route files exist", () => {
     const rels = routes.map((path) => relative(API, path).replace(/\\/g, "/")).sort();
     assert.deepEqual(rels, [
+      "assessment-versions/[versionId]/route.ts",
+      "assessments/[assessmentId]/route.ts",
+      "assessments/route.ts",
+      "assignments/[assignmentId]/route.ts",
+      "class-groups/[classGroupId]/assignments/route.ts",
+      "completions/[completionId]/route.ts",
+      "enrollments/[enrollmentId]/completion/route.ts",
       "class-groups/[classGroupId]/enrollments/route.ts",
       "class-groups/[classGroupId]/route.ts",
       "class-groups/[classGroupId]/sessions/route.ts",
@@ -42,7 +49,7 @@ describe("academy admin routes", () => {
       "programs/route.ts",
       "sessions/[sessionId]/preparations/route.ts",
       "sessions/[sessionId]/route.ts",
-    ]);
+    ].sort());
   });
 
   for (const path of routes) {

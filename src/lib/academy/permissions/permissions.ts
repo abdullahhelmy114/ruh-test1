@@ -69,6 +69,9 @@ export const ADMIN_ONLY_ACTIONS = [
   "class_group.manage",
   "session.manage",
   "enrollment.manage",
+  "assessment.author",
+  "assessment.publish",
+  "assessment.assign",
 ] as const;
 
 export type AdminOnlyAction = (typeof ADMIN_ONLY_ACTIONS)[number];

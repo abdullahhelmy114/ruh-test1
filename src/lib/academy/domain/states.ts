@@ -183,6 +183,27 @@ export const PREPARATION_MACHINE = defineMachine<PreparationState>({
 });
 
 // ---------------------------------------------------------------------------
+// Assessment attempts
+// ---------------------------------------------------------------------------
+
+export const ATTEMPT_STATES = ["in_progress", "needs_review", "graded", "returned"] as const;
+export type AttemptState = (typeof ATTEMPT_STATES)[number];
+
+export const ATTEMPT_MACHINE = defineMachine<AttemptState>({
+  name: "assessment attempt",
+  states: ATTEMPT_STATES,
+  initial: "in_progress",
+  transitions: {
+    // Submission grades objective items; anything needing a person goes to review.
+    in_progress: ["needs_review", "graded"],
+    needs_review: ["graded"],
+    // Returned for revision: the learner answers again in a new revision attempt.
+    graded: ["returned"],
+    returned: [],
+  },
+});
+
+// ---------------------------------------------------------------------------
 // Enrollment (reflects entitlement; Whop remains the financial authority)
 // ---------------------------------------------------------------------------
 
