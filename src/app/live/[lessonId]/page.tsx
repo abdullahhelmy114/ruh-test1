@@ -93,7 +93,7 @@ export default function LiveLessonPage() {
       {/* Top Bar */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border glass">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/teacher" className="p-2 rounded-full hover:bg-accent">
+          <Link href="/dashboard" className="p-2 rounded-full hover:bg-accent">
             <ArrowLeft size={18} />
           </Link>
           <div>

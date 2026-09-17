@@ -18,3 +18,11 @@ export function accountHome(role: string | null | undefined, status: string | nu
   if (role === "teacher") return status === "active" ? TEACHER_WORKSPACE_HOME : TEACHER_APPLICATION_HOME;
   return "/dashboard/student";
 }
+
+/**
+ * The home a server response names, if it is a path on this site; otherwise
+ * the fallback. Never follows an absolute or protocol-relative URL.
+ */
+export function localHome(value: unknown, fallback: string): string {
+  return typeof value === "string" && value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/\\") ? value : fallback;
+}

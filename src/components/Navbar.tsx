@@ -134,7 +134,7 @@ export function Navbar() {
   // teachers go to the teacher workspace, other teacher accounts to their
   // application page.
   const dashboardLink = accountHome(role, status);
-  const profileLink = role === "admin" ? "/profile/admin" : "/profile/student";
+  const profileLink = role === "admin" ? "/profile/admin" : role === "teacher" ? "/profile/teacher" : "/profile/student";
   const academyLink = academyHome(role, status);
 
   const initial = user?.email ? user.email.charAt(0).toUpperCase() : "U";

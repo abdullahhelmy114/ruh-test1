@@ -10,6 +10,7 @@ import { ResendVerificationButton } from "@/components/ResendVerificationButton"
 import Link from "next/link";
 // ✅ تمت إضافة استيراد زر Button هنا
 import { Button } from "@/components/ui/button";
+import { localHome } from "@/lib/auth/home";
 
 function VerifyEmailContent() {
   const router = useRouter();
@@ -61,15 +62,14 @@ function VerifyEmailContent() {
 
       if (!res.ok) throw new Error(data.error || "Verification failed.");
 
-      const role = data.role as string;
-      localStorage.setItem("userRole", role);
+      // The server names the account's home (a teacher account reaches teaching only once approved).
+      // Nothing about the role is kept in the browser; /dashboard decides again if the answer is missing.
+      const home = localHome(data.home, "/dashboard");
 
       setSuccess(true);
 
       setTimeout(() => {
-        if (role === "admin") router.push("/dashboard/admin");
-        else if (role === "teacher") router.push("/dashboard/teacher");
-        else router.push("/dashboard/student");
+        router.push(home);
       }, 2000);
     } catch (err: any) {
       setError(err.message);

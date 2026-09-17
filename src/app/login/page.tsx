@@ -14,7 +14,7 @@ import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { T } from "@/components/TranslatedText";
 import { CustomCaptcha } from "@/components/CustomCaptcha";
-import { accountHome } from "@/lib/auth/home";
+import { accountHome, localHome } from "@/lib/auth/home";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -29,8 +29,7 @@ export default function LoginPage() {
   // teacher account goes to its application page (pending, changes requested,
   // rejected or deactivated). Navigation only; the server authorizes again.
   const redirectAfterLogin = (data: { role?: unknown; status?: unknown; home?: unknown }) => {
-    const home = typeof data.home === "string" && data.home.startsWith("/") && !data.home.startsWith("//") ? data.home : null;
-    window.location.href = home ?? accountHome(typeof data.role === "string" ? data.role : null, typeof data.status === "string" ? data.status : null);
+    window.location.href = localHome(data.home, accountHome(typeof data.role === "string" ? data.role : null, typeof data.status === "string" ? data.status : null));
   };
 
   const performLogin = async () => {

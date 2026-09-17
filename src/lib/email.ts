@@ -151,8 +151,8 @@ export function teacherApprovedEmail(name: string): string {
       <div class="emoji">🎉</div>
       <p>Dear <strong>${name}</strong>,</p>
       <p>Congratulations! Your application to become a teacher at Ruh-Ul-Qudus Academy has been approved.</p>
-      <p>You can now log in and start creating course.</p>
-      <a href="https://ruhulqudus.com/dashboard/teacher" class="button">Go to Teacher Dashboard</a>
+      <p>You can now sign in and open your teaching workspace.</p>
+      <a href="https://ruhulqudus.com/academy/teach" class="button">Open the teaching workspace</a>
     `
   );
 }

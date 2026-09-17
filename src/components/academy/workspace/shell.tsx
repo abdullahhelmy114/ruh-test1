@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, type ReactNode } from "react";
 import { useAuth } from "@/lib/firebase/AuthProvider";
 import { cn } from "@/lib/utils";
 import { useApi } from "./api";
 import { useWorkspace } from "./context";
-import { academyHome } from "./paths";
+import { academyHome, pages } from "./paths";
 
 interface NavItem {
   readonly href: string;
@@ -21,11 +21,18 @@ interface NavItem {
  */
 export function WorkspaceShell({ children }: { readonly children: ReactNode }) {
   const { t, fmt } = useWorkspace();
-  const { role, status, user } = useAuth();
+  const { role, status, user, isLoading } = useAuth();
   const pathname = usePathname() ?? "";
+  const router = useRouter();
 
-  // A teacher account that is not active has only its application page.
+  // A teacher account that is not active has only its application page. One that
+  // opens another workspace screen (a bookmark from before a deactivation, an
+  // old link) is taken there instead of meeting a refusal from every API.
   const applicant = role === "teacher" && status !== "active";
+  const elsewhere = applicant && !isLoading && pathname !== pages.teacherApplication;
+  useEffect(() => {
+    if (elsewhere) router.replace(pages.teacherApplication);
+  }, [elsewhere, router]);
   const homeLabel = role === "admin" ? t.nav.manage : applicant ? t.nav.application : role === "teacher" ? t.nav.teach : t.nav.learn;
   const items: NavItem[] = applicant
     ? [{ href: academyHome(role, status), label: homeLabel }]
@@ -78,7 +85,7 @@ export function WorkspaceShell({ children }: { readonly children: ReactNode }) {
         </ul>
       </nav>
       <div id="workspace-main" tabIndex={-1} className="outline-none">
-        {children}
+        {elsewhere ? null : children}
       </div>
     </div>
   );

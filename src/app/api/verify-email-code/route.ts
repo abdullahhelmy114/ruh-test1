@@ -3,7 +3,8 @@ export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
 import { getAdminAuth } from '@/lib/firebase/admin';
-import { HttpError } from '@/lib/auth';
+import { ACTIVE_ACCOUNT_STATUS, HttpError } from '@/lib/auth';
+import { accountHome } from '@/lib/auth/home';
 import { withApi } from '@/lib/api/handler';
 import { checkRateLimit, clientKey, normalizeEmail, retryAfterSeconds } from '@/lib/security/rate-limit';
 import { isOtpShape, verifyOtpHash } from '@/lib/security/otp';
@@ -67,7 +68,7 @@ export const POST = withApi(async (request) => {
 
   // Newest live code for the account that owns this e-mail (digest only).
   const records = await sql`
-    SELECT vc.email_code, p.firebase_uid, p.role
+    SELECT vc.email_code, p.firebase_uid, p.role, p.status
     FROM verification_codes vc
     JOIN profiles p ON vc.user_uid = p.firebase_uid
     WHERE LOWER(p.email) = ${email}
@@ -78,7 +79,7 @@ export const POST = withApi(async (request) => {
   const record = records[0];
   if (!record) return failed();
 
-  const { email_code: storedDigest, firebase_uid, role } = record;
+  const { email_code: storedDigest, firebase_uid, role, status } = record;
 
   const uidCheck = checkRateLimit(`verify-code:uid:${firebase_uid}`, UID_LIMIT);
   if (!uidCheck.allowed) return tooMany(uidCheck.retryAfterMs);
@@ -98,5 +99,9 @@ export const POST = withApi(async (request) => {
   // حذف الكود بعد اكتمال التفعيل — يبقى قابلاً لإعادة المحاولة إذا فشلت خطوة أعلاه
   await sql`DELETE FROM verification_codes WHERE user_uid = ${firebase_uid}`;
 
-  return NextResponse.json({ success: true, role });
+  // Where the page sends the account next, by the same rule as sign-in: a
+  // teacher account reaches teaching only once its application is approved.
+  // A student is active from this point on.
+  const home = accountHome(role, role === 'student' ? ACTIVE_ACCOUNT_STATUS : status);
+  return NextResponse.json({ success: true, role, home });
 });

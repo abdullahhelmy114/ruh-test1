@@ -12,7 +12,7 @@ import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { TEACHER_APPLICATION_HOME, TEACHER_WORKSPACE_HOME, accountHome } from "../../src/lib/auth/home.ts";
+import { TEACHER_APPLICATION_HOME, TEACHER_WORKSPACE_HOME, accountHome, localHome } from "../../src/lib/auth/home.ts";
 import { parseApplicationDetails } from "../../src/lib/academy/teachers/applications.ts";
 
 const ROOT = join(import.meta.dirname, "..", "..");
@@ -39,7 +39,11 @@ describe("where an account lands", () => {
 
     const login = stripComments(read("src", "app", "login", "page.tsx"));
     assert.equal(/pendingTeacher|\/dashboard\/teacher|localStorage|sessionStorage/.test(login), false, "no client-side teacher gate or stale teacher dashboard");
-    assert.match(login, /data\.home\.startsWith\("\/"\) && !data\.home\.startsWith\("\/\/"\)/, "only same-site paths are followed");
+    assert.match(login, /window\.location\.href = localHome\(data\.home, accountHome\(/, "only same-site paths are followed");
+    for (const unsafe of ["//evil.example", "/\\evil.example", "https://evil.example/", "javascript:alert(1)", "", null, 42, undefined]) {
+      assert.equal(localHome(unsafe, "/dashboard"), "/dashboard", String(unsafe));
+    }
+    assert.equal(localHome("/academy/teach", "/dashboard"), "/academy/teach");
     assert.equal((login.match(/redirectAfterLogin\(data\)/g) ?? []).length, 2, "email and social sign-in both use it");
 
     const dashboard = stripComments(read("src", "app", "dashboard", "page.tsx"));
@@ -52,6 +56,7 @@ describe("where an account lands", () => {
 
     const navbar = stripComments(read("src", "components", "Navbar.tsx"));
     assert.match(navbar, /const dashboardLink = accountHome\(role, status\);/);
+    assert.match(navbar, /const profileLink = role === "admin" \? "\/profile\/admin" : role === "teacher" \? "\/profile\/teacher" : "\/profile\/student";/, "teachers open the teacher profile, not the student one");
   });
 
   test("an applicant's workspace navigation offers only the application page", () => {

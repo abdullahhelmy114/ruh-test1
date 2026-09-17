@@ -125,7 +125,9 @@ describe("verify-email-code", () => {
     assert.ok(src.includes("if (role === 'student')"));
     assert.ok(src.includes("SET email_verified = TRUE, status = 'active' WHERE firebase_uid = ${firebase_uid}"));
     assert.equal((src.match(/status = 'active'/g) ?? []).length, 1, "only the student branch activates");
-    assert.ok(src.includes("return NextResponse.json({ success: true, role })"), "page contract kept");
+    // Page contract: the role, and the account's home by role and status (a teacher reaches teaching only once approved).
+    assert.ok(src.includes("return NextResponse.json({ success: true, role, home })"), "page contract kept");
+    assert.ok(src.includes("const home = accountHome(role, role === 'student' ? ACTIVE_ACCOUNT_STATUS : status);"));
   });
 });
 

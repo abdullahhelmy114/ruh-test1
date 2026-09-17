@@ -42,9 +42,8 @@ export default function OnboardingPage() {
         const err = await res.json();
         setError(err.error || "Failed to save");
       } else {
-        // التوجيه إلى الداشبورد
-        const role = localStorage.getItem("userRole");
-        router.push(role === "teacher" ? "/dashboard/teacher" : "/dashboard/student");
+        // /dashboard sends the account to its home by its server-side role and status (never browser storage).
+        router.push("/dashboard");
       }
     } catch {
       setError("Network error");
