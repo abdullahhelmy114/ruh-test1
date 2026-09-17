@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { withApi } from "@/lib/api/handler";
-import { readBooleanParam, readCorrelationId, readJsonObject, readStringParam } from "@/lib/academy/http";
+import { PRIVATE_NO_STORE, readBooleanParam, readCorrelationId, readJsonObject, readStringParam } from "@/lib/academy/http";
 import { deliveryService } from "@/lib/academy/server";
 
 // Class groups (deliveries of a course), administration.
@@ -11,7 +11,7 @@ export const GET = withApi(async (req) => {
     courseId: readStringParam(req, "courseId"),
     includeDeleted: readBooleanParam(req, "includeDeleted"),
   });
-  return NextResponse.json({ data: classGroups });
+  return NextResponse.json({ data: classGroups }, { headers: PRIVATE_NO_STORE });
 });
 
 export const POST = withApi(async (req) => {
@@ -26,5 +26,5 @@ export const POST = withApi(async (req) => {
     endsOn: body.endsOn,
     correlationId: readCorrelationId(req),
   });
-  return NextResponse.json({ data: classGroup }, { status: 201 });
+  return NextResponse.json({ data: classGroup }, { status: 201, headers: PRIVATE_NO_STORE });
 });

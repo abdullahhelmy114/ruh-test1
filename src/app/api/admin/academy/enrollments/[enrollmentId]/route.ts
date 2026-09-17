@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { withApi } from "@/lib/api/handler";
-import { readAction, readCorrelationId, readJsonObject } from "@/lib/academy/http";
+import { PRIVATE_NO_STORE, readAction, readCorrelationId, readJsonObject } from "@/lib/academy/http";
 import { deliveryService } from "@/lib/academy/server";
 
 const ACTIONS = ["change_status"] as const;
@@ -17,5 +17,5 @@ export const PATCH = withApi<{ enrollmentId: string }>(async (req, ctx) => {
     expectedRevision: body.expectedRevision,
     correlationId: readCorrelationId(req),
   });
-  return NextResponse.json({ data: enrollment });
+  return NextResponse.json({ data: enrollment }, { headers: PRIVATE_NO_STORE });
 });

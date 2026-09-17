@@ -90,6 +90,18 @@ export function selectClassGroupSessionsWithTitlesQuery(classGroupId: string): S
     LIMIT 1000`;
 }
 
+/**
+ * A class group's currently assigned teachers with display names only, so its
+ * participants can recognise and contact them.
+ */
+export function selectClassGroupTeachersQuery(classGroupId: string): SqlQuery {
+  return sqlQuery`SELECT t.teacher_uid, p.full_name
+    FROM academy_class_group_teachers t
+    LEFT JOIN profiles p ON p.firebase_uid = t.teacher_uid
+    WHERE t.class_group_id = ${classGroupId}::uuid AND t.unassigned_at IS NULL
+    ORDER BY p.full_name NULLS LAST, t.teacher_uid`;
+}
+
 /** Roster: enrollments with the learner's display name only. */
 export function selectRosterQuery(classGroupId: string): SqlQuery {
   return sqlQuery`SELECT e.id AS enrollment_id, e.learner_uid, e.state, p.full_name
@@ -110,6 +122,17 @@ export function selectEligibleLearnersQuery(classGroupId: string, startsAt: stri
     WHERE e.class_group_id = ${classGroupId}::uuid
       AND e.activated_at IS NOT NULL AND e.activated_at <= ${endsAt}::timestamptz
       AND (e.ended_at IS NULL OR e.ended_at >= ${startsAt}::timestamptz)`;
+}
+
+/** The same learners as `selectEligibleLearnersQuery`, with display names, for the attendance sheet. */
+export function selectEligibleLearnerNamesQuery(classGroupId: string, startsAt: string, endsAt: string): SqlQuery {
+  return sqlQuery`SELECT e.learner_uid, max(p.full_name) AS full_name FROM academy_enrollments e
+    LEFT JOIN profiles p ON p.firebase_uid = e.learner_uid
+    WHERE e.class_group_id = ${classGroupId}::uuid
+      AND e.activated_at IS NOT NULL AND e.activated_at <= ${endsAt}::timestamptz
+      AND (e.ended_at IS NULL OR e.ended_at >= ${startsAt}::timestamptz)
+    GROUP BY e.learner_uid
+    ORDER BY max(p.full_name) NULLS LAST, e.learner_uid`;
 }
 
 const ATTENDANCE_COLUMNS = `id, session_id, class_group_id, learner_uid, mark_code, counts_as_attended, revision, recorded_by, recorded_at,

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { withApi } from "@/lib/api/handler";
-import { readBooleanParam, readCorrelationId, readJsonObject, readStringParam } from "@/lib/academy/http";
+import { PRIVATE_NO_STORE, readBooleanParam, readCorrelationId, readJsonObject, readStringParam } from "@/lib/academy/http";
 import { catalogService } from "@/lib/academy/server";
 
 // Academy courses (administration). A course is created with its curriculum.
@@ -11,7 +11,7 @@ export const GET = withApi(async (req) => {
     programId: readStringParam(req, "programId"),
     includeDeleted: readBooleanParam(req, "includeDeleted"),
   });
-  return NextResponse.json({ data: courses });
+  return NextResponse.json({ data: courses }, { headers: PRIVATE_NO_STORE });
 });
 
 export const POST = withApi(async (req) => {
@@ -25,5 +25,5 @@ export const POST = withApi(async (req) => {
     description: body.description,
     correlationId: readCorrelationId(req),
   });
-  return NextResponse.json({ data: created }, { status: 201 });
+  return NextResponse.json({ data: created }, { status: 201, headers: PRIVATE_NO_STORE });
 });

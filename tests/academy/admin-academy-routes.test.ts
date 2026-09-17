@@ -116,5 +116,13 @@ describe("academy admin routes", () => {
         assert.doesNotMatch(src, /ctx\.params\.\w+/);
       }
     });
+
+    test(`${rel}: every response is marked private and not storable`, () => {
+      // Administrative responses carry learner ids, audit history and unpublished content.
+      const responses = [...src.matchAll(/NextResponse\.json\(/g)].length;
+      assert.ok(responses > 0);
+      const privateResponses = [...src.matchAll(/headers: (PRIVATE_NO_STORE|rateLimitHeaders\()/g)].length;
+      assert.equal(privateResponses, responses, "a response without no-store headers");
+    });
   }
 });

@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { withApi } from "@/lib/api/handler";
-import { readCorrelationId, readJsonObject } from "@/lib/academy/http";
+import { PRIVATE_NO_STORE, readCorrelationId, readJsonObject } from "@/lib/academy/http";
 import { deliveryService } from "@/lib/academy/server";
 
 export const GET = withApi<{ classGroupId: string }>(async (req, ctx) => {
   const user = await requireAdmin(req);
   const { classGroupId } = await ctx.params;
-  return NextResponse.json({ data: await deliveryService.listEnrollments(user, classGroupId) });
+  return NextResponse.json({ data: await deliveryService.listEnrollments(user, classGroupId) }, { headers: PRIVATE_NO_STORE });
 });
 
 // Administrative enrollment. The learner uid identifies the TARGET learner, never the caller.
@@ -20,5 +20,5 @@ export const POST = withApi<{ classGroupId: string }>(async (req, ctx) => {
     activate: body.activate,
     correlationId: readCorrelationId(req),
   });
-  return NextResponse.json({ data: enrollment }, { status: 201 });
+  return NextResponse.json({ data: enrollment }, { status: 201, headers: PRIVATE_NO_STORE });
 });

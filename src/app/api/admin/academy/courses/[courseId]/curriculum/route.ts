@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { withApi } from "@/lib/api/handler";
-import { readAction, readCorrelationId, readJsonObject } from "@/lib/academy/http";
+import { PRIVATE_NO_STORE, readAction, readCorrelationId, readJsonObject } from "@/lib/academy/http";
 import { curriculumService } from "@/lib/academy/server";
 
 const ACTIONS = ["create_draft"] as const;
@@ -10,7 +10,7 @@ const ACTIONS = ["create_draft"] as const;
 export const GET = withApi<{ courseId: string }>(async (req, ctx) => {
   const user = await requireAdmin(req);
   const { courseId } = await ctx.params;
-  return NextResponse.json({ data: await curriculumService.getCurriculum(user, courseId) });
+  return NextResponse.json({ data: await curriculumService.getCurriculum(user, courseId) }, { headers: PRIVATE_NO_STORE });
 });
 
 export const POST = withApi<{ courseId: string }>(async (req, ctx) => {
@@ -22,5 +22,5 @@ export const POST = withApi<{ courseId: string }>(async (req, ctx) => {
     basedOnVersionId: body.basedOnVersionId,
     correlationId: readCorrelationId(req),
   });
-  return NextResponse.json({ data: version }, { status: 201 });
+  return NextResponse.json({ data: version }, { status: 201, headers: PRIVATE_NO_STORE });
 });

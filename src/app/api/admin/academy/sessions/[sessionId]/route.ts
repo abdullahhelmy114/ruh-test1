@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { withApi } from "@/lib/api/handler";
-import { readAction, readCorrelationId, readJsonObject } from "@/lib/academy/http";
+import { PRIVATE_NO_STORE, readAction, readCorrelationId, readJsonObject } from "@/lib/academy/http";
 import { deliveryService } from "@/lib/academy/server";
 
 const ACTIONS = ["reschedule", "change_status"] as const;
@@ -23,7 +23,7 @@ export const PATCH = withApi<{ sessionId: string }>(async (req, ctx) => {
           expectedRevision: body.expectedRevision,
           correlationId,
         }),
-      });
+      }, { headers: PRIVATE_NO_STORE });
     case "change_status":
       return NextResponse.json({
         data: await deliveryService.changeSessionStatus(user, sessionId, {
@@ -32,6 +32,6 @@ export const PATCH = withApi<{ sessionId: string }>(async (req, ctx) => {
           expectedRevision: body.expectedRevision,
           correlationId,
         }),
-      });
+      }, { headers: PRIVATE_NO_STORE });
   }
 });

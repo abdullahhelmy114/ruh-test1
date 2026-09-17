@@ -259,6 +259,22 @@ describe("messaging service", () => {
     await rejectsDomain(comms(fakeExecutor(world())).sendMessage(otherTeacher, THREAD, { body: "hi" }), "NOT_FOUND");
     await rejectsDomain(comms(fakeExecutor(world())).getThread(admin, THREAD), "NOT_FOUND");
   });
+
+  test("conversation lists name the other participant (display name only), keyed by the caller", async () => {
+    const listRow = { ...threadRow, other_name: "Ustadha Maryam", class_group_name: "Autumn cohort", last_body: "See you Tuesday", unread: "2" };
+    const executor = fakeExecutor([{ match: /FROM academy_message_threads t\s+WHERE t\.participant_low_uid = \$1/, rows: [listRow] }]);
+    const [thread] = await comms(executor).listThreads(student);
+    assert.deepEqual(thread.otherParticipant, { uid: "teacher-1", displayName: "Ustadha Maryam" });
+    assert.equal(thread.classGroupName, "Autumn cohort");
+    assert.equal(thread.unread, 2);
+    const query = executor.queries[0];
+    assert.deepEqual(query.values, ["student-1"]);
+    assert.match(query.text, /SELECT p\.full_name FROM profiles p/);
+    assert.doesNotMatch(query.text, /email|phone|whatsapp/i);
+
+    const opened = await comms(fakeExecutor([{ match: /SELECT full_name FROM profiles WHERE firebase_uid/, rows: [{ full_name: "Ustadha Maryam" }] }, ...world()])).getThread(student, THREAD);
+    assert.deepEqual(opened.otherParticipant, { uid: "teacher-1", displayName: "Ustadha Maryam" });
+  });
 });
 
 describe("announcement and notification services", () => {

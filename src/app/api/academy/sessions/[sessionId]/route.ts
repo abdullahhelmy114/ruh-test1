@@ -4,6 +4,13 @@ import { withApi } from "@/lib/api/handler";
 import { PRIVATE_NO_STORE, readCorrelationId, readJsonObject } from "@/lib/academy/http";
 import { participationService } from "@/lib/academy/server";
 
+// One session for its active learners, assigned teachers and administrators.
+export const GET = withApi<{ sessionId: string }>(async (req, ctx) => {
+  const user = await requireAuth(req);
+  const { sessionId } = await ctx.params;
+  return NextResponse.json({ data: await participationService.sessionDetail(user, sessionId) }, { headers: PRIVATE_NO_STORE });
+});
+
 // Start or complete a session ({ action: "start" | "complete", expectedRevision }).
 export const PATCH = withApi<{ sessionId: string }>(async (req, ctx) => {
   const user = await requireAuth(req);

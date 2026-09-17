@@ -256,6 +256,73 @@ describe("participation service", () => {
   });
 });
 
+describe("participant reads for the workspace screens", () => {
+  const teachersRule = { match: /FROM academy_class_group_teachers t\s+LEFT JOIN profiles/, rows: [{ teacher_uid: "teacher-1", full_name: "Ustadha Maryam" }] };
+  const titleRule = { match: /SELECT vl\.title, vl\.summary/, rows: [{ title: "The nominal sentence", summary: null }] };
+  const namesRule = { match: /SELECT e\.learner_uid, max\(p\.full_name\)/, rows: [{ learner_uid: "student-1", full_name: "Amina" }] };
+
+  test("class group detail names the assigned teachers, with names and uids only", async () => {
+    const executor = fakeExecutor([teachersRule, ...world()]);
+    const detail = await participation(executor).classGroupDetail(student, IDS.classGroup);
+    assert.deepEqual(detail.teachers, [{ uid: "teacher-1", displayName: "Ustadha Maryam" }]);
+    const query = participationRepo.selectClassGroupTeachersQuery(IDS.classGroup);
+    assertWellFormed(query);
+    assert.match(query.text, /t\.unassigned_at IS NULL/);
+    assert.doesNotMatch(query.text, /email|phone|whatsapp|country|gender|age|status/i);
+  });
+
+  test("session detail: outsiders are refused before anything else is read; missing looks forbidden", async () => {
+    for (const user of [outsider, otherTeacher]) {
+      const executor = fakeExecutor([titleRule, ...world({ session: [sessionRow()] })]);
+      await rejectsForbidden(participation(executor).sessionDetail(user, IDS.session));
+      assert.equal(executor.queries.some((q) => titleRule.match.test(q.text)), false);
+    }
+    await rejectsForbidden(participation(fakeExecutor(world({ session: [] }))).sessionDetail(student, IDS.session));
+    await rejectsDomain(participation(fakeExecutor(world({ session: [] }))).sessionDetail(admin, IDS.session), "NOT_FOUND");
+  });
+
+  test("session detail: learners get the link while it is ahead, no revision and no staff permissions", async () => {
+    const scheduled = sessionRow({ meeting_url: "https://meet.example.test/abc" });
+    const learnerView = await participation(fakeExecutor([titleRule, ...world({ session: [scheduled] })])).sessionDetail(student, IDS.session);
+    assert.equal(learnerView.session.meetingUrl, "https://meet.example.test/abc");
+    assert.equal(learnerView.session.lessonTitle, "The nominal sentence");
+    assert.equal(learnerView.session.revision, null);
+    assert.deepEqual(learnerView.permissions, { conduct: false, prepare: false, recordAttendance: false });
+
+    const teacherView = await participation(fakeExecutor([titleRule, ...world({ session: [scheduled] })])).sessionDetail(teacher, IDS.session);
+    assert.equal(teacherView.session.revision, 1);
+    assert.deepEqual(teacherView.permissions, { conduct: true, prepare: true, recordAttendance: true });
+
+    const adminView = await participation(fakeExecutor([titleRule, ...world({ session: [scheduled] })])).sessionDetail(admin, IDS.session);
+    assert.deepEqual(adminView.permissions, { conduct: true, prepare: false, recordAttendance: true }, "preparation stays the teacher's own work");
+
+    const completed = sessionRow({ state: "completed", meeting_url: "https://meet.example.test/abc" });
+    const past = await participation(fakeExecutor([titleRule, ...world({ session: [completed] })])).sessionDetail(student, IDS.session);
+    assert.equal(past.session.meetingUrl, null, "no meeting link once the session is over");
+  });
+
+  test("staff attendance lists the markable learners by name and the vocabulary; learners get labels, never the class list", async () => {
+    const staff = await attendance(fakeExecutor([namesRule, ...world()])).sessionAttendance(teacher, IDS.session);
+    assert.ok("learners" in staff);
+    assert.deepEqual(staff.learners, [{ uid: "student-1", displayName: "Amina" }]);
+    assert.deepEqual(staff.vocabulary?.marks.map((m) => m.code), ["present", "absent"]);
+
+    const own = await attendance(fakeExecutor([namesRule, ...world()])).sessionAttendance(student, IDS.session);
+    assert.equal("learners" in own, false);
+    assert.equal(JSON.stringify(own).includes("Amina"), false);
+    assert.equal(own.vocabulary?.marks[0].labels.ar, "حاضر");
+
+    // An unconfigured vocabulary does not break reading; recording still fails closed.
+    const unconfigured = await attendance(fakeExecutor([namesRule, ...world({ policy: [] })])).sessionAttendance(teacher, IDS.session);
+    assert.equal(unconfigured.vocabulary, null);
+
+    const query = participationRepo.selectEligibleLearnerNamesQuery(IDS.classGroup, "2026-10-05T16:00:00Z", "2026-10-05T17:30:00Z");
+    assertWellFormed(query);
+    assert.doesNotMatch(query.text, /email|phone|whatsapp|country|gender|age/i);
+    assert.match(query.text, /activated_at <= \$\d+::timestamptz[\s\S]*ended_at >= \$\d+::timestamptz/);
+  });
+});
+
 describe("attendance service", () => {
   test("teachers record marks from the configured vocabulary in one audited transaction", async () => {
     const executor = fakeExecutor(world());

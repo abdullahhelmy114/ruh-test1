@@ -34,10 +34,16 @@ export function selectThreadByPairQuery(low: string, high: string, classGroupId:
   };
 }
 
-/** The caller's conversations, newest activity first, with a preview and unread count. */
+/**
+ * The caller's conversations, newest activity first, with a preview, unread
+ * count, the other participant's display name and the class group's name.
+ */
 export function listUserThreadsQuery(uid: string): SqlQuery {
   return {
     text: `SELECT t.id, t.participant_low_uid, t.participant_high_uid, t.class_group_id, t.created_by, t.created_at, t.last_message_at,
+        (SELECT p.full_name FROM profiles p
+          WHERE p.firebase_uid = CASE WHEN t.participant_low_uid = $1 THEN t.participant_high_uid ELSE t.participant_low_uid END) AS other_name,
+        (SELECT cg.name FROM academy_class_groups cg WHERE cg.id = t.class_group_id) AS class_group_name,
         (SELECT m.body FROM academy_messages m WHERE m.thread_id = t.id ORDER BY m.created_at DESC, m.id DESC LIMIT 1) AS last_body,
         (SELECT count(*) FROM academy_messages m
           WHERE m.thread_id = t.id AND m.sender_uid <> $1
@@ -49,6 +55,11 @@ export function listUserThreadsQuery(uid: string): SqlQuery {
       LIMIT 200`,
     values: [uid],
   };
+}
+
+/** A conversation partner's display name (never contact details). */
+export function selectDisplayNameQuery(uid: string): SqlQuery {
+  return sqlQuery`SELECT full_name FROM profiles WHERE firebase_uid = ${uid}`;
 }
 
 export function insertThreadQuery(thread: ThreadRecord): SqlQuery {

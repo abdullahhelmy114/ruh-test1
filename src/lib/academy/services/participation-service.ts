@@ -13,8 +13,10 @@ import type { SqlRow } from "../infra/sql.ts";
 import { authorize, evaluateAccess, type RelationshipFacts } from "../permissions/permissions.ts";
 import { mapOutline, selectOutlineLessonsQuery, selectOutlineUnitsQuery } from "../repo/curriculum-repo.ts";
 import { mapClassGroupRow, mapSessionRow, selectClassGroupQuery, selectSessionQuery, updateSessionQuery } from "../repo/delivery-repo.ts";
+import { selectLessonTitleQuery } from "../repo/lesson-repo.ts";
 import {
   selectClassGroupSessionsWithTitlesQuery,
+  selectClassGroupTeachersQuery,
   selectCourseTitleQuery,
   selectLearnerClassGroupsQuery,
   selectLearnerUpcomingSessionsQuery,
@@ -118,11 +120,12 @@ export function createParticipationService(deps: ParticipationDeps) {
       assertAcademyCoreAvailable(deps.flags);
       const group = await loadVisibleClassGroup(user, classGroupId);
       await authorize(user, { action: "class_group.view", courseId: group.courseId, classGroupId: group.id }, facts);
-      const [courseRows, unitRows, lessonRows, sessionRows] = await Promise.all([
+      const [courseRows, unitRows, lessonRows, sessionRows, teacherRows] = await Promise.all([
         executor.query(selectCourseTitleQuery(group.courseId)),
         executor.query(selectOutlineUnitsQuery(group.curriculumVersionId)),
         executor.query(selectOutlineLessonsQuery(group.curriculumVersionId)),
         executor.query(selectClassGroupSessionsWithTitlesQuery(group.id)),
+        executor.query(selectClassGroupTeachersQuery(group.id)),
       ]);
       const outline = mapOutline(unitRows, lessonRows);
       return {
@@ -141,6 +144,47 @@ export function createParticipationService(deps: ParticipationDeps) {
         })),
         // authorize() above admitted only active learners, assigned teachers and administrators.
         sessions: sessionRows.map((row) => sessionSummary(row, true)),
+        // Names only: the uid is what a participant needs to open a conversation.
+        teachers: teacherRows.map((row) => ({ uid: str(row.teacher_uid), displayName: strOrNull(row.full_name) })),
+      };
+    },
+
+    /**
+     * One session for its participants: when and what, the meeting link while
+     * it is ahead or live, and which session actions the caller may take (the
+     * same decisions the write endpoints enforce).
+     */
+    async sessionDetail(user: AuthUser, sessionId: unknown) {
+      assertAcademyCoreAvailable(deps.flags);
+      const id = parseUuid(sessionId, "sessionId");
+      const session = await loadOptional(executor, selectSessionQuery(id), mapSessionRow);
+      if (!session) {
+        if (user.role === "admin") throw new DomainError("NOT_FOUND", "Session not found.");
+        throw new AuthError("FORBIDDEN");
+      }
+      const group = await loadVisibleClassGroup(user, session.classGroupId);
+      await authorize(user, { action: "class_group.view", courseId: group.courseId, classGroupId: group.id }, facts);
+      const [titleRows, conduct, prepare] = await Promise.all([
+        executor.query(selectLessonTitleQuery(session.lessonId, session.curriculumVersionId)),
+        evaluateAccess(user, { action: "session.conduct", classGroupId: group.id }, facts),
+        evaluateAccess(user, { action: "session.prepare", classGroupId: group.id }, facts),
+      ]);
+      const live = session.state === "scheduled" || session.state === "live";
+      return {
+        session: {
+          id: session.id,
+          classGroupId: group.id,
+          lessonId: session.lessonId,
+          lessonTitle: titleRows[0] ? str(titleRows[0].title) : null,
+          startsAt: session.startsAt,
+          endsAt: session.endsAt,
+          state: session.state,
+          meetingUrl: live ? session.meetingUrl : null,
+          // Staff need the revision to start or complete the session.
+          revision: conduct.allowed ? session.revision : null,
+        },
+        classGroup: { id: group.id, name: group.name, courseId: group.courseId },
+        permissions: { conduct: conduct.allowed, prepare: prepare.allowed, recordAttendance: conduct.allowed },
       };
     },
 

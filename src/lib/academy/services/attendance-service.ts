@@ -15,16 +15,18 @@ import { parseMarks, planRecordAttendance, summariseAttendance, type AttendanceR
 import { authorize, type RelationshipFacts } from "../permissions/permissions.ts";
 import { mapCourseRow, selectCourseQuery } from "../repo/catalog-repo.ts";
 import { mapClassGroupRow, mapSessionRow, selectClassGroupQuery, selectSessionQuery } from "../repo/delivery-repo.ts";
+import type { AttendanceVocabulary } from "../policies/registry.ts";
 import {
   insertAttendanceQuery,
   mapAttendanceRow,
+  selectEligibleLearnerNamesQuery,
   selectEligibleLearnersQuery,
   selectOwnClassGroupAttendanceQuery,
   selectOwnSessionAttendanceQuery,
   selectSessionAttendanceQuery,
   updateAttendanceQuery,
 } from "../repo/participation-repo.ts";
-import { iso, str } from "../repo/rows.ts";
+import { iso, str, strOrNull } from "../repo/rows.ts";
 import { effectivePolicy } from "./policy-lookup.ts";
 import { audited, contextFor, loadMany, loadOptional, loadRequired, runGuarded, type ServiceDeps } from "./support.ts";
 
@@ -44,10 +46,22 @@ export function createAttendanceService(deps: AttendanceDeps) {
     return session;
   }
 
+  /** The mark vocabulary to display, or null while the academy has not configured it (recording then fails closed). */
+  async function displayVocabulary(courseId: string): Promise<AttendanceVocabulary | null> {
+    const course = await loadRequired(executor, selectCourseQuery(courseId), mapCourseRow, "Course not found.");
+    try {
+      return await effectivePolicy(executor, "attendance.vocabulary", { programId: course.programId, courseId: course.id });
+    } catch (error) {
+      if (error instanceof DomainError && error.code === "POLICY_UNCONFIGURED") return null;
+      throw error;
+    }
+  }
+
   return {
     /**
-     * Teachers and administrators: every mark for the session plus the mark vocabulary.
-     * Learners: only their own mark.
+     * Teachers and administrators: every mark for the session, the learners who
+     * can be marked (names only) and the mark vocabulary.
+     * Learners: only their own mark, with the vocabulary to read it.
      */
     async sessionAttendance(user: AuthUser, sessionId: unknown) {
       assertAcademyCoreAvailable(deps.flags);
@@ -55,12 +69,26 @@ export function createAttendanceService(deps: AttendanceDeps) {
       if (user.role === "student") {
         const group = await loadRequired(executor, selectClassGroupQuery(session.classGroupId), mapClassGroupRow, "Class group not found.");
         await authorize(user, { action: "class_group.view", courseId: group.courseId, classGroupId: group.id }, facts);
-        const own = await loadMany(executor, selectOwnSessionAttendanceQuery(session.id, user.uid), mapAttendanceRow);
-        return { sessionId: session.id, records: own.map(learnerView) };
+        const [own, vocabulary] = await Promise.all([
+          loadMany(executor, selectOwnSessionAttendanceQuery(session.id, user.uid), mapAttendanceRow),
+          displayVocabulary(group.courseId),
+        ]);
+        return { sessionId: session.id, records: own.map(learnerView), vocabulary };
       }
       await authorize(user, { action: "attendance.record", classGroupId: session.classGroupId }, facts);
-      const records = await loadMany(executor, selectSessionAttendanceQuery(session.id), mapAttendanceRow);
-      return { sessionId: session.id, records };
+      const group = await loadRequired(executor, selectClassGroupQuery(session.classGroupId), mapClassGroupRow, "Class group not found.");
+      const [records, learnerRows, vocabulary] = await Promise.all([
+        loadMany(executor, selectSessionAttendanceQuery(session.id), mapAttendanceRow),
+        executor.query(selectEligibleLearnerNamesQuery(session.classGroupId, session.startsAt, session.endsAt)),
+        displayVocabulary(group.courseId),
+      ]);
+      return {
+        sessionId: session.id,
+        sessionState: session.state,
+        records,
+        learners: learnerRows.map((row) => ({ uid: str(row.learner_uid), displayName: strOrNull(row.full_name) })),
+        vocabulary,
+      };
     },
 
     async recordAttendance(

@@ -45,6 +45,7 @@ import {
   markAllNotificationsReadQuery,
   markNotificationReadQuery,
   selectAnnouncementQuery,
+  selectDisplayNameQuery,
   selectThreadByPairQuery,
   selectThreadQuery,
   touchThreadQuery,
@@ -130,9 +131,12 @@ export function createCommunicationService(deps: CommunicationDeps) {
       return rows.map((row) => {
         const thread = mapThreadRow(row);
         const body = strOrNull(row.last_body);
+        const otherUid = otherParticipant(thread, user.uid);
         return {
           ...thread,
-          otherParticipantUid: otherParticipant(thread, user.uid),
+          otherParticipantUid: otherUid,
+          otherParticipant: { uid: otherUid, displayName: strOrNull(row.other_name) },
+          classGroupName: strOrNull(row.class_group_name),
           lastMessagePreview: body === null ? null : body.slice(0, 140),
           unread: num(row.unread),
         };
@@ -156,8 +160,17 @@ export function createCommunicationService(deps: CommunicationDeps) {
       assertAcademyCoreAvailable(deps.flags);
       const thread = await loadOwnThread(user, threadId);
       const before = options.before === undefined || options.before === null || options.before === "" ? null : parseInstant(options.before, "before");
-      const messages = await loadMany(executor, listThreadMessagesQuery(thread.id, before, 50), mapMessageRow);
-      return { thread, otherParticipantUid: otherParticipant(thread, user.uid), messages };
+      const otherUid = otherParticipant(thread, user.uid);
+      const [messages, nameRows] = await Promise.all([
+        loadMany(executor, listThreadMessagesQuery(thread.id, before, 50), mapMessageRow),
+        executor.query(selectDisplayNameQuery(otherUid)),
+      ]);
+      return {
+        thread,
+        otherParticipantUid: otherUid,
+        otherParticipant: { uid: otherUid, displayName: nameRows[0] ? strOrNull(nameRows[0].full_name) : null },
+        messages,
+      };
     },
 
     async sendMessage(user: AuthUser, threadId: unknown, input: { readonly body: unknown }) {
