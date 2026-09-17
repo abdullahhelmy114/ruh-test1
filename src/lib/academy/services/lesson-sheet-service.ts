@@ -36,8 +36,6 @@ import {
 } from "../lessons/preparation.ts";
 import { sheetAvailability, type SheetAvailability } from "../lessons/release.ts";
 import { authorize, authorizeAdminAction, type RelationshipFacts } from "../permissions/permissions.ts";
-import { getPolicyDefinition } from "../policies/registry.ts";
-import { requirePolicyValue, resolvePolicy } from "../policies/resolver.ts";
 import { expectRows } from "../repo/audit-repo.ts";
 import { listAssignmentsQuery, mapAssignmentRow, mapClassGroupRow, mapSessionRow, selectClassGroupQuery, selectSessionQuery } from "../repo/delivery-repo.ts";
 import {
@@ -63,9 +61,9 @@ import {
   updatePreparationQuery,
   type LessonScriptVersionRecord,
 } from "../repo/lesson-repo.ts";
-import { mapPolicyValueRow, selectPolicyValuesForTargetQuery, type PolicyValueRow } from "../repo/policy-repo.ts";
 import { iso, str, strOrNull } from "../repo/rows.ts";
 import type { ClassGroupRecord } from "../structure/delivery.ts";
+import { academyTimeZone } from "./policy-lookup.ts";
 import { loadMany, loadOptional, runGuarded, type ServiceDeps } from "./support.ts";
 
 export interface LessonSheetDeps extends ServiceDeps {
@@ -90,13 +88,7 @@ const NOT_YET = "This Lesson Sheet is not available yet.";
 export function createLessonSheetService(deps: LessonSheetDeps) {
   const { executor, facts } = deps;
   const now = () => (deps.clock ?? systemClock)();
-
-  async function academyTimeZone(): Promise<string> {
-    const definition = getPolicyDefinition("institution.timezone");
-    const target = { programId: null, courseId: null };
-    const rows = await executor.query(selectPolicyValuesForTargetQuery(definition.key, target));
-    return requirePolicyValue(resolvePolicy(definition, rows.map((row) => mapPolicyValueRow(row as unknown as PolicyValueRow)), target));
-  }
+  const timeZone = () => academyTimeZone(executor);
 
   /** Loads a class group; for non-administrators an unknown group is indistinguishable from a forbidden one. */
   async function loadClassGroupFor(user: AuthUser, classGroupId: unknown): Promise<ClassGroupRecord> {
@@ -118,13 +110,13 @@ export function createLessonSheetService(deps: LessonSheetDeps) {
     const sessions = await lessonSessions(classGroupId, lessonId);
     if (user.role === "admin") {
       try {
-        return sheetAvailability(sessions, await academyTimeZone(), now());
+        return sheetAvailability(sessions, await timeZone(), now());
       } catch (error) {
         if (error instanceof DomainError && error.code === "POLICY_UNCONFIGURED") return null;
         throw error;
       }
     }
-    const availability = sheetAvailability(sessions, await academyTimeZone(), now());
+    const availability = sheetAvailability(sessions, await timeZone(), now());
     if (availability.status !== "released") throw new DomainError("NOT_YET_AVAILABLE", NOT_YET);
     return availability;
   }
@@ -189,7 +181,7 @@ export function createLessonSheetService(deps: LessonSheetDeps) {
       assertAcademyCoreAvailable(deps.flags);
       const group = await loadClassGroupFor(user, classGroupId);
       await authorize(user, { action: "lesson_sheet.read", courseId: group.courseId, classGroupId: group.id }, facts);
-      const timeZone = await academyTimeZone();
+      const zone = await timeZone();
       const rows = await executor.query(selectClassGroupSheetSessionsQuery(group.id));
       const byLesson = new Map<string, { title: string; sessions: { startsAt: string; state: string }[] }>();
       for (const row of rows) {
@@ -205,7 +197,7 @@ export function createLessonSheetService(deps: LessonSheetDeps) {
           lessonId,
           lessonTitle: entry.title,
           firstSessionStartsAt: upcoming[0] ?? null,
-          availability: sheetAvailability(entry.sessions, timeZone, at),
+          availability: sheetAvailability(entry.sessions, zone, at),
         };
       });
     },

@@ -36,6 +36,7 @@ export interface RelationshipFacts {
 
 export type AccessRequest =
   | { readonly action: "course.read_content"; readonly courseId: string; readonly classGroupId?: string | null }
+  | { readonly action: "class_group.view"; readonly courseId: string; readonly classGroupId: string }
   | { readonly action: "lesson_sheet.read"; readonly courseId: string; readonly classGroupId?: string | null }
   | { readonly action: "annotation.create"; readonly courseId: string; readonly classGroupId?: string | null }
   | { readonly action: "annotation.read"; readonly ownerUid: string }
@@ -159,6 +160,10 @@ export async function evaluateAccess(
     case "course.read_content":
     case "lesson_sheet.read":
     case "annotation.create":
+      return classGroupScopedForCourse(user, request.courseId, request.classGroupId, facts);
+
+    case "class_group.view":
+      if (!nonEmpty(request.classGroupId)) return deny("invalid");
       return classGroupScopedForCourse(user, request.courseId, request.classGroupId, facts);
 
     case "annotation.read":

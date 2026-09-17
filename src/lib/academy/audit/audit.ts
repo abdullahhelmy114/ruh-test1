@@ -84,6 +84,9 @@ export const AUDIT_ACTIONS = {
   // Lesson scripts (canonical Lesson Sheet content)
   "lesson_script.create": { impact: "standard", reasonRequired: false },
   "lesson_script_version.save_content": { impact: "standard", reasonRequired: false },
+  // Attendance
+  "attendance.record": { impact: "standard", reasonRequired: false },
+  "attendance.correct": { impact: "high", reasonRequired: true },
 } as const satisfies Record<string, AuditActionDefinition>;
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;

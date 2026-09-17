@@ -30,7 +30,14 @@ describe("academy participant routes", () => {
       "class-groups/[classGroupId]/lesson-sheets/[lessonId]/annotations/route.ts",
       "class-groups/[classGroupId]/lesson-sheets/[lessonId]/route.ts",
       "class-groups/[classGroupId]/lesson-sheets/route.ts",
+      "class-groups/[classGroupId]/roster/route.ts",
+      "class-groups/[classGroupId]/route.ts",
+      "me/attendance/route.ts",
+      "me/learning/route.ts",
+      "me/teaching/route.ts",
+      "sessions/[sessionId]/attendance/route.ts",
       "sessions/[sessionId]/preparation/route.ts",
+      "sessions/[sessionId]/route.ts",
     ]);
   });
 
@@ -62,7 +69,13 @@ describe("academy participant routes", () => {
       assert.doesNotMatch(src, /user\.role\s*===|releaseAt|sheetAvailability/, "routes must not make access or release decisions");
       assert.doesNotMatch(src, /error\.message|err\.message|e\.message|catch\s*\(/);
       assert.doesNotMatch(src, /runtime\s*=\s*["']edge["']/);
-      assert.match(src, /= await ctx\.params;/);
+      if (rel.includes("[")) {
+        assert.match(src, /= await ctx\.params;/);
+        assert.doesNotMatch(src, /ctx\.params\.\w+/);
+      }
+      if (rel.startsWith("me/")) {
+        assert.doesNotMatch(src, /readStringParam\(req, "(uid|learnerUid|teacherUid|userId)"\)/, "'me' routes act only on the caller");
+      }
     });
 
     test(`${rel}: every response is marked private and not storable`, () => {
