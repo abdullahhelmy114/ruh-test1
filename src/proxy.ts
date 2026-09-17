@@ -1,8 +1,8 @@
-// src/middleware.ts
+// src/proxy.ts (Next 16 renamed the Middleware convention to Proxy; behaviour is unchanged)
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
 
   // ترقية HTTP إلى HTTPS

@@ -135,6 +135,19 @@ describe("framework and presentation", () => {
     assert.deepEqual(offenders, []);
   });
 
+  test("the production build type-checks and uses the Next 16 proxy convention", () => {
+    const config = readFileSync(join(ROOT, "next.config.ts"), "utf8");
+    assert.match(config, /typescript: \{\s*ignoreBuildErrors: false,\s*\}/);
+    assert.doesNotMatch(config, /ignoreBuildErrors: true|ignoreDuringBuilds/);
+    const tsconfig = readFileSync(join(ROOT, "tsconfig.json"), "utf8");
+    assert.match(tsconfig, /"\*\*\/\*\.ts",\s*"\*\*\/\*\.tsx"/, "the type check covers every TypeScript file");
+    assert.match(tsconfig, /"exclude": \["node_modules"\]/, "nothing but dependencies is excluded");
+    assert.doesNotMatch(tsconfig, /"(?:skipLibCheck|strict)": false|"noImplicitAny": false/);
+    assert.equal(statSync(join(ROOT, "src", "proxy.ts")).isFile(), true);
+    assert.throws(() => statSync(join(ROOT, "src", "middleware.ts")), "the deprecated middleware file is gone");
+    assert.match(readFileSync(join(ROOT, "src", "proxy.ts"), "utf8"), /export function proxy\(request: NextRequest\)/);
+  });
+
   test("academy public pages use theme tokens so dark mode works", () => {
     for (const path of walk(join(ROOT, "src", "app", "academy"))) {
       const src = readFileSync(path, "utf8");

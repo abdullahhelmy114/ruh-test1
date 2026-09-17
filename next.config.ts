@@ -67,8 +67,9 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   // تمت إزالة redirects لتجنب حلقة إعادة التوجيه اللانهائية
   // async redirects() { ... },
+  // The build type-checks the whole project (tests/academy/launch-closure.test.ts keeps it that way).
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   experimental: {
     memoryBasedWorkersCount: true,
