@@ -109,7 +109,16 @@ function approvedDeletionGate(subject: EntityRef = COURSE): ApprovalGate {
 }
 
 describe("permanent deletion", () => {
-  const deleted = softDelete(live, COURSE, { actor: admin, reason: "Duplicate" }).record;
+  // Deleted the day before the gate is requested (FIXED).
+  const deleted = softDelete(live, COURSE, { actor: admin, reason: "Duplicate", clock: () => new Date("2026-09-16T09:00:00.000Z") }).record;
+
+  test("a gate requested before the current deletion does not carry over after a restore", () => {
+    const gate = approvedDeletionGate();
+    const restored = restoreSoftDeleted(deleted, COURSE, { actor: admin2, reason: "Deleted by mistake" }).record;
+    const deletedAgain = softDelete(restored, COURSE, { actor: admin, reason: "Duplicate after all", clock: () => new Date("2026-09-18T09:00:00.000Z") }).record;
+    expectCode(() => planPermanentDeletion(deletedAgain, COURSE, gate, { actor: admin, reason: "Cleanup" }), "APPROVAL_REQUIRED");
+    assert.doesNotThrow(() => planPermanentDeletion(deleted, COURSE, gate, { actor: admin, reason: "Cleanup" }));
+  });
 
   test("requires the record to be soft-deleted first", () => {
     expectCode(() => planPermanentDeletion(live, COURSE, approvedDeletionGate(), { actor: admin, reason: "Cleanup" }), "CONFLICT");

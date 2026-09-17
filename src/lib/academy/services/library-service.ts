@@ -94,7 +94,7 @@ export function createLibraryService(deps: LibraryDeps) {
         { ...input, course, book, existing, courseLessonIds: new Set(lessonRows.map((row) => str(row.lesson_id))) },
         contextFor(user, deps, input.correlationId),
       );
-      await runGuarded(executor, [audited(deps, insertCourseResourceQuery(plan.record), plan.audit)]);
+      await runGuarded(executor, [audited(deps, insertCourseResourceQuery(plan.record), plan.audit)], { unique: "This reading is already linked." });
       return plan.record;
     },
 

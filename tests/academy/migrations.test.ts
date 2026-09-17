@@ -148,6 +148,83 @@ describe("academy migrations", () => {
     }
   });
 
+  test("the chain is coherent: foreign keys and trigger functions refer only to objects created earlier", () => {
+    const tables = new Set<string>();
+    const functions = new Set<string>();
+    let references = 0;
+    let triggers = 0;
+    for (const file of upFiles) {
+      for (const statement of statements(read(join(MIGRATIONS, file)))) {
+        const created = /^CREATE TABLE (academy_[a-z0-9_]+)/.exec(statement)?.[1];
+        for (const match of statement.matchAll(/\bREFERENCES (academy_[a-z0-9_]+)/g)) {
+          references++;
+          assert.ok(tables.has(match[1]) || match[1] === created, `${file}: ${match[1]} is referenced before a migration creates it`);
+        }
+        for (const match of statement.matchAll(/EXECUTE FUNCTION (academy_[a-z0-9_]+)/g)) {
+          triggers++;
+          assert.ok(functions.has(match[1]), `${file}: ${match[1]} is used before a migration creates it`);
+        }
+        if (created) tables.add(created);
+        const fn = /^CREATE FUNCTION (academy_[a-z0-9_]+)/.exec(statement)?.[1];
+        if (fn) functions.add(fn);
+      }
+    }
+    assert.ok(references >= 60, `only ${references} references checked; the check would be vacuous`);
+    assert.ok(triggers >= 5, `only ${triggers} trigger functions checked`);
+  });
+
+  for (const name of downFiles) {
+    test(`${name}: warns about data loss and drops referencing tables before the tables they reference`, () => {
+      const text = read(join(MIGRATIONS, name));
+      assert.match(text, /Data loss warning/, "a rollback destroys data and must say so");
+      const up = statements(read(join(MIGRATIONS, name.replace(".down.sql", ".up.sql"))));
+      const dropOrder = statements(text)
+        .map((s) => /^DROP TABLE IF EXISTS (academy_[a-z0-9_]+)$/.exec(s)?.[1])
+        .filter((table): table is string => Boolean(table));
+      for (const statement of up) {
+        const table = /^CREATE TABLE (academy_[a-z0-9_]+)/.exec(statement)?.[1];
+        if (!table) continue;
+        for (const match of statement.matchAll(/\bREFERENCES (academy_[a-z0-9_]+)/g)) {
+          if (match[1] === table || !dropOrder.includes(match[1])) continue;
+          assert.ok(dropOrder.indexOf(table) < dropOrder.indexOf(match[1]), `${table} must be dropped before ${match[1]}`);
+        }
+      }
+    });
+  }
+
+  test("the uniqueness the services rely on for concurrency is declared in the schema", () => {
+    const schema = stripSql(upFiles.map((file) => read(join(MIGRATIONS, file))).join("\n")).replace(/\s+/g, " ");
+    const expected: Record<string, RegExp> = {
+      // one open enrollment per learner per class group (enroll / capacity)
+      academy_enrollments_open_uq: /ON academy_enrollments \(class_group_id, learner_uid\) WHERE state IN \('pending', 'active', 'suspended'\)/,
+      academy_class_group_teachers_active_uq: /ON academy_class_group_teachers \(class_group_id, teacher_uid\) WHERE unassigned_at IS NULL/,
+      // attempts: one in progress, and attempt numbers never repeat (attempt limits under concurrency)
+      academy_assessment_attempts_one_open_uq: /ON academy_assessment_attempts \(assignment_id, learner_uid\) WHERE state = 'in_progress'/,
+      academy_assessment_attempts_number_uq: /UNIQUE \(assignment_id, learner_uid, attempt_number\)/,
+      academy_completions_enrollment_uq: /ON academy_completions \(enrollment_id\)/,
+      academy_certificates_one_issued_uq: /ON academy_certificates \(enrollment_id\) WHERE state = 'issued'/,
+      academy_certificates_code_uq: /ON academy_certificates \(code\)/,
+      academy_approval_gates_one_open_uq: /ON academy_approval_gates \( gate_type, subject_kind, subject_id, COALESCE\(subject_version_id,[^)]*\)\) WHERE state = 'open'/,
+      academy_approval_decisions_one_per_person: /UNIQUE \(gate_id, decided_by\)/,
+      academy_attendance_records_one_per_learner: /UNIQUE \(session_id, learner_uid\)/,
+      academy_notifications_source_uq: /ON academy_notifications \(recipient_uid, kind, source_id\)/,
+      academy_message_threads_pair_uq: /ON academy_message_threads \( participant_low_uid, participant_high_uid,/,
+      academy_content_links_active_uq: /ON academy_content_links \(item_id, target_kind, target_id, purpose\) WHERE removed_at IS NULL/,
+      academy_remediation_assignments_open_uq: /ON academy_remediation_assignments \(class_group_id, learner_uid, item_id\) WHERE state = 'assigned'/,
+      academy_course_resources_active_uq: /ON academy_course_resources \( course_id, library_book_id,[^;]*WHERE removed_at IS NULL/,
+    };
+    for (const kind of ["curriculum_versions", "lesson_script_versions", "assessment_versions", "content_item_versions"]) {
+      expected[`academy_${kind}_one_working_uq`] = new RegExp(`ON academy_${kind} \\(\\w+\\) WHERE state IN \\('draft', 'in_review', 'changes_requested', 'approved'\\)`);
+      expected[`academy_${kind}_one_published_uq`] = new RegExp(`ON academy_${kind} \\(\\w+\\) WHERE state = 'published'`);
+    }
+    for (const [name, definition] of Object.entries(expected)) {
+      const declared = new RegExp(`(?:CREATE UNIQUE INDEX ${name} |CONSTRAINT ${name} )`).exec(schema);
+      assert.ok(declared, `${name} is not declared`);
+      const rest = schema.slice(declared.index, declared.index + 400);
+      assert.match(rest, definition, `${name} does not guard what the services rely on`);
+    }
+  });
+
   test("policy values have no class-group scope", () => {
     const text = read(join(MIGRATIONS, "0001_academy_governance_foundation.up.sql"));
     assert.match(text, /scope IN \('academy', 'program', 'course'\)/);

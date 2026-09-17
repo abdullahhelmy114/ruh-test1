@@ -114,7 +114,11 @@ export function planPermanentDeletion(
   if (!isSoftDeleted(record)) {
     throw new DomainError("CONFLICT", "Only an item that is already deleted can be permanently removed.");
   }
-  assertGateApproved(gate, { type: "permanent_deletion", subject, subjectVersionId: null });
+  // The request must follow the current deletion. A gate approved while the
+  // record was deleted before (and later restored) does not carry over.
+  const deletedAt = Date.parse(record.deletedAt as string);
+  const current = gate !== null && Date.parse(gate.requestedAt) >= deletedAt ? gate : null;
+  assertGateApproved(current, { type: "permanent_deletion", subject, subjectVersionId: null });
   const reason = requireReason(ctx.reason);
   return {
     actor: ctx.actor,

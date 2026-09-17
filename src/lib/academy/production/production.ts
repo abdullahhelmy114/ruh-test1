@@ -335,7 +335,20 @@ export function assertPublishable(
   if (stored.content === null || stored.content === undefined) throw new DomainError("CONFLICT", "Add content before publishing.");
   if (!stored.provenance) throw new DomainError("CONFLICT", "Record provenance before publishing.");
   if (stored.provenance.rightsStatus !== "cleared") throw new DomainError("CONFLICT", "Rights must be cleared before publishing.");
-  const approved = gates.find((gate) => gate.state === "approved" && gate.type === "publication" && gate.subjectVersionId === version.id) ?? null;
+  // The gate must have been requested for the version as it was last approved.
+  // A version can be unapproved, sent back for changes, edited and approved
+  // again under the same id; a gate decided before that last approval did not
+  // see the current content and does not authorise publishing it.
+  const approvedAt = version.reviewedAt ? Date.parse(version.reviewedAt) : Number.NaN;
+  const approved =
+    gates.find(
+      (gate) =>
+        gate.state === "approved" &&
+        gate.type === "publication" &&
+        gate.subjectVersionId === version.id &&
+        !Number.isNaN(approvedAt) &&
+        Date.parse(gate.requestedAt) >= approvedAt,
+    ) ?? null;
   assertGateApproved(approved, { type: "publication", subject: { kind: "content_item", id: item.id }, subjectVersionId: version.id });
 }
 

@@ -188,7 +188,7 @@ describe("libraries, factories, runs and items", () => {
 
 describe("human publication gate", () => {
   const item = { id: ITEM, libraryId: LIBRARY, kind: "activity" as ContentKind, title: "Nouns", productionRunId: null, createdBy: "admin-1", createdAt: "2026-09-01T00:00:00Z" };
-  const version = { id: VERSION, parentId: ITEM, state: "approved" } as ContentItemVersionRecord;
+  const version = { id: VERSION, parentId: ITEM, state: "approved", reviewedAt: "2026-08-31T12:00:00Z" } as ContentItemVersionRecord;
   const approvedGate: ApprovalGate = {
     id: "af000000-0000-4000-8000-000000000001", type: "publication", subject: { kind: "content_item", id: ITEM }, subjectVersionId: VERSION, state: "approved",
     requestedBy: "admin-1", requestedAt: "2026-09-01T00:00:00Z", resolvedAt: "2026-09-02T00:00:00Z", requiredApprovals: 1, eligibleRoles: ["admin"], allowSelfApproval: false,
@@ -204,6 +204,18 @@ describe("human publication gate", () => {
     expectDomain(() => assertPublishable(item, version, { content: ACTIVITY, provenance }, [{ ...approvedGate, state: "open" }]), "APPROVAL_REQUIRED");
     expectDomain(() => assertPublishable(item, version, { content: ACTIVITY, provenance }, [{ ...approvedGate, subjectVersionId: "af000000-0000-4000-8000-000000000009" }]), "APPROVAL_REQUIRED");
     expectDomain(() => assertPublishable(item, version, { content: ACTIVITY, provenance }, [{ ...approvedGate, type: "rights_clearance" }]), "APPROVAL_REQUIRED");
+  });
+
+  test("a gate decided before the version's latest approval does not authorise publishing edited content", () => {
+    // Gate approved on 1-2 Sep; the version was then unapproved, changed and approved again on 5 Sep under the same id.
+    const reapproved = { ...version, reviewedAt: "2026-09-05T09:00:00Z" } as ContentItemVersionRecord;
+    expectDomain(() => assertPublishable(item, reapproved, { content: ACTIVITY, provenance }, [approvedGate]), "APPROVAL_REQUIRED");
+    // A gate requested for the re-approved content authorises it.
+    const fresh = { ...approvedGate, id: "af000000-0000-4000-8000-000000000002", requestedAt: "2026-09-05T09:30:00Z", resolvedAt: "2026-09-06T00:00:00Z" };
+    assert.doesNotThrow(() => assertPublishable(item, reapproved, { content: ACTIVITY, provenance }, [approvedGate, fresh]));
+    // An approved version without a recorded approval time fails closed.
+    const unrecorded = { ...version, reviewedAt: null } as ContentItemVersionRecord;
+    expectDomain(() => assertPublishable(item, unrecorded, { content: ACTIVITY, provenance }, [approvedGate]), "APPROVAL_REQUIRED");
   });
 });
 
@@ -356,7 +368,7 @@ describe("production services", () => {
   });
 
   test("publication without an approved gate is refused before writing", async () => {
-    const approved = versionRow({ state: "approved", revision: 3, published_at: null, published_by: null });
+    const approved = versionRow({ state: "approved", revision: 3, published_at: null, published_by: null, reviewed_at: "2026-08-31T00:00:00Z" });
     const executor = fakeExecutor(world({ version: [approved], versions: [approved] }));
     await rejectsDomain(production(executor).publish(admin, VERSION, { expectedRevision: 3 }), "APPROVAL_REQUIRED");
     assert.equal(executor.transactions.length, 0);

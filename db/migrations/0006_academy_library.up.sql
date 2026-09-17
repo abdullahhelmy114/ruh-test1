@@ -49,6 +49,14 @@ CREATE TABLE academy_course_resources (
   )
 );
 
+-- One active link per course, book, lesson and page range, so two concurrent
+-- additions of the same reading cannot both succeed.
+CREATE UNIQUE INDEX academy_course_resources_active_uq
+  ON academy_course_resources (
+    course_id, library_book_id,
+    COALESCE(lesson_id, '00000000-0000-0000-0000-000000000000'::uuid),
+    COALESCE(pages_from, 0), COALESCE(pages_to, 0))
+  WHERE removed_at IS NULL;
 CREATE INDEX academy_course_resources_course_idx ON academy_course_resources (course_id) WHERE removed_at IS NULL;
 CREATE INDEX academy_course_resources_book_idx ON academy_course_resources (library_book_id) WHERE removed_at IS NULL;
 
