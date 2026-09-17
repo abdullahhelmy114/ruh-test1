@@ -69,6 +69,8 @@ describe("legacy direct-message authorization", () => {
     const route = readFileSync(join(import.meta.dirname, "..", "..", "src", "app", "api", "messages", "route.ts"), "utf8");
     assert.match(route, /SELECT role, status FROM profiles WHERE firebase_uid = \$\{uid\}/);
     assert.match(route, /return sessionRoleFor\(role as Role, /);
+    // Nor do they read received messages (a deactivated teacher loses learners' messages at once).
+    assert.match(route, /export const GET = withApi\(async \(req\) => \{\s*const user = await requireAuth\(req\);\s*if \(user\.role === 'applicant'\) throw new AuthError\('FORBIDDEN'\);/);
   });
 
   test("an unknown recipient is refused exactly like a forbidden one", async () => {

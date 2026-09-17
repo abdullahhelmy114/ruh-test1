@@ -42,11 +42,24 @@ Executed on 2026-09-17 through the Playwright MCP browser against the local buil
 
 ## Blocked: signed-in flows
 
-`browser/signed-in-flows.spec.mjs` covers the learner (home on a phone, a Lesson Sheet before release fetching no content, a private note on a released sheet, submitting an attempt with no answer keys in any response, no access to administration or another learner's attempt), the teacher (teaching home, review tab, attendance and private preparation notes) and the administrator (overview at 768px, creating a program at 1024px and finding it in the audit trail, policies without a class-group level). Each test skips with the names of the variables it is missing.
+`browser/signed-in-flows.spec.mjs` covers the learner (home on a phone, a Lesson Sheet before release fetching no content, a private note on a released sheet, submitting an attempt with no answer keys in any response, no access to administration or another learner's attempt), the teacher (teaching home, review tab, attendance and private preparation notes), the administrator (overview at 768px, creating a program at 1024px and finding it in the audit trail, policies without a class-group level, the teacher application queue and the active-only teacher picker), a pending teacher (taken to the application page, no teaching or messaging access, the legacy teacher dashboard leading there too), a teacher of another class group (no access to the first class group, its roster or attendance) and a learner of another class group (no access to its class group or Lesson Sheets). Each test skips with the names of the variables it is missing.
+
+### The six accounts
+
+| Account | Variable | Setup |
+| --- | --- | --- |
+| Admin | `E2E_ADMIN_STATE` | `profiles.role = 'admin'` |
+| Teacher A | `E2E_TEACHER_STATE` | teacher account approved through `/academy/manage/teachers` (status `active`), assigned to `E2E_CLASS_GROUP_ID` |
+| Teacher B | `E2E_TEACHER_B_STATE` | approved teacher assigned only to a second class group |
+| Student A | `E2E_STUDENT_STATE` | active enrollment in `E2E_CLASS_GROUP_ID` |
+| Student B | `E2E_STUDENT_B_STATE` | active enrollment only in the second class group |
+| Pending Teacher | `E2E_PENDING_TEACHER_STATE` | signed up at `/signup/teacher`, email verified, application not yet decided |
+
+Create teacher accounts through teacher signup and approve them in the administration, not by editing `profiles` directly, so the application, its history and the account status stay consistent. The expected decision for every pair of these accounts is pinned in `tests/academy/cross-role-scenario.test.ts`.
 
 They cannot run yet because:
 
-1. **No authorised non-production database.** Migrations 0001-0009 have not been applied anywhere; the academy APIs answer 503 until `ACADEMY_CORE_SCHEMA_READY=true` on a migrated database. Production and historical databases must not be migrated for this.
-2. **No test accounts or non-production Firebase project** approved for automated sign-in. Credentials must never be committed or pasted into chats: sign each test account in once in a headed browser, save its Playwright storage state (with IndexedDB, where Firebase keeps the session) to a file outside the repository, and set `E2E_STUDENT_STATE`, `E2E_TEACHER_STATE`, `E2E_ADMIN_STATE` and `E2E_ALLOWED_HOSTS`.
+1. **No authorised non-production database.** Migrations 0001-0010 have not been applied anywhere; the academy APIs answer 503 until `ACADEMY_CORE_SCHEMA_READY=true` on a migrated database. Production and historical databases must not be migrated for this.
+2. **No test accounts or non-production Firebase project** approved for automated sign-in. Credentials must never be committed or pasted into chats: sign each test account in once in a headed browser, save its Playwright storage state (with IndexedDB, where Firebase keeps the session) to a file outside the repository, and set the six storage-state variables above and `E2E_ALLOWED_HOSTS`. Teacher signup also needs the non-production Cloudinary account configured for private (authenticated) uploads.
 3. **No seeded academy data.** Set `E2E_CLASS_GROUP_ID`, `E2E_RELEASED_LESSON_ID`, `E2E_UNRELEASED_LESSON_ID`, `E2E_ASSIGNMENT_ID`, `E2E_SESSION_ID` and `E2E_OTHER_ATTEMPT_ID` from that database.
 4. **`@playwright/test` is not a project dependency** (adding it changes `package.json` and `package-lock.json`, which was left for an explicit decision).

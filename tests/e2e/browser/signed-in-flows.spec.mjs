@@ -1,15 +1,17 @@
 // Signed-in learner, teacher and administrator flows.
 //
 // BLOCKED until an authorised non-production environment exists: they need a
-// build connected to a migrated development database (migrations 0001-0009
+// build connected to a migrated development database (migrations 0001-0010
 // applied there, ACADEMY_CORE_SCHEMA_READY=true), a non-production Firebase
-// project, one test account per role, and seeded academy data. Credentials
+// project, the six test accounts below, and seeded academy data. Credentials
 // are never stored in the repository: sign each test account in once in a
 // headed browser and save its storage state (cookies and IndexedDB, where
 // Firebase keeps the session) to a file outside the repository, then point
 // the variables below at those files. See tests/e2e/README.md.
 //
-//   E2E_STUDENT_STATE, E2E_TEACHER_STATE, E2E_ADMIN_STATE   storage state files
+//   E2E_STUDENT_STATE, E2E_TEACHER_STATE, E2E_ADMIN_STATE   storage state files (Student A, Teacher A, Admin)
+//   E2E_STUDENT_B_STATE, E2E_TEACHER_B_STATE   a learner and a teacher of a different class group
+//   E2E_PENDING_TEACHER_STATE   a teacher account whose application is under review
 //   E2E_ALLOWED_HOSTS    the Firebase hosts the non-production project uses
 //   E2E_CLASS_GROUP_ID   a class group with the student enrolled and the teacher assigned
 //   E2E_RELEASED_LESSON_ID, E2E_UNRELEASED_LESSON_ID   lessons of that class group
@@ -154,5 +156,64 @@ test.describe("administrator", () => {
     const response = await page.request.get("/api/admin/academy/policies");
     expect(response.status()).toBe(200);
     expect(await response.text()).not.toMatch(/class_group|CLASS_GROUP/);
+  });
+
+  test("teacher management: the review queue and the teacher directory, private and not stored", async ({ page }) => {
+    skipUnless("E2E_ADMIN_STATE");
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await page.goto("/academy/manage/teachers");
+    await expect(page.getByRole("heading", { name: a.teachers.title })).toBeVisible();
+    await expect(page.locator("#teacher-application-state")).toHaveValue("awaiting");
+    await expectNoHorizontalScroll(page);
+    const queue = await page.request.get("/api/admin/academy/teacher-applications?state=awaiting");
+    expect(queue.status()).toBe(200);
+    expect(queue.headers()["cache-control"]).toMatch(/no-store/);
+    expect(await queue.text()).not.toMatch(/teacher-signup\/(cv|videos)\//);
+    const picker = await page.request.get("/api/admin/academy/teachers?activeOnly=true");
+    expect(picker.status()).toBe(200);
+    for (const teacher of (await picker.json()).data) expect(teacher.status).toBe("active");
+  });
+});
+
+// The six-account run: Teacher B and Student B belong to a second class group
+// (E2E_OTHER_CLASS_GROUP_ID); the pending teacher's application is under
+// review. Expected outcomes are pinned in tests/academy/cross-role-scenario.test.ts.
+test.describe("pending teacher", () => {
+  test.use({ storageState: env.E2E_PENDING_TEACHER_STATE || undefined });
+
+  test("is taken to the application page and holds no teaching access", async ({ page }) => {
+    skipUnless("E2E_PENDING_TEACHER_STATE");
+    await page.goto("/academy/teach");
+    await expect(page).toHaveURL(/\/academy\/teacher-application$/);
+    await expect(page.getByRole("heading", { name: t.application.title })).toBeVisible();
+    for (const path of ["/api/academy/me/teaching", "/api/academy/messages/threads"]) {
+      expect((await page.request.get(path)).status()).toBe(403);
+    }
+    await page.goto("/dashboard/teacher");
+    await expect(page).toHaveURL(/\/academy\/teacher-application$/);
+  });
+});
+
+test.describe("teacher of another class group", () => {
+  test.use({ storageState: env.E2E_TEACHER_B_STATE || undefined });
+
+  test("cannot open Teacher A's class group, roster or attendance", async ({ page }) => {
+    skipUnless("E2E_TEACHER_B_STATE", "E2E_CLASS_GROUP_ID", "E2E_SESSION_ID");
+    for (const path of [`/api/academy/class-groups/${env.E2E_CLASS_GROUP_ID}`, `/api/academy/class-groups/${env.E2E_CLASS_GROUP_ID}/roster`, `/api/academy/sessions/${env.E2E_SESSION_ID}/attendance`]) {
+      expect((await page.request.get(path)).status()).toBe(403);
+    }
+    await page.goto(`/academy/class-groups/${env.E2E_CLASS_GROUP_ID}`);
+    await expect(page.getByText(t.states.forbidden)).toBeVisible();
+  });
+});
+
+test.describe("learner of another class group", () => {
+  test.use({ storageState: env.E2E_STUDENT_B_STATE || undefined });
+
+  test("cannot open class group A or its Lesson Sheets", async ({ page }) => {
+    skipUnless("E2E_STUDENT_B_STATE", "E2E_CLASS_GROUP_ID", "E2E_RELEASED_LESSON_ID");
+    for (const path of [`/api/academy/class-groups/${env.E2E_CLASS_GROUP_ID}`, `/api/academy/class-groups/${env.E2E_CLASS_GROUP_ID}/lesson-sheets/${env.E2E_RELEASED_LESSON_ID}`]) {
+      expect((await page.request.get(path)).status()).toBe(403);
+    }
   });
 });

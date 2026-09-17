@@ -9,7 +9,7 @@ import { checkRateLimit, retryAfterSeconds } from '@/lib/security/rate-limit';
 import { boundedString, isFirebaseUidShape } from '@/lib/security/input-policy';
 import { mayDirectMessage, type LegacyMessagingFacts } from '@/lib/security/messaging-guard';
 import { academyFlags, relationshipFacts } from '@/lib/academy/server';
-import { sessionRoleFor, type Role } from '@/lib/auth/core';
+import { AuthError, sessionRoleFor, type Role } from '@/lib/auth/core';
 
 // Phase 2.2: the sender is always the verified caller (user.uid); the client
 // no longer supplies senderUid. receiverUid remains the target.
@@ -118,8 +118,10 @@ export const POST = withApi(async (req) => {
 });
 
 // GET: جلب رسائل المستخدم الحالي (المستقبل)
+// A teacher account that is not active takes part in no conversation, reading included.
 export const GET = withApi(async (req) => {
   const user = await requireAuth(req);
+  if (user.role === 'applicant') throw new AuthError('FORBIDDEN');
 
   const messages = await sql`
     SELECT m.*,

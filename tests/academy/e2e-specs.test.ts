@@ -78,7 +78,7 @@ describe("end-to-end suites", () => {
     assert.match(readFileSync(join(E2E, "http-smoke.e2e.ts"), "utf8"), /const skip = BASE === "" \?/);
     const signedIn = read("signed-in-flows.spec.mjs");
     const tests = [...signedIn.matchAll(/\n  test\("/g)].length;
-    const skips = [...signedIn.matchAll(/skipUnless\("E2E_(?:STUDENT|TEACHER|ADMIN)_STATE"/g)].length;
+    const skips = [...signedIn.matchAll(/skipUnless\("E2E_(?:STUDENT|TEACHER|ADMIN|STUDENT_B|TEACHER_B|PENDING_TEACHER)_STATE"/g)].length;
     assert.ok(tests >= 9);
     assert.equal(skips, tests, "every signed-in test skips without its account state");
   });

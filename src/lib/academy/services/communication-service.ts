@@ -115,7 +115,17 @@ export function createCommunicationService(deps: CommunicationDeps) {
     return group.id;
   }
 
+  /**
+   * A teacher account that is not active takes part in no conversation: it can
+   * neither send nor read, including conversations from before a deactivation,
+   * so learners' messages stop being visible to it at once.
+   */
+  function refuseApplicant(user: AuthUser): void {
+    if (user.role === "applicant") throw new AuthError("FORBIDDEN");
+  }
+
   async function loadOwnThread(user: AuthUser, threadId: unknown): Promise<ThreadRecord> {
+    refuseApplicant(user);
     const thread = await loadOptional(executor, selectThreadQuery(parseUuid(threadId, "threadId")), mapThreadRow);
     // Other people's conversations are indistinguishable from missing ones.
     if (!thread || !isParticipant(thread, user.uid)) throw new DomainError("NOT_FOUND", "Conversation not found.");
@@ -127,6 +137,7 @@ export function createCommunicationService(deps: CommunicationDeps) {
 
     async listThreads(user: AuthUser) {
       assertAcademyCoreAvailable(deps.flags);
+      refuseApplicant(user);
       const rows = await executor.query(listUserThreadsQuery(user.uid));
       return rows.map((row) => {
         const thread = mapThreadRow(row);

@@ -265,6 +265,18 @@ describe("messaging service", () => {
     await rejectsDomain(comms(fakeExecutor(world())).getThread(admin, THREAD), "NOT_FOUND");
   });
 
+  test("a teacher account that is not active reads no conversation, including its own from before a deactivation", async () => {
+    // The teacher of THREAD after deactivation: same uid, applicant session.
+    const deactivated: AuthUser = { uid: "teacher-1", profileId: "p-teacher-1", role: "applicant", email: null, accountRole: "teacher", accountStatus: "inactive" };
+    const listRow = { ...threadRow, other_name: "Student", class_group_name: "Autumn cohort", last_body: "Private question", unread: "1" };
+    const executor = fakeExecutor([{ match: /FROM academy_message_threads t\s+WHERE t\.participant_low_uid = \$1/, rows: [listRow] }, ...world()]);
+    await rejectsForbidden(comms(executor).listThreads(deactivated));
+    await rejectsForbidden(comms(executor).getThread(deactivated, THREAD));
+    await rejectsForbidden(comms(executor).markThreadRead(deactivated, THREAD));
+    await rejectsForbidden(comms(executor).sendMessage(deactivated, THREAD, { body: "hello" }));
+    assert.equal(executor.queries.length + executor.transactions.length, 0, "nothing is read");
+  });
+
   test("conversation lists name the other participant (display name only), keyed by the caller", async () => {
     const listRow = { ...threadRow, other_name: "Ustadha Maryam", class_group_name: "Autumn cohort", last_body: "See you Tuesday", unread: "2" };
     const executor = fakeExecutor([{ match: /FROM academy_message_threads t\s+WHERE t\.participant_low_uid = \$1/, rows: [listRow] }]);
