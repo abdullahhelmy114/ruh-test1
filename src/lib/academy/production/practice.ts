@@ -190,6 +190,27 @@ export interface RemediationAssignmentRecord {
   readonly resolvedAt: string | null;
 }
 
+/** A remediation assignment as a reader sees it: staff also see who assigned it. */
+export type RemediationView = Omit<RemediationAssignmentRecord, "assignedBy"> & { readonly assignedBy?: string };
+
+/** The learner's own view of an assignment: without the uid of the staff member who assigned it. */
+export function learnerRemediationView(record: RemediationAssignmentRecord): RemediationView {
+  return {
+    id: record.id,
+    classGroupId: record.classGroupId,
+    learnerUid: record.learnerUid,
+    itemId: record.itemId,
+    ruleId: record.ruleId,
+    sourceAttemptId: record.sourceAttemptId,
+    note: record.note,
+    state: record.state,
+    stateReason: record.stateReason,
+    revision: record.revision,
+    assignedAt: record.assignedAt,
+    resolvedAt: record.resolvedAt,
+  };
+}
+
 export function planAssignRemediation(
   input: {
     readonly classGroupId: string;

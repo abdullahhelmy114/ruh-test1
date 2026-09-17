@@ -13,7 +13,14 @@ import { parseUid, parseUuid } from "../domain/ids.ts";
 import { assertAcademyCoreAvailable } from "../infra/flags.ts";
 import { authorize, evaluateAccess, type RelationshipFacts } from "../permissions/permissions.ts";
 import { parseProductionContent, projectProductionContent, SCORED_KINDS, scoredItemsOf } from "../production/content.ts";
-import { matchingRules, planAssignRemediation, planPracticeResult, planResolveRemediation } from "../production/practice.ts";
+import {
+  learnerRemediationView,
+  matchingRules,
+  planAssignRemediation,
+  planPracticeResult,
+  planResolveRemediation,
+  type RemediationView,
+} from "../production/practice.ts";
 import { expectRows } from "../repo/audit-repo.ts";
 import { mapAssignmentRow, mapAttemptRow, selectAssignmentQuery, selectAttemptQuery } from "../repo/assessment-repo.ts";
 import { countOf } from "../repo/catalog-repo.ts";
@@ -146,15 +153,14 @@ export function createPracticeService(deps: PracticeDeps) {
       return loadMany(executor, listLearnerPracticeResultsQuery(group.id, learnerUid), mapPracticeResultRow);
     },
 
-    async remediation(user: AuthUser, classGroupId: unknown, options: { readonly learnerUid?: unknown } = {}) {
+    async remediation(user: AuthUser, classGroupId: unknown, options: { readonly learnerUid?: unknown } = {}): Promise<RemediationView[]> {
       assertAcademyCoreAvailable(deps.flags);
       const group = await viewGroup(user, classGroupId);
-      let learnerUid = user.uid;
-      if (user.role !== "student") {
-        if (!(await isStaffOf(user, group))) throw new AuthError("FORBIDDEN");
-        learnerUid = parseUid(options.learnerUid, "learnerUid");
+      if (user.role === "student") {
+        return (await loadMany(executor, listLearnerRemediationQuery(group.id, user.uid), mapRemediationRow)).map(learnerRemediationView);
       }
-      return loadMany(executor, listLearnerRemediationQuery(group.id, learnerUid), mapRemediationRow);
+      if (!(await isStaffOf(user, group))) throw new AuthError("FORBIDDEN");
+      return loadMany(executor, listLearnerRemediationQuery(group.id, parseUid(options.learnerUid, "learnerUid")), mapRemediationRow);
     },
 
     /** Applies the academy's remediation rules to a released assessment result. */

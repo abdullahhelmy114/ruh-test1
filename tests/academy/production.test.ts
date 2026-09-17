@@ -408,6 +408,22 @@ describe("production services", () => {
     await rejectsForbidden(practice(fakeExecutor(world())).classGroupReport(student, IDS.classGroup));
     await rejectsForbidden(practice(fakeExecutor(world())).assignRemediation(student, IDS.classGroup, { learnerUid: "student-1", itemId: ITEM }));
     await rejectsDomain(practice(fakeExecutor(world())).assignRemediation(teacher, IDS.classGroup, { learnerUid: "student-2", itemId: ITEM }), "VALIDATION");
+    const remediationRow = {
+      id: "ab000000-0000-4000-8000-000000000001", class_group_id: IDS.classGroup, learner_uid: "student-1", item_id: ITEM, rule_id: null,
+      source_attempt_id: null, note: "Review nouns", state: "assigned", state_reason: null, revision: 1, assigned_by: "teacher-1",
+      assigned_at: "2026-09-03T00:00:00Z", resolved_at: null,
+    };
+    const remediationRules = (): Rule[] => [{ match: /FROM academy_remediation_assignments WHERE class_group_id/, rows: [remediationRow] }, ...world()];
+    const mine = fakeExecutor(remediationRules());
+    const learnerView = await practice(mine).remediation(student, IDS.classGroup, { learnerUid: "student-9" });
+    assert.deepEqual(mine.queries.find((q) => /academy_remediation_assignments/.test(q.text))?.values, [IDS.classGroup, "student-1"]);
+    assert.equal(learnerView.length, 1);
+    assert.equal("assignedBy" in learnerView[0], false, "learners do not see who assigned the remediation");
+    assert.equal(JSON.stringify(learnerView).includes("teacher-1"), false);
+    assert.equal(learnerView[0].revision, 1, "learners still get the revision they need to complete it");
+    const staffView = await practice(fakeExecutor(remediationRules())).remediation(teacher, IDS.classGroup, { learnerUid: "student-1" });
+    assert.equal(staffView[0].assignedBy, "teacher-1");
+    await rejectsForbidden(practice(fakeExecutor(remediationRules())).remediation(outsider, IDS.classGroup));
     const assign = fakeExecutor(world());
     const assignment = await practice(assign).assignRemediation(teacher, IDS.classGroup, { learnerUid: "student-1", itemId: ITEM, note: "Review nouns" });
     assert.equal(assignment.state, "assigned");
