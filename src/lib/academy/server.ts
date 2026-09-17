@@ -12,6 +12,7 @@ import { readAcademyFlags } from "./infra/flags.ts";
 import type { SqlExecutor, SqlRow } from "./infra/sql.ts";
 import { createSqlReadingFacts } from "./repo/library-repo.ts";
 import { createSqlRelationshipFacts } from "./repo/relationship-facts.ts";
+import { createAdminService } from "./services/admin-service.ts";
 import { createAssessmentAuthoringService } from "./services/assessment-authoring-service.ts";
 import { createAssessmentService } from "./services/assessment-service.ts";
 import { createAttendanceService } from "./services/attendance-service.ts";
@@ -20,6 +21,7 @@ import { createCertificateService } from "./services/certificate-service.ts";
 import { createCommunicationService } from "./services/communication-service.ts";
 import { createCurriculumService } from "./services/curriculum-service.ts";
 import { createDeliveryService } from "./services/delivery-service.ts";
+import { createGovernanceService } from "./services/governance-service.ts";
 import { createLessonScriptService } from "./services/lesson-script-service.ts";
 import { createLessonSheetService } from "./services/lesson-sheet-service.ts";
 import { createLibraryService } from "./services/library-service.ts";
@@ -42,6 +44,10 @@ export const academyFlags = readAcademyFlags(process.env);
 export const policyService = createPolicyService({ executor: academyExecutor, flags: academyFlags });
 
 export const relationshipFacts = createSqlRelationshipFacts(academyExecutor);
+
+export const governanceService = createGovernanceService({ executor: academyExecutor, flags: academyFlags });
+
+export const adminService = createAdminService({ executor: academyExecutor, flags: academyFlags });
 
 export const catalogService = createCatalogService({ executor: academyExecutor, flags: academyFlags });
 

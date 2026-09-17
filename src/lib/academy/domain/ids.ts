@@ -40,6 +40,7 @@ export const ENTITY_KINDS = [
   "entitlement",
   "policy_value",
   "approval_gate",
+  "approval_gate_definition",
   "teacher_application",
 ] as const;
 
@@ -89,15 +90,26 @@ export function parseUid(value: unknown, field: string): string {
   return value;
 }
 
+const DEFINITION_KEY = /^[a-z][a-z_]{0,63}$/;
+
 /**
- * Builds a validated entity reference. Profiles are keyed by Firebase uid;
- * every other academy entity is keyed by UUID.
+ * Builds a validated entity reference. Profiles are keyed by Firebase uid,
+ * approval gate definitions by their gate type; every other academy entity
+ * is keyed by UUID.
  */
 export function entityRef(kind: unknown, id: unknown): EntityRef {
   if (!isEntityKind(kind)) {
     throw new DomainError("VALIDATION", "Unknown entity type.");
   }
-  const parsedId = kind === "profile" ? parseUid(id, "id") : parseUuid(id, "id");
+  let parsedId: string;
+  if (kind === "profile") {
+    parsedId = parseUid(id, "id");
+  } else if (kind === "approval_gate_definition") {
+    if (typeof id !== "string" || !DEFINITION_KEY.test(id)) throw new DomainError("VALIDATION", "id must be a valid identifier.");
+    parsedId = id;
+  } else {
+    parsedId = parseUuid(id, "id");
+  }
   return Object.freeze({ kind, id: parsedId });
 }
 
