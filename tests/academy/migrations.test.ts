@@ -1,0 +1,172 @@
+/**
+ * Static guarantees for academy migrations and academy module boundaries.
+ *
+ * Migrations are reviewed, unexecuted SQL. These tests keep them strictly
+ * additive: they may only create and drop their own academy_* objects, never
+ * alter, update, delete or truncate a pre-existing table, and every forward
+ * migration ships with a rollback.
+ */
+import { describe, test } from "node:test";
+import assert from "node:assert/strict";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
+
+const ROOT = join(import.meta.dirname, "..", "..");
+const MIGRATIONS = join(ROOT, "db", "migrations");
+const ACADEMY_SRC = join(ROOT, "src", "lib", "academy");
+
+function read(path: string): string {
+  return readFileSync(path, "utf8");
+}
+
+/** Removes dollar-quoted bodies, line comments and block comments. */
+function stripSql(text: string): string {
+  return text
+    .replace(/\$(\w*)\$[\s\S]*?\$\1\$/g, "$$body$$")
+    .replace(/\/\*[\s\S]*?\*\//g, " ")
+    .replace(/--[^\n]*/g, " ");
+}
+
+function statements(text: string): string[] {
+  return stripSql(text)
+    .split(";")
+    .map((statement) => statement.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+}
+
+const upFiles = readdirSync(MIGRATIONS).filter((name) => name.endsWith(".up.sql")).sort();
+const downFiles = readdirSync(MIGRATIONS).filter((name) => name.endsWith(".down.sql")).sort();
+
+describe("academy migrations", () => {
+  test("migrations exist, are numbered and come in up/down pairs", () => {
+    assert.ok(upFiles.length >= 1);
+    assert.deepEqual(
+      upFiles.map((name) => name.replace(/\.up\.sql$/, "")),
+      downFiles.map((name) => name.replace(/\.down\.sql$/, "")),
+    );
+    upFiles.forEach((name, index) => {
+      assert.match(name, /^\d{4}_[a-z0-9_]+\.up\.sql$/);
+      assert.equal(Number(name.slice(0, 4)), index + 1, "numbering has no gaps");
+    });
+    assert.ok(existsSync(join(MIGRATIONS, "README.md")));
+  });
+
+  for (const name of [...upFiles, ...downFiles]) {
+    test(`${name}: documented header and single transaction`, () => {
+      const text = read(join(MIGRATIONS, name));
+      assert.ok(/Execution status/i.test(text) && /NOT EXECUTED/.test(text), "execution status must be stated");
+      if (name.endsWith(".up.sql")) {
+        for (const heading of ["Purpose", "Impact", "Rollback strategy"]) {
+          assert.ok(text.includes(heading), `missing header section ${heading}`);
+        }
+        assert.match(text, /Strictly additive/i);
+      }
+      const parts = statements(text);
+      assert.equal(parts[0], "BEGIN");
+      assert.equal(parts[parts.length - 1], "COMMIT");
+      assert.equal(parts.filter((part) => part === "BEGIN" || part === "COMMIT").length, 2);
+      assert.equal(/\bV8[89]\b/i.test(text), false, "migrations never target historical source database versions");
+    });
+  }
+
+  for (const name of upFiles) {
+    test(`${name}: strictly additive, academy_* objects only`, () => {
+      for (const statement of statements(read(join(MIGRATIONS, name)))) {
+        if (statement === "BEGIN" || statement === "COMMIT") continue;
+        assert.match(
+          statement,
+          /^CREATE (TABLE|UNIQUE INDEX|INDEX|FUNCTION|TRIGGER) academy_[a-z0-9_]+/,
+          `unexpected statement: ${statement.slice(0, 80)}`,
+        );
+        for (const match of statement.matchAll(/\b(?:ON|REFERENCES) ([a-z_][a-z0-9_]*)/gi)) {
+          assert.ok(match[1].startsWith("academy_"), `${statement.slice(0, 60)} targets ${match[1]}`);
+        }
+        assert.equal(/\b(ALTER|DROP|TRUNCATE TABLE|DELETE FROM|UPDATE [a-z_]+ SET|INSERT INTO)\b/i.test(statement), false, statement.slice(0, 80));
+      }
+    });
+  }
+
+  for (const name of downFiles) {
+    test(`${name}: drops exactly what its forward migration created`, () => {
+      const down = statements(read(join(MIGRATIONS, name))).filter((s) => s !== "BEGIN" && s !== "COMMIT");
+      const up = statements(read(join(MIGRATIONS, name.replace(".down.sql", ".up.sql"))));
+
+      const createdTables = new Set(up.flatMap((s) => [...s.matchAll(/^CREATE TABLE (academy_[a-z0-9_]+)/g)].map((m) => m[1])));
+      const createdFunctions = new Set(up.flatMap((s) => [...s.matchAll(/^CREATE FUNCTION (academy_[a-z0-9_]+)/g)].map((m) => m[1])));
+
+      const droppedTables = new Set<string>();
+      const droppedFunctions = new Set<string>();
+      for (const statement of down) {
+        const table = /^DROP TABLE IF EXISTS (academy_[a-z0-9_]+)$/.exec(statement);
+        const fn = /^DROP FUNCTION IF EXISTS (academy_[a-z0-9_]+)\(\)$/.exec(statement);
+        assert.ok(table || fn, `unexpected rollback statement: ${statement}`);
+        if (table) droppedTables.add(table[1]);
+        if (fn) droppedFunctions.add(fn[1]);
+      }
+      assert.deepEqual([...droppedTables].sort(), [...createdTables].sort());
+      assert.deepEqual([...droppedFunctions].sort(), [...createdFunctions].sort());
+    });
+  }
+
+  test("the audit trail and approval decisions are append-only at the database level", () => {
+    const text = read(join(MIGRATIONS, "0001_academy_governance_foundation.up.sql"));
+    for (const table of ["academy_audit_events", "academy_approval_decisions"]) {
+      assert.match(text, new RegExp(`BEFORE UPDATE OR DELETE ON ${table}\\s+FOR EACH ROW EXECUTE FUNCTION academy_reject_mutation`));
+      assert.match(text, new RegExp(`BEFORE TRUNCATE ON ${table}\\s+FOR EACH STATEMENT EXECUTE FUNCTION academy_reject_mutation`));
+    }
+  });
+
+  test("policy values have no class-group scope", () => {
+    const text = read(join(MIGRATIONS, "0001_academy_governance_foundation.up.sql"));
+    assert.match(text, /scope IN \('academy', 'program', 'course'\)/);
+    assert.equal(/class_group/i.test(text), false);
+  });
+});
+
+function walk(dir: string): string[] {
+  return readdirSync(dir).flatMap((entry) => {
+    const path = join(dir, entry);
+    return statSync(path).isDirectory() ? walk(path) : [path];
+  });
+}
+
+describe("academy module boundaries", () => {
+  const files = walk(ACADEMY_SRC).filter((path) => path.endsWith(".ts"));
+
+  test("pure academy modules are framework-free and runnable by node --test", () => {
+    for (const path of files) {
+      const rel = relative(ROOT, path).replace(/\\/g, "/");
+      if (rel === "src/lib/academy/server.ts") continue;
+      const text = read(path);
+      for (const match of text.matchAll(/^\s*(?:import|export)\s[^;]*?from\s+"([^"]+)"/gm)) {
+        const specifier = match[1];
+        assert.ok(specifier.startsWith("."), `${rel} imports ${specifier}`);
+        assert.ok(specifier.endsWith(".ts"), `${rel} imports ${specifier} without a .ts extension`);
+      }
+      assert.equal(/^\s*import\s+"/m.test(text), false, `${rel} has a side-effect import`);
+      assert.equal(/process\.env/.test(text), false, `${rel} reads the environment directly`);
+      assert.equal(/^\s*(export\s+)?(declare\s+)?(const\s+)?enum\s/m.test(text), false, `${rel} uses an enum`);
+      assert.equal(/^\s*(export\s+)?namespace\s/m.test(text), false, `${rel} uses a namespace`);
+    }
+  });
+
+  test("only the server wiring touches the database client, and it is server-only", () => {
+    const server = read(join(ACADEMY_SRC, "server.ts"));
+    assert.match(server, /^import "server-only";$/m);
+    for (const path of files) {
+      const rel = relative(ROOT, path).replace(/\\/g, "/");
+      if (rel === "src/lib/academy/server.ts") continue;
+      assert.equal(/db\/client|@neondatabase/.test(read(path)), false, `${rel} touches the database client`);
+    }
+  });
+
+  test("academy tests never import the server wiring", () => {
+    for (const path of walk(join(ROOT, "tests", "academy"))) {
+      const text = read(path);
+      const specifiers = [...text.matchAll(/(?:from\s+|import\s*\(\s*)"([^"]+)"/g)].map((match) => match[1]);
+      for (const specifier of specifiers) {
+        assert.equal(/academy\/server(\.ts)?$/.test(specifier), false, `${path} imports ${specifier}`);
+      }
+    }
+  });
+});
