@@ -19,9 +19,8 @@ export const GET = withApi(async (request) => {
       SELECT
         p.full_name,
         p.referral_code,
-        p.referral_count,
-        p.referral_credits,
-        p.referral_discount_used,
+        -- Accounts created with this student's invitation (no rewards: see lib/referral.ts).
+        (SELECT count(*) FROM profiles r WHERE r.referred_by::text = p.id::text AND r.firebase_uid <> p.firebase_uid)::int AS referral_joined,
         COALESCE(up.balance, 0)::int AS xp,
         COALESCE(s.current_streak, 0)::int AS streak
       FROM profiles p
@@ -40,7 +39,7 @@ export const GET = withApi(async (request) => {
         inProgress: [],
         completed: [],
         sessions: [],
-        referral: { code: "", link: "", count: 0, credits: 0 },
+        referral: { code: "", link: "", count: 0 },
       });
     }
 
@@ -155,8 +154,7 @@ export const GET = withApi(async (request) => {
     const referral = {
       code: referralCode,
       link: referralLink,
-      count: profile.referral_count || 0,
-      credits: Number(profile.referral_credits) || 0,
+      count: Number(profile.referral_joined) || 0,
     };
 
     return NextResponse.json({

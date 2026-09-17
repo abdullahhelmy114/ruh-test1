@@ -1,25 +1,10 @@
-"use client";
+import { redirect } from "next/navigation";
+import { parseReferralCode } from "@/lib/referral";
 
-import { useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
-
-export default function ReferralRedirectPage() {
-  const router = useRouter();
-  const params = useParams();
-  const code = Array.isArray(params.code) ? params.code[0] : params.code;
-
-  useEffect(() => {
-    if (code) {
-      // حفظ كود الإحالة في localStorage ليستخدمه التسجيل لاحقاً
-      localStorage.setItem("referral_code", code);
-      // توجيه المستخدم لصفحة التسجيل
-      router.push("/signup");
-    }
-  }, [code, router]);
-
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <p className="text-sm text-muted-foreground">Redirecting to signup...</p>
-    </div>
-  );
+// An invitation link: /r/CODE opens student signup with the code in the address.
+// Only a well-formed code is carried; the server decides, when the account is
+// created, whether it belongs to anyone. Nothing is kept in browser storage.
+export default async function ReferralRedirectPage({ params }: { params: Promise<{ code: string }> }) {
+  const code = parseReferralCode((await params).code);
+  redirect(code ? `/signup/student?ref=${code}` : "/signup");
 }

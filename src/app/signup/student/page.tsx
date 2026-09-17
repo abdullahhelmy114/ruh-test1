@@ -64,11 +64,13 @@ export default function StudentSignupPage() {
   const onVerifyCaptcha = async (token: string) => {
     setLoading(true);
     const data = form.getValues();
+    // An invitation link (/r/CODE) opens this page with ?ref=CODE; the server validates it and records the referrer once.
+    const referralCode = new URLSearchParams(window.location.search).get("ref");
     try {
       const res = await fetch("/api/signup/student", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(referralCode ? { ...data, referral_code: referralCode } : data),
       });
 
       if (!res.ok) {

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminAuth } from "@/lib/firebase/admin";
 import { sql } from "@/lib/db/client";
 import { sendEmail, verificationCodeEmail } from "@/lib/email";
-import { generateReferralCode } from "@/lib/referral";
+import { parseReferralCode } from "@/lib/referral";
+import { newReferralCode } from "@/lib/referral-db";
 import { checkRateLimit, clientKey, retryAfterSeconds } from "@/lib/security/rate-limit";
 import { generateOtp, hashOtp, otpExpiry } from "@/lib/security/otp";
 
@@ -75,55 +76,64 @@ export async function POST(req: NextRequest) {
 
     const fullName = `${firstName} ${lastName}`.trim();
 
-    // 4. توليد كود إحالة جديد للطالب الجديد (يُنشأ لكل طلب)
-    const newReferralCode = generateReferralCode();
+    try {
+      // 4. A referral code of the new student's own, not held by any other account.
+      const ownReferralCode = await newReferralCode();
 
-    // 5. البحث عن المُحيل (إن وُجد)
-    let referredBy: string | null = null;
-    if (referral_code && referral_code.trim()) {
-      const referrer = await sql`
-        SELECT id
-        FROM profiles
-        WHERE referral_code = ${referral_code.trim()}
-        LIMIT 1
-      `;
-      if (referrer.length > 0) {
-        referredBy = referrer[0].id;
+      // 5. Attribution, once and only here: the owner of a well-formed code the
+      //    visitor arrived with (/r/CODE). An unknown or malformed code is ignored.
+      //    referred_by keeps the referrer's profiles.id (see lib/referral.ts).
+      let referredBy: string | null = null;
+      const code = parseReferralCode(referral_code);
+      if (code) {
+        const referrer = await sql`
+          SELECT id
+          FROM profiles
+          WHERE referral_code = ${code} AND firebase_uid <> ${userRecord.uid}
+          LIMIT 1
+        `;
+        if (referrer.length > 0) {
+          referredBy = referrer[0].id;
+        }
       }
-    }
 
-    // 6. إدراج بيانات الطالب الكاملة في قاعدة البيانات
-    await sql`
-      INSERT INTO profiles (
-        firebase_uid,
-        email,
-        full_name,
-        country_of_residence,
-        nationality,
-        gender,
-        languages,
-        whatsapp,
-        referral_code,
-        referred_by,
-        role,
-        status,
-        created_at
-      ) VALUES (
-        ${userRecord.uid},
-        ${email},
-        ${fullName},
-        ${countryOfResidence},
-        ${nationality},
-        ${gender},
-        ${JSON.stringify(languages)},
-        ${whatsapp},
-        ${newReferralCode},
-        ${referredBy},
-        'student',
-        'pending',
-        NOW()
-      )
-    `;
+      // 6. إدراج بيانات الطالب الكاملة في قاعدة البيانات
+      await sql`
+        INSERT INTO profiles (
+          firebase_uid,
+          email,
+          full_name,
+          country_of_residence,
+          nationality,
+          gender,
+          languages,
+          whatsapp,
+          referral_code,
+          referred_by,
+          role,
+          status,
+          created_at
+        ) VALUES (
+          ${userRecord.uid},
+          ${email},
+          ${fullName},
+          ${countryOfResidence},
+          ${nationality},
+          ${gender},
+          ${JSON.stringify(languages)},
+          ${whatsapp},
+          ${ownReferralCode},
+          ${referredBy},
+          'student',
+          'pending',
+          NOW()
+        )
+      `;
+    } catch (profileError) {
+      // Compensation: no Firebase account may remain without its profile.
+      await auth.deleteUser(userRecord.uid).catch(() => console.error("Student signup: compensation failed for a new account"));
+      throw profileError;
+    }
 
     // 7. توليد كود التحقق (CSPRNG) وتخزين بصمته فقط — كود واحد صالح لكل حساب
     const emailCode = generateOtp();

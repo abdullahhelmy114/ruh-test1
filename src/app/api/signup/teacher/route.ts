@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminAuth } from "@/lib/firebase/admin";
 import { sql } from "@/lib/db/client";
 import { sendEmail, verificationCodeEmail } from "@/lib/email";
-import { generateReferralCode } from "@/lib/referral";
+import { newReferralCode } from "@/lib/referral-db";
 import { checkRateLimit, clientKey, normalizeEmail, retryAfterSeconds } from "@/lib/security/rate-limit";
 import { generateOtp, hashOtp, otpExpiry } from "@/lib/security/otp";
 import { verifyUploadReference } from "@/lib/security/cloudinary-sign";
@@ -31,9 +31,11 @@ import { academyExecutor, academyFlags, teacherService } from "@/lib/academy/ser
 //   5. issue the email verification code (Phase 3 batch 4: CSPRNG code from
 //      the OTP helper, HMAC digest stored in verification_codes, one live row
 //      per account). Email verification does NOT approve a teacher.
-// The referral code is generated per signup (it used to be generated once per
-// server process, so every teacher shared one code). The profile no longer
-// stores document links: documents are private and referenced by upload id.
+// The referral code is generated per signup and checked unused (it used to be
+// generated once per server process, so every teacher shared one code).
+// Teacher signup takes no referral code: attribution is for student signups.
+// The profile no longer stores document links: documents are private and
+// referenced by upload id.
 const SIGNUP_LIMIT = { limit: 10, windowMs: 60 * 60 * 1000 }; // 10 signups / hour per client
 const PASSWORD_MIN = 8;
 const PASSWORD_MAX = 128;
@@ -103,11 +105,12 @@ export async function POST(req: NextRequest) {
 
   try {
     const application = teacherService.planSignupApplication(userRecord.uid, { details, cvPublicId, introVideoPublicId });
+    const referralCode = await newReferralCode();
     await runGuarded(
       academyExecutor,
       [
         expectRows(
-          insertTeacherProfileQuery({ uid: userRecord.uid, email, details, referralCode: generateReferralCode(), createdAt: application.record.createdAt }),
+          insertTeacherProfileQuery({ uid: userRecord.uid, email, details, referralCode, createdAt: application.record.createdAt }),
           1,
         ),
         ...application.statements,

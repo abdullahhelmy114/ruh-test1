@@ -43,7 +43,7 @@ describe("student signup issues a hashed OTP", () => {
   test("wiring", () => assertIssuer(STUDENT));
   test("business fields untouched", () => {
     const src = code(STUDENT);
-    for (const needle of ["referral_code", "referred_by", "generateReferralCode()", "auth/email-already-exists", "{ success: true, uid: userRecord.uid }"]) {
+    for (const needle of ["referral_code", "referred_by", "await newReferralCode()", "auth/email-already-exists", "{ success: true, uid: userRecord.uid }"]) {
       assert.ok(src.includes(needle), `student signup must still contain ${needle}`);
     }
   });
@@ -67,8 +67,10 @@ describe("teacher signup issues a hashed OTP", () => {
     }
     assert.ok(src.indexOf("teacherService.planSignupApplication(") > src.indexOf("auth.createUser("));
     assert.ok(src.includes("await auth.deleteUser(userRecord.uid)"), "compensation when the application cannot be recorded");
-    assert.equal(/const referralCode = generateReferralCode\(\);/.test(src.slice(0, src.indexOf("export async function POST"))), false, "no referral code shared by every signup in a process");
-    assert.ok(src.includes("referralCode: generateReferralCode()"));
+    assert.equal(/const referralCode = (generateReferralCode\(\)|await newReferralCode\(\));/.test(src.slice(0, src.indexOf("export async function POST"))), false, "no referral code shared by every signup in a process");
+    // One unused code per signup, allocated inside the request.
+    const post = src.slice(src.indexOf("export async function POST"));
+    assert.ok(post.includes("const referralCode = await newReferralCode();") && post.includes("details, referralCode, createdAt"));
   });
 });
 
@@ -186,17 +188,17 @@ describe("/api/user cannot be told email_verified by the client", () => {
     assert.equal(/body\.emailVerified/.test(src), false);
     assert.equal(/body\[/.test(src), false, "no dynamic body access");
     assert.equal(/\.\.\.body/.test(src), false, "no body spreading");
-    const post = src.slice(src.indexOf("export async function POST"));
+    const post = src.slice(src.indexOf("export const POST"));
     assert.equal(post.includes("email_verified"), false, "POST neither inserts nor updates email_verified");
     assert.equal(post.includes("emailVerified"), false);
     assert.equal(src.includes("getAdminAuth"), false, "no Firebase Admin lookup added to profile updates");
-    assert.ok(src.includes("INSERT INTO profiles (firebase_uid, email, full_name, role, referred_by)"));
-    assert.ok(src.includes("VALUES (${session.uid}, ${email}, ${fullName}, 'student', ${referredBy})"));
   });
-  test("other self-profile fields and role containment preserved", () => {
-    for (const needle of ["typeof body.email === 'string'", "typeof body.referred_by === 'string'", "typeof body.fullName === 'string'", "'student'", "COALESCE(profiles.referred_by"]) {
-      assert.ok(src.includes(needle), `must still contain ${needle}`);
+  test("the upsert is retired: no client email, referrer or role reaches the profile (see tests/security/referrals.test.ts)", () => {
+    // It could only update an existing row (the session requires a profile), setting any email and a forged referrer.
+    for (const needle of ["body.email", "body.referred_by", "INSERT INTO profiles", "referred_by"]) {
+      assert.equal(src.includes(needle), false, `must not contain ${needle}`);
     }
+    assert.ok(src.includes("{ error: 'This endpoint has been removed.' }, { status: 410 }"));
     assert.equal(/role = \$\{/.test(src), false, "role still not client-controlled");
   });
 });

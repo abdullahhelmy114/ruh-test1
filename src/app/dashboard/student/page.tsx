@@ -40,7 +40,6 @@ interface StudentDashboardData {
     code: string;
     link: string;
     count: number;
-    credits: number;
   };
 }
 
@@ -339,42 +338,36 @@ const copyReferral = async () => {
             </div>
 
             <p className="mt-3 text-sm font-medium text-charcoal">
-              Invite a friend. When they join, you both get 50% off.
+              <T>Invite a friend with your link. Referral rewards are not offered at this time.</T>
             </p>
 
-            <div className="mt-4 flex items-center gap-2 rounded-xl border bg-background p-2">
-              <code className="flex-1 truncate px-2 text-xs" dir="ltr">
-                 {data.referral.link}
-              </code>
-              <button
-                onClick={copyReferral}
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground transition hover:bg-primary/90"
-                aria-label="Copy referral link"
-              >
-                {copied ? (
-                  <Check className="h-4 w-4" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-
-            <div className="mt-6 grid grid-cols-2 gap-4 text-center">
-              <div className="rounded-2xl border bg-background p-4">
-                <div className="font-serif text-2xl">
-                  {data.referral.count}
-                </div>
-                <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  Referrals
-                </div>
+            {data.referral.link ? (
+              <div className="mt-4 flex items-center gap-2 rounded-xl border bg-background p-2">
+                <code className="flex-1 truncate px-2 text-xs" dir="ltr">
+                  {data.referral.link}
+                </code>
+                <button
+                  onClick={copyReferral}
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground transition hover:bg-primary/90"
+                  aria-label="Copy referral link"
+                >
+                  {copied ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </button>
               </div>
-              <div className="rounded-2xl border bg-background p-4">
-                <div className="font-serif text-2xl text-primary">
-                  ${data.referral.credits}
-                </div>
-                <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  Credits
-                </div>
+            ) : (
+              <Link href="/affiliate" className="mt-4 inline-block text-sm font-semibold underline">
+                <T>Get your invitation link</T>
+              </Link>
+            )}
+
+            <div className="mt-6 rounded-2xl border bg-background p-4 text-center">
+              <div className="font-serif text-2xl">{data.referral.count}</div>
+              <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <T>Friends who joined</T>
               </div>
             </div>
           </div>
