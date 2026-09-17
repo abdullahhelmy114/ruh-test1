@@ -165,6 +165,24 @@ export const SESSION_MACHINE = defineMachine<SessionState>({
 });
 
 // ---------------------------------------------------------------------------
+// Teacher preparation for a session
+// ---------------------------------------------------------------------------
+
+export const PREPARATION_STATES = ["not_started", "in_progress", "ready"] as const;
+export type PreparationState = (typeof PREPARATION_STATES)[number];
+
+export const PREPARATION_MACHINE = defineMachine<PreparationState>({
+  name: "session preparation",
+  states: PREPARATION_STATES,
+  initial: "not_started",
+  transitions: {
+    not_started: ["in_progress", "ready"],
+    in_progress: ["ready"],
+    ready: ["in_progress"],
+  },
+});
+
+// ---------------------------------------------------------------------------
 // Enrollment (reflects entitlement; Whop remains the financial authority)
 // ---------------------------------------------------------------------------
 

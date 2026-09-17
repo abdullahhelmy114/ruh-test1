@@ -10,9 +10,16 @@ import type { PolicyScope } from "../policies/registry.ts";
 import type { PolicyTarget, PolicyValueRecord } from "../policies/resolver.ts";
 import { withAudit } from "./audit-repo.ts";
 
+/*
+ * `value` is always selected as JSON text (`value::text`) and parsed exactly
+ * once by the mapper. Letting the driver decode jsonb would make a stored
+ * JSON string (for example a time zone name) indistinguishable from
+ * undecoded JSON text.
+ */
+
 /** Every value that can apply to the target: the academy default plus its program and course overrides. */
 export function selectPolicyValuesForTargetQuery(key: string, target: PolicyTarget): SqlQuery {
-  return sqlQuery`SELECT id, policy_key, scope, program_id, course_id, value, revision, set_by, set_at, reason
+  return sqlQuery`SELECT id, policy_key, scope, program_id, course_id, value::text AS value, revision, set_by, set_at, reason
     FROM academy_policy_values
     WHERE policy_key = ${key}
       AND (scope = 'academy'
@@ -23,14 +30,14 @@ export function selectPolicyValuesForTargetQuery(key: string, target: PolicyTarg
 /** The value stored at exactly one level, if any. */
 export function selectPolicyValueAtScopeQuery(key: string, scope: PolicyScope, scopeId: string | null): SqlQuery {
   if (scope === "academy") {
-    return sqlQuery`SELECT id, policy_key, scope, program_id, course_id, value, revision, set_by, set_at, reason
+    return sqlQuery`SELECT id, policy_key, scope, program_id, course_id, value::text AS value, revision, set_by, set_at, reason
       FROM academy_policy_values WHERE policy_key = ${key} AND scope = 'academy'`;
   }
   if (scope === "program") {
-    return sqlQuery`SELECT id, policy_key, scope, program_id, course_id, value, revision, set_by, set_at, reason
+    return sqlQuery`SELECT id, policy_key, scope, program_id, course_id, value::text AS value, revision, set_by, set_at, reason
       FROM academy_policy_values WHERE policy_key = ${key} AND scope = 'program' AND program_id = ${scopeId}::uuid`;
   }
-  return sqlQuery`SELECT id, policy_key, scope, program_id, course_id, value, revision, set_by, set_at, reason
+  return sqlQuery`SELECT id, policy_key, scope, program_id, course_id, value::text AS value, revision, set_by, set_at, reason
     FROM academy_policy_values WHERE policy_key = ${key} AND scope = 'course' AND course_id = ${scopeId}::uuid`;
 }
 
@@ -95,7 +102,8 @@ export function mapPolicyValueRow(row: PolicyValueRow): PolicyValueRecord {
     key: row.policy_key,
     scope,
     scopeId: scope === "program" ? row.program_id : scope === "course" ? row.course_id : null,
-    value: typeof row.value === "string" ? JSON.parse(row.value) : row.value,
+    // Selected as JSON text; a malformed value throws and resolution fails closed.
+    value: JSON.parse(String(row.value)),
     revision: Number(row.revision),
     setBy: row.set_by,
     setAt: row.set_at instanceof Date ? row.set_at.toISOString() : String(row.set_at),

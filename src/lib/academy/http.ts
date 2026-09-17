@@ -47,6 +47,12 @@ export function readStringParam(req: Request, name: string): string | null {
   return value === null || value === "" ? null : value;
 }
 
+/**
+ * Responses carrying time-gated or private data (Lesson Sheets, annotations,
+ * preparation notes) must never be stored by shared caches or the browser.
+ */
+export const PRIVATE_NO_STORE: Readonly<Record<string, string>> = Object.freeze({ "Cache-Control": "private, no-store" });
+
 const CORRELATION_ID = /^[A-Za-z0-9._:-]{8,128}$/;
 
 /** Optional client-supplied correlation id for grouping audit events. Invalid values are ignored. */

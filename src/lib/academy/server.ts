@@ -14,6 +14,8 @@ import { createSqlRelationshipFacts } from "./repo/relationship-facts.ts";
 import { createCatalogService } from "./services/catalog-service.ts";
 import { createCurriculumService } from "./services/curriculum-service.ts";
 import { createDeliveryService } from "./services/delivery-service.ts";
+import { createLessonScriptService } from "./services/lesson-script-service.ts";
+import { createLessonSheetService } from "./services/lesson-sheet-service.ts";
 import { createPolicyService } from "./services/policy-service.ts";
 
 export const academyExecutor: SqlExecutor = {
@@ -36,3 +38,11 @@ export const catalogService = createCatalogService({ executor: academyExecutor, 
 export const curriculumService = createCurriculumService({ executor: academyExecutor, flags: academyFlags });
 
 export const deliveryService = createDeliveryService({ executor: academyExecutor, flags: academyFlags });
+
+export const lessonScriptService = createLessonScriptService({ executor: academyExecutor, flags: academyFlags });
+
+export const lessonSheetService = createLessonSheetService({
+  executor: academyExecutor,
+  flags: academyFlags,
+  facts: relationshipFacts,
+});

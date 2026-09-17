@@ -36,8 +36,11 @@ describe("academy admin routes", () => {
       "courses/route.ts",
       "curriculum-versions/[versionId]/route.ts",
       "enrollments/[enrollmentId]/route.ts",
+      "lesson-script-versions/[versionId]/route.ts",
+      "lessons/[lessonId]/script/route.ts",
       "programs/[programId]/route.ts",
       "programs/route.ts",
+      "sessions/[sessionId]/preparations/route.ts",
       "sessions/[sessionId]/route.ts",
     ]);
   });

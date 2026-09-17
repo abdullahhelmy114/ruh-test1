@@ -46,6 +46,7 @@ export type AccessRequest =
   | { readonly action: "assessment.grade"; readonly classGroupId: string }
   | { readonly action: "feedback.write"; readonly classGroupId: string }
   | { readonly action: "session.conduct"; readonly classGroupId: string }
+  | { readonly action: "session.prepare"; readonly classGroupId: string }
   | { readonly action: "recording.view"; readonly courseId: string; readonly classGroupId: string }
   | { readonly action: "message.send"; readonly recipient: { readonly uid: string; readonly role: Role } }
   | { readonly action: AdminOnlyAction };
@@ -174,6 +175,13 @@ export async function evaluateAccess(
     case "feedback.write":
     case "session.conduct":
       return teacherOfClassGroup(user, request.classGroupId, facts);
+
+    case "session.prepare":
+      // Preparation is the teacher's own work: administrators see status through
+      // administrative views, never by acting as the teacher.
+      if (user.role !== "teacher") return deny("role");
+      if (!nonEmpty(request.classGroupId)) return deny("invalid");
+      return (await facts.isTeacherOfClassGroup(user.uid, request.classGroupId)) ? ALLOW : deny("relationship");
 
     case "recording.view":
       if (!nonEmpty(request.classGroupId)) return deny("invalid");

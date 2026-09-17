@@ -10,12 +10,8 @@ import type { AuthUser } from "../../auth/core.ts";
 import { DomainError } from "../domain/errors.ts";
 import { parseUuid, systemClock, toIso } from "../domain/ids.ts";
 import { parseRequiredRevision } from "../domain/text.ts";
-import {
-  createDraftVersion,
-  publishVersion,
-  transitionVersion,
-  type ReviewTransition,
-} from "../governance/versioning.ts";
+import { parseReviewAction, reviewTransitionFor } from "../governance/review-actions.ts";
+import { createDraftVersion, publishVersion, transitionVersion } from "../governance/versioning.ts";
 import { assertAcademyCoreAvailable } from "../infra/flags.ts";
 import type { SqlQuery } from "../infra/sql.ts";
 import { authorizeAdminAction } from "../permissions/permissions.ts";
@@ -53,9 +49,6 @@ import {
   type Outline,
 } from "../structure/curriculum.ts";
 import { audited, contextFor, loadMany, loadRequired, runGuarded, type ServiceDeps } from "./support.ts";
-
-export const REVIEW_ACTIONS = ["submit", "withdraw", "request_changes", "approve", "reject", "unapprove", "archive"] as const;
-export type ReviewAction = (typeof REVIEW_ACTIONS)[number];
 
 export function createCurriculumService(deps: ServiceDeps) {
   const { executor } = deps;
@@ -186,43 +179,16 @@ export function createCurriculumService(deps: ServiceDeps) {
       input: { readonly action: unknown; readonly reason?: unknown; readonly expectedRevision: unknown; readonly correlationId?: string | null },
     ): Promise<CurriculumVersionRecord> {
       guard(user);
-      if (typeof input.action !== "string" || !(REVIEW_ACTIONS as readonly string[]).includes(input.action)) {
-        throw new DomainError("VALIDATION", "Unknown review action.");
-      }
-      const action = input.action as ReviewAction;
+      const action = parseReviewAction(input.action);
       const version = await loadVersion(versionId);
       if (version.revision !== parseRequiredRevision(input.expectedRevision)) {
         throw new DomainError("CONFLICT", "This item was changed by someone else. Reload and try again.");
       }
-      // Reason text is validated by the transition itself (required or optional per action).
-      const reason = input.reason as string | undefined;
-      let transition: ReviewTransition;
-      switch (action) {
-        case "submit":
-          if (version.state === "approved") throw new DomainError("INVALID_TRANSITION", "Use unapprove to send an approved version back to review.");
-          assertOutlineReadyForReview(await loadOutline(version.id));
-          transition = { to: "in_review" };
-          break;
-        case "withdraw":
-          transition = { to: "draft" };
-          break;
-        case "request_changes":
-          transition = { to: "changes_requested", reason: reason as string };
-          break;
-        case "approve":
-          transition = { to: "approved", reviewerMayBeAuthor: await selfApprovalAllowed(), reason };
-          break;
-        case "reject":
-          transition = { to: "rejected", reason: reason as string };
-          break;
-        case "unapprove":
-          if (version.state !== "approved") throw new DomainError("INVALID_TRANSITION", "Only an approved version can be unapproved.");
-          transition = { to: "in_review", reason: reason ?? null };
-          break;
-        case "archive":
-          transition = { to: "archived", reason: reason as string };
-          break;
-      }
+      const transition = reviewTransitionFor(action, version, {
+        reason: input.reason,
+        selfApprovalAllowed: action === "approve" ? await selfApprovalAllowed() : false,
+      });
+      if (action === "submit") assertOutlineReadyForReview(await loadOutline(version.id));
       const ctx = contextFor(user, deps, input.correlationId);
       const change = transitionVersion(version, transition, ctx);
       const next = bumpRevision(change.version, version.revision);

@@ -158,6 +158,25 @@ describe("policy repository", () => {
     assert.ok(query.text.includes("course_id = $3::uuid"));
   });
 
+  test("values are selected as JSON text so stored JSON strings survive mapping (regression)", () => {
+    const query = selectPolicyValuesForTargetQuery("institution.timezone", { programId: null, courseId: null });
+    assert.match(query.text, /value::text AS value/);
+    const record = mapPolicyValueRow({
+      id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+      policy_key: "institution.timezone",
+      scope: "academy",
+      program_id: null,
+      course_id: null,
+      value: '"Europe/London"',
+      revision: 1,
+      set_by: "admin-1",
+      set_at: "2026-09-17T12:00:00.000Z",
+      reason: "Academy location",
+    });
+    assert.equal(record.value, "Europe/London");
+    assert.throws(() => mapPolicyValueRow({ ...record, policy_key: "x", set_by: "a", set_at: "2026-09-17T12:00:00Z", program_id: null, course_id: null, value: "Europe/London" } as never));
+  });
+
   test("rows map to records with parsed JSON and numeric revisions", () => {
     const record = mapPolicyValueRow({
       id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
@@ -213,7 +232,7 @@ function storedRow(revision: number, scope = "course") {
     scope,
     program_id: scope === "program" ? PROGRAM : null,
     course_id: scope === "course" ? COURSE : null,
-    value: { maxAttempts: 2 },
+    value: JSON.stringify({ maxAttempts: 2 }),
     revision,
     set_by: "admin-1",
     set_at: "2026-09-01T00:00:00.000Z",
@@ -324,7 +343,7 @@ describe("policy service", () => {
   });
 
   test("resolve reads the stored levels and applies inheritance", async () => {
-    const academyRow = { ...storedRow(1, "academy"), id: "11111111-1111-4111-8111-111111111111", value: { maxAttempts: 3 } };
+    const academyRow = { ...storedRow(1, "academy"), id: "11111111-1111-4111-8111-111111111111", value: JSON.stringify({ maxAttempts: 3 }) };
     const executor = fakeExecutor(() => [academyRow, storedRow(1)]);
     const service = createPolicyService({ executor, flags: READY });
     const resolution = await service.resolve("assessment.attempt_limit", { programId: PROGRAM, courseId: COURSE });

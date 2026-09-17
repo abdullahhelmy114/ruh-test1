@@ -19,7 +19,8 @@ export type DomainErrorCode =
   | "IMMUTABLE"
   | "APPROVAL_REQUIRED"
   | "POLICY_UNCONFIGURED"
-  | "FEATURE_UNAVAILABLE";
+  | "FEATURE_UNAVAILABLE"
+  | "NOT_YET_AVAILABLE";
 
 const STATUS_BY_CODE: Readonly<Record<DomainErrorCode, number>> = {
   VALIDATION: 400,
@@ -30,6 +31,8 @@ const STATUS_BY_CODE: Readonly<Record<DomainErrorCode, number>> = {
   APPROVAL_REQUIRED: 409,
   POLICY_UNCONFIGURED: 503,
   FEATURE_UNAVAILABLE: 503,
+  // Time-gated content the caller is entitled to, but not yet (Lesson Sheet release rule).
+  NOT_YET_AVAILABLE: 403,
 };
 
 export class DomainError extends HttpError {
