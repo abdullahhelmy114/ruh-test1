@@ -26,6 +26,13 @@ const routes = walk(API).filter((path) => path.endsWith("route.ts"));
 describe("academy participant routes", () => {
   test("the expected route files exist", () => {
     assert.deepEqual(routes.map((path) => relative(API, path).replace(/\\/g, "/")).sort(), [
+      "class-groups/[classGroupId]/content/route.ts",
+      "class-groups/[classGroupId]/content/[itemId]/route.ts",
+      "class-groups/[classGroupId]/practice-results/route.ts",
+      "class-groups/[classGroupId]/remediation/route.ts",
+      "class-groups/[classGroupId]/report/route.ts",
+      "remediation/[assignmentId]/route.ts",
+      "attempts/[attemptId]/remediation/route.ts",
       "approval-gates/route.ts",
       "approval-gates/[gateId]/route.ts",
       "class-groups/[classGroupId]/recordings/route.ts",

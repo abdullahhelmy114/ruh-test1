@@ -27,6 +27,8 @@ import { createLessonSheetService } from "./services/lesson-sheet-service.ts";
 import { createLibraryService } from "./services/library-service.ts";
 import { createParticipationService } from "./services/participation-service.ts";
 import { createPolicyService } from "./services/policy-service.ts";
+import { createPracticeService } from "./services/practice-service.ts";
+import { createProductionService } from "./services/production-service.ts";
 import { createProgressService } from "./services/progress-service.ts";
 import { createRecordingService } from "./services/recording-service.ts";
 
@@ -48,6 +50,10 @@ export const relationshipFacts = createSqlRelationshipFacts(academyExecutor);
 export const governanceService = createGovernanceService({ executor: academyExecutor, flags: academyFlags });
 
 export const adminService = createAdminService({ executor: academyExecutor, flags: academyFlags });
+
+export const productionService = createProductionService({ executor: academyExecutor, flags: academyFlags });
+
+export const practiceService = createPracticeService({ executor: academyExecutor, flags: academyFlags, facts: relationshipFacts });
 
 export const catalogService = createCatalogService({ executor: academyExecutor, flags: academyFlags });
 

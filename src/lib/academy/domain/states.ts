@@ -183,6 +183,26 @@ export const PREPARATION_MACHINE = defineMachine<PreparationState>({
 });
 
 // ---------------------------------------------------------------------------
+// Production runs (2C factories)
+// ---------------------------------------------------------------------------
+
+export const PRODUCTION_RUN_STATES = ["planned", "in_production", "awaiting_review", "completed", "cancelled"] as const;
+export type ProductionRunState = (typeof PRODUCTION_RUN_STATES)[number];
+
+export const PRODUCTION_RUN_MACHINE = defineMachine<ProductionRunState>({
+  name: "production run",
+  states: PRODUCTION_RUN_STATES,
+  initial: "planned",
+  transitions: {
+    planned: ["in_production", "cancelled"],
+    in_production: ["awaiting_review", "cancelled"],
+    awaiting_review: ["in_production", "completed", "cancelled"],
+    completed: [],
+    cancelled: [],
+  },
+});
+
+// ---------------------------------------------------------------------------
 // Assessment attempts
 // ---------------------------------------------------------------------------
 

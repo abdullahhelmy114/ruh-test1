@@ -42,6 +42,15 @@ export const ENTITY_KINDS = [
   "approval_gate",
   "approval_gate_definition",
   "teacher_application",
+  "content_library",
+  "production_factory",
+  "production_run",
+  "content_item",
+  "content_item_version",
+  "content_link",
+  "practice_result",
+  "remediation_rule",
+  "remediation_assignment",
 ] as const;
 
 export type EntityKind = (typeof ENTITY_KINDS)[number];

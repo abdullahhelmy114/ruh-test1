@@ -110,6 +110,20 @@ export const AUDIT_ACTIONS = {
   "recording.change_status": { impact: "high", reasonRequired: false },
   "certificate.issue": { impact: "high", reasonRequired: false },
   "certificate.revoke": { impact: "high", reasonRequired: true },
+  // 2C production
+  "content_library.create": { impact: "standard", reasonRequired: false },
+  "content_library.change_state": { impact: "high", reasonRequired: false },
+  "production_factory.register": { impact: "standard", reasonRequired: false },
+  "production_run.create": { impact: "standard", reasonRequired: false },
+  "production_run.change_status": { impact: "standard", reasonRequired: false },
+  "content_item.create": { impact: "standard", reasonRequired: false },
+  "content_item_version.save": { impact: "standard", reasonRequired: false },
+  "content_link.add": { impact: "standard", reasonRequired: false },
+  "content_link.remove": { impact: "standard", reasonRequired: true },
+  "remediation_rule.create": { impact: "high", reasonRequired: true },
+  "remediation_rule.retire": { impact: "high", reasonRequired: true },
+  "remediation.assign": { impact: "standard", reasonRequired: false },
+  "remediation.resolve": { impact: "standard", reasonRequired: false },
 } as const satisfies Record<string, AuditActionDefinition>;
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;
