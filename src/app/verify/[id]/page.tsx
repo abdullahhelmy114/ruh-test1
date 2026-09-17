@@ -5,13 +5,15 @@ import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
+// Next 16: params is a Promise and must be awaited.
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
   return {
-    title: `Certificate Verification - ${params.id} | Ruh-Ul-Qudus Academy`,
+    title: `Certificate Verification - ${id} | Ruh-Ul-Qudus Academy`,
     description: "Verify the authenticity of a Ruh-Ul-Qudus Academy certificate.",
   };
 }
@@ -41,7 +43,7 @@ function extractSignatureText(fullName: string): string {
 }
 
 export default async function VerifyCertificatePage({ params }: Props) {
-  const { id } = params;
+  const { id } = await params;
   const certificate = await getCertificateData(id);
 
   if (!certificate) {
