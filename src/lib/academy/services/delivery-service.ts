@@ -6,7 +6,7 @@
  * repo/delivery-repo.ts), so concurrent administrators cannot, for example,
  * enroll past capacity or schedule into a cancelled class group.
  */
-import type { AuthUser } from "../../auth/core.ts";
+import { ACTIVE_ACCOUNT_STATUS, type AuthUser } from "../../auth/core.ts";
 import { DomainError } from "../domain/errors.ts";
 import { parseUid, parseUuid, systemClock, toIso } from "../domain/ids.ts";
 import { assertRevision, parseRequiredRevision } from "../domain/text.ts";
@@ -58,7 +58,7 @@ import {
   updateEnrollmentQuery,
   updateSessionQuery,
 } from "../repo/delivery-repo.ts";
-import { mapProfileFacts, selectProfileFactsQuery } from "../repo/profile-repo.ts";
+import { mapProfileFacts, selectProfileFactsQuery, selectProfilesFactsQuery } from "../repo/profile-repo.ts";
 import type { CourseRecord } from "../structure/catalog.ts";
 import type { CurriculumVersionRecord } from "../structure/curriculum.ts";
 import {
@@ -144,10 +144,27 @@ export function createDeliveryService(deps: ServiceDeps) {
     async getClassGroup(user: AuthUser, classGroupId: unknown) {
       guard(user, "class_group.manage");
       const classGroup = await loadClassGroup(classGroupId);
-      const [teachers, openEnrollments] = await Promise.all([
+      const [assignments, openEnrollments] = await Promise.all([
         loadMany(executor, listAssignmentsQuery(classGroup.id, true), mapAssignmentRow),
         executor.query(selectOpenEnrollmentsQuery(classGroup.id)),
       ]);
+      // An assignment outlives a deactivation (so the teacher can be reactivated or replaced), but grants
+      // nothing while the account is not an active teacher. Administrators see which assignments are idle.
+      const accounts = new Map(
+        assignments.length === 0
+          ? []
+          : (await executor.query(selectProfilesFactsQuery([...new Set(assignments.map((a) => a.teacherUid))]))).map((row) => [String(row.firebase_uid), row]),
+      );
+      const teachers = assignments.map((assignment) => {
+        const account = accounts.get(assignment.teacherUid);
+        const facts = mapProfileFacts(account);
+        return {
+          ...assignment,
+          teacherName: typeof account?.full_name === "string" ? account.full_name : null,
+          teacherStatus: facts?.status ?? null,
+          teacherActive: facts?.role === "teacher" && facts.status === ACTIVE_ACCOUNT_STATUS,
+        };
+      });
       return { classGroup, teachers, openEnrollmentCount: openEnrollments.length };
     },
 

@@ -7,10 +7,17 @@
  */
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const API = join(import.meta.dirname, "..", "..", "src", "app", "api");
+
+function listRoutes(dir: string): string[] {
+  return readdirSync(dir).flatMap((entry) => {
+    const path = join(dir, entry);
+    return statSync(path).isDirectory() ? listRoutes(path) : entry === "route.ts" ? [path] : [];
+  });
+}
 
 type Spec = { file: string; guard: "requireAdmin" | "requireTeacher"; handlers: string[]; params?: boolean; publicHandlers?: string[] };
 
@@ -61,6 +68,11 @@ const SPECS: Spec[] = [
   { file: "teacher/earnings/route.ts", guard: "requireTeacher", handlers: ["GET"] },
   // Teacher lifecycle — verified the token itself and admitted any role = 'teacher' profile, approved or not
   { file: "teacher/dashboard/route.ts", guard: "requireTeacher", handlers: ["GET"] },
+  // Teacher assignment coherence — the last teacher routes with the verifyIdToken shim or getServerSession and a local role check
+  { file: "teacher/applications/route.ts", guard: "requireTeacher", handlers: ["GET"] },
+  { file: "teacher/available-course/route.ts", guard: "requireTeacher", handlers: ["GET"] },
+  { file: "teacher/course/route.ts", guard: "requireTeacher", handlers: ["GET"] },
+  { file: "teacher/live-course/route.ts", guard: "requireTeacher", handlers: ["GET"] },
 ];
 
 describe("Phase 2.3b legacy-auth sweep", () => {
@@ -96,9 +108,23 @@ describe("Phase 2.3b legacy-auth sweep", () => {
     });
   }
 
-  test("activate-lesson keeps its existing profiles.id ownership comparison (REVIEW_REQUIRED convention)", () => {
-    const src = readFileSync(join(API, "teacher/live-course/[courseId]/activate-lesson/route.ts"), "utf8");
-    assert.match(src, /teacher_uid = \(SELECT id FROM profiles WHERE firebase_uid = \$\{session\.uid\}\)/);
+  test("live_course ownership compares the Firebase uid the approval route writes, never profiles.id", () => {
+    // Resolved REVIEW_REQUIRED: the only writer of live_course stores profiles.firebase_uid (and the schema
+    // declares teacher_uid REFERENCES profiles(firebase_uid)), so the profiles.id comparison never matched.
+    const writer = readFileSync(join(API, "admin/applications/approve/route.ts"), "utf8");
+    assert.match(writer, /INSERT INTO live_course \(model_course_id, teacher_uid,[\s\S]*?\$\{teacher\.firebase_uid\}/);
+    for (const file of [
+      "teacher/live-course/[courseId]/activate-lesson/route.ts",
+      "teacher/live-course/[courseId]/model-lessons/route.ts",
+    ]) {
+      const src = readFileSync(join(API, file), "utf8");
+      assert.match(src, /WHERE id = \$\{params\.courseId\}\s+AND teacher_uid = \$\{session\.uid\}/, file);
+    }
+    assert.match(readFileSync(join(API, "teacher/available-course/route.ts"), "utf8"), /AND lc\.teacher_uid = \$\{teacherUid\}/);
+    assert.match(readFileSync(join(API, "teacher/live-course/[courseId]/route.ts"), "utf8"), /WHERE lc\.id = \$1 AND lc\.teacher_uid = \$2`,\s*\[courseId, user\.uid\]/);
+    for (const file of ["teacher", "admin"].flatMap((dir) => listRoutes(join(API, dir)))) {
+      assert.doesNotMatch(readFileSync(file, "utf8"), /SELECT id FROM profiles WHERE firebase_uid/, `${file} compares a Firebase uid column with profiles.id`);
+    }
   });
 
   test("teacher ownership checks still bind to the session uid", () => {

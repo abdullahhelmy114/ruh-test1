@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { teacherAccountStatusKey } from "@/lib/academy/teachers/applications";
 import { displayName } from "@/lib/academy/workspace/format";
 import { useAction, useApi } from "../api";
 import { useWorkspace } from "../context";
@@ -179,13 +180,19 @@ export function ClassGroupTeachers({ data, onChanged }: { readonly data: AdminCl
           {action.failure && <FailureNotice failure={action.failure} onRetry={onChanged} />}
         </form>
       </Section>
+      {data.teachers.some((row) => !row.teacherActive) && <Notice tone="warning">{text.classGroup.inactiveTeacher}</Notice>}
       <DataTable
         caption={text.classGroup.tabs.teachers}
         rows={data.teachers}
         rowKey={(row) => row.id}
         empty={text.classGroup.noTeachers}
         columns={[
-          { key: "name", header: text.field.teacher, cell: (row) => displayName(names.get(row.teacherUid), t.common.unnamed) },
+          { key: "name", header: text.field.teacher, cell: (row) => displayName(row.teacherName ?? names.get(row.teacherUid), t.common.unnamed) },
+          {
+            key: "status",
+            header: text.teachers.status,
+            cell: (row) => <Badge tone={row.teacherActive ? "strong" : "warning"}>{text.teachers.accountStatus[teacherAccountStatusKey(row.teacherStatus)]}</Badge>,
+          },
           { key: "since", header: text.field.startsOn, cell: (row) => date(row.assignedAt) },
           { key: "unassign", header: <span className="sr-only">{text.action.unassign}</span>, cell: (row) => <ReasonCommand label={text.action.unassign} url={adminApi.classGroup(data.classGroup.id)} body={{ action: "unassign_teacher", assignmentId: row.id }} onDone={onChanged} /> },
         ]}

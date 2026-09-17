@@ -1,24 +1,20 @@
-import { NextResponse } from 'next/server';
-import { sql } from '@/lib/db/client';
-import { getServerSession } from '@/lib/auth';
+import { NextResponse } from "next/server";
+import { sql } from "@/lib/db/client";
+import { requireTeacher } from "@/lib/auth";
+import { withApi } from "@/lib/api/handler";
 
-export async function GET(req: Request) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== 'teacher') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-  }
+// The signed-in teacher's live courses.
+// Teacher lifecycle: central guard (active teacher accounts only) instead of
+// getServerSession and a local role check.
+export const GET = withApi(async (req) => {
+  const session = await requireTeacher(req);
 
-  try {
-    const course = await sql`
-      SELECT lc.id, lc.title, lc.level, lc.price, lc.status
-      FROM live_course lc
-      JOIN profiles p ON lc.teacher_uid = p.firebase_uid
-      WHERE p.firebase_uid = ${session.uid}
-      ORDER BY lc.created_at DESC
-    `;
-    return NextResponse.json({ course });
-  } catch (err) {
-    console.error('Teacher course error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+  const course = await sql`
+    SELECT lc.id, lc.title, lc.level, lc.price, lc.status
+    FROM live_course lc
+    JOIN profiles p ON lc.teacher_uid = p.firebase_uid
+    WHERE p.firebase_uid = ${session.uid}
+    ORDER BY lc.created_at DESC
+  `;
+  return NextResponse.json({ course });
+});

@@ -14,6 +14,11 @@ export function selectProfileFactsQuery(uid: string): SqlQuery {
   return sqlQuery`SELECT firebase_uid, role, status FROM profiles WHERE firebase_uid = ${uid}`;
 }
 
+/** Role, status and display name of several accounts (for showing assigned teachers to administrators). */
+export function selectProfilesFactsQuery(uids: readonly string[]): SqlQuery {
+  return { text: `SELECT firebase_uid, role, status, full_name FROM profiles WHERE firebase_uid = ANY($1::text[])`, values: [[...uids]] };
+}
+
 const ROLES: readonly Role[] = ["admin", "teacher", "student"];
 
 /** Maps a profile row. Unknown roles map to null: such an account cannot be assigned or enrolled. */

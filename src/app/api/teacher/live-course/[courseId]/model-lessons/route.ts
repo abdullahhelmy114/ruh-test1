@@ -10,10 +10,12 @@ export const GET = withApi<{ courseId: string }>(async (req, ctx) => {
   const params = await ctx.params;
 
   // التحقق من أن المعلم يملك هذا الكورس الحي
+  // live_course.teacher_uid holds the Firebase uid (profiles.firebase_uid, as the
+  // approval route writes it); the former profiles.id comparison never matched.
   const [liveCourse] = await sql`
     SELECT model_course_id FROM live_course
     WHERE id = ${params.courseId}
-    AND teacher_uid = (SELECT id FROM profiles WHERE firebase_uid = ${session.uid})
+    AND teacher_uid = ${session.uid}
   `;
   if (!liveCourse) {
     return NextResponse.json({ error: 'الكورس غير موجود' }, { status: 404 });
