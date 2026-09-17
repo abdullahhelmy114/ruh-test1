@@ -10,13 +10,14 @@ export function AvatarCard({
 }: {
   name: string; email: string; role: string; completion: number;
   avatar: string | null;
-  onAvatar: (url: string) => void;
+  /** Omit when the picture cannot be saved: no upload control is shown. */
+  onAvatar?: (url: string) => void;
   stats?: { label: string; value: string }[];
 }) {
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const handle = (f?: File | null) => {
-    if (!f) return;
+    if (!f || !onAvatar) return;
     const reader = new FileReader();
     reader.onload = () => onAvatar(reader.result as string);
     reader.readAsDataURL(f);
@@ -40,21 +41,25 @@ export function AvatarCard({
             </div>
           )}
         </div>
-        <button
-          type="button"
-          onClick={() => inputRef.current?.click()}
-          className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-gold text-gold-foreground shadow-elegant transition hover:scale-110"
-          aria-label="Upload avatar"
-        >
-          <Camera size={15} />
-        </button>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => handle(e.target.files?.[0])}
-        />
+        {onAvatar && (
+          <>
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-gold text-gold-foreground shadow-elegant transition hover:scale-110"
+              aria-label="Upload avatar"
+            >
+              <Camera size={15} />
+            </button>
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handle(e.target.files?.[0])}
+            />
+          </>
+        )}
       </div>
 
       <div>

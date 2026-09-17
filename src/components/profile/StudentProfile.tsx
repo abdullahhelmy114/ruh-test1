@@ -5,12 +5,11 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { User, Globe2, Languages, Phone, MessageCircle, Mail, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/firebase/AuthProvider";
-import { authFetch } from "@/lib/authFetch";
 import { AvatarCard } from "./AvatarCard";
 import { Section } from "./Section";
 import { Field, Input, Select } from "./Field";
-import { MultiInput } from "./MultiInput";
 import { SaveButton } from "./SaveButton";
+import { languageCodes, loadOwnProfile, saveOwnProfile } from "./profile-api";
 
 interface ProfileState {
   fullName: string;
@@ -18,129 +17,89 @@ interface ProfileState {
   avatar: string | null;
   gender: string;
   nationality: string;
-  age: string;
-  nativeLanguage: string;
-  otherLanguages: string[];
+  languages: string[];
   residence: string;
   whatsapp: string;
   telegram: string;
-  facebook: string;
-  instagram: string;
 }
 
-const STORAGE_KEY = "studentProfileData";
-
+// The student's own profile, read from and saved to the server (PATCH /api/user).
+// Success is shown only after the server stored the change; nothing is kept in
+// browser storage. The picture comes from the sign-in account and is not
+// uploaded here.
 export function StudentProfile({ readOnly = false }: { readOnly?: boolean }) {
   const { user, isLoading: authLoading } = useAuth();
   const [s, setS] = React.useState<ProfileState | null>(null);
-  const [errors, setErrors] = React.useState<Partial<Record<keyof ProfileState, string>>>({});
+  const [loadError, setLoadError] = React.useState("");
   const [save, setSave] = React.useState<"idle" | "loading" | "success">("idle");
+
+  const load = React.useCallback(async () => {
+    if (!user) return;
+    setLoadError("");
+    const result = await loadOwnProfile();
+    if (!result.ok) {
+      setLoadError(result.message);
+      return;
+    }
+    const p = result.data;
+    setS({
+      fullName: p.full_name || user.displayName || user.email?.split("@")[0] || "",
+      email: p.email || user.email || "",
+      avatar: user.photoURL || null,
+      gender: p.gender || "",
+      nationality: p.nationality || "",
+      languages: languageCodes(p.languages),
+      residence: p.country_of_residence || "",
+      whatsapp: p.whatsapp || "",
+      telegram: p.telegram || "",
+    });
+  }, [user]);
 
   React.useEffect(() => {
     if (authLoading || !user) return;
-    const fetchProfile = async () => {
-      try {
-        const res = await authFetch("/api/user");
-        const data = await res.json();
-        if (data.profile) {
-          const p = data.profile;
-          // تحليل اللغات من حقل languages
-          let languagesArray: any[] = [];
-          if (p.languages) {
-            try {
-              if (typeof p.languages === 'string') {
-                languagesArray = JSON.parse(p.languages);
-              } else if (Array.isArray(p.languages)) {
-                languagesArray = p.languages;
-              }
-            } catch {}
-          }
-
-          const nativeLang = languagesArray.length > 0
-            ? (typeof languagesArray[0] === 'string'
-                ? languagesArray[0]
-                : languagesArray[0].code || languagesArray[0])
-            : "";
-          const otherLangs = languagesArray.slice(1).map((l: any) =>
-            typeof l === 'string' ? l : l.code || l
-          );
-
-          setS({
-            fullName: p.full_name || user.displayName || user.email?.split("@")[0] || "",
-            email: p.email || user.email || "",
-            avatar: user.photoURL || null,
-            gender: p.gender || "",
-            nationality: p.nationality || "",
-            age: p.age?.toString() || "",
-            nativeLanguage: nativeLang,
-            otherLanguages: otherLangs.filter(Boolean),
-            residence: p.country_of_residence || p.country || "",
-            whatsapp: p.whatsapp || "",
-            telegram: p.telegram || "",
-            facebook: "",
-            instagram: "",
-          });
-          return;
-        }
-      } catch {}
-      // fallback إلى localStorage
-      const stored = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
-      if (stored) {
-        try { setS(JSON.parse(stored)); return; } catch {}
-      }
-      const name = user.displayName || user.email?.split("@")[0] || "";
-      setS({
-        fullName: name,
-        email: user.email || "",
-        avatar: user.photoURL || null,
-        gender: "",
-        nationality: "",
-        age: "",
-        nativeLanguage: "",
-        otherLanguages: [],
-        residence: "",
-        whatsapp: "",
-        telegram: "",
-        facebook: "",
-        instagram: "",
-      });
-    };
-    fetchProfile();
-  }, [user, authLoading]);
+    void load();
+  }, [user, authLoading, load]);
 
   const set = React.useCallback(<K extends keyof ProfileState>(k: K, v: ProfileState[K]) => {
-    setS((p) => p ? { ...p, [k]: v } : null);
+    setS((p) => (p ? { ...p, [k]: v } : null));
   }, []);
 
   const completion = React.useMemo(() => {
     if (!s) return 0;
-    const checks = [s.avatar, s.gender, s.nationality, s.age, s.nativeLanguage, s.residence, s.whatsapp || s.telegram];
+    const checks = [s.gender, s.nationality, s.residence, s.whatsapp || s.telegram];
     return Math.round((checks.filter(Boolean).length / checks.length) * 100);
   }, [s]);
 
   const submit = React.useCallback(async () => {
     if (!s) return;
-    const e: typeof errors = {};
-    if (!s.nativeLanguage.trim()) e.nativeLanguage = "Required field";
-    setErrors(e);
-    if (Object.keys(e).length) {
-      toast.error("Please complete required fields");
+    setSave("loading");
+    const result = await saveOwnProfile({
+      gender: s.gender,
+      nationality: s.nationality.trim(),
+      countryOfResidence: s.residence.trim(),
+      whatsapp: s.whatsapp.trim(),
+      telegram: s.telegram.trim(),
+    });
+    if (!result.ok) {
+      setSave("idle");
+      toast.error(result.message);
       return;
     }
-    setSave("loading");
-    setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
-        localStorage.setItem("profileComplete", "true");
-        setSave("success");
-        toast.success("Profile saved");
-        setTimeout(() => setSave("idle"), 1500);
-      } catch {
-        setSave("idle");
-        toast.error("فشل في حفظ البيانات");
-      }
-    }, 800);
+    setSave("success");
+    toast.success("Profile saved");
+    setTimeout(() => setSave("idle"), 1500);
   }, [s]);
+
+  if (loadError) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-20 text-center">
+        <p className="text-sm text-muted-foreground">{loadError}</p>
+        <button type="button" onClick={() => void load()} className="rounded-full border px-5 py-2 text-sm">
+          Try again
+        </button>
+      </div>
+    );
+  }
 
   if (authLoading || !s) {
     return (
@@ -158,11 +117,7 @@ export function StudentProfile({ readOnly = false }: { readOnly?: boolean }) {
         role="Student"
         completion={completion}
         avatar={s.avatar}
-        onAvatar={(u) => set("avatar", u)}
-        stats={[
-          { label: "Languages", value: String(1 + s.otherLanguages.length) },
-          { label: "Level", value: "B1" },
-        ]}
+        stats={[{ label: "Languages", value: String(s.languages.length) }]}
       />
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -175,41 +130,31 @@ export function StudentProfile({ readOnly = false }: { readOnly?: boolean }) {
           <h1 className="font-serif text-4xl font-semibold text-foreground sm:text-5xl">
             Begin your <span className="gold-text">journey</span>
           </h1>
-          <p dir="rtl" className="font-arabic text-sm text-muted-foreground">أهلاً بك في أَكَادِيمِيَّةُ رُوحُ الْقُدُسِ</p>
+          <p dir="rtl" className="font-arabic text-sm text-muted-foreground">أهلاً بك في أَكَادِيمِيَّةُ رُوحُ الْقُدُسِ</p>
         </header>
 
         <Section step={1} title="Personal" arabic="المعلومات الشخصية" icon={<User size={20} />}>
           <div className="grid gap-5 md:grid-cols-2">
             <Field label="Gender" arabic="الجنس">
-              <Select className="profile-gender" value={s.gender} onChange={(e) => set("gender", e.target.value)}>
+              <Select className="profile-gender" value={s.gender} disabled={readOnly} onChange={(e) => set("gender", e.target.value)}>
                 <option value="">Select…</option>
                 <option value="male">Male / ذكر</option>
                 <option value="female">Female / أنثى</option>
               </Select>
             </Field>
-            <Field label="Age" arabic="العمر">
-              <Input className="profile-age" type="number" min={5} max={99} value={s.age} onChange={(e) => set("age", e.target.value)} />
-            </Field>
             <Field label="Nationality" arabic="الجنسية" icon={<Globe2 size={14} />}>
-              <Input className="profile-nationality" value={s.nationality} onChange={(e) => set("nationality", e.target.value)} />
+              <Input className="profile-nationality" value={s.nationality} disabled={readOnly} maxLength={80} onChange={(e) => set("nationality", e.target.value)} />
             </Field>
             <Field label="Country of Residence" arabic="بلد الإقامة">
-              <Input className="profile-residence" value={s.residence} onChange={(e) => set("residence", e.target.value)} />
+              <Input className="profile-residence" value={s.residence} disabled={readOnly} maxLength={80} onChange={(e) => set("residence", e.target.value)} />
             </Field>
           </div>
         </Section>
 
         <Section step={2} title="Languages" arabic="اللغات" icon={<Languages size={20} />}>
-          <div className="grid gap-5 md:grid-cols-2">
-            <Field label="Native Language" arabic="اللغة الأم" required error={errors.nativeLanguage}>
-              <Input className="profile-native-language" value={s.nativeLanguage} onChange={(e) => set("nativeLanguage", e.target.value)} placeholder="Arabic" />
-            </Field>
-            <Field label="Other Languages" arabic="لغات أخرى">
-              <div className="profile-other-languages">
-                <MultiInput values={s.otherLanguages} onChange={(v) => set("otherLanguages", v)} placeholder="Add a language" />
-              </div>
-            </Field>
-          </div>
+          <p className="text-sm text-muted-foreground" dir="ltr">
+            {s.languages.length > 0 ? s.languages.join(", ") : "—"}
+          </p>
         </Section>
 
         <Section step={3} title="Contact" arabic="وسائل التواصل" icon={<Phone size={20} />} defaultOpen={false}>
@@ -218,10 +163,10 @@ export function StudentProfile({ readOnly = false }: { readOnly?: boolean }) {
               <Input className="profile-email" value={s.email} disabled />
             </Field>
             <Field label="WhatsApp" arabic="واتساب" icon={<Phone size={14} />}>
-              <Input className="profile-whatsapp" dir="ltr" value={s.whatsapp} onChange={(e) => set("whatsapp", e.target.value)} />
+              <Input className="profile-whatsapp" dir="ltr" value={s.whatsapp} disabled={readOnly} maxLength={32} onChange={(e) => set("whatsapp", e.target.value)} />
             </Field>
             <Field label="Telegram" arabic="تيليجرام" icon={<MessageCircle size={14} />}>
-              <Input className="profile-telegram" value={s.telegram} onChange={(e) => set("telegram", e.target.value)} placeholder="@username" />
+              <Input className="profile-telegram" dir="ltr" value={s.telegram} disabled={readOnly} maxLength={33} onChange={(e) => set("telegram", e.target.value)} placeholder="@username" />
             </Field>
           </div>
         </Section>
@@ -230,9 +175,7 @@ export function StudentProfile({ readOnly = false }: { readOnly?: boolean }) {
           <p className="text-xs text-muted-foreground">
             Profile completion: <span className="font-semibold text-primary dark:text-gold">{completion}%</span>
           </p>
-          <div className="profile-save-btn">
-            {!readOnly && <SaveButton onClick={submit} state={save} />}
-          </div>
+          <div className="profile-save-btn">{!readOnly && <SaveButton onClick={submit} state={save} />}</div>
         </div>
       </motion.div>
     </div>

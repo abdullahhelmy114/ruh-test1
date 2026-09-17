@@ -81,16 +81,11 @@ function httpsUrl(value: unknown, name: string): string {
   return url.toString();
 }
 
-/** Validates everything an applicant submits. Unknown fields are ignored; identity never comes from here. */
-export function parseApplicationDetails(input: unknown): TeacherApplicationDetails {
-  if (!input || typeof input !== "object" || Array.isArray(input)) throw new DomainError("VALIDATION", "Application details are required.");
-  const d = input as Record<string, unknown>;
-
-  const languagesInput = d.languages;
-  if (!Array.isArray(languagesInput) || languagesInput.length < 1 || languagesInput.length > 10) {
+export function parseLanguages(value: unknown): TeacherApplicationDetails["languages"] {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 10) {
     throw new DomainError("VALIDATION", "Add between one and ten languages.");
   }
-  const languages = languagesInput.map((entry, index) => {
+  const languages = value.map((entry, index) => {
     const e = (entry ?? {}) as Record<string, unknown>;
     const code = typeof e.code === "string" ? e.code.trim() : "";
     if (!/^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})?$/.test(code)) throw new DomainError("VALIDATION", `languages[${index}].code is not a language code.`);
@@ -98,36 +93,71 @@ export function parseApplicationDetails(input: unknown): TeacherApplicationDetai
   });
   if (new Set(languages.map((l) => l.code)).size !== languages.length) throw new DomainError("VALIDATION", "Each language can be listed once.");
   if (!languages.some((l) => l.proficiency === "native")) throw new DomainError("VALIDATION", "Mark at least one language as native.");
+  return languages;
+}
 
-  const whatsapp = field(d.whatsapp, "whatsapp", 32);
+export function parseWhatsapp(value: unknown): string {
+  const whatsapp = field(value, "whatsapp", 32);
   if (!/^\+?[0-9][0-9 ()-]{5,30}$/.test(whatsapp)) throw new DomainError("VALIDATION", "whatsapp must be a phone number.");
+  return whatsapp;
+}
 
-  const telegram = field(d.telegram, "telegram", 33);
+/** A Telegram username, stored with its leading "@". */
+export function parseTelegram(value: unknown): string {
+  const telegram = field(value, "telegram", 33);
   if (!/^@?[A-Za-z0-9_]{5,32}$/.test(telegram)) throw new DomainError("VALIDATION", "telegram must be a Telegram username.");
+  return telegram.startsWith("@") ? telegram : `@${telegram}`;
+}
 
-  if (typeof d.bio !== "string") throw new DomainError("VALIDATION", "bio is required.");
-  const bio = d.bio.replace(/\r\n?/g, "\n").trim();
+export function parseBio(value: unknown): string {
+  if (typeof value !== "string") throw new DomainError("VALIDATION", "bio is required.");
+  const bio = value.replace(/\r\n?/g, "\n").trim();
   if (bio.length < BIO_MIN || bio.length > BIO_MAX) throw new DomainError("VALIDATION", `bio must be between ${BIO_MIN} and ${BIO_MAX} characters.`);
+  return bio;
+}
 
-  const linksInput = d.socialLinks === undefined || d.socialLinks === null ? [] : d.socialLinks;
+/** Up to ten https profile links; entries left completely empty are dropped. */
+export function parseSocialLinks(value: unknown): TeacherApplicationDetails["socialLinks"] {
+  const linksInput = value === undefined || value === null ? [] : value;
   if (!Array.isArray(linksInput) || linksInput.length > 10) throw new DomainError("VALIDATION", "Add at most ten profile links.");
-  const socialLinks = linksInput
+  return linksInput
     .map((entry, index) => {
       const e = (entry ?? {}) as Record<string, unknown>;
       if ((e.url === undefined || e.url === "") && (e.platform === undefined || e.platform === "")) return null;
       return { platform: field(e.platform, `socialLinks[${index}].platform`, 40), url: httpsUrl(e.url, `socialLinks[${index}].url`) };
     })
     .filter((link): link is { platform: string; url: string } => link !== null);
+}
+
+export function parseGender(value: unknown): (typeof TEACHER_GENDERS)[number] {
+  return oneOf(value, TEACHER_GENDERS, "gender");
+}
+
+/** A single-line name or place, 1–80 characters. */
+export function parseShortText(value: unknown, name: string): string {
+  return field(value, name, 80);
+}
+
+/** Validates everything an applicant submits. Unknown fields are ignored; identity never comes from here. */
+export function parseApplicationDetails(input: unknown): TeacherApplicationDetails {
+  if (!input || typeof input !== "object" || Array.isArray(input)) throw new DomainError("VALIDATION", "Application details are required.");
+  const d = input as Record<string, unknown>;
+
+  const languages = parseLanguages(d.languages);
+  const whatsapp = parseWhatsapp(d.whatsapp);
+  const telegram = parseTelegram(d.telegram);
+  const bio = parseBio(d.bio);
+  const socialLinks = parseSocialLinks(d.socialLinks);
 
   return Object.freeze({
     firstName: field(d.firstName, "firstName", 80),
     lastName: field(d.lastName, "lastName", 80),
     countryOfResidence: field(d.countryOfResidence, "countryOfResidence", 80),
     nationality: field(d.nationality, "nationality", 80),
-    gender: oneOf(d.gender, TEACHER_GENDERS, "gender"),
+    gender: parseGender(d.gender),
     languages,
     whatsapp,
-    telegram: telegram.startsWith("@") ? telegram : `@${telegram}`,
+    telegram,
     bio,
     socialLinks,
   });
