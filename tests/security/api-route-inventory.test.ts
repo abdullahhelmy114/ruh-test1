@@ -89,6 +89,18 @@ describe("API route access inventory", () => {
     }
   });
 
+  test("guards run before try blocks that would turn a refusal into a server error", () => {
+    // Found by the HTTP smoke sweep: an administrator check inside try/catch answered anonymous callers with 500.
+    const swallowed = ROUTES.filter((r) =>
+      r.code.split(/export (?:const|async function) (?:GET|POST|PUT|PATCH|DELETE)\b/).slice(1).some((handler) => {
+        const guard = handler.search(/await require(?:Auth|Admin|Teacher|Student|Role|SelfOrAdmin|CommunityMember)\(/);
+        const tryAt = handler.indexOf("try {");
+        return guard > tryAt && tryAt >= 0 && !/instanceof AuthError\) throw/.test(handler);
+      }),
+    ).map((r) => r.rel);
+    assert.deepEqual(swallowed, []);
+  });
+
   test("no route returns raw exception text, administrator routes included", () => {
     const leaking = ROUTES.filter((r) => /(?:error|message|details?)\s*:\s*(?:error|err|e)\.(?:message|toString\(\))/.test(r.code)).map((r) => r.rel);
     assert.deepEqual(leaking, []);

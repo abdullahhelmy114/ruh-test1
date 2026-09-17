@@ -198,7 +198,7 @@ describe("/api/user cannot be told email_verified by the client", () => {
     for (const needle of ["body.email", "body.referred_by", "INSERT INTO profiles", "referred_by"]) {
       assert.equal(src.includes(needle), false, `must not contain ${needle}`);
     }
-    assert.ok(src.includes("{ error: 'This endpoint has been removed.' }, { status: 410 }"));
+    assert.ok(src.includes("{ error: 'Profiles are created at signup and changed with PATCH.' }, { status: 410 }"));
     assert.equal(/role = \$\{/.test(src), false, "role still not client-controlled");
   });
 });

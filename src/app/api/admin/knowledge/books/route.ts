@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
 import { requireAdmin } from "@/lib/auth";
 import { withApi } from "@/lib/api/handler";
@@ -6,10 +6,10 @@ import { withApi } from "@/lib/api/handler";
 export const dynamic = "force-dynamic";
 
 export const GET = withApi(async (req) => {
-  try {
-    // التحقق من الصلاحية
-    await requireAdmin(req);
+  // The administrator check runs before the try block, so a refusal is a 401/403 from withApi, not a server error.
+  await requireAdmin(req);
 
+  try {
     // جلب قائمة الكتب من قاعدة المعرفة
     const books = await sql`
       SELECT id, title, file_uri, created_at

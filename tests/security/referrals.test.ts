@@ -93,7 +93,7 @@ describe("attribution", () => {
   test("the profile upserts that let an account set its referrer or email are retired", () => {
     const user = read("src", "app", "api", "user", "route.ts");
     const post = user.slice(user.indexOf("export const POST"));
-    assert.match(post, /export const POST = withApi\(async \(req\) => \{\s*await requireAuth\(req\);\s*return NextResponse\.json\(\{ error: 'This endpoint has been removed\.' \}, \{ status: 410 \}\);/);
+    assert.match(post, /export const POST = withApi\(async \(req\) => \{\s*await requireAuth\(req\);\s*return NextResponse\.json\(\{ error: 'Profiles are created at signup and changed with PATCH\.' \}, \{ status: 410 \}\);/);
     assert.doesNotMatch(code(user), /referred_by|body\.email|INSERT INTO profiles/);
     const createProfile = read("src", "app", "api", "create-profile", "route.ts");
     assert.match(createProfile, /export async function POST\(\) \{\s*return Response\.json\(\s*\{ error: "This endpoint has been removed\." \},\s*\{ status: 410 \}/);

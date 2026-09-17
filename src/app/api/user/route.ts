@@ -43,7 +43,8 @@ export const PATCH = withApi(async (req) => {
 // forged referrer). Nothing in the application called it. Accounts are created
 // by the signup routes; profile fields change through PATCH above; referral
 // attribution happens once, at student signup (lib/referral.ts).
+// (Its message differs from whole-file removed endpoints: GET and PATCH here are live.)
 export const POST = withApi(async (req) => {
   await requireAuth(req);
-  return NextResponse.json({ error: 'This endpoint has been removed.' }, { status: 410 });
+  return NextResponse.json({ error: 'Profiles are created at signup and changed with PATCH.' }, { status: 410 });
 });
