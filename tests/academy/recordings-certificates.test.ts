@@ -279,6 +279,10 @@ describe("recording service", () => {
   test("teachers review every non-archived recording; outsiders and unpublished requests get nothing", async () => {
     const staff = await recordings(fakeExecutor(world({ policy: policies({}) }))).listClassGroupRecordings(teacher, IDS.classGroup);
     assert.equal(staff.length, 3);
+    assert.equal(typeof staff[0].revision, "number", "staff need the revision to change a recording's state");
+    const learnerView = await recordings(fakeExecutor(world())).listClassGroupRecordings(student, IDS.classGroup);
+    assert.equal(learnerView[0].revision, undefined, "learners never receive administrative fields");
+    assert.equal(learnerView[0].state, undefined);
     await rejectsForbidden(recordings(fakeExecutor(world())).listClassGroupRecordings(outsider, IDS.classGroup));
     await rejectsDomain(recordings(fakeExecutor(world({ recording: [recordingRow({ state: "in_review" })] }))).getRecording(student, RECORDING), "NOT_FOUND");
     await rejectsDomain(recordings(fakeExecutor(world({ policy: policies({}) }))).getRecording(student, RECORDING), "POLICY_UNCONFIGURED");

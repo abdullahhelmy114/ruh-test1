@@ -20,7 +20,10 @@ export type ApiState<T> =
 
 const UNAUTHENTICATED: ApiFailure = Object.freeze({ kind: "unauthenticated", status: 401, message: null });
 
-export async function requestJson<T>(url: string, init: { readonly method?: string; readonly body?: unknown } = {}): Promise<ApiResult<T>> {
+export async function requestJson<T>(
+  url: string,
+  init: { readonly method?: string; readonly body?: unknown; readonly select?: (body: unknown) => T } = {},
+): Promise<ApiResult<T>> {
   let response: Response;
   try {
     response = await authFetch(url, {
@@ -34,14 +37,17 @@ export async function requestJson<T>(url: string, init: { readonly method?: stri
   const body: unknown = await response.json().catch(() => null);
   if (!response.ok) return { ok: false, failure: failureFromResponse(response.status, body) };
   try {
-    return { ok: true, data: dataOf<T>(body) };
+    return { ok: true, data: init.select ? init.select(body) : dataOf<T>(body) };
   } catch {
     return { ok: false, failure: failureFromResponse(500, null) };
   }
 }
 
-/** Loads a resource once auth is known; `url === null` waits (for example until a choice is made). */
-export function useApi<T>(url: string | null): { readonly state: ApiState<T>; readonly reload: () => void } {
+/**
+ * Loads a resource once auth is known; `url === null` waits (for example until
+ * a choice is made). `select` reads responses that are not `{ data }` shaped.
+ */
+export function useApi<T>(url: string | null, select?: (body: unknown) => T): { readonly state: ApiState<T>; readonly reload: () => void } {
   const { user, isLoading } = useAuth();
   const [state, setState] = useState<ApiState<T>>({ status: "loading" });
   const [nonce, setNonce] = useState(0);
@@ -56,7 +62,7 @@ export function useApi<T>(url: string | null): { readonly state: ApiState<T>; re
     let cancelled = false;
     // Keep showing loaded data while refreshing; show loading only the first time.
     setState((previous) => (previous.status === "ready" ? previous : { status: "loading" }));
-    requestJson<T>(url).then((result) => {
+    requestJson<T>(url, { select }).then((result) => {
       if (cancelled) return;
       setState(result.ok ? { status: "ready", data: result.data } : { status: "failed", failure: result.failure });
     });

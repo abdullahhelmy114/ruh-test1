@@ -145,6 +145,8 @@ export function recordingView(recording: RecordingRecord, decision: WatchDecisio
     title: recording.title,
     durationSeconds: recording.durationSeconds,
     state: staff ? recording.state : undefined,
+    // Staff need the revision to change a recording's state; learners never do.
+    revision: staff ? recording.revision : undefined,
     publishedAt: recording.publishedAt,
     mediaUrl: allowed ? recording.mediaUrl : null,
     downloadAllowed: staff ? true : decision.allowed ? decision.downloadAllowed : false,
