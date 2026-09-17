@@ -13,6 +13,7 @@ import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
+import { academyHome } from "../../src/components/academy/workspace/paths.ts";
 import { PRODUCT_LOCALES } from "../../src/lib/academy/domain/vocabulary.ts";
 import { dataOf, failureFromResponse } from "../../src/lib/academy/workspace/api-errors.ts";
 import { displayName, fmt, formatDate } from "../../src/lib/academy/workspace/format.ts";
@@ -208,5 +209,19 @@ describe("workspace screens", () => {
     assert.match(layout, /robots: \{ index: false, follow: false \}/);
     assert.match(layout, /resolveLocale\(\(await cookies\(\)\)\.get\(LOCALE_COOKIE\)\?\.value\)/);
     assert.ok(existsSync(join(componentDir, "shell.tsx")));
+  });
+
+  test("the site navigation leads into the academy: the public catalog and each role's home", () => {
+    assert.equal(academyHome("admin"), "/academy/manage");
+    assert.equal(academyHome("teacher"), "/academy/teach");
+    for (const role of ["student", null, undefined, "", "ADMIN", "unknown"]) assert.equal(academyHome(role), "/academy/learn", String(role));
+    for (const home of ["manage", "teach", "learn"]) assert.ok(existsSync(join(pageDir, home, "page.tsx")), home);
+    const navbar = readFileSync(join(ROOT, "src", "components", "Navbar.tsx"), "utf8");
+    assert.match(navbar, /\{ to: "\/academy", label: "Academy"/);
+    assert.equal(navbar.match(/href=\{academyLink\}/g)?.length, 2, "desktop and mobile account menus");
+    for (const locale of ["en", "ar", "tr"]) {
+      const messages = JSON.parse(readFileSync(join(ROOT, "src", "messages", `${locale}.json`), "utf8")) as Record<string, unknown>;
+      for (const key of ["Academy", "My academy"]) assert.equal(typeof messages[key], "string", `${locale}: ${key}`);
+    }
   });
 });

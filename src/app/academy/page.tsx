@@ -38,7 +38,11 @@ export default async function AcademyCatalogPage() {
               <ul className="grid gap-4 sm:grid-cols-2">
                 {catalog.programs.map((program) => (
                   <li key={program.slug} className="rounded-md border p-4">
-                    <h3 className="font-medium">{program.title}</h3>
+                    <h3 className="font-medium">
+                      <Link href={`/academy/programs/${program.slug}`} className="underline-offset-4 hover:underline focus-visible:underline">
+                        {program.title}
+                      </Link>
+                    </h3>
                     {program.description && <p className="mt-1 text-sm text-muted-foreground">{program.description}</p>}
                   </li>
                 ))}
@@ -61,7 +65,10 @@ export default async function AcademyCatalogPage() {
                     </h3>
                     {course.program && (
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {t.partOfProgram}: {course.program.title}
+                        {t.partOfProgram}:{" "}
+                        <Link href={`/academy/programs/${course.program.slug}`} className="underline-offset-4 hover:underline focus-visible:underline">
+                          {course.program.title}
+                        </Link>
                       </p>
                     )}
                     {course.description && <p className="mt-2 text-sm text-muted-foreground">{course.description}</p>}

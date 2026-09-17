@@ -33,6 +33,8 @@ const R = {
   course: /WHERE c\.slug = \$1/,
   outline: /FROM academy_curricula cu/,
   groups: /FROM academy_class_groups cg/,
+  program: /FROM academy_programs WHERE slug = \$1 AND status = 'active' AND deleted_at IS NULL/,
+  programCourses: /FROM academy_courses\s+WHERE program_id = \$1::uuid AND status = 'active' AND deleted_at IS NULL/,
 };
 
 function world(overrides: Partial<Record<keyof typeof R, Rule["rows"]>> = {}): Rule[] {
@@ -48,6 +50,11 @@ function world(overrides: Partial<Record<keyof typeof R, Rule["rows"]>> = {}): R
     groups: [
       { name: "Autumn cohort", status: "planned", starts_on: "2026-10-01", ends_on: "2026-12-20", is_full: false },
       { name: "Evening cohort", status: "active", starts_on: null, ends_on: null, is_full: true },
+    ],
+    program: [{ id: IDS.program, slug: "arabic-foundations", title: "Arabic Foundations", description: "Reading and grammar" }],
+    programCourses: [
+      { slug: "nahw-1", title: "Nahw 1", description: "Grammar basics" },
+      { slug: "sarf-1", title: "Sarf 1", description: null },
     ],
     ...overrides,
   };
@@ -91,9 +98,38 @@ describe("public catalog service", () => {
     await rejectsDomain(service(world({ course: [] })).svc.course("nahw-9"), "NOT_FOUND");
   });
 
+  test("a program shows its active courses without identifiers", async () => {
+    const { svc, executor } = service(world());
+    const program = await svc.program("arabic-foundations");
+    assert.deepEqual(program, {
+      slug: "arabic-foundations",
+      title: "Arabic Foundations",
+      description: "Reading and grammar",
+      courses: [
+        { slug: "nahw-1", title: "Nahw 1", description: "Grammar basics" },
+        { slug: "sarf-1", title: "Sarf 1", description: null },
+      ],
+    });
+    assert.equal(JSON.stringify(program).includes(IDS.program), false, "internal identifiers are not published");
+    assert.deepEqual(executor.queries.find((q) => R.programCourses.test(q.text))?.values, [IDS.program]);
+  });
+
+  test("malformed program slugs are not found without touching the database; unknown or inactive programs are not found", async () => {
+    for (const bad of [undefined, 42, "", "ab", "Arabic", "arabic_foundations", "../admin", "x".repeat(81)]) {
+      const { svc, executor } = service(world());
+      await assert.rejects(svc.program(bad), (error: unknown) => error instanceof Error && error.message === "Program not found.");
+      assert.equal(executor.queries.length, 0, String(bad));
+    }
+    const { svc, executor } = service(world({ program: [] }));
+    await rejectsDomain(svc.program("retired-program"), "NOT_FOUND");
+    assert.equal(executor.queries.some((q) => R.programCourses.test(q.text)), false, "courses are not read for a missing program");
+  });
+
   test("reports 'not available yet' before the academy schema exists", async () => {
     const { svc, executor } = service(world(), false);
     await rejectsDomain(svc.catalog(), "FEATURE_UNAVAILABLE");
+    await rejectsDomain(svc.program("arabic-foundations"), "FEATURE_UNAVAILABLE");
+    await rejectsDomain(svc.course("nahw-1"), "FEATURE_UNAVAILABLE");
     assert.equal(executor.queries.length, 0);
   });
 
@@ -102,6 +138,8 @@ describe("public catalog service", () => {
       publicRepo.selectPublicProgramsQuery(),
       publicRepo.selectPublicCoursesQuery(),
       publicRepo.selectPublicCourseQuery("nahw-1"),
+      publicRepo.selectPublicProgramQuery("arabic-foundations"),
+      publicRepo.selectPublicProgramCoursesQuery(IDS.program),
       publicRepo.selectPublicOutlineQuery(IDS.course),
       publicRepo.selectPublicClassGroupsQuery(IDS.course, "2026-09-17"),
     ];
@@ -110,6 +148,9 @@ describe("public catalog service", () => {
       assert.doesNotMatch(query.text, /teacher_uid|learner_uid|email|meeting_url|content|created_by|full_name/);
     }
     assert.match(publicRepo.selectPublicOutlineQuery(IDS.course).text, /v\.state = 'published'/);
+    for (const query of [publicRepo.selectPublicProgramQuery("arabic-foundations"), publicRepo.selectPublicProgramCoursesQuery(IDS.program)]) {
+      assert.match(query.text, /status = 'active' AND deleted_at IS NULL/);
+    }
     assert.match(publicRepo.selectPublicClassGroupsQuery(IDS.course, "2026-09-17").text, /cg\.deleted_at IS NULL AND cg\.status IN \('planned', 'active'\)/);
   });
 });
@@ -140,6 +181,7 @@ describe("public routes", () => {
     assert.deepEqual(routes.map((path) => relative(API, path).replace(/\\/g, "/")).sort(), [
       "academy/catalog/route.ts",
       "academy/courses/[slug]/route.ts",
+      "academy/programs/[slug]/route.ts",
       "certificates/[code]/route.ts",
     ]);
   });
@@ -168,7 +210,7 @@ describe("public pages", () => {
   });
 
   test("the expected public pages exist", () => {
-    assert.deepEqual(pages.map((path) => relative(APP, path).replace(/\\/g, "/")).sort(), ["certificates/verify/page.tsx", "courses/[slug]/page.tsx", "page.tsx"]);
+    assert.deepEqual(pages.map((path) => relative(APP, path).replace(/\\/g, "/")).sort(), ["certificates/verify/page.tsx", "courses/[slug]/page.tsx", "page.tsx", "programs/[slug]/page.tsx"]);
   });
 
   for (const path of pages) {

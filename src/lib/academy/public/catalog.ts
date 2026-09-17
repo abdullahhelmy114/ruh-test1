@@ -35,12 +35,17 @@ export interface PublicCourseDetail extends PublicCourseSummary {
   readonly upcomingClassGroups: readonly PublicClassGroup[];
 }
 
+/** An active program with its active courses (titles and descriptions only). */
+export interface PublicProgramDetail extends PublicProgram {
+  readonly courses: readonly Omit<PublicCourseSummary, "program">[];
+}
+
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /** Public slugs that cannot be a slug are simply not found (no validation detail leaks). */
-export function parsePublicSlug(value: unknown): string {
+export function parsePublicSlug(value: unknown, notFoundMessage = "Course not found."): string {
   if (typeof value !== "string" || value.length < 3 || value.length > 80 || !SLUG.test(value)) {
-    throw new DomainError("NOT_FOUND", "Course not found.");
+    throw new DomainError("NOT_FOUND", notFoundMessage);
   }
   return value;
 }

@@ -49,7 +49,14 @@ export default async function AcademyCoursePage({ params }: Props) {
       ) : (
         <article>
           <header className="mb-8">
-            {course.program && <p className="text-sm text-muted-foreground">{t.partOfProgram}: {course.program.title}</p>}
+            {course.program && (
+              <p className="text-sm text-muted-foreground">
+                {t.partOfProgram}:{" "}
+                <Link href={`/academy/programs/${course.program.slug}`} className="underline-offset-4 hover:underline focus-visible:underline">
+                  {course.program.title}
+                </Link>
+              </p>
+            )}
             <h1 className="mt-1 text-3xl font-semibold">{course.title}</h1>
             {course.description && <p className="mt-3 whitespace-pre-line text-muted-foreground">{course.description}</p>}
           </header>

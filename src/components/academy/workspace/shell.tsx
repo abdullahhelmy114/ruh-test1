@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/firebase/AuthProvider";
 import { cn } from "@/lib/utils";
 import { useApi } from "./api";
 import { useWorkspace } from "./context";
+import { academyHome } from "./paths";
 
 interface NavItem {
   readonly href: string;
@@ -23,14 +24,9 @@ export function WorkspaceShell({ children }: { readonly children: ReactNode }) {
   const { role, user } = useAuth();
   const pathname = usePathname() ?? "";
 
-  const home: NavItem[] =
-    role === "admin"
-      ? [{ href: "/academy/manage", label: t.nav.manage }]
-      : role === "teacher"
-        ? [{ href: "/academy/teach", label: t.nav.teach }]
-        : [{ href: "/academy/learn", label: t.nav.learn }];
+  const homeLabel = role === "admin" ? t.nav.manage : role === "teacher" ? t.nav.teach : t.nav.learn;
   const items: NavItem[] = [
-    ...home,
+    { href: academyHome(role), label: homeLabel },
     { href: "/academy/messages", label: t.nav.messages },
     { href: "/academy/notifications", label: t.nav.notifications },
     { href: "/academy/announcements", label: t.nav.announcements },

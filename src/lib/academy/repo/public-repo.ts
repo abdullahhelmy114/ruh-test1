@@ -23,6 +23,17 @@ export function selectPublicCoursesQuery(): SqlQuery {
   };
 }
 
+export function selectPublicProgramQuery(slug: string): SqlQuery {
+  return sqlQuery`SELECT id, slug, title, description FROM academy_programs WHERE slug = ${slug} AND status = 'active' AND deleted_at IS NULL`;
+}
+
+export function selectPublicProgramCoursesQuery(programId: string): SqlQuery {
+  return sqlQuery`SELECT slug, title, description FROM academy_courses
+    WHERE program_id = ${programId}::uuid AND status = 'active' AND deleted_at IS NULL
+    ORDER BY title ASC
+    LIMIT 500`;
+}
+
 export function selectPublicCourseQuery(slug: string): SqlQuery {
   return sqlQuery`SELECT c.id, c.slug, c.title, c.description, p.slug AS program_slug, p.title AS program_title
     FROM academy_courses c

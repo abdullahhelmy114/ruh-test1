@@ -24,6 +24,11 @@ export const pages = {
   approval: (id: string) => `/academy/approvals/${e(id)}`,
 };
 
+/** The academy home for a signed-in role (navigation only; pages and APIs authorize on the server). */
+export function academyHome(role: string | null | undefined): string {
+  return role === "admin" ? pages.manage : role === "teacher" ? pages.teach : pages.learn;
+}
+
 export const api = {
   myLearning: "/api/academy/me/learning",
   myTeaching: "/api/academy/me/teaching",

@@ -6,12 +6,14 @@ import { DomainError } from "../domain/errors.ts";
 import { systemClock } from "../domain/ids.ts";
 import { assertAcademyCoreAvailable } from "../infra/flags.ts";
 import type { SqlRow } from "../infra/sql.ts";
-import { parsePublicSlug, type PublicCourseDetail, type PublicCourseSummary, type PublicProgram } from "../public/catalog.ts";
+import { parsePublicSlug, type PublicCourseDetail, type PublicCourseSummary, type PublicProgram, type PublicProgramDetail } from "../public/catalog.ts";
 import {
   selectPublicClassGroupsQuery,
   selectPublicCourseQuery,
   selectPublicCoursesQuery,
   selectPublicOutlineQuery,
+  selectPublicProgramCoursesQuery,
+  selectPublicProgramQuery,
   selectPublicProgramsQuery,
 } from "../repo/public-repo.ts";
 import { numOrNull, str, strOrNull } from "../repo/rows.ts";
@@ -37,6 +39,20 @@ export function createPublicService(deps: Pick<ServiceDeps, "executor" | "flags"
       return {
         programs: programs.map((row) => ({ slug: str(row.slug), title: str(row.title), description: strOrNull(row.description) })),
         courses: courses.map(summary),
+      };
+    },
+
+    async program(slugInput: unknown): Promise<PublicProgramDetail> {
+      assertAcademyCoreAvailable(deps.flags);
+      const slug = parsePublicSlug(slugInput, "Program not found.");
+      const rows = await executor.query(selectPublicProgramQuery(slug));
+      if (rows.length === 0) throw new DomainError("NOT_FOUND", "Program not found.");
+      const courses = await executor.query(selectPublicProgramCoursesQuery(str(rows[0].id)));
+      return {
+        slug: str(rows[0].slug),
+        title: str(rows[0].title),
+        description: strOrNull(rows[0].description),
+        courses: courses.map((row) => ({ slug: str(row.slug), title: str(row.title), description: strOrNull(row.description) })),
       };
     },
 

@@ -7,8 +7,9 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Bell, BellOff, Mail, Moon, Sun, BookOpen, User, LayoutDashboard, LogOut, ChevronDown,
-  Info, Phone, Library, Shield, ShoppingCart, Heart, Menu, X, Users,
+  Info, Phone, Library, Shield, ShoppingCart, Heart, Menu, X, Users, GraduationCap,
 } from "lucide-react";
+import { academyHome } from "@/components/academy/workspace/paths";
 import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
@@ -33,6 +34,7 @@ const baseLinks = [
 ];
 
 const moreLinks = [
+  { to: "/academy", label: "Academy", icon: GraduationCap },
   { to: "/about", label: "About", icon: Info },
   { to: "/contact", label: "Contact", icon: Phone },
   { to: "/library", label: "Library", icon: Library },
@@ -130,6 +132,7 @@ export function Navbar() {
   // ── تم إخفاء دور المعلم: أي مستخدم بدور "teacher" يُعامل كطالب ──
   const dashboardLink = role === "admin" ? "/dashboard/admin" : "/dashboard/student";
   const profileLink = role === "admin" ? "/profile/admin" : "/profile/student";
+  const academyLink = academyHome(role);
 
   const initial = user?.email ? user.email.charAt(0).toUpperCase() : "U";
 
@@ -335,6 +338,9 @@ export function Navbar() {
                   <Link href={dashboardLink} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground">
                     <LayoutDashboard className="h-4 w-4" /> <T>Dashboard</T>
                   </Link>
+                  <Link href={academyLink} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground">
+                    <GraduationCap className="h-4 w-4" /> <T>My academy</T>
+                  </Link>
                   <Link href={profileLink} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground">
                     <User className="h-4 w-4" /> <T>Profile</T>
                   </Link>
@@ -438,6 +444,9 @@ export function Navbar() {
                 <p className="text-xs text-muted-foreground px-4">{user.email}</p>
                 <Link href={dashboardLink} onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-4 py-3 hover:bg-accent">
                   <LayoutDashboard className="h-5 w-5" /> <T>Dashboard</T>
+                </Link>
+                <Link href={academyLink} onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-4 py-3 hover:bg-accent">
+                  <GraduationCap className="h-5 w-5" /> <T>My academy</T>
                 </Link>
                 <Link href={profileLink} onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-4 py-3 hover:bg-accent">
                   <User className="h-5 w-5" /> <T>Profile</T>
