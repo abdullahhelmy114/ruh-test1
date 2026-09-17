@@ -27,20 +27,11 @@ export const AudioBlock = ({ block, onUpdate, onDelete }: { block: AudioBlockDat
     }
   };
 
+  // AI generation is not available: the endpoints these tools called were never part of the application, and external AI is not approved.
+  const [voiceUnavailable, setVoiceUnavailable] = useState(false);
   const handleGenerateAiVoice = async () => {
-    setIsGenerating(true);
-    try {
-      const res = await fetch("/api/ai/tts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: block.textToRead || "Preview", voiceId: "21m00Tcm4TlvDq8ikWAM" }),
-      });
-      if (res.ok) {
-        const blob = await res.blob();
-        const audioUrl = URL.createObjectURL(blob);
-        onUpdate({ ...block, audioUrl });
-      }
-    } catch (err) {} finally { setIsGenerating(false); }
+    setIsGenerating(false);
+    setVoiceUnavailable(true);
   };
 
   return (
@@ -67,6 +58,11 @@ export const AudioBlock = ({ block, onUpdate, onDelete }: { block: AudioBlockDat
           <button onClick={onDelete} className="p-1.5 text-destructive hover:bg-destructive/10 rounded-lg"><X size={16} /></button>
         </div>
       </div>
+      {voiceUnavailable && (
+        <p role="status" className="mt-3 text-xs text-muted-foreground">
+          <T>AI generation is not available.</T>
+        </p>
+      )}
     </div>
   );
 };
@@ -117,23 +113,9 @@ export const AiToolsModal = ({ activeTool, onClose, lessonText, onApply }: { act
 
   if (!activeTool) return null;
 
+  // AI generation is not available: the endpoints these tools called were never part of the application, and external AI is not approved.
   const handleRunTool = async () => {
-    setLoading(true);
-    try {
-      let prompt = "";
-      if (activeTool === "summary") prompt = `Summarize this and give key takeaways: ${lessonText}`;
-      if (activeTool === "translate") prompt = `Translate to Professional Arabic: ${lessonText}`;
-      if (activeTool === "ai-writer") prompt = `Expand this text with examples and fix grammar: ${lessonText}`;
-
-      const res = await fetch("/api/ai/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, type: "text" }),
-      });
-      const data = await res.json();
-      setResult(data.text);
-    } catch (err) { setResult("Error generating content."); }
-    setLoading(false);
+    setResult("AI generation is not available.");
   };
 
   return (

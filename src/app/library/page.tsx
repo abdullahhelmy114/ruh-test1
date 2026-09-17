@@ -58,7 +58,7 @@ export default function PublicLibraryPage() {
       try {
         const [booksRes, categoriesRes] = await Promise.all([
           authFetch("/api/library/books"),
-          authFetch("/api/library/categories"),
+          authFetch("/api/categories"),
         ]);
 
         if (booksRes.ok) {
@@ -98,15 +98,9 @@ export default function PublicLibraryPage() {
     });
   }, [books, searchTerm, selectedCategory]);
 
-  const getBookCover = (book: Book) => {
-    if (book.cover_file_id) {
-      return `/api/library/files/${book.cover_file_id}`;
-    }
-    if (book.cover_url) {
-      return book.cover_url;
-    }
-    return "/placeholder-cover.png";
-  };
+  // Only covers with a URL can be shown: files stored by Drive id have no route
+  // serving them, and there is no placeholder image file.
+  const getBookCover = (book: Book) => book.cover_url || null;
 
   const handleReadBook = (book: Book) => {
     // If free or accessible, navigate to reader; else maybe show upgrade prompt
@@ -181,12 +175,18 @@ export default function PublicLibraryPage() {
               onClick={() => handleReadBook(book)}
             >
               <div className="relative aspect-[3/4] overflow-hidden bg-muted">
-                <img
-                  src={getBookCover(book)}
-                  alt={book.title}
-                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                  draggable={false}
-                />
+                {getBookCover(book) ? (
+                  <img
+                    src={getBookCover(book) as string}
+                    alt={book.title}
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                    draggable={false}
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center p-4 text-center font-serif text-lg text-muted-foreground">
+                    {book.title}
+                  </div>
+                )}
                 {book.access_type !== "free" && (
                   <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                     {book.access_type === "paid" ? (

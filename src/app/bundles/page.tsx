@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { T } from "@/components/TranslatedText";
 import { Package, Check, Sparkles, ArrowRight, UserPlus } from "lucide-react";
 import Link from "next/link";
@@ -12,25 +11,19 @@ const bundles = [
   { title: "Complete Journey", levels: "A1 → C2", price: 399, original: 600, discount: 33, featured: true },
 ];
 
+// The heading text used to be requested from /api/pages/bundles, which never
+// existed; every visit fell back to this text after a failed request.
+const page = { title: "Course Bundles", content: "Save up to 33% with our carefully curated bundles." };
+
 export default function BundlesPage() {
   const { user } = useAuth();
-  const [page, setPage] = useState<any>(null);
-
-  useEffect(() => {
-    fetch('/api/pages/bundles')
-      .then(r => r.json())
-      .then(d => setPage(d.page))
-      .catch(() => setPage({ title: "Course Bundles", content: "Save up to 33% with our carefully curated bundles." }));
-  }, []);
-
-  if (!page) return null;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 md:px-8">
       <div className="text-center mb-10">
         <Package className="mx-auto h-12 w-12 text-secondary-foreground mb-4" />
-        <h1 className="font-serif text-4xl">{page.title}</h1>
-        <p className="mt-2 text-muted-foreground">{page.content}</p>
+        <h1 className="font-serif text-4xl"><T>{page.title}</T></h1>
+        <p className="mt-2 text-muted-foreground"><T>{page.content}</T></p>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">

@@ -145,7 +145,7 @@ export default function AdminLibraryPage() {
 
   const fetchCategories = async () => {
     try {
-      const res = await authFetch("/api/admin/categories");
+      const res = await authFetch("/api/categories");
       if (res.ok) {
         const data = await res.json();
         setCategories(data.categories || []);
@@ -380,11 +380,11 @@ export default function AdminLibraryPage() {
     };
     try {
       const res = editingCategory
-        ? await authFetch(`/api/admin/categories/${editingCategory.id}`, {
+        ? await authFetch(`/api/categories/${editingCategory.id}`, {
             method: "PUT",
             body: JSON.stringify(body),
           })
-        : await authFetch("/api/admin/categories", {
+        : await authFetch("/api/categories", {
             method: "POST",
             body: JSON.stringify(body),
           });
@@ -406,7 +406,7 @@ export default function AdminLibraryPage() {
   const handleDeleteCategory = async (id: string) => {
     if (!confirm("Are you sure you want to delete this category?")) return;
     try {
-      const res = await authFetch(`/api/admin/categories/${id}`, { method: "DELETE" });
+      const res = await authFetch(`/api/categories/${id}`, { method: "DELETE" });
       if (res.ok) {
         toast.success(<T>Category deleted</T>);
         fetchCategories();
@@ -661,13 +661,8 @@ export default function AdminLibraryPage() {
                     {books.map((book) => (
                       <TableRow key={book.id}>
                         <TableCell>
-                          {book.cover_file_id ? (
-                            <img
-                              src={`/api/library/files/${book.cover_file_id}`}
-                              alt={book.title}
-                              className="w-10 h-14 object-cover rounded"
-                            />
-                          ) : book.cover_url ? (
+                          {/* Covers stored only as a Drive file id have no file route to be served from; they show the placeholder. */}
+                          {book.cover_url ? (
                             <img src={book.cover_url} alt={book.title} className="w-10 h-14 object-cover rounded" />
                           ) : (
                             <div className="w-10 h-14 bg-muted rounded flex items-center justify-center text-muted-foreground">

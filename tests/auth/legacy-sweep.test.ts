@@ -44,7 +44,7 @@ const SPECS: Spec[] = [
   { file: "admin/categories/route.ts", guard: "requireAdmin", handlers: ["POST"] },
   { file: "categories/route.ts", guard: "requireAdmin", handlers: ["POST"], publicHandlers: ["GET"] },
   { file: "categories/[id]/route.ts", guard: "requireAdmin", handlers: ["PUT", "DELETE"], params: true },
-  { file: "admin/library/books/route.ts", guard: "requireAdmin", handlers: ["POST"] },
+  { file: "admin/library/books/route.ts", guard: "requireAdmin", handlers: ["GET", "POST"] },
   { file: "admin/library/books/bulk/route.ts", guard: "requireAdmin", handlers: ["POST"] },
   { file: "admin/library/books/convert/route.ts", guard: "requireAdmin", handlers: ["POST"] },
   { file: "admin/library/books/[id]/route.ts", guard: "requireAdmin", handlers: ["DELETE", "PUT"], params: true },

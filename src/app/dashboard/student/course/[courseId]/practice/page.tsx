@@ -84,7 +84,7 @@ export default function PracticePage() {
   useEffect(() => {
     if (!courseId) return;
     setLoadingPrompts(true);
-    fetch(`/api/practice/${courseId}/prompts`)
+    fetch(`/api/student/course/${encodeURIComponent(courseId)}/prompts`)
       .then(r => (r.ok ? r.json() : { prompts: [] }))
       .then(d => setPrompts(d.prompts || []))
       .catch(() => setPrompts([]))

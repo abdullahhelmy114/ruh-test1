@@ -145,11 +145,17 @@ export default function AdminModelLessonsPage() {
   const handleDeleteLesson = async (lessonId: string) => {
     if (!confirm("حذف هذا الدرس؟") || !user) return;
     const token = await getToken();
-    await fetch(`/api/admin/model-lessons/${lessonId}`, {
+    // The lesson route lives under its model course; /api/admin/model-lessons never existed,
+    // so deletions used to vanish from the screen without reaching the server.
+    const res = await fetch(`/api/admin/model-course/${encodeURIComponent(modelId)}/lessons/${encodeURIComponent(lessonId)}`, {
       method: "DELETE",
       credentials: "include",
       headers: { Authorization: `Bearer ${token}` },
     });
+    if (!res.ok) {
+      setError("فشل حذف الدرس");
+      return;
+    }
     setLessons(prev => prev.filter(l => l.id !== lessonId));
   };
 

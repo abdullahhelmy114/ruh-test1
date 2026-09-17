@@ -675,7 +675,6 @@ function UserManagementTab() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [showProfile, setShowProfile] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [showMessageModal, setShowMessageModal] = useState<any>(null);
   const [messageText, setMessageText] = useState("");
   const [sending, setSending] = useState(false);
@@ -691,34 +690,6 @@ function UserManagementTab() {
         .then((d) => setUsers(d.users))
     );
   }, [user]);
-
-  const toggleBan = async (id: string, currentStatus: string) => {
-    if (!user) return;
-    const newStatus = currentStatus === "Active" ? "Suspended" : "Active";
-    const token = await user.getIdToken();
-    await fetch(`/api/admin/users/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ status: newStatus }),
-    });
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, status: newStatus } : u))
-    );
-  };
-
-  const deleteUser = async (id: string) => {
-    if (!user) return;
-    const token = await user.getIdToken();
-    await fetch(`/api/admin/users/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setUsers((prev) => prev.filter((u) => u.id !== id));
-    setShowDeleteConfirm(null);
-  };
 
   const handleSendMessage = async () => {
     if (!messageText.trim() || !showMessageModal || !user) return;
@@ -813,23 +784,6 @@ function UserManagementTab() {
                   >
                     <Mail className="h-4 w-4" />
                   </button>
-                  <button
-                    onClick={() => toggleBan(u.id, u.status)}
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      u.status === "Active"
-                        ? "bg-destructive/10 text-destructive"
-                        : "bg-primary/10 text-primary"
-                    }`}
-                  >
-                    {u.status === "Active" ? <T>Ban</T> : <T>Unban</T>}
-                  </button>
-                  <button
-                    onClick={() => setShowDeleteConfirm(u.id)}
-                    className="p-1.5 rounded-full hover:bg-destructive/10 text-destructive"
-                    title="Delete"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
                 </div>
               </td>
             </tr>
@@ -858,31 +812,6 @@ function UserManagementTab() {
             >
               <T>Close</T>
             </button>
-          </div>
-        </div>
-      )}
-
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 bg-foreground/50 flex items-center justify-center p-4">
-          <div className="bg-card rounded-3xl p-6 max-w-sm w-full shadow-elegant text-center space-y-4">
-            <Trash2 className="mx-auto h-10 w-10 text-destructive" />
-            <p className="font-medium">
-              <T>Are you sure you want to delete this user?</T>
-            </p>
-            <div className="flex gap-3 justify-center">
-              <button
-                onClick={() => setShowDeleteConfirm(null)}
-                className="rounded-full border px-4 py-2 text-sm"
-              >
-                <T>Cancel</T>
-              </button>
-              <button
-                onClick={() => deleteUser(showDeleteConfirm)}
-                className="rounded-full bg-destructive text-destructive-foreground px-4 py-2 text-sm"
-              >
-                <T>Delete</T>
-              </button>
-            </div>
           </div>
         </div>
       )}
@@ -1066,67 +995,6 @@ function CouponsTab() {
 function QuizzesTab() {
   const { user } = useAuth();
   const [subTab, setSubTab] = useState<"quizzes" | "gamification" | "ai-content">("quizzes");
-  const [course, setCourse] = useState<any[]>([]);
-  const [selectedCourse, setSelectedCourse] = useState("");
-  const [lessons, setLessons] = useState<any[]>([]);
-  const [selectedLesson, setSelectedLesson] = useState("");
-  const [quizzes, setQuizzes] = useState<any[]>([]);
-  const [question, setQuestion] = useState("");
-  const [options, setOptions] = useState(["", "", "", ""]);
-  const [correct, setCorrect] = useState(0);
-
-  useEffect(() => {
-    fetch("/api/course")
-      .then((r) => r.json())
-      .then((d) => setCourse(d.course || []));
-  }, []);
-
-useEffect(() => {
-  if (!selectedCourse || !user) return;
-  user.getIdToken().then((token) =>
-    fetch(`/api/student/course/${selectedCourse}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
-      .then((d) => setLessons(d.lessons || []))
-      .catch((err) => console.error("Failed to fetch lessons:", err))
-  );
-}, [selectedCourse, user]);
-
-  useEffect(() => {
-    if (!selectedLesson) return;
-    fetch(`/api/quizzes/${selectedLesson}`)
-      .then((r) => r.json())
-      .then((d) => setQuizzes(d.quizzes || []));
-  }, [selectedLesson]);
-
-  const handleAdd = async () => {
-    if (!question.trim() || !selectedLesson) return;
-    await fetch("/api/admin/quizzes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        lessonId: selectedLesson,
-        question,
-        options,
-        correct,
-      }),
-    });
-    setQuestion("");
-    setOptions(["", "", "", ""]);
-    setCorrect(0);
-    const res = await fetch(`/api/quizzes/${selectedLesson}`);
-    const data = await res.json();
-    setQuizzes(data.quizzes || []);
-  };
-
-  const handleDelete = async (id: string) => {
-    await fetch("/api/admin/quizzes", {
-      method: "DELETE",
-      body: JSON.stringify({ id }),
-    });
-    setQuizzes((prev) => prev.filter((q) => q.id !== id));
-  };
 
   return (
     <div>
@@ -1168,104 +1036,18 @@ useEffect(() => {
       </div>
 
       {subTab === "quizzes" ? (
-        <div>
-          <h2 className="font-serif text-2xl mb-4">
+        // Lesson quizzes were managed here through endpoints that never existed. Assessments
+        // (with protected answer keys, attempts and grading) are authored per course in the academy administration.
+        <div className="space-y-4 rounded-3xl border bg-card p-8">
+          <h2 className="font-serif text-2xl">
             <T>Quiz Management</T>
           </h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div>
-              <label className="text-sm font-medium">
-                <T>Course</T>
-              </label>
-              <select
-                value={selectedCourse}
-                onChange={(e) => setSelectedCourse(e.target.value)}
-                className="w-full rounded-2xl border bg-background px-4 py-2.5 text-sm mt-1"
-              >
-                <option value="">--</option>
-                {course.map((c) => (
-                  <option key={c.id} value={c.id}>{c.title}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-sm font-medium">
-                <T>Lesson</T>
-              </label>
-              <select
-                value={selectedLesson}
-                onChange={(e) => setSelectedLesson(e.target.value)}
-                className="w-full rounded-2xl border bg-background px-4 py-2.5 text-sm mt-1"
-              >
-                <option value="">--</option>
-                {lessons.map((l) => (
-                  <option key={l.id} value={l.id}>{l.title}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {selectedLesson && (
-            <div className="mt-6 glass rounded-2xl p-6 space-y-4">
-              <h3 className="font-serif text-lg">
-                <T>Add Question</T>
-              </h3>
-              <input
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Question"
-                className="w-full rounded-2xl border bg-background px-4 py-3 text-sm"
-              />
-              {options.map((opt, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <input
-                    value={opt}
-                    onChange={(e) => {
-                      const o = [...options];
-                      o[i] = e.target.value;
-                      setOptions(o);
-                    }}
-                    placeholder={`Option ${i + 1}`}
-                    className="flex-1 rounded-2xl border bg-background px-4 py-3 text-sm"
-                  />
-                  <input
-                    type="radio"
-                    name="correct"
-                    checked={correct === i}
-                    onChange={() => setCorrect(i)}
-                  />
-                </div>
-              ))}
-              <button
-                onClick={handleAdd}
-                className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground"
-              >
-                <T>Add Question</T>
-              </button>
-            </div>
-          )}
-
-          <div className="mt-6 space-y-2">
-            {quizzes.map((q) => (
-              <div
-                key={q.id}
-                className="flex items-center justify-between glass rounded-2xl p-4"
-              >
-                <div>
-                  <p className="font-medium">{q.question}</p>
-                  <p className="text-xs text-muted-foreground">
-                    <T>Correct</T>: {q.options[q.correct]}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleDelete(q.id)}
-                  className="text-destructive text-sm"
-                >
-                  <T>Delete</T>
-                </button>
-              </div>
-            ))}
-          </div>
+          <p className="text-muted-foreground">
+            <T>Assessments are authored for each course in the academy administration.</T>
+          </p>
+          <Link href="/academy/manage/catalog" className="inline-flex rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+            <T>Open the academy catalog</T>
+          </Link>
         </div>
       ) : subTab === "gamification" ? (
         <GamificationSettings />

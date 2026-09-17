@@ -106,8 +106,8 @@ export default function BookEditorPage() {
 
     const load = async () => {
       try {
-        // Fetch book details and pages
-        const res = await authFetch(`/api/admin/library/books/${bookId}`);
+        // Fetch book details and pages (administrators always have library access)
+        const res = await authFetch(`/api/library/books?id=${encodeURIComponent(bookId)}`);
         if (!res.ok) throw new Error("Book not found");
         const data = await res.json();
         setBookTitle(data.book?.title || "Untitled");
@@ -118,7 +118,7 @@ export default function BookEditorPage() {
         }
 
         // Fetch overlays
-        const overlaysRes = await authFetch(`/api/admin/library/overlays?bookId=${bookId}`);
+        const overlaysRes = await authFetch(`/api/library/page-overlay?bookId=${encodeURIComponent(bookId)}`);
         if (overlaysRes.ok) {
           const overlaysData = await overlaysRes.json();
           setOverlays(overlaysData.overlays || []);
@@ -138,15 +138,8 @@ export default function BookEditorPage() {
     (o) => o.page_number === selectedPage
   );
 
-  const getPageImageUrl = (page: PageInfo) => {
-    if (page.image_file_id) {
-      return `/api/library/files/${page.image_file_id}`;
-    }
-    if (page.image_url) {
-      return page.image_url;
-    }
-    return "";
-  };
+  // Page images stored only as a Drive file id have no route serving them.
+  const getPageImageUrl = (page: PageInfo) => page.image_url || "";
 
   // ── Overlay operations ───────────────────────────
   const openNewOverlay = () => {
@@ -164,9 +157,12 @@ export default function BookEditorPage() {
     setEditingOverlay(item);
     setOverlayType(item.type);
     setOverlayUrl(item.content?.url || "");
-    setQuizQuestion(item.content?.question || "");
-    setQuizOptions((item.content?.options || []).join(", "));
-    setQuizCorrect(item.content?.correct || "");
+    // The reader shows quizzes as content.questions[] with correctIndex; older overlays used question/options/correct.
+    const question = item.content?.questions?.[0];
+    const options: string[] = question?.options || item.content?.options || [];
+    setQuizQuestion(question?.question || item.content?.question || "");
+    setQuizOptions(options.join(", "));
+    setQuizCorrect(question ? options[question.correctIndex] ?? "" : item.content?.correct || "");
     setOverlayPosition(item.position);
     setOverlayDialogOpen(true);
   };
@@ -179,12 +175,18 @@ export default function BookEditorPage() {
       url: overlayUrl,
     };
     if (overlayType === "quiz") {
-      content.question = quizQuestion;
-      content.options = quizOptions
+      // Saved in the shape the reader renders: one question with the index of its correct option.
+      const options = quizOptions
         .split(",")
         .map((opt) => opt.trim())
         .filter((opt) => opt.length > 0);
-      content.correct = quizCorrect;
+      const correctIndex = options.indexOf(quizCorrect.trim());
+      if (!quizQuestion.trim() || options.length < 2 || correctIndex < 0) {
+        toast.error(<T>Enter a question, at least two options and the correct option exactly as written</T>);
+        setSavingOverlay(false);
+        return;
+      }
+      content.questions = [{ question: quizQuestion.trim(), options, correctIndex }];
     }
 
     const body = {
@@ -198,11 +200,11 @@ export default function BookEditorPage() {
 
     try {
       const res = editingOverlay
-        ? await authFetch(`/api/admin/library/overlays/${editingOverlay.id}`, {
+        ? await authFetch(`/api/library/page-overlay/${editingOverlay.id}`, {
             method: "PUT",
             body: JSON.stringify(body),
           })
-        : await authFetch("/api/admin/library/overlays", {
+        : await authFetch("/api/library/page-overlay", {
             method: "POST",
             body: JSON.stringify(body),
           });
@@ -213,7 +215,7 @@ export default function BookEditorPage() {
         );
         // Reload overlays
         const overlaysRes = await authFetch(
-          `/api/admin/library/overlays?bookId=${bookId}`
+          `/api/library/page-overlay?bookId=${encodeURIComponent(bookId)}`
         );
         if (overlaysRes.ok) {
           const overlaysData = await overlaysRes.json();
@@ -234,7 +236,7 @@ export default function BookEditorPage() {
   const deleteOverlay = async (overlayId: string) => {
     if (!confirm("Are you sure you want to delete this overlay?")) return;
     try {
-      const res = await authFetch(`/api/admin/library/overlays/${overlayId}`, {
+      const res = await authFetch(`/api/library/page-overlay/${overlayId}`, {
         method: "DELETE",
       });
       if (res.ok) {

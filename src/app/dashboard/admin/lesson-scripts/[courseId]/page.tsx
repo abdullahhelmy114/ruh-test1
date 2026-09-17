@@ -422,45 +422,13 @@ export default function SmartLessonEditor() {
     } catch (error) { toast.error("Failed to delete"); }
   };
 
+  // AI generation is not available: the endpoints these tools called were never part of the application, and external AI is not approved.
   const addAiQuiz = async () => {
-    setAiLoading(true);
-    const text = editor?.getText() || script.title;
-    try {
-      const res = await fetch("/api/ai/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: text, type: "quiz" })
-      });
-      const data = await res.json();
-      if (data.success) {
-        const parsed = JSON.parse(data.text.replace(/```json/g, "").replace(/```/g, ""));
-        setScript(prev => ({ ...prev, quizBlocks: [...prev.quizBlocks, { id: Date.now().toString(), title: "AI Interactive Quiz", currentQuestionIndex: 0, questions: parsed }] }));
-        toast.success(<T>Quiz generated successfully</T> as unknown as string);
-      }
-    } catch (e) { toast.error(<T>Generation failed</T> as unknown as string); }
-    setAiLoading(false);
+    toast.error("AI generation is not available.");
   };
 
-  const generateSingleLesson = async (book: any) => {
-    const toastId = toast.loading(<T>Generating a comprehensive lesson from</T> as unknown as string + ` "${book.book_title}"...`);
-    setAiLoading(true);
-    try {
-      const token = await user?.getIdToken();
-      const prompt = `Write a comprehensive, highly detailed educational lesson in Arabic based ONLY on the book titled "${book.book_title}". Include a strong introduction, main educational concepts, and a clear conclusion. Format the response entirely in HTML so it looks beautiful in a rich text editor.`;
-
-      const res = await fetch("/api/ai/generate", {
-        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ prompt, type: "text" })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setScript(prev => ({ ...prev, title: `Lesson from: ${book.book_title}`, subtitle: "AI Generated Content" }));
-        const cleanHtml = data.text.replace(/```html/g, "").replace(/```/g, "").trim();
-        editor?.commands.setContent(cleanHtml);
-        toast.success(<T>Lesson generated successfully!</T> as unknown as string, { id: toastId });
-      } else throw new Error();
-    } catch (err) { toast.error(<T>Failed to generate lesson</T> as unknown as string, { id: toastId }); }
-    finally { setAiLoading(false); }
+  const generateSingleLesson = async (_book: unknown) => {
+    toast.error("AI generation is not available.");
   };
 
   const handleVoiceSave = (audioSrc: string, voice: any, text: string, title: string, theme: string) => {

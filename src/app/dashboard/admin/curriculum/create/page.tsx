@@ -72,46 +72,10 @@ export default function CreateModelCourse() {
 
     toast.success("تم إنشاء الكورس النموذجي");
 
-    // 3. إذا تم رفع ملف PDF، قم بتوليد الدروس تلقائياً
+    // 3. AI generation is not available: the endpoints these tools called were never part of the application, and external AI is not approved.
+    //    Lessons are added to the model course by hand.
     if (selectedFile) {
-      try {
-        const genFormData = new FormData();
-        genFormData.append("pdfFile", selectedFile);
-        genFormData.append("level", level);
-        genFormData.append("instructions", ""); // يمكن إضافة تعليمات هنا
-
-        const genRes = await fetch("/api/ai/generate", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: genFormData,
-        });
-
-        if (!genRes.ok) throw new Error("فشل توليد الدروس");
-
-        const genData = await genRes.json();
-        const lessonTitles: string[] = genData.titles;
-
-        // إنشاء درس لكل عنوان
-        for (const lessonTitle of lessonTitles) {
-          await fetch(`/api/admin/model-course/${courseId}/lessons`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              title: lessonTitle,
-              content: JSON.stringify({ html: "", audio: [], quiz: [] }),
-            }),
-          });
-        }
-        toast.success(`تم إنشاء ${lessonTitles.length} درساً بنجاح`);
-      } catch (error) {
-        toast.error("تم إنشاء الكورس ولكن فشل توليد الدروس تلقائياً");
-        console.error(error);
-      }
+      toast.info("تم إنشاء الكورس. توليد الدروس تلقائياً من ملف PDF غير متاح؛ أضف الدروس يدوياً.");
     }
 
     setLoading(false);

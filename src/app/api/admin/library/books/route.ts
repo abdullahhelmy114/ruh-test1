@@ -6,6 +6,37 @@ import { db } from '@/lib/db';
 import { randomUUID } from 'crypto';
 import { requireAdmin } from '@/lib/auth';
 import { withApi } from '@/lib/api/handler';
+import { sql } from '@/lib/db/client';
+
+// GET: every library book for the administration list, published or not, with
+// its categories. The administration library screen read this list, but the
+// route only accepted POST, so the screen always showed no books.
+export const GET = withApi(async (request) => {
+  await requireAdmin(request);
+  const books = await sql`
+    SELECT id, title, author, description, cover_file_id, cover_url, file_id, processing_status,
+           access_type, price, is_published, pages_count, created_at
+    FROM library_books
+    ORDER BY created_at DESC
+  `;
+  const ids = books.map((book) => book.id);
+  const categories = ids.length === 0 ? [] : await sql`
+    SELECT bc.book_id, c.id, c.name, c.slug
+    FROM book_categories bc
+    JOIN categories c ON c.id = bc.category_id
+    WHERE bc.book_id = ANY(${ids})
+  `;
+  const byBook = new Map<string, { id: string; name: string; slug: string }[]>();
+  for (const row of categories) {
+    const list = byBook.get(row.book_id) ?? [];
+    list.push({ id: row.id, name: row.name, slug: row.slug });
+    byBook.set(row.book_id, list);
+  }
+  return NextResponse.json(
+    { books: books.map((book) => ({ ...book, categories: byBook.get(book.id) ?? [] })) },
+    { headers: { 'Cache-Control': 'private, no-store' } }
+  );
+});
 
 export const POST = withApi(async (request) => {
   await requireAdmin(request);
