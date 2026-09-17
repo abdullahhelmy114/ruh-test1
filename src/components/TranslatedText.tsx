@@ -7,18 +7,21 @@ import enMessages from "@/messages/en.json";
 import arMessages from "@/messages/ar.json";
 import trMessages from "@/messages/tr.json";
 
-type Messages = Record<string, string>;
+// The message files mix flat sentence keys with nested namespaces, so a key
+// only translates when it maps to a string; anything else falls back to the key.
+type Messages = Readonly<Record<string, unknown>>;
 const dictionaries: Record<string, Messages> = {
-  en: enMessages as Messages,
-  ar: arMessages as Messages,
-  tr: trMessages as Messages,
+  en: enMessages,
+  ar: arMessages,
+  tr: trMessages,
 };
 
-interface TProps {
-  children: string;
+function translate(locale: string, key: string): string {
+  const value = (dictionaries[locale] || dictionaries.en)[key];
+  return typeof value === "string" && value ? value : key;
 }
 
-export function T({ children }: TProps) {
+function usePreferredLocale(): string {
   const [locale, setLocale] = useState("en");
 
   const handleLocaleChange = useCallback((e: Event) => {
@@ -33,10 +36,22 @@ export function T({ children }: TProps) {
     return () => window.removeEventListener("locale-change", handleLocaleChange);
   }, [handleLocaleChange]);
 
-  const dict = dictionaries[locale] || dictionaries.en;
-  const translated = dict[children] || children;
+  return locale;
+}
 
-  return React.createElement(React.Fragment, null, translated);
+interface TProps {
+  children: string;
+}
+
+export function T({ children }: TProps) {
+  const locale = usePreferredLocale();
+  return React.createElement(React.Fragment, null, translate(locale, children));
+}
+
+/** String form of <T>, for props that must be plain text (placeholder, aria-label, title). */
+export function useT(): (key: string) => string {
+  const locale = usePreferredLocale();
+  return useCallback((key: string) => translate(locale, key), [locale]);
 }
 
 export default T;

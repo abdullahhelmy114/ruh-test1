@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
-import { getServerSession } from '@/lib/auth';
+import { requireTeacher } from '@/lib/auth';
+import { withApi } from '@/lib/api/handler';
 
-export async function GET(req: Request, { params }: { params: { courseId: string } }) {
-  const session = await getServerSession(req);
-  if (!session || session.role !== 'teacher') {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-  }
+// Launch closure: Next 16 params are a Promise; the synchronous read made
+// params.courseId undefined, so this route could never find a course.
+export const GET = withApi<{ courseId: string }>(async (req, ctx) => {
+  const session = await requireTeacher(req);
+  const params = await ctx.params;
 
   // التحقق من أن المعلم يملك هذا الكورس الحي
   const [liveCourse] = await sql`
@@ -32,4 +33,4 @@ export async function GET(req: Request, { params }: { params: { courseId: string
   `;
 
   return NextResponse.json({ modelLessons, liveLessons });
-}
+});

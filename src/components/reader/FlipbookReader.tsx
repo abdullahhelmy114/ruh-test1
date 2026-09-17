@@ -101,7 +101,7 @@ function InteractiveElement({ overlay }: { overlay: OverlayItem }) {
             className="w-full h-full bg-blue-100 hover:bg-blue-200 rounded-lg flex items-center justify-center text-blue-800 font-bold text-center cursor-pointer"
             onClick={() => {
               // يمكن عرض الاختبار في نافذة منبثقة
-              toast.info(<T>Quiz: {content?.question}</T>);
+              toast.info(<><T>Quiz:</T> {content?.question}</>);
             }}
           >
             📝 {content?.question || "Quiz"}

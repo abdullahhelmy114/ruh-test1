@@ -54,6 +54,9 @@ const SPECS: Spec[] = [
   { file: "teacher/lessons/route.ts", guard: "requireTeacher", handlers: ["POST"] },
   { file: "teacher/course/[courseId]/lessons/route.ts", guard: "requireTeacher", handlers: ["POST"], params: true },
   { file: "teacher/live-course/[courseId]/activate-lesson/route.ts", guard: "requireTeacher", handlers: ["POST"], params: true },
+  // Launch closure — last synchronous-params teacher routes
+  { file: "teacher/live-course/[courseId]/route.ts", guard: "requireTeacher", handlers: ["GET"], params: true },
+  { file: "teacher/live-course/[courseId]/model-lessons/route.ts", guard: "requireTeacher", handlers: ["GET"], params: true },
 ];
 
 describe("Phase 2.3b legacy-auth sweep", () => {

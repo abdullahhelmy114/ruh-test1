@@ -13,10 +13,13 @@ function normalizeArabicWord(word: string): string {
     .trim();
 }
 
+// Launch closure: Next 16 params are a Promise; the synchronous read made every
+// id NaN, so the route always answered 400.
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  ctx: { params: Promise<{ id: string }> }
 ) {
+  const params = await ctx.params;
   const wordId = Number(params.id);
   if (isNaN(wordId)) {
     return NextResponse.json({ error: "Invalid word id" }, { status: 400 });
@@ -87,10 +90,10 @@ export async function GET(
     }
 
     return NextResponse.json({ word, verses });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error fetching word details:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to fetch word details" },
+      { error: "Failed to fetch word details" },
       { status: 500 }
     );
   }

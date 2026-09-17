@@ -113,10 +113,24 @@ describe("service entry points", () => {
 });
 
 describe("framework and presentation", () => {
-  test("no page or layout reads Next 16 params synchronously", () => {
-    const offenders = walk(join(ROOT, "src", "app"))
-      .filter((path) => /(page|layout)\.tsx$/.test(path))
-      .filter((path) => /params:\s*\{\s*\w+\s*:\s*string/.test(readFileSync(path, "utf8")))
+  test("no page, layout or route handler reads Next 16 params synchronously", () => {
+    const SYNC_PARAMS = /params:\s*\{\s*\w+\s*:\s*string/;
+    // The pattern catches the legacy signatures and not the Promise form.
+    assert.match("{ params }: { params: { id: string } }", SYNC_PARAMS);
+    assert.doesNotMatch("ctx: { params: Promise<{ id: string }> }", SYNC_PARAMS);
+    const scanned = walk(join(ROOT, "src", "app")).filter((path) => /(page|layout)\.tsx$|route\.ts$/.test(path));
+    const dynamic = scanned.filter((path) => rel(path).includes("["));
+    assert.ok(dynamic.length >= 100, `only ${dynamic.length} dynamic segment files scanned; the check would be vacuous`);
+    const offenders = scanned.filter((path) => SYNC_PARAMS.test(readFileSync(path, "utf8"))).map(rel);
+    assert.deepEqual(offenders, []);
+  });
+
+  test("translated JSX is never passed where a string prop is required", () => {
+    const tsx = walk(join(ROOT, "src")).filter((path) => path.endsWith(".tsx"));
+    const users = tsx.filter((path) => readFileSync(path, "utf8").includes("<T>"));
+    assert.ok(users.length >= 20, "the <T> scan would be vacuous");
+    const offenders = users
+      .filter((path) => /\b(?:placeholder|aria-label|title|alt)=\{<T>|toast\.\w+\(<T>[^<]*\{/.test(readFileSync(path, "utf8")))
       .map(rel);
     assert.deepEqual(offenders, []);
   });

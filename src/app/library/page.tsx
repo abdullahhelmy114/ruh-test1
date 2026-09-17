@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/AuthProvider";
 import { authFetch } from "@/lib/authFetch";
-import { T } from "@/components/TranslatedText";
+import { T, useT } from "@/components/TranslatedText";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -39,6 +39,7 @@ interface Category {
 export default function PublicLibraryPage() {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
+  const t = useT();
 
   const [books, setBooks] = useState<Book[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -141,7 +142,7 @@ export default function PublicLibraryPage() {
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder={<T>Search books...</T>}
+              placeholder={t("Search books...")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pr-9"

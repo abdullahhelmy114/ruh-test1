@@ -9,12 +9,17 @@ import { withApi } from "@/lib/api/handler";
 // route deletions in this phase) but now requires library access and awaits
 // Next 16 params, so it can no longer leak page images. REVIEW (Phase 5):
 // rename to [id] or remove; /api/library/books?id= is the live detail route.
-export const GET = withApi<{ id: string }>(async (req, ctx) => {
+// Launch closure: the static segment has no params, so a missing id now
+// answers 404 before any query instead of querying with undefined.
+export const GET = withApi(async (req, ctx) => {
   const user = await requireAuth(req);
   await requireLibraryAccess(user);
 
   try {
     const { id } = await ctx.params;
+    if (typeof id !== "string" || !id) {
+      return NextResponse.json({ error: "Book not found" }, { status: 404 });
+    }
 
     const [book] = await sql`
       SELECT id, title, author, description, cover_url, created_at
