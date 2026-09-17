@@ -23,6 +23,9 @@ import {
   selectVersionQuery,
 } from "../repo/curriculum-repo.ts";
 import {
+  expectNoOpenEnrollmentsQuery,
+  expectOpenEnrollmentsWithinQuery,
+  expectUpcomingLessonsInVersionQuery,
   insertAssignmentQuery,
   insertClassGroupQuery,
   insertEnrollmentQuery,
@@ -168,7 +171,13 @@ export function createDeliveryService(deps: ServiceDeps) {
       const current = await loadClassGroup(classGroupId);
       const open = await executor.query(selectOpenEnrollmentsQuery(current.id));
       const plan = planUpdateClassGroup(current, { ...input, openEnrollments: open.length }, contextFor(user, deps, input.correlationId));
-      await runGuarded(executor, [audited(deps, updateClassGroupQuery(plan.record, current.revision), plan.audit)]);
+      const update = audited(deps, updateClassGroupQuery(plan.record, current.revision), plan.audit);
+      // A lower capacity is re-checked under the lock enrollments take, so a learner enrolled meanwhile is counted.
+      const statements =
+        plan.record.capacity === null
+          ? [update]
+          : [lockClassGroupQuery(current.id), expectOpenEnrollmentsWithinQuery(current.id, plan.record.capacity), update];
+      await runGuarded(executor, statements);
       return plan.record;
     },
 
@@ -205,7 +214,11 @@ export function createDeliveryService(deps: ServiceDeps) {
         { course, curriculum, version, reason: input.reason, expectedRevision: input.expectedRevision, lessonIdsInUse: inUse, lessonIdsInVersion: inVersion },
         contextFor(user, deps, input.correlationId),
       );
-      await runGuarded(executor, [audited(deps, updateClassGroupQuery(plan.record, current.revision), plan.audit)]);
+      await runGuarded(executor, [
+        lockClassGroupQuery(current.id),
+        expectUpcomingLessonsInVersionQuery(current.id, version.id),
+        audited(deps, updateClassGroupQuery(plan.record, current.revision), plan.audit),
+      ]);
       return plan.record;
     },
 
@@ -219,7 +232,11 @@ export function createDeliveryService(deps: ServiceDeps) {
       const ctx = contextFor(user, deps, input.correlationId);
       const result = softDelete(current, { kind: "class_group", id: current.id }, { ...ctx, reason: input.reason as string });
       const next = touched(result.record, current.revision, user.uid, now());
-      await runGuarded(executor, [audited(deps, updateClassGroupQuery(next, current.revision), result.audit)]);
+      await runGuarded(executor, [
+        lockClassGroupQuery(current.id),
+        expectNoOpenEnrollmentsQuery(current.id),
+        audited(deps, updateClassGroupQuery(next, current.revision), result.audit),
+      ]);
       return next;
     },
 
@@ -278,7 +295,8 @@ export function createDeliveryService(deps: ServiceDeps) {
       const classGroup = await loadClassGroup(classGroupId);
       const lessons = await lessonIdsIn(classGroup.curriculumVersionId);
       const plan = planScheduleSession({ ...input, classGroup, lessonIdsInPinnedVersion: lessons }, contextFor(user, deps, input.correlationId));
-      await runGuarded(executor, [audited(deps, insertSessionQuery(plan.record), plan.audit)]);
+      // The lock makes a concurrent re-pin wait (or this insert see the new version and match nothing).
+      await runGuarded(executor, [lockClassGroupQuery(classGroup.id), audited(deps, insertSessionQuery(plan.record), plan.audit)]);
       return plan.record;
     },
 

@@ -297,7 +297,52 @@ describe("delivery service", () => {
     assert.equal(executor.transactions.length, 0);
     const session = await svc.scheduleSession(admin, IDS.classGroup, { lessonId: IDS.lesson1, startsAt: "2026-10-05T19:00:00+03:00", endsAt: "2026-10-05T20:00:00+03:00" });
     assert.equal(session.startsAt, "2026-10-05T16:00:00.000Z");
-    assert.match(executor.transactions[0][0].text, /INSERT INTO academy_sessions/);
+    const [lock, insert] = executor.transactions[0];
+    assert.match(lock.text, /FROM academy_class_groups WHERE id = \$1::uuid FOR UPDATE$/, "waits for a concurrent re-pin");
+    assert.deepEqual(lock.values, [IDS.classGroup]);
+    assert.match(insert.text, /INSERT INTO academy_sessions[\s\S]*cg\.curriculum_version_id = \$\d+::uuid/);
+  });
+
+  test("deleting a class group re-checks open enrollments under the enrollment lock", async () => {
+    const withLearners = fakeExecutor(rules([R.classGroup, [classGroupRow()]], [R.openEnrollments, [{ learner_uid: "student-1", state: "active" }]]));
+    await rejectsDomain(services(withLearners).delivery.deleteClassGroup(admin, IDS.classGroup, { reason: "Merged", expectedRevision: 2 }), "CONFLICT");
+    assert.equal(withLearners.transactions.length, 0);
+
+    const executor = fakeExecutor(rules([R.classGroup, [classGroupRow()]], [R.openEnrollments, []]));
+    const deleted = await services(executor).delivery.deleteClassGroup(admin, IDS.classGroup, { reason: "Merged", expectedRevision: 2 });
+    assert.notEqual(deleted.deletedAt, null);
+    const [lock, check, update] = executor.transactions[0];
+    assert.match(lock.text, /FOR UPDATE$/);
+    assert.match(check.text, /academy_expect_rows\(\s*\(SELECT count\(\*\) FROM academy_enrollments\s+WHERE class_group_id = \$1::uuid AND state IN \('pending', 'active', 'suspended'\)\),\s*0\)/);
+    assert.deepEqual(check.values, [IDS.classGroup]);
+    assert.match(update.text, /UPDATE academy_class_groups[\s\S]*academy_audit_events/);
+
+    // A learner enrolled between the read and the write: the database check aborts the deletion.
+    const raced = fakeExecutor(rules([R.classGroup, [classGroupRow()]], [R.openEnrollments, []]));
+    raced.failTransactionWith = Object.assign(new Error("expected 0 rows, got 1"), { code: "RQ409" });
+    await rejectsDomain(services(raced).delivery.deleteClassGroup(admin, IDS.classGroup, { reason: "Merged", expectedRevision: 2 }), "CONFLICT");
+  });
+
+  test("a new capacity is re-checked against open enrollments under the lock; other edits take no lock", async () => {
+    const executor = fakeExecutor(rules([R.classGroup, [classGroupRow({ capacity: 20 })]], [R.openEnrollments, [{ learner_uid: "student-1", state: "active" }]]));
+    await services(executor).delivery.updateClassGroup(admin, IDS.classGroup, { capacity: 12, expectedRevision: 2 });
+    const [lock, check, update] = executor.transactions[0];
+    assert.match(lock.text, /FOR UPDATE$/);
+    assert.match(check.text, /SELECT count\(\*\) FROM academy_enrollments e[\s\S]*\) > \$2::bigint\),\s*0\)/);
+    assert.deepEqual(check.values, [IDS.classGroup, 12]);
+    assert.match(update.text, /UPDATE academy_class_groups/);
+
+    const tooLow = fakeExecutor(rules([R.classGroup, [classGroupRow({ capacity: 20 })]], [R.openEnrollments, [{ learner_uid: "student-1", state: "active" }, { learner_uid: "student-2", state: "pending" }]]));
+    await rejectsDomain(services(tooLow).delivery.updateClassGroup(admin, IDS.classGroup, { capacity: 1, expectedRevision: 2 }), "CONFLICT");
+    assert.equal(tooLow.transactions.length, 0);
+
+    const rename = fakeExecutor(rules([R.classGroup, [classGroupRow()]], [R.openEnrollments, []]));
+    await services(rename).delivery.updateClassGroup(admin, IDS.classGroup, { name: "Winter cohort", expectedRevision: 2 });
+    assert.equal(rename.transactions[0].length, 1, "no capacity, nothing to re-check");
+
+    const raced = fakeExecutor(rules([R.classGroup, [classGroupRow({ capacity: 20 })]], [R.openEnrollments, []]));
+    raced.failTransactionWith = Object.assign(new Error("expected 0 rows, got 1"), { code: "RQ409" });
+    await rejectsDomain(services(raced).delivery.updateClassGroup(admin, IDS.classGroup, { capacity: 1, expectedRevision: 2 }), "CONFLICT");
   });
 
   test("enrollment locks the class group, then inserts under capacity with its audit", async () => {
@@ -339,6 +384,34 @@ describe("delivery service", () => {
       "CONFLICT",
     );
     assert.equal(executor.transactions.length, 0);
+  });
+
+  test("re-pinning re-checks upcoming sessions against the new version under the lock sessions are scheduled with", async () => {
+    const world = () =>
+      rules(
+        [R.classGroup, [classGroupRow()]],
+        [R.course, [courseRow()]],
+        [R.curriculumByCourse, [curriculumRow()]],
+        [R.version, [versionRow({ id: IDS.version2, version_number: 2 })]],
+        [R.upcoming, [{ lesson_id: IDS.lesson1 }]],
+        [R.lessonIdsInVersion, [{ lesson_id: IDS.lesson1 }, { lesson_id: IDS.lesson2 }]],
+      );
+    const executor = fakeExecutor(world());
+    const repinned = await services(executor).delivery.repinCurriculum(admin, IDS.classGroup, { curriculumVersionId: IDS.version2, reason: "Revised", expectedRevision: 2 });
+    assert.equal(repinned.curriculumVersionId, IDS.version2);
+    const [lock, check, update] = executor.transactions[0];
+    assert.match(lock.text, /FOR UPDATE$/);
+    assert.match(check.text, /FROM academy_sessions s[\s\S]*s\.state IN \('scheduled', 'live'\)[\s\S]*NOT EXISTS[\s\S]*l\.curriculum_version_id = \$2::uuid AND l\.lesson_id = s\.lesson_id/);
+    assert.deepEqual(check.values, [IDS.classGroup, IDS.version2]);
+    assert.match(update.text, /UPDATE academy_class_groups[\s\S]*academy_audit_events/);
+
+    // A session for a lesson missing from the new version was scheduled meanwhile.
+    const raced = fakeExecutor(world());
+    raced.failTransactionWith = Object.assign(new Error("expected 0 rows, got 1"), { code: "RQ409" });
+    await rejectsDomain(
+      services(raced).delivery.repinCurriculum(admin, IDS.classGroup, { curriculumVersionId: IDS.version2, reason: "Revised", expectedRevision: 2 }),
+      "CONFLICT",
+    );
   });
 
   test("teacher assignment validates the account and couples the audit", async () => {

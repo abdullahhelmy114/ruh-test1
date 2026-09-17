@@ -88,9 +88,42 @@ export function mapClassGroupRow(row: SqlRow): ClassGroupRecord {
   });
 }
 
-/** Locks the class group row for the rest of the transaction (serialises enrollments). */
+/**
+ * Locks the class group row for the rest of the transaction. Enrollment,
+ * session scheduling, capacity changes, re-pinning and deletion all take this
+ * lock first, so the checks below see every write that raced them.
+ */
 export function lockClassGroupQuery(id: string): SqlQuery {
   return sqlQuery`SELECT id FROM academy_class_groups WHERE id = ${id}::uuid FOR UPDATE`;
+}
+
+/** Aborts the transaction (RQ409) while the class group still has open enrollments. Run after the lock. */
+export function expectNoOpenEnrollmentsQuery(classGroupId: string): SqlQuery {
+  return sqlQuery`SELECT academy_expect_rows(
+      (SELECT count(*) FROM academy_enrollments
+       WHERE class_group_id = ${classGroupId}::uuid AND state IN ('pending', 'active', 'suspended')),
+      0) AS ok`;
+}
+
+/** Aborts the transaction (RQ409) when more learners hold a place than the new capacity. Run after the lock. */
+export function expectOpenEnrollmentsWithinQuery(classGroupId: string, capacity: number): SqlQuery {
+  return sqlQuery`SELECT academy_expect_rows(
+      (SELECT count(*) FROM academy_class_groups cg
+       WHERE cg.id = ${classGroupId}::uuid AND (
+         SELECT count(*) FROM academy_enrollments e
+         WHERE e.class_group_id = cg.id AND e.state IN ('pending', 'active', 'suspended')) > ${capacity}::bigint),
+      0) AS ok`;
+}
+
+/** Aborts the transaction (RQ409) when an upcoming session teaches a lesson missing from the version. Run after the lock. */
+export function expectUpcomingLessonsInVersionQuery(classGroupId: string, versionId: string): SqlQuery {
+  return sqlQuery`SELECT academy_expect_rows(
+      (SELECT count(*) FROM academy_sessions s
+       WHERE s.class_group_id = ${classGroupId}::uuid AND s.state IN ('scheduled', 'live')
+         AND NOT EXISTS (
+           SELECT 1 FROM academy_curriculum_version_lessons l
+           WHERE l.curriculum_version_id = ${versionId}::uuid AND l.lesson_id = s.lesson_id)),
+      0) AS ok`;
 }
 
 // ---------------------------------------------------------------------------
