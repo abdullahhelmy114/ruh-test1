@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BuyButton } from "@/components/academy/buy-button";
 import { publicLocale } from "@/components/academy/public-locale";
 import { DomainError } from "@/lib/academy/domain/errors";
 import { formatPublicDate } from "@/lib/academy/public/messages";
-import { publicService } from "@/lib/academy/server";
+import { commerceService, publicService } from "@/lib/academy/server";
 
 // Public course page: published outline titles and upcoming classes only.
 export const dynamic = "force-dynamic";
@@ -17,6 +18,16 @@ async function loadCourse(slug: string) {
   } catch (error) {
     if (error instanceof DomainError && error.code === "NOT_FOUND") notFound();
     if (error instanceof DomainError && error.code === "FEATURE_UNAVAILABLE") return null;
+    throw error;
+  }
+}
+
+// Offers a learner can buy (Whop). Commerce unavailable reads as "not open yet", never as an error.
+async function loadOffers(slug: string) {
+  try {
+    return await commerceService.publicOffers(slug);
+  } catch (error) {
+    if (error instanceof DomainError) return [];
     throw error;
   }
 }
@@ -36,6 +47,7 @@ export default async function AcademyCoursePage({ params }: Props) {
   const { slug } = await params;
   const { locale, t } = await publicLocale();
   const course = await loadCourse(slug);
+  const offers = course === null ? [] : await loadOffers(slug);
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10">
@@ -110,6 +122,34 @@ export default async function AcademyCoursePage({ params }: Props) {
                   </li>
                 ))}
               </ul>
+            )}
+          </section>
+
+          <section aria-labelledby="enroll-heading" className="mt-10">
+            <h2 id="enroll-heading" className="mb-4 text-xl font-semibold">{t.enrollHeading}</h2>
+            {offers.length === 0 ? (
+              <p role="status" className="rounded-md border p-4">{t.enrollNotOpen}</p>
+            ) : (
+              <>
+                <p className="mb-4 text-sm text-muted-foreground">{t.buyWhopNote}</p>
+                <ul className="grid gap-4 sm:grid-cols-2">
+                  {offers.map((offer) => (
+                    <li key={offer.offerId} className="rounded-md border p-4">
+                      <h3 className="font-medium">{offer.label}</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {offer.classGroupName}
+                        {offer.startsOn ? ` · ${t.starts}: ${formatPublicDate(offer.startsOn, locale)}` : ""}
+                      </p>
+                      <p className="mt-2 text-sm font-medium">{offer.availability === "full" ? t.full : t.open}</p>
+                      <BuyButton
+                        offerId={offer.offerId}
+                        disabled={offer.availability === "full"}
+                        text={{ buyPlace: t.buyPlace, buyOpening: t.buyOpening, buyFailed: t.buyFailed, buySignIn: t.buySignIn, buyLearnersOnly: t.buyLearnersOnly }}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
           </section>
         </article>

@@ -24,6 +24,8 @@ export const adminApi = {
   resource: (id: string) => `${A}/course-resources/${e(id)}`,
   remediationRules: (courseId: string) => `${A}/courses/${e(courseId)}/remediation-rules`,
   remediationRule: (id: string) => `${A}/remediation-rules/${e(id)}`,
+  offers: (courseId: string) => `${A}/courses/${e(courseId)}/offers`,
+  offer: (id: string) => `${A}/offers/${e(id)}`,
   classGroups: (courseId?: string, includeDeleted = false) => {
     const query = new URLSearchParams({ ...(courseId ? { courseId } : {}), ...(includeDeleted ? { includeDeleted: "true" } : {}) }).toString();
     return `${A}/class-groups${query ? `?${query}` : ""}`;

@@ -4,14 +4,14 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { adminApi } from "@/components/academy/workspace/admin/api-paths";
 import { StateBadge } from "@/components/academy/workspace/admin/common";
-import { CourseAssessments, CourseClassGroups, CourseCurriculum, CourseDetails, CourseReadings, CourseRemediationRules } from "@/components/academy/workspace/admin/course";
+import { CourseAssessments, CourseClassGroups, CourseCurriculum, CourseDetails, CourseOffers, CourseReadings, CourseRemediationRules } from "@/components/academy/workspace/admin/course";
 import { managePages, useAdminText } from "@/components/academy/workspace/admin/kit";
 import type { CourseDetail } from "@/components/academy/workspace/admin/types";
 import { useApi } from "@/components/academy/workspace/api";
 import { ApiView, Loading, PageHeader, TabPanel, Tabs } from "@/components/academy/workspace/ui";
 
-type TabKey = "details" | "curriculum" | "assessments" | "readings" | "remediation" | "classGroups";
-const TABS: readonly TabKey[] = ["details", "curriculum", "assessments", "readings", "remediation", "classGroups"];
+type TabKey = "details" | "curriculum" | "assessments" | "readings" | "remediation" | "classGroups" | "offers";
+const TABS: readonly TabKey[] = ["details", "curriculum", "assessments", "readings", "remediation", "classGroups", "offers"];
 
 export default function CoursePage() {
   return (
@@ -48,6 +48,7 @@ function CourseAdmin() {
             {current === "readings" && <CourseReadings courseId={courseId} />}
             {current === "remediation" && <CourseRemediationRules courseId={courseId} />}
             {current === "classGroups" && <CourseClassGroups courseId={courseId} />}
+            {current === "offers" && <CourseOffers courseId={courseId} />}
           </TabPanel>
         </>
       )}

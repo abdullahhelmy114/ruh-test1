@@ -49,6 +49,14 @@ const en = {
   errorTitle: "Something went wrong",
   errorBody: "This page could not be shown. Try again, or come back in a moment.",
   tryAgain: "Try again",
+  enrollHeading: "Enroll",
+  enrollNotOpen: "Online enrollment for this course is not open yet.",
+  buyPlace: "Buy a place",
+  buyOpening: "Opening secure checkout…",
+  buyFailed: "Checkout could not be started. No payment was taken.",
+  buySignIn: "Sign in with a learner account to buy a place.",
+  buyLearnersOnly: "Only learner accounts can buy a place.",
+  buyWhopNote: "Payment is handled by Whop. You are enrolled only after Whop confirms the payment.",
 } as const;
 
 export type PublicMessageKey = keyof typeof en;
@@ -95,6 +103,14 @@ const ar: PublicMessages = {
   errorTitle: "حدث خطأ ما",
   errorBody: "تعذّر عرض هذه الصفحة. حاول مرة أخرى، أو عُد بعد قليل.",
   tryAgain: "حاول مرة أخرى",
+  enrollHeading: "التسجيل",
+  enrollNotOpen: "التسجيل الإلكتروني في هذا المقرّر غير متاح بعد.",
+  buyPlace: "شراء مقعد",
+  buyOpening: "جارٍ فتح صفحة الدفع الآمنة…",
+  buyFailed: "تعذّر بدء عملية الدفع. لم يُستلم أي مبلغ.",
+  buySignIn: "سجّل الدخول بحساب متعلّم لشراء مقعد.",
+  buyLearnersOnly: "شراء المقاعد متاح لحسابات المتعلّمين فقط.",
+  buyWhopNote: "تتم عملية الدفع عبر Whop، ولا يتم تسجيلك إلا بعد أن يؤكّد Whop الدفع.",
 };
 
 const tr: PublicMessages = {
@@ -138,6 +154,14 @@ const tr: PublicMessages = {
   errorTitle: "Bir şeyler ters gitti",
   errorBody: "Bu sayfa gösterilemedi. Yeniden deneyin ya da biraz sonra tekrar gelin.",
   tryAgain: "Yeniden dene",
+  enrollHeading: "Kayıt",
+  enrollNotOpen: "Bu kurs için çevrimiçi kayıt henüz açık değil.",
+  buyPlace: "Yer satın al",
+  buyOpening: "Güvenli ödeme sayfası açılıyor…",
+  buyFailed: "Ödeme başlatılamadı. Hiçbir ödeme alınmadı.",
+  buySignIn: "Yer satın almak için öğrenci hesabıyla giriş yapın.",
+  buyLearnersOnly: "Yalnızca öğrenci hesapları yer satın alabilir.",
+  buyWhopNote: "Ödeme Whop üzerinden yapılır. Whop ödemeyi onayladıktan sonra kaydınız yapılır.",
 };
 
 export const PUBLIC_MESSAGES: Readonly<Record<ProductLocale, PublicMessages>> = { en, ar, tr };

@@ -8,7 +8,7 @@ import { ApiView, Badge, Button, DataTable, EmptyState, FailureNotice, Field, Se
 import { adminApi } from "./api-paths";
 import { EditTitle, StateBadge } from "./common";
 import { managePages, ReasonCommand, StateChange, useAdminText } from "./kit";
-import type { Assessments, ClassGroups, CourseDetail, CourseResources, Curriculum, CurriculumVersionDetail, Programs, RemediationRules } from "./types";
+import type { Assessments, ClassGroups, CourseDetail, CourseResources, Curriculum, CurriculumVersionDetail, Offers, Programs, RemediationRules } from "./types";
 
 const CATALOG_NEXT: Readonly<Record<string, readonly string[]>> = { draft: ["active"], active: ["retired"], retired: ["active"] };
 
@@ -391,5 +391,85 @@ export function CourseClassGroups({ courseId }: { readonly courseId: string }) {
         />
       )}
     </ApiView>
+  );
+}
+
+/**
+ * Whop offers: one Whop plan sells places in one class group. Administrators
+ * map them here; learners are enrolled only by verified Whop payments.
+ */
+export function CourseOffers({ courseId }: { readonly courseId: string }) {
+  const text = useAdminText();
+  const { t } = useWorkspace();
+  const offers = useApi<Offers>(adminApi.offers(courseId));
+  const groups = useApi<ClassGroups>(adminApi.classGroups(courseId));
+  const [classGroupId, setClassGroupId] = useState("");
+  const [planId, setPlanId] = useState("");
+  const [label, setLabel] = useState("");
+  const action = useAction();
+  const names = new Map(groups.state.status === "ready" ? groups.state.data.map((g) => [g.id, g.name]) : []);
+  const sellable = groups.state.status === "ready" ? groups.state.data.filter((g) => g.status === "planned" || g.status === "active") : [];
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    const result = await action.run(adminApi.offers(courseId), "POST", { classGroupId, planId: planId.trim(), label });
+    if (result.ok) {
+      setPlanId("");
+      setLabel("");
+      offers.reload();
+    }
+  }
+
+  return (
+    <>
+      <p className="mb-4 max-w-3xl text-sm text-muted-foreground">{text.course.offersIntro}</p>
+      <Section title={text.action.addOffer}>
+        <form onSubmit={submit} className="grid gap-3 rounded-md border p-3 md:grid-cols-3">
+          <Field label={text.field.classGroup} htmlFor="offer-class-group">
+            <SelectInput id="offer-class-group" required value={classGroupId} onChange={(e) => setClassGroupId(e.target.value)}>
+              <option value="">{t.common.choose}</option>
+              {sellable.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </SelectInput>
+          </Field>
+          <Field label={text.field.planId} htmlFor="offer-plan">
+            <TextInput id="offer-plan" required dir="ltr" pattern="plan_[A-Za-z0-9]{1,64}" placeholder="plan_..." value={planId} onChange={(e) => setPlanId(e.target.value)} />
+          </Field>
+          <Field label={text.field.offerLabel} htmlFor="offer-label">
+            <TextInput id="offer-label" required maxLength={200} value={label} onChange={(e) => setLabel(e.target.value)} />
+          </Field>
+          {action.failure && (
+            <div className="md:col-span-3">
+              <FailureNotice failure={action.failure} />
+            </div>
+          )}
+          <div>
+            <Button type="submit" busy={action.busy}>
+              {text.action.addOffer}
+            </Button>
+          </div>
+        </form>
+      </Section>
+      <ApiView state={offers.state} onRetry={offers.reload}>
+        {(rows) => (
+          <DataTable
+            caption={text.course.tabs.offers}
+            rows={rows}
+            rowKey={(row) => row.id}
+            empty={text.course.noOffers}
+            columns={[
+              { key: "label", header: text.field.offerLabel, cell: (row) => row.label },
+              { key: "group", header: text.field.classGroup, cell: (row) => <TextLink href={managePages.classGroup(row.classGroupId)}>{names.get(row.classGroupId) ?? row.classGroupId.slice(0, 8)}</TextLink> },
+              { key: "plan", header: text.field.planId, cell: (row) => <span dir="ltr" className="font-mono text-xs">{row.providerPlanId}</span> },
+              { key: "state", header: text.field.state, cell: (row) => <Badge tone={row.state === "active" ? "strong" : "neutral"}>{row.state}</Badge> },
+              { key: "retire", header: <span className="sr-only">{text.action.retireRule}</span>, cell: (row) => (row.state === "active" ? <ReasonCommand label={text.action.retireRule} url={adminApi.offer(row.id)} body={{ action: "retire", expectedRevision: row.revision }} onDone={offers.reload} /> : null) },
+            ]}
+          />
+        )}
+      </ApiView>
+    </>
   );
 }

@@ -40,6 +40,7 @@ export const api = {
   myLearning: "/api/academy/me/learning",
   myTeaching: "/api/academy/me/teaching",
   myCertificates: "/api/academy/me/certificates",
+  checkout: (id: string) => `/api/academy/checkouts/${e(id)}`,
   teacherApplication: "/api/academy/teacher-application",
   myAttendance: (classGroupId: string) => `/api/academy/me/attendance?classGroupId=${e(classGroupId)}`,
   classGroup: (id: string) => `/api/academy/class-groups/${e(id)}`,
