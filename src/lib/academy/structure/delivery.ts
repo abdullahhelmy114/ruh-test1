@@ -475,7 +475,7 @@ export function planScheduleSession(input: ScheduleSessionInput, ctx: StructureC
     endsAt,
     state: SESSION_MACHINE.initial,
     stateReason: null,
-    meetingUrl: parseOptionalHttpsUrl(input.meetingUrl, "meetingUrl"),
+    meetingUrl: parseMeetingUrl(input.meetingUrl),
     revision: 1,
     createdBy: uid,
     createdAt: now,
@@ -506,7 +506,7 @@ export function planRescheduleSession(
   if (session.state !== "scheduled") throw new DomainError("CONFLICT", "Only a scheduled session can be rescheduled.");
   const { startsAt, endsAt } = parseWindow(input.startsAt, input.endsAt);
   const reason = requireReason(input.reason);
-  const meetingUrl = input.meetingUrl === undefined ? session.meetingUrl : parseOptionalHttpsUrl(input.meetingUrl, "meetingUrl");
+  const meetingUrl = input.meetingUrl === undefined ? session.meetingUrl : parseMeetingUrl(input.meetingUrl);
   const updated: SessionRecord = Object.freeze({
     ...session,
     startsAt,
@@ -564,6 +564,23 @@ export function planSessionStatus(
       metadata: { from: session.state, to, revision: updated.revision },
     },
   };
+}
+
+/**
+ * A session's meeting link is shown to every learner of the class group, so it
+ * must be a participant (join) link. A Zoom host link (/s/<id>) or any link
+ * carrying a host token (zak=) would let a learner start the meeting as host.
+ */
+export function parseMeetingUrl(value: unknown): string | null {
+  const url = parseOptionalHttpsUrl(value, "meetingUrl");
+  if (url === null) return null;
+  const parsed = new URL(url);
+  const host = parsed.hostname.toLowerCase();
+  const zoom = host === "zoom.us" || host.endsWith(".zoom.us") || host === "zoomgov.com" || host.endsWith(".zoomgov.com");
+  if (parsed.searchParams.has("zak") || (zoom && /^\/s\//.test(parsed.pathname))) {
+    throw new DomainError("VALIDATION", "Use the meeting's join link, not the host's start link.");
+  }
+  return url;
 }
 
 // ---------------------------------------------------------------------------
