@@ -9,7 +9,7 @@ import { api as participantApi, pages } from "../paths";
 import type { AssignmentList } from "../types";
 import { ApiView, Badge, Button, Card, DataTable, EmptyState, FailureNotice, Field, KeyValues, LinkButton, Notice, Section, SelectInput, TextInput, TextLink } from "../ui";
 import { adminApi } from "./api-paths";
-import { isoToLocal, localToIso, managePages, PersonSelect, ReasonCommand, StateChange, usePeopleNames, useAdminText } from "./kit";
+import { isoToLocal, localToIso, managePages, PersonSelect, ReasonCommand, StateChange, usePeopleNames, useAdminText, ZoneHint } from "./kit";
 import type { AdminClassGroup, Assessments, Curriculum, CurriculumVersionDetail, Eligibility, Enrollments, PreparationStatuses, Sessions, StaffRecordings } from "./types";
 
 const CLASS_GROUP_NEXT: Readonly<Record<string, readonly string[]>> = { planned: ["active", "cancelled"], active: ["completed", "cancelled"], completed: [], cancelled: [] };
@@ -203,7 +203,7 @@ export function ClassGroupTeachers({ data, onChanged }: { readonly data: AdminCl
 
 export function ClassGroupSessions({ data }: { readonly data: AdminClassGroup }) {
   const text = useAdminText();
-  const { t, sessionTime } = useWorkspace();
+  const { t, sessionTime, timeZone } = useWorkspace();
   const group = data.classGroup;
   const { state, reload } = useApi<Sessions>(adminApi.sessions(group.id));
   const { lessons, titles } = useLessonTitles(group.curriculumVersionId);
@@ -215,7 +215,7 @@ export function ClassGroupSessions({ data }: { readonly data: AdminClassGroup })
 
   async function schedule(event: FormEvent) {
     event.preventDefault();
-    const result = await action.run(adminApi.sessions(group.id), "POST", { lessonId, startsAt: localToIso(startsAt), endsAt: localToIso(endsAt), meetingUrl: meetingUrl || undefined });
+    const result = await action.run(adminApi.sessions(group.id), "POST", { lessonId, startsAt: localToIso(startsAt, timeZone), endsAt: localToIso(endsAt, timeZone), meetingUrl: meetingUrl || undefined });
     if (result.ok) {
       setStartsAt("");
       setEndsAt("");
@@ -240,8 +240,8 @@ export function ClassGroupSessions({ data }: { readonly data: AdminClassGroup })
           <Field label={text.field.meetingUrl} htmlFor="schedule-meeting" optional>
             <TextInput id="schedule-meeting" type="url" dir="ltr" value={meetingUrl} onChange={(e) => setMeetingUrl(e.target.value)} />
           </Field>
-          <Field label={text.field.startsAt} htmlFor="schedule-starts">
-            <TextInput id="schedule-starts" type="datetime-local" required value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
+          <Field label={text.field.startsAt} htmlFor="schedule-starts" hint={<ZoneHint />}>
+            <TextInput id="schedule-starts" aria-describedby="schedule-starts-hint" type="datetime-local" required value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
           </Field>
           <Field label={text.field.endsAt} htmlFor="schedule-ends">
             <TextInput id="schedule-ends" type="datetime-local" required value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
@@ -303,9 +303,9 @@ export function ClassGroupSessions({ data }: { readonly data: AdminClassGroup })
 
 function Reschedule({ session, onDone }: { readonly session: Sessions[number]; readonly onDone: () => void }) {
   const text = useAdminText();
-  const { t } = useWorkspace();
-  const [startsAt, setStartsAt] = useState(isoToLocal(session.startsAt));
-  const [endsAt, setEndsAt] = useState(isoToLocal(session.endsAt));
+  const { t, timeZone } = useWorkspace();
+  const [startsAt, setStartsAt] = useState(isoToLocal(session.startsAt, timeZone));
+  const [endsAt, setEndsAt] = useState(isoToLocal(session.endsAt, timeZone));
   const [meetingUrl, setMeetingUrl] = useState(session.meetingUrl ?? "");
   const [reason, setReason] = useState("");
   const action = useAction();
@@ -315,8 +315,8 @@ function Reschedule({ session, onDone }: { readonly session: Sessions[number]; r
     event.preventDefault();
     const result = await action.run(adminApi.session(session.id), "PATCH", {
       action: "reschedule",
-      startsAt: localToIso(startsAt),
-      endsAt: localToIso(endsAt),
+      startsAt: localToIso(startsAt, timeZone),
+      endsAt: localToIso(endsAt, timeZone),
       meetingUrl: meetingUrl || null,
       reason,
       expectedRevision: session.revision,
@@ -326,8 +326,8 @@ function Reschedule({ session, onDone }: { readonly session: Sessions[number]; r
 
   return (
     <form onSubmit={submit} className="mt-2 grid gap-3 md:grid-cols-2">
-      <Field label={text.field.startsAt} htmlFor={`${id}-starts`}>
-        <TextInput id={`${id}-starts`} type="datetime-local" required value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
+      <Field label={text.field.startsAt} htmlFor={`${id}-starts`} hint={<ZoneHint />}>
+        <TextInput id={`${id}-starts`} aria-describedby={`${id}-starts-hint`} type="datetime-local" required value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
       </Field>
       <Field label={text.field.endsAt} htmlFor={`${id}-ends`}>
         <TextInput id={`${id}-ends`} type="datetime-local" required value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
@@ -589,7 +589,7 @@ function CertificatePanel({ enrollmentId }: { readonly enrollmentId: string }) {
 
 export function ClassGroupAssignments({ data }: { readonly data: AdminClassGroup }) {
   const text = useAdminText();
-  const { t, sessionTime } = useWorkspace();
+  const { t, sessionTime, timeZone } = useWorkspace();
   const group = data.classGroup;
   const { state, reload } = useApi<AssignmentList>(participantApi.assignments(group.id));
   const assessments = useApi<Assessments>(adminApi.assessments(group.courseId));
@@ -600,7 +600,7 @@ export function ClassGroupAssignments({ data }: { readonly data: AdminClassGroup
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    const result = await action.run(adminApi.classAssignments(group.id), "POST", { assessmentId, opensAt: localToIso(opensAt), dueAt: localToIso(dueAt) });
+    const result = await action.run(adminApi.classAssignments(group.id), "POST", { assessmentId, opensAt: localToIso(opensAt, timeZone), dueAt: localToIso(dueAt, timeZone) });
     if (result.ok) {
       setOpensAt("");
       setDueAt("");
@@ -622,8 +622,8 @@ export function ClassGroupAssignments({ data }: { readonly data: AdminClassGroup
               ))}
             </SelectInput>
           </Field>
-          <Field label={text.field.opensAt} htmlFor="assign-opens">
-            <TextInput id="assign-opens" type="datetime-local" required value={opensAt} onChange={(e) => setOpensAt(e.target.value)} />
+          <Field label={text.field.opensAt} htmlFor="assign-opens" hint={<ZoneHint />}>
+            <TextInput id="assign-opens" aria-describedby="assign-opens-hint" type="datetime-local" required value={opensAt} onChange={(e) => setOpensAt(e.target.value)} />
           </Field>
           <Field label={text.field.dueAt} htmlFor="assign-due" optional>
             <TextInput id="assign-due" type="datetime-local" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />

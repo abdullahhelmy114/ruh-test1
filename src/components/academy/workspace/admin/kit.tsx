@@ -6,6 +6,7 @@ import { createContext, useContext, useId, useState, type FormEvent, type ReactN
 import type { AdminText } from "@/lib/academy/workspace/admin-messages";
 import { commandsFor, REASON_REQUIRED, type ReviewCommand } from "@/lib/academy/workspace/review-commands";
 import { displayName } from "@/lib/academy/workspace/format";
+import { isoToWallClockInput, wallClockInputToIso } from "@/lib/academy/workspace/wall-clock-input";
 import { cn } from "@/lib/utils";
 import { useAction, useApi } from "../api";
 import { adminApi } from "./api-paths";
@@ -329,18 +330,15 @@ export function Saved({ show }: { readonly show: boolean }) {
   return show ? <Notice tone="success">{t.common.saved}</Notice> : null;
 }
 
-/** Converts a datetime-local input value to an ISO instant in the browser's time zone. */
-export function localToIso(value: string): string | undefined {
-  if (!value) return undefined;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+/** Tells the administrator which clock the schedule inputs use: the academy's, never the browser's. */
+export function ZoneHint() {
+  const text = useAdminText();
+  const { fmt, timeZone } = useWorkspace();
+  return <>{timeZone ? fmt(text.field.timeZoneHint, { zone: timeZone }) : text.field.timeZoneMissing}</>;
 }
 
-/** Converts an ISO instant to a datetime-local input value in the browser's time zone. */
-export function isoToLocal(iso: string | null | undefined): string {
-  if (!iso) return "";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
+/** A datetime-local input value, read on the academy's clock, as an ISO instant (see wall-clock-input.ts). */
+export const localToIso = wallClockInputToIso;
+
+/** An ISO instant as a datetime-local input value on the academy's clock. */
+export const isoToLocal = isoToWallClockInput;
