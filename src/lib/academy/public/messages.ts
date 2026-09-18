@@ -46,6 +46,9 @@ const en = {
   pageNotFoundTitle: "Page not found",
   pageNotFoundBody: "We could not find that page. It may have moved, or the address may be mistyped.",
   backToHome: "Back to the home page",
+  errorTitle: "Something went wrong",
+  errorBody: "This page could not be shown. Try again, or come back in a moment.",
+  tryAgain: "Try again",
 } as const;
 
 export type PublicMessageKey = keyof typeof en;
@@ -89,6 +92,9 @@ const ar: PublicMessages = {
   pageNotFoundTitle: "الصفحة غير موجودة",
   pageNotFoundBody: "لم نعثر على هذه الصفحة. ربما تم نقلها أو أن العنوان غير صحيح.",
   backToHome: "العودة إلى الصفحة الرئيسية",
+  errorTitle: "حدث خطأ ما",
+  errorBody: "تعذّر عرض هذه الصفحة. حاول مرة أخرى، أو عُد بعد قليل.",
+  tryAgain: "حاول مرة أخرى",
 };
 
 const tr: PublicMessages = {
@@ -129,6 +135,9 @@ const tr: PublicMessages = {
   pageNotFoundTitle: "Sayfa bulunamadı",
   pageNotFoundBody: "Bu sayfayı bulamadık. Taşınmış ya da adres yanlış yazılmış olabilir.",
   backToHome: "Ana sayfaya dön",
+  errorTitle: "Bir şeyler ters gitti",
+  errorBody: "Bu sayfa gösterilemedi. Yeniden deneyin ya da biraz sonra tekrar gelin.",
+  tryAgain: "Yeniden dene",
 };
 
 export const PUBLIC_MESSAGES: Readonly<Record<ProductLocale, PublicMessages>> = { en, ar, tr };
