@@ -27,7 +27,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const course = await publicService.course(slug);
     return { title: `${course.title} | Ruh-Ul-Qudus Academy`, description: course.description ?? undefined };
   } catch {
-    return { title: "Course | Ruh-Ul-Qudus Academy" };
+    // Missing or unavailable: never "index, follow" on a page that answers 404 (see the program page).
+    return { title: "Course | Ruh-Ul-Qudus Academy", robots: { index: false, follow: false } };
   }
 }
 

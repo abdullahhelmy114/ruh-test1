@@ -122,4 +122,15 @@ describe("a missing page", () => {
       assert.match(src, /<NotFoundView \/>/, `${file}: one view, so the three cannot drift apart`);
     }
   });
+
+  // The launch E2E audit (2026-09-18) found a missing program or course page
+  // in the browser carrying "index, follow" before the not-found page's
+  // "noindex": the route's own metadata fallback won. The fallbacks now say
+  // noindex themselves.
+  test("a missing program or course never asks to be indexed", () => {
+    for (const file of ["src/app/academy/programs/[slug]/page.tsx", "src/app/academy/courses/[slug]/page.tsx"]) {
+      const fallback = code(file).match(/return \{ title: "(Program|Course) \| Ruh-Ul-Qudus Academy"[^}]*\}[^}]*\}/)?.[0] ?? "";
+      assert.match(fallback, /robots: \{ index: false, follow: false \}/, file);
+    }
+  });
 });

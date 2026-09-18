@@ -25,7 +25,9 @@ const findProgram = cache(async (slug: string) => {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const program = await findProgram(slug);
-  if (program === null || program === "not_found") return { title: "Program | Ruh-Ul-Qudus Academy" };
+  // A missing or unavailable program answers 404/notice: its metadata must not tell crawlers to index it
+  // (the page's own metadata replaced the not-found page's noindex, leaving "index, follow" first).
+  if (program === null || program === "not_found") return { title: "Program | Ruh-Ul-Qudus Academy", robots: { index: false, follow: false } };
   return { title: `${program.title} | Ruh-Ul-Qudus Academy`, description: program.description ?? undefined };
 }
 
