@@ -47,3 +47,5 @@ next-env.d.ts
 data/*.txt
 data/*.json
 !data/quran-corpus-cleaned.json   # إذا أردت الاحتفاظ به
+# local end-to-end test identities and their browser sessions (never commit)
+.e2e/
