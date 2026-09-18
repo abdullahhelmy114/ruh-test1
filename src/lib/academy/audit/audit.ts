@@ -135,6 +135,12 @@ export const AUDIT_ACTIONS = {
   "teacher_application.open_document": { impact: "standard", reasonRequired: false },
   "teacher.deactivate": { impact: "high", reasonRequired: true },
   "teacher.reactivate": { impact: "high", reasonRequired: false },
+  "offer.create": { impact: "high", reasonRequired: false },
+  "offer.retire": { impact: "high", reasonRequired: true },
+  "checkout.open": { impact: "standard", reasonRequired: false },
+  "entitlement.grant": { impact: "high", reasonRequired: false },
+  "entitlement.revoke": { impact: "high", reasonRequired: true },
+  "entitlement.reinstate": { impact: "high", reasonRequired: false },
 } as const satisfies Record<string, AuditActionDefinition>;
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;

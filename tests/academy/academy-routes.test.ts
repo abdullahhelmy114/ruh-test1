@@ -68,6 +68,9 @@ describe("academy participant routes", () => {
       "sessions/[sessionId]/preparation/route.ts",
       "sessions/[sessionId]/route.ts",
       "teacher-application/route.ts",
+      // Whop checkouts (commerce): open one, read its state.
+      "checkouts/route.ts",
+      "checkouts/[checkoutId]/route.ts",
     ].sort());
   });
 

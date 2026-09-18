@@ -11,6 +11,11 @@ academy and legacy tables. **They have not been applied to production or to
 the historical source database.** The "NOT EXECUTED" header in each file
 refers to those databases.
 
+2026-09-19: 0011 (academy commerce: Whop offers, checkouts, entitlements and
+the processed-webhook log) applied to the same test branch only, after
+confirming its endpoint and that 0001–0010 were present (47 → 51 academy
+tables). Not applied anywhere else.
+
 Rules that every migration here follows, and that
 `tests/academy/migrations.test.ts` enforces:
 

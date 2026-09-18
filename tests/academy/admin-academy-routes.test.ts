@@ -39,6 +39,9 @@ describe("academy admin routes", () => {
       "production/versions/[versionId]/route.ts",
       "production/report/route.ts",
       "courses/[courseId]/remediation-rules/route.ts",
+      // Whop offers (commerce): one plan -> one class group.
+      "courses/[courseId]/offers/route.ts",
+      "offers/[offerId]/route.ts",
       "remediation-rules/[ruleId]/route.ts",
       "overview/route.ts",
       "review-queue/route.ts",

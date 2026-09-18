@@ -1,97 +1,66 @@
 import { NextResponse } from "next/server";
-import crypto from "crypto";
+import { readWhopEnvelope } from "@/lib/academy/commerce/commerce";
+import { DomainError } from "@/lib/academy/domain/errors";
+import { commerceService, whopConfig } from "@/lib/academy/server";
+import { verifyWhopSignature } from "@/lib/payments/whop";
 
 export const runtime = "nodejs";
 
 /**
- * Whop webhook receiver — Phase 0 containment.
+ * Whop webhook receiver: the only way academy access changes after a payment.
  *
- * Signature scheme (per docs.whop.com/webhooks): HMAC-SHA256 with the `ws_...`
- * webhook secret over `${webhook-id}.${webhook-timestamp}.${rawBody}`, sent
- * base64-encoded in the `webhook-signature` header as `v1,<signature>`
- * (possibly several space-separated entries). Delivery is at-least-once.
+ * 1. Fails closed (500) without WHOP_WEBHOOK_SECRET.
+ * 2. Verifies the Standard Webhooks signature over the RAW body, and refuses
+ *    deliveries more than five minutes from now (src/lib/payments/whop.ts).
+ * 3. Processes the event once: the delivery id (`webhook-id`, kept by Whop
+ *    across retries) is recorded with its effect in one transaction, so a
+ *    redelivery changes nothing.
  *
- * This version only verifies and acknowledges. Event processing, idempotency
- * (webhook_events table) and entitlement sync are implemented in Phase 3.
+ * Status codes decide Whop's retries: 2xx for processed, duplicate or
+ * irrelevant events; 400/401 for requests that can never succeed; 5xx for
+ * transient failures, which Whop retries. Logs carry the event type, the
+ * delivery id and the outcome only — never the body, the signature or the
+ * secret.
  */
-
-const MAX_TIMESTAMP_SKEW_SECONDS = 5 * 60;
-
-function verifyWhopSignature(
-  secret: string,
-  id: string,
-  timestamp: string,
-  rawBody: string,
-  signatureHeader: string
-): boolean {
-  const expected = crypto
-    .createHmac("sha256", secret)
-    .update(`${id}.${timestamp}.${rawBody}`)
-    .digest();
-
-  const candidates = signatureHeader
-    .split(" ")
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .map((s) => (s.startsWith("v1,") ? s.slice(3) : s));
-
-  for (const candidate of candidates) {
-    let provided: Buffer;
-    try {
-      provided = Buffer.from(candidate, "base64");
-    } catch {
-      continue;
-    }
-    if (
-      provided.length === expected.length &&
-      crypto.timingSafeEqual(provided, expected)
-    ) {
-      return true;
-    }
-  }
-  return false;
-}
-
 export async function POST(req: Request) {
-  const secret = process.env.WHOP_WEBHOOK_SECRET;
+  const secret = whopConfig.webhookSecret;
   if (!secret) {
     console.error("WHOP_WEBHOOK_SECRET is not configured; refusing webhook.");
     return NextResponse.json({ error: "Webhook not configured" }, { status: 500 });
   }
 
+  const rawBody = await req.text();
+  const id = req.headers.get("webhook-id");
+  const check = verifyWhopSignature(
+    secret,
+    { id, timestamp: req.headers.get("webhook-timestamp"), signature: req.headers.get("webhook-signature") },
+    rawBody,
+    Math.floor(Date.now() / 1000),
+  );
+  if (check !== "valid") {
+    console.warn(`Whop webhook refused: ${check} signature`);
+    const message = check === "missing" ? "Missing signature headers" : check === "stale" ? "Stale timestamp" : "Invalid signature";
+    return NextResponse.json({ error: message }, { status: 401 });
+  }
+
+  let envelope;
   try {
-    const rawBody = await req.text();
-    const id = req.headers.get("webhook-id") || "";
-    const timestamp = req.headers.get("webhook-timestamp") || "";
-    const signature = req.headers.get("webhook-signature") || "";
+    envelope = readWhopEnvelope(JSON.parse(rawBody));
+  } catch {
+    console.warn(`Whop webhook refused: malformed event [${id}]`);
+    return NextResponse.json({ error: "Invalid event" }, { status: 400 });
+  }
 
-    if (!id || !timestamp || !signature) {
-      return NextResponse.json({ error: "Missing signature headers" }, { status: 401 });
-    }
-
-    const ts = Number(timestamp);
-    if (!Number.isFinite(ts) || Math.abs(Date.now() / 1000 - ts) > MAX_TIMESTAMP_SKEW_SECONDS) {
-      return NextResponse.json({ error: "Stale timestamp" }, { status: 401 });
-    }
-
-    if (!verifyWhopSignature(secret, id, timestamp, rawBody, signature)) {
-      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-    }
-
-    let event: { type?: string } = {};
-    try {
-      event = JSON.parse(rawBody);
-    } catch {
-      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-    }
-
-    // Phase 3 will persist and process events here. Acknowledge for now so
-    // Whop does not retry indefinitely; nothing is granted on this path yet.
-    console.log(`Whop webhook received (unprocessed): ${event.type ?? "unknown"} [${id}]`);
-
-    return NextResponse.json({ received: true }, { status: 200 });
+  try {
+    const result = await commerceService.handleWhopEvent(id as string, envelope);
+    console.log(`Whop webhook ${envelope.type} [${id}]: ${result.outcome}`);
+    return NextResponse.json({ received: true, outcome: result.outcome }, { status: 200 });
   } catch (error) {
-    console.error("Whop webhook handler error:", error);
+    if (error instanceof DomainError && error.code === "VALIDATION") {
+      console.warn(`Whop webhook ${envelope.type} [${id}] refused: ${error.message}`);
+      return NextResponse.json({ error: "Invalid event" }, { status: 400 });
+    }
+    console.error(`Whop webhook ${envelope.type} [${id}] failed:`, error instanceof DomainError ? error.code : error instanceof Error ? error.name : "unknown");
     return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 });
   }
 }

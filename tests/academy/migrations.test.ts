@@ -216,6 +216,12 @@ describe("academy migrations", () => {
       academy_teacher_applications_live_uq: /ON academy_teacher_applications \(applicant_uid\) WHERE state NOT IN \('rejected', 'withdrawn'\)/,
       // one history event per application revision (two decisions on the same revision)
       academy_teacher_application_events_revision_uq: /ON academy_teacher_application_events \(application_id, application_revision\)/,
+      // Whop commerce: a plan maps to one active offer; a payment and a checkout grant at most once;
+      // a redelivered webhook (same delivery id) is processed once.
+      academy_offers_active_plan_uq: /ON academy_offers \(provider, provider_plan_id\) WHERE state = 'active'/,
+      academy_entitlements_payment_uq: /ON academy_entitlements \(provider, provider_payment_id\)/,
+      academy_entitlements_checkout_uq: /ON academy_entitlements \(checkout_id\)/,
+      academy_payment_events_pk: /PRIMARY KEY \(provider, event_id\)/,
     };
     for (const kind of ["curriculum_versions", "lesson_script_versions", "assessment_versions", "content_item_versions"]) {
       expected[`academy_${kind}_one_working_uq`] = new RegExp(`ON academy_${kind} \\(\\w+\\) WHERE state IN \\('draft', 'in_review', 'changes_requested', 'approved'\\)`);

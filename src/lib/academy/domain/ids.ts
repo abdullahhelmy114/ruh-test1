@@ -38,6 +38,8 @@ export const ENTITY_KINDS = [
   "notification",
   "recording",
   "entitlement",
+  "offer",
+  "checkout",
   "policy_value",
   "approval_gate",
   "approval_gate_definition",

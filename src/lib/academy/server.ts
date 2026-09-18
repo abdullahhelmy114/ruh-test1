@@ -9,6 +9,7 @@
 import "server-only";
 import { sql } from "@/lib/db/client";
 import { getAdminAuth } from "@/lib/firebase/admin";
+import { createWhopCheckout, resolveWhopConfig } from "@/lib/payments/whop";
 import { privateDownloadLink } from "@/lib/security/cloudinary-sign";
 import { readAcademyFlags } from "./infra/flags.ts";
 import type { SqlExecutor, SqlRow } from "./infra/sql.ts";
@@ -20,6 +21,7 @@ import { createAssessmentService } from "./services/assessment-service.ts";
 import { createAttendanceService } from "./services/attendance-service.ts";
 import { createCatalogService } from "./services/catalog-service.ts";
 import { createCertificateService } from "./services/certificate-service.ts";
+import { createCommerceService } from "./services/commerce-service.ts";
 import { createCommunicationService } from "./services/communication-service.ts";
 import { createCurriculumService } from "./services/curriculum-service.ts";
 import { createDeliveryService } from "./services/delivery-service.ts";
@@ -114,6 +116,23 @@ export const communicationService = createCommunicationService({
   executor: academyExecutor,
   flags: academyFlags,
   facts: relationshipFacts,
+});
+
+// Whop: sandbox unless WHOP_API_BASE_URL names production exactly (src/lib/payments/whop.ts).
+export const whopConfig = resolveWhopConfig({
+  apiBase: process.env.WHOP_API_BASE_URL,
+  apiKey: process.env.WHOP_API_KEY,
+  webhookSecret: process.env.WHOP_WEBHOOK_SECRET,
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+});
+
+export const commerceService = createCommerceService({
+  executor: academyExecutor,
+  flags: academyFlags,
+  gateway: {
+    configured: whopConfig.apiKey !== null,
+    open: (input) => createWhopCheckout(whopConfig, input),
+  },
 });
 
 export const libraryService = createLibraryService({
