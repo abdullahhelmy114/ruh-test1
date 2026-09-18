@@ -136,7 +136,8 @@ const SPECS: Spec[] = [
     file: "library/books/id/route.ts",
     handlers: ["GET"],
     guards: ["requireAuth", "requireLibraryAccess"],
-    mustContain: ["await requireLibraryAccess(user)", "await ctx.params"],
+    // The static `id` segment receives no params: reading them must not throw (it answered 500).
+    mustContain: ["await requireLibraryAccess(user)", "= (await ctx.params) ?? {};"],
   },
   {
     file: "library/page-overlay/route.ts",
@@ -177,7 +178,8 @@ const SPECS: Spec[] = [
     file: "lessons/[id]/zoom/route.ts",
     handlers: ["GET"],
     guards: ["requireAuth", "requireEnrolled", "HttpError"],
-    mustContain: ["lesson.teacher_uid === user.uid", "user.role !== 'admin' && !isOwnerTeacher"],
+    // The owner branch requires an active teacher session (an inactive teacher signs in as "applicant").
+    mustContain: ["user.role === 'teacher' && lesson.teacher_uid === user.uid", "user.role !== 'admin' && !isOwnerTeacher"],
   },
   {
     file: "student/sessions/route.ts",

@@ -20,7 +20,10 @@ export const GET = withApi<{ id: string }>(async (req, ctx) => {
   if (result.length === 0) throw new HttpError(404, 'Lesson not found');
   const lesson = result[0];
 
-  const isOwnerTeacher = lesson.teacher_uid === user.uid;
+  // Owning the lesson counts only while the account is an active teacher: a
+  // deactivated or still-pending teacher signs in as "applicant" and must not
+  // keep reaching the meeting link through the owner branch.
+  const isOwnerTeacher = user.role === 'teacher' && lesson.teacher_uid === user.uid;
   if (user.role !== 'admin' && !isOwnerTeacher) {
     if (!lesson.course_id) throw new HttpError(403, 'Lesson is not part of an enrollable course');
     await requireEnrolled(user, lesson.course_id as string);

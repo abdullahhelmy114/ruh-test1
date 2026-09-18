@@ -16,7 +16,9 @@ export const GET = withApi(async (req, ctx) => {
   await requireLibraryAccess(user);
 
   try {
-    const { id } = await ctx.params;
+    // A static segment is called without params at all, so there is nothing to destructure.
+    const params: Record<string, string | string[]> = (await ctx.params) ?? {};
+    const { id } = params;
     if (typeof id !== "string" || !id) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 });
     }
