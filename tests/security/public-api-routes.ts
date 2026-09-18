@@ -8,7 +8,7 @@
 export const PUBLIC_API_ROUTES: Readonly<Record<string, { readonly reason: string; readonly control?: RegExp }>> = {
   "academy-info/route.ts": { reason: "curated public site information for the assistant" },
   "ai/chat/route.ts": { reason: "public site assistant", control: /checkRateLimit\(/ },
-  "auth/session/route.ts": { reason: "the sign-in exchange: verifies a Firebase ID token, then sets the session cookie", control: /verifyIdToken\(idToken\)/ },
+  "auth/session/route.ts": { reason: "the sign-in exchange: verifies a Firebase ID token, then sets the session cookie (DELETE ends only the caller's own verified session)", control: /verifyIdToken\(idToken\)/ },
   "bundles/route.ts": { reason: "public catalog" },
   "certification/route.ts": { reason: "public certification information" },
   "cloudinary/sign-upload/route.ts": { reason: "teacher signup uploads before an account exists", control: /checkRateLimit\(/ },

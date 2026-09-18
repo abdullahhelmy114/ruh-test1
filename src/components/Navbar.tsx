@@ -124,10 +124,16 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // The server session cookie is httpOnly: only the server can expire it, and
+  // it must go first — Firebase sign-out alone left the browser signed in to
+  // every page and API. Then reload from the home page so nothing rendered for
+  // the signed-in account stays on screen.
   const handleLogout = async () => {
-    await signOut(getAuth());
     setMenuOpen(false);
     setMobileOpen(false);
+    await fetch("/api/auth/session", { method: "DELETE", credentials: "same-origin" }).catch(() => null);
+    await signOut(getAuth());
+    window.location.assign("/");
   };
 
   // Destinations follow the stored role and status (navigation only): approved
