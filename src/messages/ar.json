@@ -874,6 +874,8 @@
   "signup_failed_try_again": "فشل التسجيل، حاول مرة أخرى",
   "All fields are required": "جميع الحقول مطلوبة",
   "Complete Your Purchase": "إتمام الشراء",
+  "Online payment is not open yet": "الدفع الإلكتروني غير متاح بعد",
+  "Courses and subscriptions will be purchased through our secure Whop checkout. Until it opens, no payment is taken and nothing needs to be transferred.": "سيتم شراء الدورات والاشتراكات عبر صفحة الدفع الآمنة من Whop. وإلى أن تُفتح، لا يُستلم أي مبلغ ولا حاجة إلى أي تحويل.",
 "Option 1: Bank Transfer (IBAN)": "الخيار الأول: حوالة بنكية (IBAN)",
 "Transfer the amount to the following IBAN, then send us the receipt via WhatsApp:": "قم بتحويل المبلغ إلى رقم IBAN التالي، ثم أرسل لنا الإيصال عبر واتساب:",
 "IBAN copied successfully": "تم نسخ IBAN بنجاح",

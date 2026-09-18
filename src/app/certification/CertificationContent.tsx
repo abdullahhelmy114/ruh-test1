@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { T } from "@/components/TranslatedText";
 import {
@@ -14,18 +13,12 @@ import {
   ExternalLink,
 } from "lucide-react";
 
+// Verification is answered by the academy's certificate service on the
+// verification page (valid, revoked or not found); this form only sends the
+// code there. It used to report every code as valid after a timer.
+const CERTIFICATE_VERIFY_PATH = "/academy/certificates/verify";
+
 export function CertificationContent() {
-  const [certId, setCertId] = useState("");
-  const [verifyStatus, setVerifyStatus] = useState<"idle" | "loading" | "valid" | "invalid">("idle");
-
-  const handleVerify = () => {
-    if (!certId.trim()) return;
-    setVerifyStatus("loading");
-    setTimeout(() => {
-      setVerifyStatus("valid");
-    }, 1500);
-  };
-
   return (
     <div className="min-h-screen bg-background">
       {/* ========== Header ========== */}
@@ -128,41 +121,23 @@ export function CertificationContent() {
             <T>Verify Certificate Desc</T>
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <form action={CERTIFICATE_VERIFY_PATH} method="get" className="flex flex-col sm:flex-row gap-3">
             <input
               type="text"
-              value={certId}
-              onChange={(e) => setCertId(e.target.value)}
+              name="code"
+              required
+              maxLength={40}
+              aria-label="Certificate ID"
               placeholder="Enter certificate ID"
               className="flex-1 rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/20"
             />
             <button
-              onClick={handleVerify}
-              disabled={verifyStatus === "loading"}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-black shadow-gold transition hover:scale-[1.02] disabled:opacity-50"
+              type="submit"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-black shadow-gold transition hover:scale-[1.02]"
             >
-              {verifyStatus === "loading" ? (
-                <span className="animate-pulse">Verifying...</span>
-              ) : (
-                <>
-                  <T>Verify</T> <ExternalLink className="h-4 w-4" />
-                </>
-              )}
+              <T>Verify</T> <ExternalLink className="h-4 w-4" />
             </button>
-          </div>
-
-          {verifyStatus === "valid" && (
-            <div className="mt-4 flex items-center gap-2 text-emerald-600 text-sm font-medium">
-              <CheckCircle size={18} />
-              <T>Certificate Valid</T>
-            </div>
-          )}
-          {verifyStatus === "invalid" && (
-            <div className="mt-4 flex items-center gap-2 text-red-500 text-sm font-medium">
-              <CheckCircle size={18} />
-              <T>Certificate Invalid</T>
-            </div>
-          )}
+          </form>
         </div>
       </section>
 

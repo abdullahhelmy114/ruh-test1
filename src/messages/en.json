@@ -872,6 +872,8 @@
   "Signup failed, try again": "Signup failed, try again",
   "All fields are required": "All fields are required",
   "Complete Your Purchase": "Complete Your Purchase",
+  "Online payment is not open yet": "Online payment is not open yet",
+  "Courses and subscriptions will be purchased through our secure Whop checkout. Until it opens, no payment is taken and nothing needs to be transferred.": "Courses and subscriptions will be purchased through our secure Whop checkout. Until it opens, no payment is taken and nothing needs to be transferred.",
   "Option 1: Bank Transfer (IBAN)": "Option 1: Bank Transfer (IBAN)",
   "Transfer the amount to the following IBAN, then send us the receipt via WhatsApp:": "Transfer the amount to the following IBAN, then send us the receipt via WhatsApp:",
   "IBAN copied successfully": "IBAN copied successfully",

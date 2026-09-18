@@ -873,6 +873,8 @@
   "signup_failed_try_again": "Kayıt başarısız oldu, tekrar deneyin",
   "All fields are required": "Tüm alanlar zorunludur",
   "Complete Your Purchase": "Satın Alımı Tamamla",
+  "Online payment is not open yet": "Çevrimiçi ödeme henüz açık değil",
+  "Courses and subscriptions will be purchased through our secure Whop checkout. Until it opens, no payment is taken and nothing needs to be transferred.": "Kurslar ve abonelikler güvenli Whop ödeme sayfası üzerinden satın alınacak. Açılana kadar hiçbir ödeme alınmaz ve herhangi bir havale yapmanız gerekmez.",
   "Option 1: Bank Transfer (IBAN)": "Seçenek 1: Banka Havalesi (IBAN)",
   "Transfer the amount to the following IBAN, then send us the receipt via WhatsApp:": "Tutarı aşağıdaki IBAN'a aktarın, ardından dekontu WhatsApp ile bize gönderin:",
   "IBAN copied successfully": "IBAN başarıyla kopyalandı",
