@@ -82,6 +82,8 @@ test.describe("learner", () => {
     const responses = recordAcademyResponses(page);
     await page.goto(`/academy/assignments/${env.E2E_ASSIGNMENT_ID}`);
     const start = page.getByRole("button", { name: t.assessment.start });
+    // The page loads its data after hydration: wait until it offers either a new or an open attempt.
+    await expect(start.or(page.getByRole("button", { name: t.assessment.submit }))).toBeVisible();
     if (await start.isVisible()) await start.click();
     // Submitting asks for confirmation in place (no modal dialog).
     await page.getByRole("button", { name: t.assessment.submit }).click();
@@ -119,7 +121,15 @@ test.describe("teacher", () => {
     const save = page.getByRole("button", { name: t.session.saveAttendance });
     await expect(save.or(page.getByText(t.session.vocabularyMissing))).toBeVisible();
     if (await save.isVisible()) {
-      await save.click();
+      // Save stays disabled until a mark changes; mark an unmarked learner so there is something to record.
+      const firstMark = page.locator('select[id^="mark-"]').first();
+      if ((await firstMark.inputValue()) === "") {
+        await firstMark.selectOption({ index: 1 });
+        await save.click();
+        await expect(page.getByText(t.common.saved)).toBeVisible();
+      } else {
+        await expect(save).toBeDisabled();
+      }
       await expect(page.getByText(t.states.conflict)).toHaveCount(0);
     }
   });
@@ -145,7 +155,8 @@ test.describe("administrator", () => {
     await page.locator("#program-title").fill(`E2E program ${stamp}`);
     await page.locator("#program-slug").fill(`e2e-program-${stamp}`);
     await page.getByRole("button", { name: a.action.create }).first().click();
-    await expect(page.getByText(`E2E program ${stamp}`)).toBeVisible();
+    // The new program is listed (and offered in the course form's program picker): check its link.
+    await expect(page.getByRole("link", { name: `E2E program ${stamp}` }).first()).toBeVisible();
     const audit = await page.request.get("/api/admin/academy/audit?action=program.create");
     expect(audit.status()).toBe(200);
     expect(await audit.text()).toContain("program.create");

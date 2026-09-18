@@ -69,19 +69,24 @@ test("the skip link moves keyboard focus to the workspace content", async ({ pag
 });
 
 test("dark mode switches the workspace colours through theme tokens", async ({ page }) => {
+  // Follow the reader's system setting, as the site does; toggling the class by hand raced the theme
+  // provider, which sets it again once it hydrates.
+  await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/academy/learn");
   const colours = () => page.evaluate(() => ({ bg: getComputedStyle(document.body).backgroundColor, fg: getComputedStyle(document.body).color }));
-  await page.evaluate(() => document.documentElement.classList.remove("dark"));
+  await expect(page.locator("html")).toHaveClass(/\blight\b/);
   const light = await colours();
-  await page.evaluate(() => document.documentElement.classList.add("dark"));
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expect(page.locator("html")).toHaveClass(/\bdark\b/);
   const dark = await colours();
   expect(dark.bg).not.toBe(light.bg);
   expect(dark.fg).not.toBe(light.fg);
 });
 
-test("the site navigation leads to the academy on desktop and phone", async ({ page }, testInfo) => {
+test("the site navigation leads to the academy on desktop and phone", async ({ page }) => {
   await page.goto("/");
-  if (testInfo.project.name === "phone-390") {
+  // The desktop row starts at 1280px (the header's xl breakpoint); narrower windows use the menu button.
+  if ((page.viewportSize()?.width ?? 1280) < 1280) {
     await page.getByRole("button", { name: "Open menu" }).click();
     await expect(page.locator('a[href="/academy"]').first()).toBeVisible();
   } else {
