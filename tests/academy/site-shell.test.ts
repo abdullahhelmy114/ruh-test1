@@ -65,7 +65,8 @@ describe("the site header", () => {
     // The same link list renders in both, so narrowing the window hides nothing.
     const listRenders = [...navbar.matchAll(/links\.map\(/g)].length;
     assert.ok(listRenders >= 2, `the primary links must render in both rows, found ${listRenders}`);
-    for (const destination of ["dashboardLink", "academyLink", "profileLink", '"/wishlist"', '"/cart"']) {
+    // The legacy wishlist and cart are retired (their tables are outside the academy schema); see legacy-launch-path.test.ts.
+    for (const destination of ["dashboardLink", "academyLink", "profileLink"]) {
       const uses = [...navbar.matchAll(new RegExp(destination.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"))].length;
       assert.ok(uses >= 2, `${destination} must be reachable from both rows`);
     }

@@ -86,13 +86,13 @@ test("dark mode switches the workspace colours through theme tokens", async ({ p
 test("the site navigation leads to the academy on desktop and phone", async ({ page }) => {
   await page.goto("/");
   // The desktop row starts at 1280px (the header's xl breakpoint); narrower windows use the menu button.
-  if ((page.viewportSize()?.width ?? 1280) < 1280) {
-    await page.getByRole("button", { name: "Open menu" }).click();
-    await expect(page.locator('a[href="/academy"]').first()).toBeVisible();
-  } else {
-    await page.getByRole("button", { name: "More" }).click();
-    await expect(page.getByRole("menuitem", { name: "Academy" })).toHaveAttribute("href", "/academy");
-  }
+  // The academy catalog is a primary link (the legacy Courses and Bundles links were retired), so it is
+  // in the desktop row itself, or in the menu drawer.
+  if ((page.viewportSize()?.width ?? 1280) < 1280) await page.getByRole("button", { name: "Open menu" }).click();
+  const academy = page.locator('header a[href="/academy"]:visible');
+  await expect(academy).toHaveCount(1);
+  await expect(academy).toHaveText("Academy");
+  await expect(page.locator('header a[href="/courses"], header a[href="/bundles"]')).toHaveCount(0);
 });
 
 function escape(text) {

@@ -7,9 +7,9 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Bell, BellOff, Mail, Moon, Sun, BookOpen, User, LayoutDashboard, LogOut, ChevronDown,
-  Info, Phone, Library, Shield, ShoppingCart, Heart, Menu, X, Users, GraduationCap,
+  Info, Phone, Library, Shield, Menu, X, GraduationCap,
 } from "lucide-react";
-import { academyHome } from "@/components/academy/workspace/paths";
+import { academyHome, api as academyApi, pages as academyPages } from "@/components/academy/workspace/paths";
 import { accountHome } from "@/lib/auth/home";
 import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
@@ -26,20 +26,35 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 // روابط ثابتة
+// The academy catalog is the one public list of programs and courses (the
+// legacy /courses and /bundles pages read tables outside the academy schema).
 const baseLinks = [
   { to: "/", label: "Home" },
-  { to: "/courses", label: "Courses" },
-  { to: "/bundles", label: "Bundles" },
-  { to: "/certification", label: "Certification" }, 
+  { to: "/academy", label: "Academy" },
+  { to: "/certification", label: "Certification" },
   { to: "/dictionary", label: "Dictionary" },
 ];
 
 const moreLinks = [
-  { to: "/academy", label: "Academy", icon: GraduationCap },
   { to: "/about", label: "About", icon: Info },
   { to: "/contact", label: "Contact", icon: Phone },
   { to: "/library", label: "Library", icon: Library },
 ];
+
+/** An academy notification as GET /api/academy/notifications returns it. */
+interface NavNotification {
+  id: string;
+  title: string;
+  link: string | null;
+  createdAt: string;
+  readAt: string | null;
+}
+
+/** Total unread messages across the caller's academy conversations. */
+function unreadAcross(threads: unknown): number {
+  if (!Array.isArray(threads)) return 0;
+  return threads.reduce((sum: number, thread) => sum + (typeof thread?.unread === "number" && thread.unread > 0 ? thread.unread : 0), 0);
+}
 
 export function Navbar() {
   const { theme, toggle } = useTheme();
@@ -49,48 +64,58 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [unreadMessages, setUnreadMessages] = useState(0);
-  const [cartCount, setCartCount] = useState(0);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<NavNotification[]>([]);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   const links = baseLinks;
+  // A teacher account that is not active is an applicant: the academy refuses it
+  // conversations and notifications, so nothing is polled for it (as in the workspace shell).
+  // Polling waits until the role and status have loaded, so an applicant is never polled by mistake.
+  const applicant = role === "teacher" && status !== "active";
 
-  // جلب الإشعارات كل 30 ثانية
+  // جلب الإشعارات كل 30 ثانية — academy notifications (academy_notifications).
   useEffect(() => {
-    if (!user) return;
+    if (!user || isLoading || applicant) return;
     const fetchNotifications = () => {
-      authFetch("/api/notifications")
-        .then(r => r.json())
-        .then(d => setNotifications(d.notifications || []));
+      authFetch(academyApi.notifications(false))
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (!d?.data) return;
+          setNotifications(Array.isArray(d.data.items) ? d.data.items : []);
+          setUnreadNotifications(typeof d.data.unreadCount === "number" ? d.data.unreadCount : 0);
+        })
+        .catch(() => {});
     };
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
-  }, [user]);
+  }, [user, isLoading, applicant]);
 
-  // تحديث عدد الرسائل والسلة والإشعارات
+  // تحديث عدد الرسائل — unread messages across the caller's academy conversations.
+  useEffect(() => {
+    if (!user || isLoading || applicant) return;
+    const updateUnread = () =>
+      authFetch(academyApi.threads)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (d) setUnreadMessages(unreadAcross(d.data));
+        })
+        .catch(() => {});
+    updateUnread();
+    const interval = setInterval(updateUnread, 60000);
+    return () => clearInterval(interval);
+  }, [user, isLoading, applicant]);
+
   useEffect(() => {
     if (!user) return;
-    const updateUnread = () =>
-      authFetch("/api/messages/unread-count")
-        .then((r) => r.json())
-        .then((d) => setUnreadMessages(d.count || 0));
-    const updateCart = () =>
-      authFetch("/api/cart")
-        .then(r => r.json())
-        .then(d => setCartCount(d.items?.length || 0));
-    const checkFcm = () =>
-      authFetch("/api/user")
-        .then((r) => r.json())
-        .then((d) => {
-          if (d.profile?.fcm_token) setNotificationsEnabled(true);
-        });
-    updateUnread();
-    updateCart();
-    checkFcm();
-    const interval = setInterval(() => { updateUnread(); updateCart(); }, 60000);
-    return () => clearInterval(interval);
+    authFetch("/api/user")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.profile?.fcm_token) setNotificationsEnabled(true);
+      })
+      .catch(() => {});
   }, [user]);
 
   const enableNotifications = async () => {
@@ -202,19 +227,6 @@ export function Navbar() {
             </Link>
           ))}
 
-          {role === "student" && (
-            <Link
-              href="/community"
-              className={cn(
-                "rounded-full px-4 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
-                pathname === "/community" && "bg-accent text-accent-foreground"
-              )}
-            >
-              <Users className="w-4 h-4 mr-1 inline" />
-              <T>Community</T>
-            </Link>
-          )}
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -268,9 +280,9 @@ export function Navbar() {
               className="relative grid h-10 w-10 place-items-center rounded-full border border-border bg-card transition-colors hover:bg-accent"
             >
               <Bell className="h-4 w-4" />
-              {notifications.filter(n => !n.read).length > 0 && (
+              {unreadNotifications > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                  {notifications.filter(n => !n.read).length > 9 ? '9+' : notifications.filter(n => !n.read).length}
+                  {unreadNotifications > 9 ? '9+' : unreadNotifications}
                 </span>
               )}
             </button>
@@ -287,17 +299,17 @@ export function Navbar() {
                   notifications.map(n => (
                     <Link
                       key={n.id}
-                      href={n.link || '#'}
+                      href={n.link || academyPages.notifications}
                       onClick={() => setNotifOpen(false)}
                       className={`block rounded-xl px-3 py-2.5 text-sm transition-colors hover:bg-accent ${
-                        !n.read ? 'border-l-2 border-l-accent bg-accent/10' : ''
+                        !n.readAt ? 'border-l-2 border-l-accent bg-accent/10' : ''
                       }`}
                     >
-                      <p className={!n.read ? 'font-medium text-foreground' : 'text-muted-foreground'}>
-                        {n.message}
+                      <p className={!n.readAt ? 'font-medium text-foreground' : 'text-muted-foreground'}>
+                        {n.title}
                       </p>
                       <p className="text-[10px] text-muted-foreground mt-0.5">
-                        {new Date(n.created_at).toLocaleString()}
+                        {new Date(n.createdAt).toLocaleString()}
                       </p>
                     </Link>
                   ))
@@ -307,7 +319,7 @@ export function Navbar() {
           </div>
 
           <Link
-            href="/messages"
+            href={academyPages.messages}
             aria-label="Messages"
             className="relative grid h-10 w-10 place-items-center rounded-full border border-border bg-card transition-colors hover:bg-accent"
           >
@@ -352,15 +364,6 @@ export function Navbar() {
                   </Link>
                   <Link href={profileLink} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground">
                     <User className="h-4 w-4" /> <T>Profile</T>
-                  </Link>
-                  <Link href="/wishlist" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground">
-                    <Heart className="h-4 w-4" /> <T>Wishlist</T>
-                  </Link>
-                  <Link href="/cart" onClick={() => setMenuOpen(false)} className="flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground">
-                    <span className="flex items-center gap-2"><ShoppingCart className="h-4 w-4" /> <T>Cart</T></span>
-                    {cartCount > 0 && (
-                      <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">{cartCount}</span>
-                    )}
                   </Link>
                   <button
                     onClick={handleLogout}
@@ -433,12 +436,6 @@ export function Navbar() {
                   <T>{l.label}</T>
                 </Link>
               ))}
-              {role === "student" && (
-                <Link href="/community" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-4 py-3 text-base font-medium hover:bg-accent">
-                  <Users className="h-5 w-5" />
-                  <T>Community</T>
-                </Link>
-              )}
               {moreLinks.map(l => (
                 <Link key={l.to} href={l.to} onClick={() => setMobileOpen(false)} className="block rounded-xl px-4 py-3 text-base font-medium hover:bg-accent">
                   <T>{l.label}</T>
@@ -459,12 +456,6 @@ export function Navbar() {
                 </Link>
                 <Link href={profileLink} onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-4 py-3 hover:bg-accent">
                   <User className="h-5 w-5" /> <T>Profile</T>
-                </Link>
-                <Link href="/wishlist" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-4 py-3 hover:bg-accent">
-                  <Heart className="h-5 w-5" /> <T>Wishlist</T>
-                </Link>
-                <Link href="/cart" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-4 py-3 hover:bg-accent">
-                  <ShoppingCart className="h-5 w-5" /> <T>Cart</T>
                 </Link>
                 <button onClick={handleLogout} className="flex w-full items-center gap-2 rounded-xl px-4 py-3 text-primary hover:bg-accent">
                   <LogOut className="h-5 w-5" /> <T>Sign out</T>

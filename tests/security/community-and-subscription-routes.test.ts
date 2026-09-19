@@ -28,11 +28,13 @@ describe("community membership", () => {
     assert.match(guard, /if \(!gender\) throw new HttpError\(403,/);
   });
 
-  test("the community page uses the central session and the stored gender", () => {
+  test("the community page is retired: it redirects to the academy and reads nothing", () => {
+    // Its posts, forum and challenge tables exist in no schema this application runs on,
+    // so the page and its navigation links are retired (P0 legacy compatibility repair).
+    // The routes below keep their guards for any direct caller.
     const page = read("src", "app", "community", "page.tsx");
-    assert.match(page, /const user = await getSession\(new Request\('http:\/\/localhost\/community', \{ headers: \{ cookie: cookieHeader \} \}\)\);/);
-    assert.match(page, /const gender = await communityGenderOf\(user\.uid\);/);
-    assert.doesNotMatch(page, /get\('session'\)|verifyIdToken|user\.gender/);
+    assert.match(page, /redirect\("\/academy"\);/);
+    assert.doesNotMatch(page, /getSession|communityGenderOf|sql`|fetch\(/);
   });
 
   test("routes take the member's uid and gender from the guard and join profiles for display names", () => {
