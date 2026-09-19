@@ -1027,5 +1027,10 @@
   "privacyTrustTitle": "Your Trust Matters",
   "privacyTrustText": "We are committed to protecting your privacy and providing a safe, transparent learning environment for all our students.",
 
-  "ctaStudent": "Join as Student"
+  "ctaStudent": "Join as Student",
+  "Academy courses": "Academy courses",
+  "Part of": "Part of",
+  "View course": "View course",
+  "View all courses": "View all courses",
+  "No courses are open yet. Please check back soon.": "No courses are open yet. Please check back soon."
 }

@@ -110,21 +110,16 @@ describe("no other route reaches the YouTube upload without the boundary", () =>
 });
 
 describe("public projections", () => {
-  test("academy-info has no SELECT * and no identifier/internal columns", () => {
+  test("academy-info returns only the published academy catalog, with no identifier or internal field", () => {
+    // It used to project nine legacy tables; they are not part of the academy schema production
+    // runs (P0 legacy compatibility repair), so it now reports the public catalog, which the public
+    // service limits to active programs and published courses.
     const src = code("app/api/academy-info/route.ts");
-    assert.equal(/SELECT\s+\*/i.test(src), false);
-    // Only the projected row queries are checked; the DISTINCT count of
-    // enrollments.user_uid is an aggregate and returns no identifiers.
-    const projections = src.match(/`SELECT[\s\S]*?FROM[\s\S]*?`/g) ?? [];
-    assert.ok(projections.length >= 9, "expected one explicit projection per table");
-    for (const q of projections) {
-      for (const col of ["teacher_uid", "user_uid", "admin_uid", "admin_id", "chunk_text", "embedding", "recording_url", "payment_url", "scenario", "model_course_id", "content"]) {
-        if (col === "content" && /FROM (static_pages|blog_posts)/.test(q)) continue; // public CMS body text
-        assert.equal(q.includes(col), false, `academy-info must not select ${col}: ${q.trim().slice(0, 60)}`);
-      }
+    assert.equal(/\bSELECT\b|\bFROM [a-z_]|sql`|sql\.query|neon\(|@\/lib\/db/.test(src), false, "no query of its own");
+    assert.match(src, /await publicService\.catalog\(\)/);
+    for (const field of ["teacher_uid", "user_uid", "admin_uid", "uid", "email", "payment_url", "price", "recording_url"]) {
+      assert.equal(src.includes(field), false, `academy-info must not return ${field}`);
     }
-    assert.ok(src.includes("is_published = true"));
-    assert.ok(src.includes("status = 'active'"));
   });
 
   test("teacher public profile excludes email, age, gender and contact fields", () => {

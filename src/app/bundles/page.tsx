@@ -1,72 +1,8 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { T } from "@/components/TranslatedText";
-import { Package, Check, Sparkles, ArrowRight, UserPlus } from "lucide-react";
-import Link from "next/link";
-import { useAuth } from "@/lib/firebase/AuthProvider";
-
-const bundles = [
-  { title: "Foundations Bundle", levels: "A1 + A2 + B1", price: 127, original: 147, discount: 15 },
-  { title: "Mastery Path", levels: "B1 + B2 + C1", price: 229, original: 270, discount: 15 },
-  { title: "Complete Journey", levels: "A1 → C2", price: 399, original: 600, discount: 33, featured: true },
-];
-
-// The heading text used to be requested from /api/pages/bundles, which never
-// existed; every visit fell back to this text after a failed request.
-const page = { title: "Course Bundles", content: "Save up to 33% with our carefully curated bundles." };
-
-export default function BundlesPage() {
-  const { user } = useAuth();
-
-  return (
-    <div className="mx-auto max-w-5xl px-4 py-16 md:px-8">
-      <div className="text-center mb-10">
-        <Package className="mx-auto h-12 w-12 text-secondary-foreground mb-4" />
-        <h1 className="font-serif text-4xl"><T>{page.title}</T></h1>
-        <p className="mt-2 text-muted-foreground"><T>{page.content}</T></p>
-      </div>
-
-      <div className="grid md:grid-cols-3 gap-6">
-        {bundles.map((b) => (
-          <div key={b.title} className={`glass rounded-3xl p-6 text-center relative ${b.featured ? "ring-2 ring-gold" : ""}`}>
-            {b.featured && (
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gold text-foreground text-xs font-bold px-4 py-1 rounded-full">
-                <Sparkles size={12} className="inline mr-1" /> <T>Best Value</T>
-              </span>
-            )}
-            <h3 className="font-serif text-xl mt-2"><T>{b.title}</T></h3>
-            <p className="text-sm text-muted-foreground mt-1">{b.levels}</p>
-            <div className="mt-4">
-              <span className="font-serif text-3xl font-bold text-accent-foreground">${b.price}</span>
-              <span className="text-sm line-through text-muted-foreground ml-2">${b.original}</span>
-              <span className="ml-2 bg-secondary text-primary-foreground text-xs px-2 py-0.5 rounded-full">-{b.discount}%</span>
-            </div>
-            <ul className="mt-4 space-y-1 text-sm text-muted-foreground">
-              {["Full access", "Certificates", "Live Q&A"].map((f) => (
-                <li key={f} className="flex items-center justify-center gap-1"><Check size={14} className="text-primary" /> <T>{f}</T></li>
-              ))}
-            </ul>
-            <Link href="/courses" className="mt-5 inline-block w-full rounded-full bg-gold py-2.5 text-sm font-semibold text-primary-foreground hover:bg-gold/80">
-              <T>Get Started</T>
-            </Link>
-          </div>
-        ))}
-      </div>
-
-      {!user && (
-        <div className="mt-12 text-center">
-          <div className="glass rounded-3xl p-8 inline-block">
-            <UserPlus className="mx-auto h-12 w-12 text-secondary-foreground mb-4" />
-            <h2 className="font-serif text-2xl mb-2"><T>Ready to save?</T></h2>
-            <p className="text-muted-foreground mb-6"><T>Join now and get access to exclusive bundles.</T></p>
-            <div className="flex justify-center gap-3">
-              <Link href="/signup?role=student" className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2">
-                <T>Join as Student</T> <ArrowRight size={16} />
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+// Retired: the bundles page listed three hard-coded bundles with invented prices
+// and discounts. Bundles are not part of the academy model; places are bought per
+// class group on each course's page in the academy catalog.
+export default function LegacyBundlesPage() {
+  redirect("/academy");
 }

@@ -4,8 +4,7 @@ A specialized educational platform for teaching Arabic and Quran to non-native s
 
 ## Main Pages
 - [Home](https://ruhulqudus.com)
-- [Courses](https://ruhulqudus.com/courses)
-- [Bundles](https://ruhulqudus.com/bundles)
+- [Courses](https://ruhulqudus.com/academy)
 - [Certification](https://ruhulqudus.com/certification)
 - [Library](https://ruhulqudus.com/library)
 - [Quran Irab](https://ruhulqudus.com/quran)
@@ -14,13 +13,12 @@ A specialized educational platform for teaching Arabic and Quran to non-native s
 - [About Us](https://ruhulqudus.com/about)
 - [Contact](https://ruhulqudus.com/contact)
 - [Blog](https://ruhulqudus.com/blog)
-- [Community](https://ruhulqudus.com/community)
 
 ## User Account
 - [Sign In](https://ruhulqudus.com/login)
 - [Sign Up](https://ruhulqudus.com/signup)
-- [Student Dashboard](https://ruhulqudus.com/dashboard/student)
-- [Admin Dashboard](https://ruhulqudus.com/dashboard/admin)
+- [Student Workspace](https://ruhulqudus.com/academy/learn)
+- [Administration](https://ruhulqudus.com/academy/manage)
 
 ## Legal
 - [Privacy Policy](https://ruhulqudus.com/privacy)

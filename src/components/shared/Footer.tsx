@@ -25,16 +25,6 @@ export function Footer() {
           </div>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li>
-              <Link href="/courses" className="hover:text-foreground transition-colors">
-                <T>Courses</T>
-              </Link>
-            </li>
-            <li>
-              <Link href="/bundles" className="hover:text-foreground transition-colors">
-                <T>Bundles</T>
-              </Link>
-            </li>
-            <li>
               <Link href="/academy" className="hover:text-foreground transition-colors">
                 <T>Live Classes</T>
               </Link>
@@ -56,11 +46,6 @@ export function Footer() {
             <li>
               <Link href="#" className="hover:text-foreground transition-colors">
                 <T>About Dr. Jehan</T>
-              </Link>
-            </li>
-            <li>
-              <Link href="/community" className="hover:text-foreground transition-colors">
-                <T>Community</T>
               </Link>
             </li>
             <li>

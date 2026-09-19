@@ -1,16 +1,12 @@
-import { NextResponse } from 'next/server';
-import { sql } from '@/lib/db/client';
+import { NextResponse } from "next/server";
 
+// Retired: legacy course bundles read a `bundles` table that is not part of the
+// academy schema (production logged "relation bundles does not exist" on every
+// homepage visit). Bundles are not part of the academy model: places are sold
+// per class group through Whop offers. Nothing in the site calls this anymore.
 export async function GET() {
-  try {
-    const result = await sql`
-      SELECT id, title, description, price, course_ids, created_at
-      FROM bundles
-      ORDER BY created_at DESC
-    `;
-    return NextResponse.json({ bundles: result || [] });
-  } catch (error) {
-    console.error('Bundles error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
+  return NextResponse.json(
+    { error: "This endpoint has been removed." },
+    { status: 410 }
+  );
 }

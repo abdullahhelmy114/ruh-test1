@@ -18,7 +18,6 @@ import {
   MessageCircle,
   Calendar,
   ChevronRight,
-  PackageOpen,
   ScrollText,
 } from "lucide-react";
 import { T } from "@/components/TranslatedText";
@@ -53,10 +52,22 @@ const testimonials = [
   },
 ];
 
+/** A published academy course as the public catalog returns it (no price, level or teacher: the catalog does not publish them). */
+interface CatalogCourse {
+  slug: string;
+  title: string;
+  description: string | null;
+  program: { slug: string; title: string } | null;
+}
+
+/** The academy catalog, the one public list of courses. */
+const CATALOG_API = "/api/public/academy/catalog";
+const FEATURED_COUNT = 3;
+
 export default function HomePage() {
-  const [featuredcourse, setFeaturedcourse] = useState<any[]>([]);
+  // null while loading; "unavailable" when the catalog could not be read (nothing is claimed about it then).
+  const [featuredCourses, setFeaturedCourses] = useState<CatalogCourse[] | "unavailable" | null>(null);
   const [blogPosts, setBlogPosts] = useState<any[]>([]);
-  const [bundles, setBundles] = useState<any[]>([]);
   const [certification, setCertification] = useState<any>(null);
   const [stats, setStats] = useState({
     experience: "30+",
@@ -67,17 +78,14 @@ export default function HomePage() {
     // يمكن استبدالها بقيم حقيقية من /api/stats إذا وُجدت
     // تركناها ثابتة كمثال
 
-    // Featured course
-    fetch("/api/courses?limit=3")
-      .then((r) => r.json())
-      .then((d) => setFeaturedcourse((d.course || []).slice(0, 3)))
-      .catch(() => {});
-
-    // Bundles
-    fetch("/api/bundles")
-      .then((r) => r.json())
-      .then((d) => setBundles(d.bundles || []))
-      .catch(() => {});
+    // Featured courses: the first published academy courses.
+    fetch(CATALOG_API)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((d) => {
+        const courses: unknown = d?.data?.courses;
+        setFeaturedCourses(Array.isArray(courses) ? (courses as CatalogCourse[]).slice(0, FEATURED_COUNT) : "unavailable");
+      })
+      .catch(() => setFeaturedCourses("unavailable"));
 
     // Certification Info
     fetch("/api/certification")
@@ -301,145 +309,81 @@ export default function HomePage() {
       </section>
 
 
-      {/* ─── Featured course (بيانات حقيقية) ──────────────── */}
-      {featuredcourse.length > 0 && (
-        <section className="bg-muted/30 py-20">
+      {/* ─── Academy courses (the public academy catalog) ──────────────── */}
+      {/* Nothing is shown while the catalog loads; an empty catalog says so; a catalog that could not be read claims nothing and only offers the catalog page. */}
+      {featuredCourses !== null && (
+        <section className="py-20">
           <div className="mx-auto max-w-7xl px-4 md:px-8">
             <motion.div {...fadeInUp} className="text-center">
               <div className="text-xs font-bold uppercase tracking-[0.3em] text-accent-foreground">
-                <T>Featured course</T>
+                <T>Academy courses</T>
               </div>
               <h2 className="mt-3 font-serif text-4xl md:text-5xl">
                 <T>Start your Arabic journey</T>
               </h2>
             </motion.div>
 
-            <div className="mt-12 grid gap-6 md:grid-cols-3">
-              {featuredcourse.map((course, i) => (
-                <motion.div
-                  key={course.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: i * 0.1 }}
-                  className="group overflow-hidden rounded-3xl border bg-card shadow-elegant transition-all hover:-translate-y-1 hover:shadow-elegant"
-                >
-                  <Link href={`/course/${course.id}`}>
-                    <div className="h-40 bg-linear-to-br from-primary to-primary/80 flex items-center justify-center relative overflow-hidden">
-                      {course.image_url ? (
-                        <Image
-                          src={course.image_url}
-                          alt={course.title}
-                          fill
-                          className="object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                      ) : (
+            {Array.isArray(featuredCourses) && featuredCourses.length > 0 && (
+              <div className="mt-12 grid gap-6 md:grid-cols-3">
+                {featuredCourses.map((course, i) => (
+                  <motion.div
+                    key={course.slug}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: i * 0.1 }}
+                    className="group flex flex-col overflow-hidden rounded-3xl border bg-card shadow-elegant transition-all hover:-translate-y-1 hover:shadow-elegant"
+                  >
+                    <Link href={`/academy/courses/${encodeURIComponent(course.slug)}`}>
+                      <div className="h-40 bg-linear-to-br from-primary to-primary/80 flex items-center justify-center">
                         <BookOpen className="h-12 w-12 text-primary-foreground/30" />
-                      )}
-                      <span className="absolute top-3 right-3 rounded-full bg-foreground/30 px-3 py-1 text-xs font-bold text-primary-foreground backdrop-blur-sm">
-                        {course.level}
-                      </span>
-                    </div>
-                  </Link>
-                  <div className="p-5">
-                    <Link href={`/course/${course.id}`}>
-                      <h3 className="font-serif text-lg font-semibold hover:text-accent-foreground transition-colors line-clamp-1">
-                        {course.title}
-                      </h3>
+                      </div>
                     </Link>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      <T>by</T> {course.teacher_name}
-                    </p>
-                    <div className="mt-3 flex items-center justify-between">
-                      <span className="font-serif text-2xl font-bold text-accent-foreground">
-                        {course.price === 0 ? <T>Free</T> : `$${course.price}`}
-                      </span>
-                      <Link
-                        href={`/course/${course.id}`}
-                        className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent/90 transition"
-                      >
-                        <T>Learn More</T>
+                    <div className="flex flex-1 flex-col p-5">
+                      <Link href={`/academy/courses/${encodeURIComponent(course.slug)}`}>
+                        <h3 className="font-serif text-lg font-semibold hover:text-accent-foreground transition-colors line-clamp-1">
+                          {course.title}
+                        </h3>
                       </Link>
+                      {course.program && (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          <T>Part of</T> {course.program.title}
+                        </p>
+                      )}
+                      {course.description && (
+                        <p className="mt-2 text-sm text-muted-foreground line-clamp-3">{course.description}</p>
+                      )}
+                      <div className="mt-auto pt-4">
+                        <Link
+                          href={`/academy/courses/${encodeURIComponent(course.slug)}`}
+                          className="inline-flex rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent/90 transition"
+                        >
+                          <T>View course</T>
+                        </Link>
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {Array.isArray(featuredCourses) && featuredCourses.length === 0 && (
+              <p role="status" className="mx-auto mt-10 max-w-xl text-center text-muted-foreground">
+                <T>No courses are open yet. Please check back soon.</T>
+              </p>
+            )}
 
             <div className="mt-10 text-center">
               <Link
-                href="/courses"
+                href="/academy"
                 className="inline-flex items-center gap-2 rounded-full border-2 border-primary/50 px-6 py-3 text-sm font-semibold text-accent-foreground hover:bg-primary/10 transition"
               >
-                <T>View All course</T> <ChevronRight className="h-4 w-4" />
+                <T>View all courses</T> <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
           </div>
         </section>
       )}
-
-      {/* ─── Bundles Section ──────────────────────────── */}
-      <section className="py-20">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <motion.div {...fadeInUp} className="text-center">
-            <div className="text-xs font-bold uppercase tracking-[0.3em] text-accent-foreground">
-              <T>Bundles</T>
-            </div>
-            <h2 className="mt-3 font-serif text-4xl md:text-5xl">
-              <T>Curated learning paths</T>
-            </h2>
-          </motion.div>
-
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {bundles.length > 0 ? (
-              bundles.map((bundle, i) => (
-                <motion.div
-                  key={bundle.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: i * 0.1 }}
-                  className="group overflow-hidden rounded-3xl border bg-card shadow-elegant transition-all hover:-translate-y-1 hover:shadow-elegant"
-                >
-                  <div className="h-40 bg-linear-to-br from-accent to-accent/80 flex items-center justify-center">
-                    <PackageOpen className="h-16 w-16 text-primary-foreground/40" />
-                  </div>
-                  <div className="p-5">
-                    <h3 className="font-serif text-lg font-semibold">{bundle.name}</h3>
-                    <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
-                      {bundle.description}
-                    </p>
-                    <div className="mt-3 flex items-center justify-between">
-                      <span className="font-serif text-2xl font-bold text-accent-foreground">
-                        ${bundle.price}
-                      </span>
-                      <Link
-                        href="/bundles"
-                        className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent/90 transition"
-                      >
-                        <T>View</T>
-                      </Link>
-                    </div>
-                  </div>
-                </motion.div>
-              ))
-            ) : (
-              <div className="md:col-span-3 flex flex-col items-center justify-center py-12 text-center">
-                <PackageOpen className="h-16 w-16 text-accent-foreground/50 mb-4" />
-                <p className="text-muted-foreground text-lg">
-                  <T>No bundles available yet.</T>
-                </p>
-                <Link
-                  href="/bundles"
-                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/90 transition"
-                >
-                  <T>Explore Bundles</T> <ChevronRight className="h-4 w-4" />
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
 
       {/* ─── Certification Section ─────────────────────── */}
       <section className="py-20 bg-muted/30">

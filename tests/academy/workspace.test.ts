@@ -257,7 +257,9 @@ describe("workspace screens", () => {
       ...[...footer.matchAll(/href="(\/[^"?#]*)"/g)].map((m) => m[1]),
       ...[...sitemap.matchAll(/\$\{baseUrl\}(\/[^`]*)`/g)].map((m) => m[1]),
     ]);
-    assert.ok(links.size >= 20, `only ${links.size} links found`);
+    // 17 distinct destinations once the legacy /courses, /bundles, /community, /wishlist and /cart links were
+    // retired; the floor only proves the three sources were actually parsed.
+    assert.ok(links.size >= 15, `only ${links.size} links found`);
     const broken = [...links].filter((path) => path !== "/" && !pageExists(path));
     assert.deepEqual(broken, []);
     assert.ok(pageExists("/"), "home page");

@@ -77,7 +77,7 @@ export function CertificationContent() {
 
             <div className="mt-8 text-center sm:text-left">
               <Link
-                href="/courses"
+                href="/academy"
                 className="inline-flex items-center gap-2 rounded-full gradient-emerald px-6 py-3 text-sm font-semibold text-primary-foreground shadow-elegant transition hover:scale-[1.02]"
               >
                 <T>Browse course</T>
