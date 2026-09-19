@@ -4,12 +4,12 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/AuthProvider";
 import { authFetch } from "@/lib/authFetch";
-import { accountHome } from "@/lib/auth/home";
+import { accountHome, LEARNER_HOME } from "@/lib/auth/home";
 import { Loader2 } from "lucide-react";
 
 // Sends a signed-in account to its home: administrators to administration,
 // approved teachers to the teacher workspace, every other teacher account to
-// its application page, everyone else to the student dashboard. Unverified
+// its application page, everyone else to the learner workspace. Unverified
 // email addresses are verified first. Navigation only; pages and APIs
 // authorize on the server.
 export default function DashboardRedirect() {
@@ -46,7 +46,7 @@ export default function DashboardRedirect() {
       })
       .catch(() => {
         // Without the profile the least-privileged destination is used; the server decides access there.
-        router.replace("/dashboard/student");
+        router.replace(LEARNER_HOME);
       });
   }, [user, isLoading, role, router]);
 

@@ -21,13 +21,14 @@ const stripComments = (src: string) => src.replace(/\/\*[\s\S]*?\*\//g, "").repl
 
 describe("where an account lands", () => {
   test("only an active teacher reaches the teacher workspace; every other teacher account reaches its application page", () => {
-    assert.equal(accountHome("admin", "active"), "/dashboard/admin");
-    assert.equal(accountHome("admin", null), "/dashboard/admin");
+    // Every home is in the academy (the legacy dashboards read tables outside the academy schema).
+    assert.equal(accountHome("admin", "active"), "/academy/manage");
+    assert.equal(accountHome("admin", null), "/academy/manage");
     assert.equal(accountHome("teacher", "active"), TEACHER_WORKSPACE_HOME);
     for (const status of ["pending", "changes_requested", "rejected", "withdrawn", "inactive", null, undefined, "", "Active"]) {
       assert.equal(accountHome("teacher", status), TEACHER_APPLICATION_HOME, String(status));
     }
-    for (const role of ["student", null, undefined, "", "superuser"]) assert.equal(accountHome(role, "active"), "/dashboard/student", String(role));
+    for (const role of ["student", null, undefined, "", "superuser"]) assert.equal(accountHome(role, "active"), "/academy/learn", String(role));
     assert.ok(existsSync(join(ROOT, "src", "app", "academy", "(workspace)", "teacher-application", "page.tsx")));
     assert.ok(existsSync(join(ROOT, "src", "app", "academy", "(workspace)", "teach", "page.tsx")));
   });

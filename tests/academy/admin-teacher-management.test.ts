@@ -441,8 +441,11 @@ describe("legacy teacher approval", () => {
     const profile = read("src", "app", "dashboard", "admin", "user-profile", "page.tsx");
     assert.doesNotMatch(profile, /approveTeacher|Approve Teacher/);
     assert.match(profile, /href="\/academy\/manage\/teachers"/);
+    // The legacy administration dashboard (and its teacher tab) is retired: it redirects to the academy
+    // administration, whose navigation includes teacher management.
     const dashboard = read("src", "app", "dashboard", "admin", "page.tsx");
-    assert.match(dashboard, /function TeacherVerificationTab\(\) \{[\s\S]{0,700}href="\/academy\/manage\/teachers"/);
+    assert.match(dashboard, /redirect\(ADMIN_HOME\)/);
+    assert.ok(existsSync(join(ROOT, "src", "app", "academy", "(workspace)", "manage", "teachers", "page.tsx")));
   });
 
   test("dashboard counts: teachers are active teacher accounts; applications are accounts waiting for a decision", () => {

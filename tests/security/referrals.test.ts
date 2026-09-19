@@ -136,13 +136,16 @@ describe("no financial referral reward", () => {
     assert.deepEqual(offenders, []);
   });
 
-  test("the student dashboard reports friends who joined, not credits", () => {
+  test("invitations report friends who joined, not credits", () => {
     const api = code(read("src", "app", "api", "student", "dashboard", "route.ts"));
     assert.match(api, /\(SELECT count\(\*\) FROM profiles r WHERE r\.referred_by::text = p\.id::text AND r\.firebase_uid <> p\.firebase_uid\)::int AS referral_joined/);
     assert.match(api, /count: Number\(profile\.referral_joined\) \|\| 0,/);
     assert.doesNotMatch(api, /credits/);
-    const page = read("src", "app", "dashboard", "student", "page.tsx");
-    assert.doesNotMatch(page, /credits|\$\{data\.referral|50% off/);
+    // The legacy student dashboard is retired (it redirects to the academy learner
+    // workspace); the account's own invitation link and count are on /affiliate.
+    assert.doesNotMatch(read("src", "app", "dashboard", "student", "page.tsx"), /referral|credits/);
+    const page = read("src", "app", "affiliate", "AffiliateContent.tsx");
+    assert.doesNotMatch(page, /credits|50% off/);
     assert.match(page, /<T>Friends who joined<\/T>/);
   });
 

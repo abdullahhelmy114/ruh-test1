@@ -72,7 +72,17 @@ const nextConfig = {
   compress: true,
   productionBrowserSourceMaps: false,
   // تمت إزالة redirects لتجنب حلقة إعادة التوجيه اللانهائية
-  // async redirects() { ... },
+  // (The old site-wide redirects stay removed.) Only two retired legacy screens are
+  // redirected here, each to a page that is never redirected itself: they sit under
+  // the client-side legacy admin layout, where a page-level redirect() is streamed
+  // inside that layout (HTTP 200, followed only once the layout renders its
+  // children). Their pages keep the same redirect as a fallback.
+  async redirects() {
+    return [
+      { source: "/dashboard/admin", destination: "/academy/manage", permanent: false },
+      { source: "/dashboard/admin/bundles", destination: "/academy/manage", permanent: false },
+    ];
+  },
   // The build type-checks the whole project (tests/academy/launch-closure.test.ts keeps it that way).
   typescript: {
     ignoreBuildErrors: false,

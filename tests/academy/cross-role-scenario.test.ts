@@ -79,9 +79,9 @@ const TEACHING_ACTIONS = ["class_group.read_roster", "attendance.record", "submi
 
 describe("six-account scenario", () => {
   test("each account lands on its own home", () => {
-    assert.equal(accountHome("admin", null), "/dashboard/admin");
+    assert.equal(accountHome("admin", null), "/academy/manage");
     assert.equal(accountHome("teacher", "active"), TEACHER_WORKSPACE_HOME);
-    assert.equal(accountHome("student", "active"), "/dashboard/student");
+    assert.equal(accountHome("student", "active"), "/academy/learn");
     assert.equal(accountHome("teacher", "pending"), TEACHER_APPLICATION_HOME);
     assert.equal(session("pendingTeacher").role, "applicant");
   });

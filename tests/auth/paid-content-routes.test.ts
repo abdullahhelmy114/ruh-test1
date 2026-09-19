@@ -271,18 +271,17 @@ describe("Phase 2.4a central helpers and frontend callers", () => {
     assert.ok(qp.includes("lessonId: string"), "QuizPlayer requires lessonId");
   });
 
-  test("student pages call the protected endpoints with credentials", () => {
-    const course = read("src/app/dashboard/student/course/[courseId]/page.tsx");
-    assert.ok(course.includes("authFetch(`/api/exam/${courseId}/questions`)"));
-    assert.ok(course.includes("authFetch(`/api/quizzes/${lessonId}`)"));
-    assert.ok(course.includes("<QuizPlayer quizzes={quizzes} lessonId={lessonId} />"));
-
-    const exam = read("src/app/dashboard/student/course/exam/courseId/page.tsx");
-    assert.ok(exam.includes("authFetch(`/api/exam/${courseId}/questions`)"));
-    assert.ok(exam.includes("authFetch(`/api/exam/${courseId}/submit`"));
-
-    const live = read("src/app/live/[lessonId]/page.tsx");
-    assert.ok(live.includes("authFetch(`/api/lessons/${params.lessonId}/zoom`)"));
-    assert.ok(!live.includes("fetch(`/api/lessons/${params.lessonId}/zoom`)"));
+  test("the retired legacy student course, exam and live-lesson pages call no endpoint at all", () => {
+    // They read tables outside the academy schema and now redirect to the academy
+    // (P0 legacy compatibility repair); the protected endpoints keep their guards above.
+    for (const page of [
+      "src/app/dashboard/student/course/[courseId]/page.tsx",
+      "src/app/dashboard/student/course/exam/courseId/page.tsx",
+      "src/app/live/[lessonId]/page.tsx",
+    ]) {
+      const src = read(page);
+      assert.match(src, /redirect\((LEARNER_HOME|"\/dashboard")\);/, page);
+      assert.doesNotMatch(src, /fetch\(|"use client"/, page);
+    }
   });
 });

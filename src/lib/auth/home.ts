@@ -2,21 +2,27 @@
  * Where an account lands after signing in. Navigation only: every page and
  * API authorizes on the server (see SessionRole in ./core.ts).
  *
- *   administrator               → administration dashboard
+ *   administrator               → academy administration
  *   teacher, status "active"    → teacher academy workspace
  *   teacher, any other status   → the teacher application page (pending,
  *                                  changes requested, rejected, deactivated)
- *   everyone else               → student dashboard
+ *   everyone else               → learner academy workspace
+ *
+ * Every home is in the academy: the legacy /dashboard/student and
+ * /dashboard/admin screens read tables outside the academy schema and now
+ * redirect here too.
  *
  * Dependency-free so the browser and the server share one rule.
  */
+export const ADMIN_HOME = "/academy/manage";
+export const LEARNER_HOME = "/academy/learn";
 export const TEACHER_WORKSPACE_HOME = "/academy/teach";
 export const TEACHER_APPLICATION_HOME = "/academy/teacher-application";
 
 export function accountHome(role: string | null | undefined, status: string | null | undefined): string {
-  if (role === "admin") return "/dashboard/admin";
+  if (role === "admin") return ADMIN_HOME;
   if (role === "teacher") return status === "active" ? TEACHER_WORKSPACE_HOME : TEACHER_APPLICATION_HOME;
-  return "/dashboard/student";
+  return LEARNER_HOME;
 }
 
 /**
