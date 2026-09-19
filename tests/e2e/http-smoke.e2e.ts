@@ -20,8 +20,9 @@
  * forged identity headers, forged tokens and cookies, and identity claimed
  * in the query and body (academy routes must answer the standard 401);
  * removed endpoints; public routes never returning internal error text;
- * public academy API contracts (read only, safe errors, rate limiting); and
- * the legacy messaging endpoints.
+ * public academy API contracts (read only, safe errors, rate limiting); the
+ * legacy messaging endpoints; and the retired legacy screens and APIs
+ * (redirects into the academy, 410s, the served sitemap).
  */
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
@@ -402,5 +403,65 @@ describe("public API contracts", { skip }, () => {
     const other = await get("/api/public/academy/programs/arabic-foundations", { "x-forwarded-for": "198.51.100.77" });
     await other.arrayBuffer();
     assert.notEqual(other.status, 429, "another client is not limited");
+  });
+});
+
+// P0 legacy compatibility repair (2026-09-19): production's new database has only the
+// academy schema plus profiles, and every homepage visit logged "relation live_course /
+// bundles does not exist". The retired legacy screens must redirect into the academy
+// before reading anything, and the launch pages must not depend on the retired tables.
+describe("legacy compatibility", { skip }, () => {
+  const REDIRECTS: ReadonlyArray<readonly [string, string]> = [
+    ["/courses", "/academy"],
+    [`/course/${SAMPLE_UUID}`, "/academy"],
+    ["/bundles", "/academy"],
+    ["/messages", "/academy/messages"],
+    ["/cart", "/academy"],
+    ["/wishlist", "/academy"],
+    ["/community", "/academy"],
+    ["/dashboard/student", "/academy/learn"],
+    [`/dashboard/student/course/${SAMPLE_UUID}`, "/academy/learn"],
+    [`/dashboard/student/course/${SAMPLE_UUID}/practice`, "/academy/learn"],
+    ["/dashboard/admin", "/academy/manage"],
+    ["/dashboard/admin/bundles", "/academy/manage"],
+    [`/live/${SAMPLE_UUID}`, "/dashboard"],
+  ];
+
+  test("retired legacy screens redirect into the academy", async () => {
+    for (const [path, target] of REDIRECTS) {
+      const response = await get(path);
+      await response.arrayBuffer();
+      assert.ok([307, 308].includes(response.status), `${path}: ${response.status}`);
+      assert.equal(new URL(response.headers.get("location") ?? "", BASE).pathname, target, path);
+    }
+  });
+
+  test("the legacy course-list and bundle APIs are gone, not failing", async () => {
+    for (const path of ["/api/courses?limit=3", "/api/bundles"]) {
+      const response = await get(path);
+      assert.equal(response.status, 410, path);
+      assert.deepEqual(await response.json(), { error: "This endpoint has been removed." }, path);
+    }
+  });
+
+  test("the homepage and the academy catalog never answer a server error", async () => {
+    for (const path of ["/", "/academy"]) {
+      const response = await get(path);
+      const html = await response.text();
+      assert.equal(response.status, 200, path);
+      assert.doesNotMatch(html, /href="\/(courses|bundles|community|cart|wishlist)"/, `${path}: no link to a retired screen`);
+    }
+    const catalog = await get("/api/public/academy/catalog", { "x-forwarded-for": "198.51.100.201" });
+    const body = await catalog.text();
+    assert.ok(catalog.status === 200 || catalog.status === 503, `catalog: ${catalog.status}`);
+    assert.doesNotMatch(body, /live_course|bundles|relation|does not exist/i);
+  });
+
+  test("the served sitemap lists the academy and no retired screen", async () => {
+    const response = await get("/sitemap.xml");
+    const xml = await response.text();
+    assert.equal(response.status, 200);
+    assert.match(xml, /ruhulqudus\.com\/academy</);
+    assert.doesNotMatch(xml, /\/(courses|bundles|community|wishlist|cart)</);
   });
 });
