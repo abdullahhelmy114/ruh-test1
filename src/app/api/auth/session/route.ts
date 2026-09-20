@@ -1,14 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getAdminAuth } from "@/lib/firebase/admin";
 import { sql } from "@/lib/db/client";
-import { accountHome } from "@/lib/auth/home";
+import { decideSession } from "@/lib/auth/session-exchange";
 
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 14;
 // Set and cleared with the same attributes, or the browser keeps the original.
 const SESSION_COOKIE = { httpOnly: true, secure: true, sameSite: "lax", path: "/" } as const;
 
 // Exchanges a verified Firebase ID token for the session cookie and tells the
-// login page where the account lands. The destination follows the stored
+// login page where the account lands. A verified identity with no profile row
+// gets 401 and no cookie: it is not an account here (lib/auth/session-exchange). The destination follows the stored
 // role AND status (a teacher account is sent to its application page until it
 // is approved); it is navigation only, every page and API authorizes again.
 export async function POST(request: Request) {
@@ -20,15 +21,19 @@ export async function POST(request: Request) {
 
     const auth = getAdminAuth();
     const decoded = await auth.verifyIdToken(idToken);
+
+    // The profile decides, before any cookie exists: a verified identity with no
+    // account here gets no session (see decideSession).
+    const [profile] = await sql`SELECT role, status FROM profiles WHERE firebase_uid = ${decoded.uid}`;
+    const decision = decideSession(profile);
+    if (decision.outcome === "no_account") {
+      return NextResponse.json({ error: "no_account", reason: decision.reason }, { status: 401 });
+    }
+
     const sessionCookie = await auth.createSessionCookie(idToken, {
       expiresIn: SESSION_MAX_AGE_SECONDS * 1000,
     });
-
-    const [profile] = await sql`SELECT role, status FROM profiles WHERE firebase_uid = ${decoded.uid}`;
-    const role = profile?.role || "student";
-    const status = typeof profile?.status === "string" ? profile.status : null;
-
-    const response = NextResponse.json({ success: true, role, status, home: accountHome(role, status) });
+    const response = NextResponse.json({ success: true, role: decision.role, status: decision.status, home: decision.home });
 
     response.cookies.set("__session", sessionCookie, { ...SESSION_COOKIE, maxAge: SESSION_MAX_AGE_SECONDS });
 

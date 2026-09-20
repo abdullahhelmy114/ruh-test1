@@ -7,6 +7,7 @@ import {
   GoogleAuthProvider,
   FacebookAuthProvider,
   signInWithPopup,
+  signOut,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import { motion } from "framer-motion";
@@ -15,6 +16,10 @@ import Link from "next/link";
 import { T } from "@/components/TranslatedText";
 import { CustomCaptcha } from "@/components/CustomCaptcha";
 import { accountHome, localHome } from "@/lib/auth/home";
+
+// Shown when the identity is genuine but has no academy account: sign-up creates
+// the profile, so a provider popup alone never does.
+const NO_ACCOUNT_MESSAGE = "This sign-in has no academy account yet. Create an account first.";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -32,19 +37,32 @@ export default function LoginPage() {
     window.location.href = localHome(data.home, accountHome(typeof data.role === "string" ? data.role : null, typeof data.status === "string" ? data.status : null));
   };
 
+  // Completes the exchange for an already verified Firebase sign-in. A refused
+  // exchange must not look like a signed-in browser: the Firebase session is
+  // ended too, so the header and every page agree with the server.
+  const completeSession = async (idToken: string) => {
+    const res = await fetch("/api/auth/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken }),
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      await signOut(auth).catch(() => null);
+      setShowCaptcha(false);
+      setLoading(false);
+      setError(data?.error === "no_account" ? NO_ACCOUNT_MESSAGE : "Login failed");
+      return;
+    }
+    redirectAfterLogin(data ?? {});
+  };
+
   const performLogin = async () => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const idToken = await userCredential.user.getIdToken();
 
-      const res = await fetch("/api/auth/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken }),
-      });
-      const data = await res.json();
-
-      redirectAfterLogin(data);
+      await completeSession(idToken);
     } catch (err: any) {
       setError(err.message || "Login failed");
       setShowCaptcha(false);
@@ -70,14 +88,7 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, providerInstance);
       const idToken = await result.user.getIdToken();
 
-      const res = await fetch("/api/auth/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken }),
-      });
-      const data = await res.json();
-
-      redirectAfterLogin(data);
+      await completeSession(idToken);
     } catch (err: any) {
       setError(err.message || "Login failed");
       setLoading(false);

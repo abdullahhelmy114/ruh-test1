@@ -36,7 +36,10 @@ describe("where an account lands", () => {
   test("the session endpoint, login, the dashboard redirect and the navbar all use that rule, never browser storage", () => {
     const session = stripComments(read("src", "app", "api", "auth", "session", "route.ts"));
     assert.match(session, /SELECT role, status FROM profiles WHERE firebase_uid = \$\{decoded\.uid\}/);
-    assert.match(session, /home: accountHome\(role, status\)/);
+    // The destination now comes from decideSession(), which also refuses an identity that has no
+    // profile row instead of inventing a student (tests/auth/session-exchange.test.ts covers every case).
+    assert.match(session, /const decision = decideSession\(profile\);/);
+    assert.match(session, /home: decision\.home/);
 
     const login = stripComments(read("src", "app", "login", "page.tsx"));
     assert.equal(/pendingTeacher|\/dashboard\/teacher|localStorage|sessionStorage/.test(login), false, "no client-side teacher gate or stale teacher dashboard");
@@ -45,7 +48,7 @@ describe("where an account lands", () => {
       assert.equal(localHome(unsafe, "/dashboard"), "/dashboard", String(unsafe));
     }
     assert.equal(localHome("/academy/teach", "/dashboard"), "/academy/teach");
-    assert.equal((login.match(/redirectAfterLogin\(data\)/g) ?? []).length, 2, "email and social sign-in both use it");
+    assert.equal((login.match(/await completeSession\(idToken\)/g) ?? []).length, 2, "email and provider sign-in both use the one exchange");
 
     const dashboard = stripComments(read("src", "app", "dashboard", "page.tsx"));
     assert.match(dashboard, /router\.replace\(accountHome\(profile\.role, profile\.status\)\)/);
