@@ -1024,5 +1024,6 @@
   "Part of": "ضمن برنامج",
   "View course": "عرض المقرر",
   "View all courses": "عرض جميع المقررات",
-  "No courses are open yet. Please check back soon.": "لا توجد مقررات متاحة بعد. يرجى المراجعة قريبًا."
+  "No courses are open yet. Please check back soon.": "لا توجد مقررات متاحة بعد. يرجى المراجعة قريبًا.",
+  "The library could not be loaded. Please try again later.": "تعذّر تحميل المكتبة. يرجى المحاولة لاحقًا."
 }

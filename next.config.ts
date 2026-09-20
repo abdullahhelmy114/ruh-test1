@@ -22,7 +22,7 @@ const securityHeaders = [
       // application documents are private (authenticated delivery) and are opened through a
       // short-lived signed link instead.
       "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.google-analytics.com https://generativelanguage.googleapis.com https://api.cloudinary.com",
-      "frame-src 'self' https://www.youtube.com https://*.firebaseapp.com https://*.google.com",
+      "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.firebaseapp.com https://*.google.com",
       "frame-ancestors 'self'",
       "object-src 'none'",
       "base-uri 'self'",

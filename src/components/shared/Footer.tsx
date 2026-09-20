@@ -44,7 +44,7 @@ export function Footer() {
           </div>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li>
-              <Link href="#" className="hover:text-foreground transition-colors">
+              <Link href="/about" className="hover:text-foreground transition-colors">
                 <T>About Dr. Jehan</T>
               </Link>
             </li>

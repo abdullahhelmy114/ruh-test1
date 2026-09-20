@@ -44,6 +44,9 @@ export default function PublicLibraryPage() {
   const [books, setBooks] = useState<Book[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  // A failed request is not an empty library: without this the page told visitors "No books found"
+  // whenever /api/library/books errored (its tables are absent in the deployment).
+  const [failed, setFailed] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
 
@@ -64,6 +67,8 @@ export default function PublicLibraryPage() {
         if (booksRes.ok) {
           const data = await booksRes.json();
           setBooks(data.books || []);
+        } else {
+          setFailed(true);
         }
         if (categoriesRes.ok) {
           const data = await categoriesRes.json();
@@ -71,6 +76,7 @@ export default function PublicLibraryPage() {
         }
       } catch (err) {
         console.error(err);
+        setFailed(true);
         toast.error(<T>Failed to load library</T>);
       }
       setLoading(false);
@@ -162,8 +168,8 @@ export default function PublicLibraryPage() {
       {/* Books grid */}
       {filteredBooks.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
-          <p>
-            <T>No books found</T>
+          <p role="status">
+            {failed ? <T>The library could not be loaded. Please try again later.</T> : <T>No books found</T>}
           </p>
         </div>
       ) : (
