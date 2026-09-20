@@ -30,9 +30,11 @@ export default function AssessmentsPage() {
           <div key={test.title} className="glass rounded-3xl p-6 text-center">
             <h3 className="font-serif text-xl"><T>{test.title}</T></h3>
             <p className="text-sm text-muted-foreground mt-2"><T>{test.desc}</T></p>
-            <Link href="#" className="mt-4 inline-flex items-center gap-2 text-accent-foreground hover:underline text-sm font-medium">
-              <T>Start Test</T> <ArrowRight size={16} />
-            </Link>
+            {/* "Start Test" linked to "#": it looked like a test a visitor could take.
+                The placement test does not exist yet, so the card says so instead. */}
+            <p role="status" className="mt-4 text-sm text-muted-foreground">
+              <T>The placement test is not open yet.</T>
+            </p>
           </div>
         ))}
       </div>

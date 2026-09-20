@@ -10,7 +10,6 @@ import {
   Users,
   BookOpen,
   Sparkles,
-  Star,
   Shield,
   Globe,
   GraduationCap,
@@ -29,28 +28,6 @@ const fadeInUp = {
   viewport: { once: true, margin: "-50px" },
   transition: { duration: 0.6 },
 };
-
-// Static Testimonials
-const testimonials = [
-  {
-    name: "Ahmed Al-Khalidi",
-    role: "Student",
-    text: "The best decision I ever made. Dr. Jehan's method transformed my Arabic in 3 months.",
-    avatar: "A",
-  },
-  {
-    name: "Fatima Noor",
-    role: "Student",
-    text: "The live cohorts are incredible. You feel like you're in a real classroom with friends.",
-    avatar: "F",
-  },
-  {
-    name: "Ustadh Bilal",
-    role: "Teacher",
-    text: "Teaching here gave me the tools to reach students worldwide with a professional curriculum.",
-    avatar: "B",
-  },
-];
 
 /** A published academy course as the public catalog returns it (no price, level or teacher: the catalog does not publish them). */
 interface CatalogCourse {
@@ -135,31 +112,16 @@ export default function HomePage() {
               </T>
             </p>
 
+{/* An early-bird form here promised a launch discount and confirmed it to the visitor while
+    storing nothing. Places are sold per class group through the academy catalogue, so the
+    invitation points there instead of collecting an address that nothing reads. */}
 <div className="mt-8 max-w-md">
-  <p className="mb-2 text-sm text-gold font-medium">
-    <T>Join the early-bird list for 50% OFF at launch</T>
-  </p>
-  <form 
-    onSubmit={(e) => {
-      e.preventDefault();
-      // هنا كود إرسال الإيميل لقاعدة البيانات الخاصة بك
-      alert("Thank you! You've secured your 50% discount.");
-    }} 
-    className="flex flex-col sm:flex-row gap-2 rounded-2xl border bg-card p-1.5 shadow-elegant"
+  <Link
+    href="/academy"
+    className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-elegant transition hover:scale-[1.02]"
   >
-    <input 
-      type="email" 
-      required
-      placeholder="Enter your email address..." 
-      className="flex-1 bg-transparent px-4 py-2 text-sm outline-none placeholder:text-muted-foreground"
-    />
-    <button 
-      type="submit"
-      className="inline-flex items-center justify-center gap-2 rounded-xl gradient-emerald px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-elegant transition hover:scale-[1.02] whitespace-nowrap"
-    >
-      <T>Secure Discount</T> <ArrowRight className="h-4 w-4" />
-    </button>
-  </form>
+    <T>See the courses</T> <ChevronRight className="h-4 w-4" />
+  </Link>
 </div>
 
 
@@ -527,52 +489,6 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ─── Testimonials ────────────────────────────────── */}
-      <section className="bg-linear-to-br from-accent/5 to-primary/5 py-20">
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <motion.div {...fadeInUp} className="text-center">
-            <div className="text-xs font-bold uppercase tracking-[0.3em] text-accent-foreground">
-              <T>Testimonials</T>
-            </div>
-            <h2 className="mt-3 font-serif text-4xl md:text-5xl">
-              <T>What our students say</T>
-            </h2>
-          </motion.div>
-
-          <div className="mt-12 grid gap-8 md:grid-cols-3">
-            {testimonials.map((t, i) => (
-              <motion.div
-                key={t.name}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="rounded-3xl border bg-card p-6 shadow-elegant"
-              >
-                <div className="flex gap-1 text-secondary-foreground">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="h-4 w-4 fill-current" />
-                  ))}
-                </div>
-                <p className="mt-4 text-sm italic leading-relaxed text-muted-foreground">
-                  &quot;<T>{t.text}</T>&quot;
-                </p>
-                <div className="mt-4 flex items-center gap-3 border-t border-border/50 pt-4">
-                  <div className="grid h-10 w-10 place-items-center rounded-full bg-linear-to-br from-primary to-primary/80 text-primary-foreground font-bold text-sm">
-                    {t.avatar}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{t.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      <T>{t.role}</T>
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

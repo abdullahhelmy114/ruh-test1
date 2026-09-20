@@ -1057,5 +1057,7 @@
   "View course": "Dersi görüntüle",
   "View all courses": "Tüm dersleri görüntüle",
   "No courses are open yet. Please check back soon.": "Henüz açık ders yok. Lütfen yakında tekrar bakın.",
-  "The library could not be loaded. Please try again later.": "Kütüphane yüklenemedi. Lütfen daha sonra tekrar deneyin."
+  "The library could not be loaded. Please try again later.": "Kütüphane yüklenemedi. Lütfen daha sonra tekrar deneyin.",
+  "See the courses": "Dersleri görüntüle",
+  "The placement test is not open yet.": "Seviye belirleme sınavı henüz açık değil."
 }
