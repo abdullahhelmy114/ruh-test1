@@ -12,6 +12,7 @@ import {
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Navbar } from "@/components/Navbar";
+import { T } from "@/components/TranslatedText";
 import { Toaster } from "@/components/ui/sonner";
 import AIChatBubbleLazy from "@/components/shared/AIChatBubbleLazy";
 import { Footer } from "@/components/shared/Footer";
@@ -31,14 +32,11 @@ export const metadata: Metadata = {
     "Arabic for beginners",
     "Ruh-Ul-Qudus Academy",
   ],
-  alternates: {
-    canonical: "https://ruhulqudus.com",
-    languages: {
-      en: "https://ruhulqudus.com/en",
-      ar: "https://ruhulqudus.com/ar",
-      tr: "https://ruhulqudus.com/tr",
-    },
-  },
+  // No site-wide canonical and no hreflang map here. The language is chosen by a cookie, not by a
+  // path, so /en, /ar and /tr do not exist and must not be advertised as translations; and a
+  // canonical set here would be inherited by every page that does not set its own, telling search
+  // engines that each of them is a duplicate of the homepage. Pages that have a canonical set it
+  // themselves (/about, /contact, /certification, /privacy and the other public pages do).
   openGraph: {
     title: "Ruh-Ul-Qudus Academy | Learn Arabic & Quran",
     description:
@@ -104,8 +102,18 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             <div className="relative flex min-h-screen flex-col">
+              {/* The first thing a keyboard or screen-reader visitor reaches: it skips the header,
+                  which is otherwise walked again on every page. Visible only while focused. */}
+              <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-card focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow-elegant focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <T>Skip to content</T>
+              </a>
               <Navbar />
-              <main className="flex-1">{children}</main>
+              <main id="main-content" tabIndex={-1} className="flex-1">
+                {children}
+              </main>
               <Footer />
             </div>
             <AIChatBubbleLazy />
