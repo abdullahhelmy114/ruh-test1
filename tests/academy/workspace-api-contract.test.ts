@@ -183,7 +183,9 @@ describe("teacher screens", () => {
     assert.match(route, /const home = accountHome\(role, role === 'student' \? ACTIVE_ACCOUNT_STATUS : status\);\s*return NextResponse\.json\(\{ success: true, role, home \}\);/);
     const page = readFileSync(join(APP, "verify-email", "page.tsx"), "utf8");
     assert.match(page, /const home = localHome\(data\.home, "\/dashboard"\);/);
-    assert.match(page, /router\.push\(home\);/);
+    // Sign-up runs on the server, so a just-verified browser usually holds no session: it is sent
+    // to sign in rather than into the workspace, which would answer the success with an error.
+    assert.ok(page.includes('router.push(user ? home : "/login");'), 'a browser with no session is sent to sign in');
   });
 
   test("an applicant opening any other workspace screen is taken to the application page", () => {

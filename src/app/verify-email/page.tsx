@@ -11,6 +11,7 @@ import Link from "next/link";
 // ✅ تمت إضافة استيراد زر Button هنا
 import { Button } from "@/components/ui/button";
 import { localHome } from "@/lib/auth/home";
+import { useAuth } from "@/lib/firebase/AuthProvider";
 
 function VerifyEmailContent() {
   const router = useRouter();
@@ -21,6 +22,8 @@ function VerifyEmailContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  // Sign-up runs on the server, so this browser usually has no session at all.
+  const { user } = useAuth();
 
   const hiddenInputRef = useRef<HTMLInputElement>(null);
 
@@ -68,8 +71,11 @@ function VerifyEmailContent() {
 
       setSuccess(true);
 
+      // A verified account still has to sign in: sign-up created it on the server, so this browser
+      // holds no session. Sending it to the workspace would answer a success message with an
+      // unauthenticated error, which is what /verify-teacher already avoids by going to /login.
       setTimeout(() => {
-        router.push(home);
+        router.push(user ? home : "/login");
       }, 2000);
     } catch (err: any) {
       setError(err.message);
