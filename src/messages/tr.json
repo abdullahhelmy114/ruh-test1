@@ -19,7 +19,7 @@
   "courses": "Kurslar",
   "Explore Our Courses": "Kurslarımızı Keşfedin",
   "Master Arabic with the best instructors": "En iyi eğitmenlerle Arapça öğrenin",
-  "by": "tarafından",
+  "by": "Sunan",
   "Free": "Ücretsiz",
   "Enroll Now": "Hemen Kaydol",
   "Enroll for Free": "Ücretsiz Kaydol",
@@ -341,7 +341,6 @@
   "Invalid reset link.": "Geçersiz sıfırlama bağlantısı.",
   "This link has expired or is invalid.": "Bu bağlantının süresi doldu veya geçersiz.",
   "Failed to send reset email": "Sıfırlama e-postası gönderilemedi",
-
   "navbar": {
     "home": "Ana Sayfa",
     "courses": "Kurslar",
@@ -352,7 +351,6 @@
     "about": "Hakkında",
     "contact": "İletişim"
   },
-
   "Home Hero Badge": "Dr. Jehan Ali Ziad tarafından",
   "Home Hero Title": "Arapça'nın sanatı, saygıyla öğretilir.",
   "Home Hero Desc": "Klasik, modern ve Kur'an Arapçası'nda ustalaşmak isteyenler için seçkin bir akademi — canlı mentorluk ve zamansız müfredat ile.",
@@ -365,7 +363,7 @@
   "Live Cohorts via Zoom": "Zoom ile Canlı Gruplar",
   "A1 — C2 Curriculum": "A1 — C2 Müfredatı",
   "The Academy": "Akademi",
-  "Three pillars of mastery": "Ustalığın üç sütunu",
+  "Three pillars of mastery": "Ustalığın üç temel taşı",
   "Curriculum": "Müfredat",
   "Built on classical pedagogy and modern linguistic science.": "Klasik pedagoji ve modern dilbilim üzerine inşa edilmiştir.",
   "Mentorship": "Mentorluk",
@@ -373,7 +371,6 @@
   "Earn recognized credentials to teach the Arabic language.": "Arapça öğretmek için tanınan kimlikler kazanın.",
   "Completion": "Tamamlama",
   "Years Teaching": "Öğretim Yılı",
-
   "aboutPage": {
     "badge": "Akademi Hakkında",
     "heading": "Ruh-Ul-Qudus Academy'ye Hoş Geldiniz",
@@ -411,7 +408,6 @@
       "teacher": "Öğretmen Olarak Katıl"
     }
   },
-
   "privacyPage": {
     "badge": "Gizlilik Politikası",
     "heading": "Gizlilik Politikası",
@@ -446,7 +442,6 @@
       "teacher": "Öğretmen Olarak Katıl"
     }
   },
-
   "termsPage": {
     "badge": "Kullanım Şartları",
     "heading": "Kullanım Şartları",
@@ -485,7 +480,6 @@
       "teacher": "Öğretmen Olarak Katıl"
     }
   },
-
   "contactPage": {
     "badge": "Bize Ulaşın",
     "heading": "Bize Ulaşın",
@@ -511,7 +505,6 @@
       "teacher": "Öğretmen Olarak Katıl"
     }
   },
-
   "certificationPage": {
     "badge": "Sertifika",
     "heading": "Sertifikalar",
@@ -547,7 +540,6 @@
       "teacher": "Öğretmen Olarak Katıl"
     }
   },
-
   "affiliatePage": {
     "badge": "Ortaklık Programı",
     "heading": "Paylaşırken Kazanın",
@@ -594,7 +586,6 @@
       "teacher": "Öğretmen Olarak Katıl"
     }
   },
-
   "homepage": {
     "bundles": {
       "title": "Paketler",
@@ -614,7 +605,6 @@
       "cta": "Daha Fazla Bilgi"
     }
   },
-
   "quran": {
     "surahs": "Sureler",
     "searchSurah": "Sure ara...",
@@ -639,7 +629,6 @@
     "errorLoading": "Veri yüklenirken hata oluştu",
     "loadingAI": "AI yanıtı yükleniyor..."
   },
-
   "library": {
     "title": "Ruh-Ul-Qudus Kütüphanesi",
     "loading": "Kütüphane yükleniyor...",
@@ -663,7 +652,6 @@
       "backToLibrary": "Kütüphaneye Dön"
     }
   },
-
   "admin": {
     "library": {
       "title": "Kütüphane Yönetimi",
@@ -688,13 +676,11 @@
       "deleteError": "Silme başarısız"
     }
   },
-
   "subscription": {
     "title": "Şimdi Abone Ol",
     "comingSoon": "Abonelik sayfası yapım aşamasında.",
     "backHome": "Ana Sayfaya Dön"
   },
-
   "certificate": {
     "studentName": "Öğrenci Adı",
     "courseName": "Kurs Adı",
@@ -703,7 +689,6 @@
     "certificateId": "Sertifika ID",
     "download": "Sertifikayı İndir"
   },
-
   "curriculum": {
     "availablecourses": "Öğretilebilecek Kurslar",
     "applyToTeach": "Bu Kursu Öğretmek İçin Başvur",
@@ -711,7 +696,6 @@
     "alreadyApplied": "Zaten başvurdunuz",
     "nocourses": "Şu anda uygun kurs yok."
   },
-
   "Become a Teacher": "Öğretmen Ol",
   "Complete your profile to start teaching": "Öğretmeye başlamak için profilinizi tamamlayın",
   "First Name": "Ad",
@@ -981,37 +965,26 @@
   "No examples found": "Örnek bulunamadı",
   "Listen": "Dinle",
   "Listen to verse": "Ayeti dinle",
-
   "Definitions": "Tanımlar",
   "Definitions Content": "Bu sözleşmede geçen 'Akademi', ruhulqudus.com üzerinden dijital eğitim hizmeti sunan Dr. Jehan Ali Ziad'ı (Şahıs Firması / Sole Proprietor) ifade eder. 'Kullanıcı' veya 'Öğrenci' ise platforma kaydolup hizmet alan kişidir.",
-
   "Account Registration": "Hesap Kaydı ve Güvenlik",
   "Account Registration Content": "Kullanıcılar öğrenci paneline erişim için kendi adlarına doğru ve güncel bilgiler sağlamalıdır. Hesap giriş bilgilerinin gizliliğinin korunması tamamen kullanıcının sorumluluğundadır. Bir hesabın ortak kullanımı yasaktır.",
-
   "Payments and Subscriptions": "Ödemeler ve Abonelikler",
   "Payments and Subscriptions Content": "Eğitim ücretleri platformda belirtilen fiyatlar üzerinden iyzico güvenli ödeme altyapısı ile tahsil edilir. Alıcı, ödeme esnasında güncel fiyatlandırmayı ve varsa ek vergileri kabul etmiş sayılır.",
-
   "Refund Policy": "İptal ve İade Koşulları",
   "Refund Policy Content": "6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği uyarınca, elektronik ortamda anında ifa edilen dijital hizmetler ve eğitim içerikleri cayma hakkının istisnası kapsamındadır. Bu nedenle erişim sağlanan içeriklerde iade yapılmaz.",
-
   "User Conduct": "Kullanıcı Davranış Kuralları",
   "User Conduct Content": "Kullanıcılar platformu yalnızca yasal eğitim amaçları için kullanabilir. Canlı derslerin huzurunu bozacak veya diğer öğrencileri rahatsız edecek davranışlarda bulunanların hesapları askıya alınabilir.",
-
   "Intellectual Property": "Fikri Mülkiyet Hakları",
   "Intellectual Property Content": "Ruh-Ul-Qudus Academy tarafından sunulan tüm ders videoları, PDF dokümanları, ses kayıtları ve eğitim materyallerinin fikri mülkiyet hakları Dr. Jehan Ali Ziad'a aittir. İzinsiz kopyalanması ve dağıtılması kesinlikle yasaktır.",
-
   "Limitation of Liability": "Sorumluluk Sınırlandırılması",
   "Limitation of Liability Content": "Akademi, internet kesintileri veya kullanıcının donanımsal yetersizliklerinden kaynaklanan erişim aksamalarından sorumlu tutulamaz. Canlı ders verimliliği için stabil internet bağlantısı kullanıcının sorumluluğundadır.",
-
   "Termination": "Sözleşmenin Feshi",
   "Termination Content": "Kullanıcının işbu kullanım koşullarını veya fikri mülkiyet haklarını ihlal etmesi durumunda, Akademi kullanıcının hesabını önceden bildirimde bulunmaksızın tek taraflı olarak feshetme hakkına sahiptir.",
-
   "Changes to Terms": "Koşullarda Değişiklik Yapılması",
   "Changes to Terms Content": "Akademi, hizmet şartlarını dilediği zaman güncelleme hakkını saklı tutar. Güncellenen koşullar platform üzerinde yayınlandığı andan itibaren tüm kullanıcılar için geçerli olur.",
-
   "Governing Law": "Yetkili Hukuk ve Mahkemeler",
   "Governing Law Content": "İşbu sözleşmenin uygulanmasından ve yorumlanmasından doğacak her türlü hukuki ihtilafta Türk Hukuku uygulanacak olup, ihtilafların çözümünde Sakarya (veya ikamet ettiğiniz şehir) Mahkemeleri ve İcra Daireleri yetkilidir.",
-
   "Contact Terms": "İletişim Bilgileri",
   "Contact Terms Content": "Kullanım şartları ve platform kuralları ile ilgili her türlü soru ve geri bildiriminiz için info@ruhulqudus.com adresi üzerinden bizimle iletişime geçebilirsiniz.",
   "Refund Badge": "Geri Ödeme",
@@ -1025,7 +998,6 @@
   "Refund Exceptions Content": "Sistemsel bir hata nedeniyle Alıcı'nın kredi kartından mükerrer (çift) tahsilat yapılması durumunda veya Akademi tarafından ilan edilen programın mücbir sebepler dışında tamamen iptal edilmesi halinde gerekli incelemeler yapılarak iade süreçleri işletilebilir.",
   "Refund Support": "İletişim ve Destek",
   "Refund Support Content": "İptal, iade veya erişim sorunlarıyla ilgili her türlü talebinizi info@ruhulqudus.com e-posta adresi üzerinden destek ekibimize iletebilirsiniz. Başvurularınız en geç 7 iş günü içerisinde incelenecektir.",
-
   "Sale Badge": "Sözleşme",
   "Sale Heading": "Mesafeli Satış Sözleşmesi",
   "Sale Subtitle": "Ruh-Ul-Qudus Academy Elektronik Satış Politikaları ve Şartları",
@@ -1045,7 +1017,6 @@
   "hour": "Saat",
   "min": "Dk",
   "sec": "Sn",
-  "by": "Sunan",
   "availableNow": "Şimdi mevcut",
   "startsIn": "Başlıyor",
   "View details": "Detayları gör",
@@ -1060,5 +1031,50 @@
   "The library could not be loaded. Please try again later.": "Kütüphane yüklenemedi. Lütfen daha sonra tekrar deneyin.",
   "See the courses": "Dersleri görüntüle",
   "The placement test is not open yet.": "Seviye belirleme sınavı henüz açık değil.",
-  "Skip to content": "İçeriğe geç"
+  "Skip to content": "İçeriğe geç",
+  "home.hero.h1a": "Sizin ",
+  "home.hero.h1b": "Arapça ve Kur'an",
+  "home.hero.h1c": " yolculuğunuz burada başlıyor.",
+  "home.hero.sub": "Yapılandırılmış öğrenme yolları, öğretmenlerle canlı dersler, etkileşimli etkinlikler ve ilerlemenize ve ihtiyaçlarınıza göre şekillenen eğitim desteği.",
+  "home.hero.cta": "Programları keşfedin",
+  "home.hero.stat1Label": "Platform dili",
+  "home.hero.stat2": "7 gün",
+  "home.hero.stat2Label": "Her dersten önce hazırlık",
+  "home.card.row1": "Gerektiğinde hedefli telafi etkinlikleri",
+  "home.card.row2": "Akademi'nin onayladığı öğretmenlerle Zoom'da canlı dersler",
+  "home.pillars.p1": "Fasih Arapça ve Kur'an tek bir müfredatta; klasik pedagoji ile modern dilbilimi buluşturur.",
+  "home.pillars.p2": "Akademi'nin inceleyip onayladığı öğretmenlerle, küçük gruplarda canlı rehberlik.",
+  "home.pillars.p3": "Arapça öğretimine giden yapılandırılmış bir yol.",
+  "home.journey.eyebrow": "Nasıl öğretiyoruz",
+  "home.journey.h2": "Adım adım, net bir öğrenme yolculuğu",
+  "home.journey.intro": "Her ders haftasının, bizzat platformun koruduğu sabit bir ritmi vardır — ders sayfasının açılmasından sonuçların açıklanmasına kadar.",
+  "home.journey.s1w": "Dersten 7 gün önce",
+  "home.journey.s1t": "Ders sayfası açılır",
+  "home.journey.s1b": "Dersten tam bir hafta önce — sunucu açar, elle değil.",
+  "home.journey.s2w": "Ders günü",
+  "home.journey.s2t": "Canlı ders",
+  "home.journey.s2b": "Grubunuz için planlanmış bir buluşma; başlangıcı, bitişi ve her kayıtlı öğrenci için ayrılmış bir yeri vardır.",
+  "home.journey.s3w": "Sonrasında",
+  "home.journey.s3t": "Alıştırma ve teslim",
+  "home.journey.s3b": "Nesnel sorular otomatik olarak değerlendirilir; yazılı ve sözlü çalışmalar bir öğretmeni bekler.",
+  "home.journey.s4w": "Ardından",
+  "home.journey.s4t": "İnceleme ve açıklama",
+  "home.journey.s4b": "Sonuçlar dersin kendi politikasına göre açıklanır; özel notlarınız yalnızca size aittir — gerektiğinde telafi etkinlikleri atanabilir.",
+  "home.journey.cta": "Yolculuğunuza başlayın",
+  "home.live.eyebrow": "Canlı Dersler",
+  "home.live.h2": "Öğretmeninizle canlı öğrenin",
+  "home.live.body": "Zoom üzerinden canlı dersler, grubunuz içinde düzenli etkileşim ve öğrendiklerinizi uygulamanıza yardımcı olan takip.",
+  "home.live.b1": "Akademi'nin inceleme ve mülakat sonrası onayladığı öğretmenler",
+  "home.live.b2": "Her ders için düzenli çalışma grupları",
+  "home.live.player": "Ders paneli önizlemesi",
+  "home.catalog.h2": "Arapça ve Kur'an'ın kapılarını açan yollar",
+  "home.cert.h2": "Belgelenmeyi hak eden başarılar",
+  "home.cert.c1": "Akademi tarafından verilir",
+  "home.cert.c2": "Onaylı tamamlama şartlarına göre",
+  "home.cert.c3": "Benzersiz kodla doğrulanabilir",
+  "home.cert.c4": "İncelemeyle onaylanan öğretmenler",
+  "home.cert.body": "Sertifika sunan dersler, Akademi'nin kendi sertifikasıyla tamamlanır.",
+  "Founder: Dr. Jehan Ali Ziad": "Kurucu: Dr. Jehan Ali Ziad",
+  "Explore certification": "Sertifikayı keşfedin",
+  "Your Path to Certification": "Sertifikaya Giden Yolunuz"
 }

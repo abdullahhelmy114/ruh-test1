@@ -19,7 +19,7 @@
   "courses": "الدورات",
   "Explore Our Courses": "استكشف دوراتنا",
   "Master Arabic with the best instructors": "أتقن العربية مع أفضل المعلمين",
-  "by": "بواسطة",
+  "by": "يقدمه",
   "Free": "مجاني",
   "Enroll Now": "سجّل الآن",
   "Enroll for Free": "سجّل مجانًا",
@@ -341,7 +341,6 @@
   "Invalid reset link.": "رابط التعيين غير صالح.",
   "This link has expired or is invalid.": "انتهت صلاحية هذا الرابط أو أنه غير صالح.",
   "Failed to send reset email": "فشل إرسال بريد التعيين",
-
   "navbar": {
     "home": "الرئيسية",
     "courses": "الدورات",
@@ -352,7 +351,6 @@
     "about": "عن المنصة",
     "contact": "اتصل بنا"
   },
-
   "Home Hero Badge": "أسستها د. جيهان علي زياد",
   "Home Hero Title": "فن العربية، يُدرّس بتبجيل.",
   "Home Hero Desc": "أكاديمية نخبوية لمن يسعون لإتقان اللغة العربية — فصحى وعامية وقرآنية — من خلال إرشاد مباشر ومنهج خالد.",
@@ -365,7 +363,7 @@
   "Live Cohorts via Zoom": "مجموعات مباشرة عبر زووم",
   "A1 — C2 Curriculum": "منهج A1 — C2",
   "The Academy": "الأكاديمية",
-  "Three pillars of mastery": "ثلاثة أركان الإتقان",
+  "Three pillars of mastery": "ثلاث ركائز للإتقان",
   "Curriculum": "المنهج",
   "Built on classical pedagogy and modern linguistic science.": "مبني على التربية الكلاسيكية وعلم اللغة الحديث.",
   "Mentorship": "الإرشاد",
@@ -373,7 +371,6 @@
   "Earn recognized credentials to teach the Arabic language.": "احصل على مؤهلات معترف بها لتدريس اللغة العربية.",
   "Completion": "الإكمال",
   "Years Teaching": "سنوات التدريس",
-
   "aboutPage": {
     "badge": "عن الأكاديمية",
     "heading": "مرحبًا بكم في أَكَادِيمِيَّةُ رُوحُ الْقُدُسِ",
@@ -411,7 +408,6 @@
       "teacher": "انضم كمعلم"
     }
   },
-
   "privacyPage": {
     "badge": "سياسة الخصوصية",
     "heading": "سياسة الخصوصية",
@@ -446,7 +442,6 @@
       "teacher": "انضم كمعلم"
     }
   },
-
   "termsPage": {
     "badge": "الشروط والأحكام",
     "heading": "الشروط والأحكام",
@@ -485,7 +480,6 @@
       "teacher": "انضم كمعلم"
     }
   },
-
   "contactPage": {
     "badge": "تواصل معنا",
     "heading": "اتصل بنا",
@@ -511,7 +505,6 @@
       "teacher": "انضم كمعلم"
     }
   },
-
   "certificationPage": {
     "badge": "الشهادات",
     "heading": "الشهادات",
@@ -547,7 +540,6 @@
       "teacher": "انضم كمعلم"
     }
   },
-
   "affiliatePage": {
     "badge": "برنامج التسويق",
     "heading": "اربح بينما تشارك",
@@ -594,7 +586,6 @@
       "teacher": "انضم كمعلم"
     }
   },
-
   "homepage": {
     "bundles": {
       "title": "الحزم",
@@ -614,7 +605,6 @@
       "cta": "اعرف المزيد"
     }
   },
-
   "quran": {
     "surahs": "السور",
     "searchSurah": "ابحث عن سورة...",
@@ -639,7 +629,6 @@
     "errorLoading": "خطأ في تحميل البيانات",
     "loadingAI": "جارٍ تحميل رد الذكاء الاصطناعي..."
   },
-
   "library": {
     "title": "مكتبة أَكَادِيمِيَّةُ رُوحُ الْقُدُسِ",
     "loading": "جارٍ تحميل المكتبة...",
@@ -663,7 +652,6 @@
       "backToLibrary": "العودة إلى المكتبة"
     }
   },
-
   "admin": {
     "library": {
       "title": "إدارة المكتبة",
@@ -688,13 +676,11 @@
       "deleteError": "فشل الحذف"
     }
   },
-
   "subscription": {
     "title": "اشترك الآن",
     "comingSoon": "صفحة الاشتراك قيد الإنشاء.",
     "backHome": "العودة إلى الرئيسية"
   },
-
   "certificate": {
     "studentName": "اسم الطالب",
     "courseName": "اسم الدورة",
@@ -703,7 +689,6 @@
     "certificateId": "معرف الشهادة",
     "download": "تحميل الشهادة"
   },
-
   "curriculum": {
     "availablecourses": "الدورات المتاحة للتدريس",
     "applyToTeach": "قدم لتدريس هذه الدورة",
@@ -711,7 +696,6 @@
     "alreadyApplied": "لقد قدمت بالفعل",
     "nocourses": "لا توجد دورات متاحة حاليًا."
   },
-
   "Become a Teacher": "كن معلمًا",
   "Complete your profile to start teaching": "أكمل ملفك الشخصي لبدء التدريس",
   "First Name": "الاسم الأول",
@@ -876,44 +860,44 @@
   "Complete Your Purchase": "إتمام الشراء",
   "Online payment is not open yet": "الدفع الإلكتروني غير متاح بعد",
   "Courses and subscriptions will be purchased through our secure Whop checkout. Until it opens, no payment is taken and nothing needs to be transferred.": "سيتم شراء الدورات والاشتراكات عبر صفحة الدفع الآمنة من Whop. وإلى أن تُفتح، لا يُستلم أي مبلغ ولا حاجة إلى أي تحويل.",
-"Option 1: Bank Transfer (IBAN)": "الخيار الأول: حوالة بنكية (IBAN)",
-"Transfer the amount to the following IBAN, then send us the receipt via WhatsApp:": "قم بتحويل المبلغ إلى رقم IBAN التالي، ثم أرسل لنا الإيصال عبر واتساب:",
-"IBAN copied successfully": "تم نسخ IBAN بنجاح",
-"Option 2: Contact via WhatsApp": "الخيار الثاني: التواصل عبر واتساب",
-"Send your payment receipt or ask any questions via WhatsApp. Your course will be activated immediately.": "أرسل إيصال الدفع أو استفسر عن أي شيء عبر الواتساب. سيتم تفعيل الدورة فوراً.",
-"Contact via WhatsApp": "تواصل عبر واتساب",
-"Subscription Plans": "خطط الاشتراك",
-"Monthly Plan": "الخطة الشهرية",
-"3 Months": "3 أشهر",
-"Semi-Annual Plan": "الخطة النصف سنوية",
-"6 Months": "6 أشهر",
-"Access to {count} courses of your choice": "وصول إلى {count}دورات من اختيارك",
-"Master the Arabic language and Quran with expertly crafted courses designed for every level.": "أتقن اللغة العربية والقرآن مع دورات مصممة بخبرة لكل المستويات.",
-"Search courses...": "ابحث عن دورات...",
-"Level:": "المستوى:",
-"Clear Filters": "مسح الفلاتر",
-"Showing {count} courses": "عرض {count} دورات",
-"No courses found": "لا توجد دورات",
-"No courses available": "لا توجد دورات متاحة",
-"Try adjusting your filters or check back later for new courses.": "حاول تعديل الفلاتر أو تحقق لاحقاً من الدورات الجديدة.",
-"Clear all filters": "مسح جميع الفلاتر",
-"Upcoming": "قادم",
-"Instructor": "المُحاضر",
-"What You Will Learn": "ماذا ستتعلم",
-"No description yet.": "لا يوجد وصف بعد.",
-"Duration": "المدة",
-"Lesson Duration": "مدة الدرس",
-"Starts in": "ينطلق خلال",
-"Launching in": "ينطلق خلال",
-"Days": "أيام",
-"Hrs": "ساعات",
-"Min": "دقائق",
-"Sec": "ثواني",
-"You are subscribed! You can choose {count} courses for free": "أنت مشترك! يمكنك اختيار {count} دورات مجاناً",
-"(Expires on {date})": "(تنتهي في {date})",
-"Course added successfully!": "تمت إضافة الدورة بنجاح!",
-"Added": "تمت الإضافة",
-"Free for Subscribers": "مجاني للمشتركين",
+  "Option 1: Bank Transfer (IBAN)": "الخيار الأول: حوالة بنكية (IBAN)",
+  "Transfer the amount to the following IBAN, then send us the receipt via WhatsApp:": "قم بتحويل المبلغ إلى رقم IBAN التالي، ثم أرسل لنا الإيصال عبر واتساب:",
+  "IBAN copied successfully": "تم نسخ IBAN بنجاح",
+  "Option 2: Contact via WhatsApp": "الخيار الثاني: التواصل عبر واتساب",
+  "Send your payment receipt or ask any questions via WhatsApp. Your course will be activated immediately.": "أرسل إيصال الدفع أو استفسر عن أي شيء عبر الواتساب. سيتم تفعيل الدورة فوراً.",
+  "Contact via WhatsApp": "تواصل عبر واتساب",
+  "Subscription Plans": "خطط الاشتراك",
+  "Monthly Plan": "الخطة الشهرية",
+  "3 Months": "3 أشهر",
+  "Semi-Annual Plan": "الخطة النصف سنوية",
+  "6 Months": "6 أشهر",
+  "Access to {count} courses of your choice": "وصول إلى {count}دورات من اختيارك",
+  "Master the Arabic language and Quran with expertly crafted courses designed for every level.": "أتقن اللغة العربية والقرآن مع دورات مصممة بخبرة لكل المستويات.",
+  "Search courses...": "ابحث عن دورات...",
+  "Level:": "المستوى:",
+  "Clear Filters": "مسح الفلاتر",
+  "Showing {count} courses": "عرض {count} دورات",
+  "No courses found": "لا توجد دورات",
+  "No courses available": "لا توجد دورات متاحة",
+  "Try adjusting your filters or check back later for new courses.": "حاول تعديل الفلاتر أو تحقق لاحقاً من الدورات الجديدة.",
+  "Clear all filters": "مسح جميع الفلاتر",
+  "Upcoming": "قادم",
+  "Instructor": "المُحاضر",
+  "What You Will Learn": "ماذا ستتعلم",
+  "No description yet.": "لا يوجد وصف بعد.",
+  "Duration": "المدة",
+  "Lesson Duration": "مدة الدرس",
+  "Starts in": "ينطلق خلال",
+  "Launching in": "ينطلق خلال",
+  "Days": "أيام",
+  "Hrs": "ساعات",
+  "Min": "دقائق",
+  "Sec": "ثواني",
+  "You are subscribed! You can choose {count} courses for free": "أنت مشترك! يمكنك اختيار {count} دورات مجاناً",
+  "(Expires on {date})": "(تنتهي في {date})",
+  "Course added successfully!": "تمت إضافة الدورة بنجاح!",
+  "Added": "تمت الإضافة",
+  "Free for Subscribers": "مجاني للمشتركين",
   "Loading": "جاري التحميل",
   "Login Required": "يجب تسجيل الدخول",
   "Login": "تسجيل الدخول",
@@ -981,7 +965,6 @@
   "No examples found": "لا توجد أمثلة",
   "Listen": "استمع",
   "Listen to verse": "استمع إلى الآية",
-
   "Refund Badge": "إعادة الأموال",
   "Refund Heading": "شروط الإلغاء والاسترجاع",
   "Refund Subtitle": "سياسة استرداد الأموال للخدمات الرقمية في أكاديمية روح القدس",
@@ -993,7 +976,6 @@
   "Refund Exceptions Content": "في حال حدوث خطأ تقني في بوابة الدفع أدى إلى تكرار سحب المبلغ من بطاقة العميل (سحب مزدوج)، أو في حال إلغاء الدورة التدريبية تماماً من قبل الأكاديمية دون توفير بديل، يتم فحص الطلب وإعادة المبالغ المستحقة للعميل.",
   "Refund Support": "التواصل والدعم",
   "Refund Support Content": "لأي استفسارات أو طلبات تتعلق بالإلغاء أو مشاكل الوصول إلى الحساب، يمكنك التواصل مع فريق الدعم عبر البريد الإلكتروني: info@ruhulqudus.com. وسيتم مراجعة طلبك والرد عليه خلال 7 أيام عمل.",
-
   "Sale Badge": "اتفاقية البيع",
   "Sale Heading": "عقد البيع عن بعد",
   "Sale Subtitle": "شروط وسياسات البيع الإلكتروني لأكاديمية روح القدس",
@@ -1009,16 +991,14 @@
   "Sale Law Content": "يخضع هذا العقد ويتم تفسيره بموجب القوانين المحلية المعمول بها (وفقاً لمقر إدارة الأكاديمية في تركيا)، وتكون محاكم مدينة سكاريا هي الجهة المختصة بالفصل في أي نزاع قد ينشأ عن هذه الاتفاقية.",
   "Sale Contact": "النفاذ والتواصل",
   "Sale Contact Content": "يعتبر المشتري موافقاً على كافة شروط هذا العقد بمجرد الضغط على زر الدفع وإتمام العملية بنجاح. لأي استفسارات قانونية يرجى مراسلتنا على info@ruhulqudus.com.",
-    "day": "يوم",
+  "day": "يوم",
   "hour": "ساعة",
   "min": "دقيقة",
   "sec": "ثانية",
-  "by": "يقدمه",
   "availableNow": "متاح الآن",
   "startsIn": "يبدأ خلال",
   "View details": "عرض التفاصيل",
   "Subscribe now": "اشترك الآن",
-  "Close": "إغلاق",
   "Watch intro video": "مشاهدة الفيديو التعريفي",
   "Academy courses": "مقررات الأكاديمية",
   "Part of": "ضمن برنامج",
@@ -1028,5 +1008,50 @@
   "The library could not be loaded. Please try again later.": "تعذّر تحميل المكتبة. يرجى المحاولة لاحقًا.",
   "See the courses": "تصفّح المقررات",
   "The placement test is not open yet.": "اختبار تحديد المستوى غير متاح بعد.",
-  "Skip to content": "تخطَّ إلى المحتوى"
+  "Skip to content": "تخطَّ إلى المحتوى",
+  "home.hero.h1a": "رحلتك إلى ",
+  "home.hero.h1b": "العربية والقرآن",
+  "home.hero.h1c": " تبدأ هنا.",
+  "home.hero.sub": "مسارات تعليمية منظّمة، ولقاءات مباشرة مع المعلّمين، وأنشطة تفاعلية، ودعم تعليمي يراعي تقدّمك واحتياجاتك.",
+  "home.hero.cta": "استكشف البرامج",
+  "home.hero.stat1Label": "لغات المنصّة",
+  "home.hero.stat2": "7 أيام",
+  "home.hero.stat2Label": "تحضير قبل كل درس",
+  "home.card.row1": "أنشطة علاجية موجَّهة عند الحاجة",
+  "home.card.row2": "دروس مباشرة عبر Zoom مع معلّمين معتمدين من الأكاديمية",
+  "home.pillars.p1": "العربية الفصحى والقرآن الكريم في منهج واحد، يجمع أصول التدريس إلى علم اللغة الحديث.",
+  "home.pillars.p2": "توجيه مباشر في مجموعات صغيرة، مع معلّمين راجعتهم الأكاديمية واعتمدتهم.",
+  "home.pillars.p3": "مسار منظّم نحو تدريس اللغة العربية.",
+  "home.journey.eyebrow": "كيف نُعلِّم",
+  "home.journey.h2": "رحلة تعليمية واضحة، خطوة بخطوة",
+  "home.journey.intro": "لكل أسبوع دراسي إيقاع ثابت تحرسه المنصّة نفسها — من فتح ورقة الدرس إلى إعلان النتائج.",
+  "home.journey.s1w": "قبل الدرس بأسبوع",
+  "home.journey.s1t": "تُفتَح ورقة الدرس",
+  "home.journey.s1b": "أسبوع كامل قبل الدرس — يفتحها الخادم، لا اجتهاد أحد.",
+  "home.journey.s2w": "يوم الدرس",
+  "home.journey.s2t": "الدرس المباشر",
+  "home.journey.s2b": "لقاء مجدول لمجموعتك، له بداية ونهاية، ومقعد محفوظ لكل متعلّم مسجَّل.",
+  "home.journey.s3w": "بعد الدرس",
+  "home.journey.s3t": "تدريب وتسليم",
+  "home.journey.s3b": "تُصحَّح الأسئلة الموضوعية آليًا، وينتظر المكتوب والمنطوق معلّمًا يراجعهما.",
+  "home.journey.s4w": "ثم",
+  "home.journey.s4t": "مراجعة وإعلان",
+  "home.journey.s4b": "تصدر النتائج وفق سياسة المقرر، وتبقى ملاحظاتك الخاصة لك وحدك — وقد تُسنَد إليك أنشطة علاجية عند الحاجة.",
+  "home.journey.cta": "ابدأ رحلتك التعليمية",
+  "home.live.eyebrow": "الدروس المباشرة",
+  "home.live.h2": "تعلّم مباشرةً مع معلّمك",
+  "home.live.body": "لقاءات تعليمية مباشرة عبر Zoom، وتفاعل منظّم داخل مجموعتك، ومتابعة تعينك على تطبيق ما تتعلّم.",
+  "home.live.b1": "معلّمون تعتمدهم الأكاديمية بعد مراجعة ومقابلة",
+  "home.live.b2": "مجموعات دراسية منظّمة لكل مقرر",
+  "home.live.player": "عرض تجريبي للوحة المقرر",
+  "home.catalog.h2": "مسارات تفتح لك أبواب العربية والقرآن",
+  "home.cert.h2": "إنجازاتك تستحق أن تُوثَّق",
+  "home.cert.c1": "تصدرها الأكاديمية",
+  "home.cert.c2": "وفق متطلبات إتمام تعتمدها الأكاديمية",
+  "home.cert.c3": "تحقُّق برمز فريد",
+  "home.cert.c4": "معلّمون معتمدون بعد مراجعة",
+  "home.cert.body": "المقررات التي تتيح شهادةً تُختَم بشهادة الأكاديمية الخاصة.",
+  "Founder: Dr. Jehan Ali Ziad": "المؤسِّسة: د. جيهان علي زياد",
+  "Explore certification": "استكشف الشهادات",
+  "Your Path to Certification": "طريقك إلى الشهادة"
 }

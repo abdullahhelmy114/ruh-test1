@@ -19,7 +19,7 @@
   "courses": "courses",
   "Explore Our Courses": "Explore Our Courses",
   "Master Arabic with the best instructors": "Master Arabic with the best instructors",
-  "by": "by",
+  "by": "By",
   "Free": "Free",
   "Enroll Now": "Enroll Now",
   "Enroll for Free": "Enroll for Free",
@@ -341,7 +341,6 @@
   "Invalid reset link.": "Invalid reset link.",
   "This link has expired or is invalid.": "This link has expired or is invalid.",
   "Failed to send reset email": "Failed to send reset email",
-
   "navbar": {
     "home": "Home",
     "courses": "courses",
@@ -352,7 +351,6 @@
     "about": "About",
     "contact": "Contact"
   },
-
   "Home Hero Badge": "Est. by Dr. Jehan Ali Ziad",
   "Home Hero Title": "The art of Arabic, taught with reverence.",
   "Home Hero Desc": "An elite academy for those who seek mastery of the Arabic language — classical, modern, and Quranic — through live mentorship and timeless curriculum.",
@@ -373,7 +371,6 @@
   "Earn recognized credentials to teach the Arabic language.": "Earn recognized credentials to teach the Arabic language.",
   "Completion": "Completion",
   "Years Teaching": "Years Teaching",
-
   "aboutPage": {
     "badge": "About the Academy",
     "heading": "Welcome to Ruh-Ul-Qudus Academy",
@@ -411,7 +408,6 @@
       "teacher": "Join as Teacher"
     }
   },
-
   "privacyPage": {
     "badge": "Privacy Policy",
     "heading": "Privacy Policy",
@@ -446,7 +442,6 @@
       "teacher": "Join as Teacher"
     }
   },
-
   "termsPage": {
     "badge": "Terms & Conditions",
     "heading": "Terms and Conditions",
@@ -485,7 +480,6 @@
       "teacher": "Join as Teacher"
     }
   },
-
   "contactPage": {
     "badge": "Get in Touch",
     "heading": "Contact Us",
@@ -511,7 +505,6 @@
       "teacher": "Join as Teacher"
     }
   },
-
   "certificationPage": {
     "badge": "Certification",
     "heading": "Certifications",
@@ -547,7 +540,6 @@
       "teacher": "Join as Teacher"
     }
   },
-
   "affiliatePage": {
     "badge": "Affiliate Program",
     "heading": "Earn While You Share",
@@ -594,7 +586,6 @@
       "teacher": "Join as Teacher"
     }
   },
-
   "homepage": {
     "bundles": {
       "title": "Bundles",
@@ -614,7 +605,6 @@
       "cta": "Learn More"
     }
   },
-
   "quran": {
     "surahs": "Surahs",
     "searchSurah": "Search for a Surah...",
@@ -639,7 +629,6 @@
     "errorLoading": "Error loading data",
     "loadingAI": "Loading AI response..."
   },
-
   "library": {
     "title": "Ruh-Ul-Qudus Library",
     "loading": "Loading library...",
@@ -663,7 +652,6 @@
       "backToLibrary": "Back to Library"
     }
   },
-
   "admin": {
     "library": {
       "title": "Library Management",
@@ -688,13 +676,11 @@
       "deleteError": "Deletion failed"
     }
   },
-
   "subscription": {
     "title": "Subscribe Now",
     "comingSoon": "Subscription page under construction.",
     "backHome": "Back to Home"
   },
-
   "certificate": {
     "studentName": "Student Name",
     "courseName": "Course Name",
@@ -703,7 +689,6 @@
     "certificateId": "Certificate ID",
     "download": "Download Certificate"
   },
-
   "curriculum": {
     "Available courses to Teach": "Available courses to Teach",
     "Apply to Teach This Course": "Apply to Teach This Course",
@@ -711,7 +696,6 @@
     "You have already applied": "You have already applied",
     "No available courses at the moment.": "No available courses at the moment."
   },
-
   "Become a Teacher": "Become a Teacher",
   "Complete your profile to start teaching": "Complete your profile to start teaching",
   "First Name": "First Name",
@@ -983,50 +967,36 @@
   "hour": "Hour",
   "min": "Min",
   "sec": "Sec",
-  "by": "By",
   "availableNow": "Available now",
   "startsIn": "Starts in",
   "View details": "View details",
   "Subscribe now": "Subscribe now",
-  "Close": "Close",
   "Watch intro video": "Watch intro video",
   "privacyBadge": "Privacy Policy",
   "privacyHeading": "Privacy Policy",
   "privacyLastUpdated": "Last Updated: August 26, 2026",
-
   "informationWeCollect": "Information We Collect",
   "informationWeCollectContent": "We collect information you provide directly, such as your name, email address, phone number, and payment details when you register for an account, enroll in a course, or contact us. We also automatically collect usage data, device information, IP address, browser type, and cookies to improve our services and enhance your learning experience.",
-
   "howWeUseYourData": "How We Use Your Data",
   "howWeUseYourDataContent": "We use your data to provide and improve our educational services, process payments securely, send course updates and notifications, personalize your learning experience, respond to your inquiries, and comply with legal obligations. Your information helps us create a tailored and effective educational environment.",
-
   "dataProtection": "Data Protection",
   "dataProtectionContent": "We implement industry-standard security measures, including SSL encryption, secure servers, and strict access controls, to protect your personal data from unauthorized access, alteration, disclosure, or destruction. We regularly review our security practices to ensure your information remains safe.",
-
   "informationSharing": "Information Sharing",
   "informationSharingContent": "We do not sell, trade, or rent your personal information to third parties. We may share data with trusted service providers who assist in operating our platform, processing payments, or analyzing site usage, under strict confidentiality agreements. We may also disclose information when required by law.",
-
   "cookies": "Cookies",
   "cookiesContent": "We use cookies and similar tracking technologies to enhance your browsing experience, remember your preferences, analyze site traffic, and understand how you interact with our platform. You can control cookies through your browser settings at any time.",
-
   "yourRights": "Your Rights",
   "yourRightsContent": "You have the right to access, correct, or delete your personal data, object to or restrict processing, and withdraw consent at any time. To exercise these rights, please contact us using the information provided below, and we will respond within a reasonable timeframe.",
-
   "childrenPrivacy": "Children Privacy",
   "childrenPrivacyContent": "Our services are not directed to children under the age of 13. We do not knowingly collect personal information from children without verifiable parental consent. If you believe a child has provided us with personal data, please contact us immediately.",
-
   "policyChanges": "Policy Changes",
   "policyChangesContent": "We may update this privacy policy from time to time to reflect changes in our practices or legal requirements. We will notify you of significant changes by email or through a prominent notice on our website. Continued use of our services after changes constitutes acceptance of the updated policy.",
-
   "contactPrivacy": "Contact Privacy",
   "contactPrivacyContent": "If you have any questions about this privacy policy, our data practices, or wish to exercise your rights, please contact our Data Protection Officer at info@ruhulqudus.com. We are here to help.",
-
   "privacyContactTitle": "Contact Us",
   "privacyContactText": "If you have any questions about this privacy policy or how we handle your data, please reach out to us at info@ruhulqudus.com.",
-
   "privacyTrustTitle": "Your Trust Matters",
   "privacyTrustText": "We are committed to protecting your privacy and providing a safe, transparent learning environment for all our students.",
-
   "ctaStudent": "Join as Student",
   "Academy courses": "Academy courses",
   "Part of": "Part of",
@@ -1036,5 +1006,50 @@
   "The library could not be loaded. Please try again later.": "The library could not be loaded. Please try again later.",
   "See the courses": "See the courses",
   "The placement test is not open yet.": "The placement test is not open yet.",
-  "Skip to content": "Skip to content"
+  "Skip to content": "Skip to content",
+  "home.hero.h1a": "Your journey to ",
+  "home.hero.h1b": "Arabic and the Qur'an",
+  "home.hero.h1c": " begins here.",
+  "home.hero.sub": "Structured learning paths, live sessions with your teachers, interactive activities, and learning support shaped around your progress and your needs.",
+  "home.hero.cta": "Explore the programs",
+  "home.hero.stat1Label": "Platform languages",
+  "home.hero.stat2": "7 days",
+  "home.hero.stat2Label": "Preparation before every lesson",
+  "home.card.row1": "Targeted remedial activities when needed",
+  "home.card.row2": "Live Zoom classes with academy-approved teachers",
+  "home.pillars.p1": "Classical Arabic and the Qur’an in one curriculum, joining classical pedagogy with modern linguistics.",
+  "home.pillars.p2": "Live guidance in small cohorts, with teachers the academy has reviewed and approved.",
+  "home.pillars.p3": "A structured path toward teaching the Arabic language.",
+  "home.journey.eyebrow": "How the academy teaches",
+  "home.journey.h2": "A clear learning journey, step by step",
+  "home.journey.intro": "Every study week keeps one fixed rhythm, kept by the platform itself — from the Lesson Sheet opening to the release of results.",
+  "home.journey.s1w": "− 7 days",
+  "home.journey.s1t": "The Lesson Sheet opens",
+  "home.journey.s1b": "One full calendar week before the class — released by the server, never by hand.",
+  "home.journey.s2w": "Day 0",
+  "home.journey.s2t": "The live class",
+  "home.journey.s2b": "A scheduled cohort meeting with a start, an end, and a place kept for every enrolled learner.",
+  "home.journey.s3w": "After",
+  "home.journey.s3t": "Practice & submission",
+  "home.journey.s3b": "Objective items are graded by the engine; written and spoken work waits for a person.",
+  "home.journey.s4w": "Then",
+  "home.journey.s4t": "Review & release",
+  "home.journey.s4b": "Results release under the course's own policy; your private notes stay yours alone — and remedial activities may be assigned where needed.",
+  "home.journey.cta": "Start your journey",
+  "home.live.eyebrow": "Live Classes",
+  "home.live.h2": "Learn live with your teacher",
+  "home.live.body": "Live sessions over Zoom, structured interaction within your cohort, and follow-up that helps you apply what you learn.",
+  "home.live.b1": "Teachers approved by the academy after review and interview",
+  "home.live.b2": "Structured study cohorts for every course",
+  "home.live.player": "Preview Course Dashboard",
+  "home.catalog.h2": "Paths that open the doors of Arabic and the Qur'an",
+  "home.cert.h2": "Achievements worth documenting",
+  "home.cert.c1": "Issued by the Academy",
+  "home.cert.c2": "Based on approved completion requirements",
+  "home.cert.c3": "Verifiable by unique code",
+  "home.cert.c4": "Teachers vetted by review",
+  "home.cert.body": "Courses that offer a certificate conclude with the academy's own.",
+  "Founder: Dr. Jehan Ali Ziad": "Founder: Dr. Jehan Ali Ziad",
+  "Your Path to Certification": "Your Path to Certification",
+  "Explore certification": "Explore certification"
 }

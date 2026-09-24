@@ -38,10 +38,14 @@ describe("the homepage promises nothing it cannot keep", () => {
   });
 
   test("the hero invites the visitor to the real catalogue", () => {
-    assert.match(home, /href="\/academy"[\s\S]{0,200}<T>See the courses<\/T>/);
+    // The guarded truth is the destination, not the label: the hero CTA must
+    // point at the real catalogue and be translated everywhere. The label moved
+    // from "See the courses" to the owner's V10 "Explore the programs"
+    // (named key home.hero.cta) — same route, same honesty.
+    assert.match(home, /href="\/academy"[\s\S]{0,200}<T>home\.hero\.cta<\/T>/);
     for (const locale of ["en", "ar", "tr"]) {
       const messages = JSON.parse(read(`src/messages/${locale}.json`)) as Record<string, unknown>;
-      assert.equal(typeof messages["See the courses"], "string", `${locale}: See the courses`);
+      assert.equal(typeof messages["home.hero.cta"], "string", `${locale}: home.hero.cta`);
     }
   });
 

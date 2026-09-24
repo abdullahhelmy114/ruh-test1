@@ -11,13 +11,14 @@ import {
   BookOpen,
   Sparkles,
   Shield,
-  Globe,
   GraduationCap,
   Heart,
   MessageCircle,
   Calendar,
   ChevronRight,
   ScrollText,
+  Target,
+  Video,
 } from "lucide-react";
 import { T } from "@/components/TranslatedText";
 
@@ -46,15 +47,7 @@ export default function HomePage() {
   const [featuredCourses, setFeaturedCourses] = useState<CatalogCourse[] | "unavailable" | null>(null);
   const [blogPosts, setBlogPosts] = useState<any[]>([]);
   const [certification, setCertification] = useState<any>(null);
-  const [stats, setStats] = useState({
-    experience: "30+",
-  });
-
   useEffect(() => {
-    // Fetch real stats (example: from an API or static)
-    // يمكن استبدالها بقيم حقيقية من /api/stats إذا وُجدت
-    // تركناها ثابتة كمثال
-
     // Featured courses: the first published academy courses.
     fetch(CATALOG_API)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
@@ -98,18 +91,16 @@ export default function HomePage() {
               <T>Founder: Dr. Jehan Ali Ziad</T>
             </div>
 
-            <h1 className="mt-5 font-serif text-5xl leading-[1.05] md:text-7xl">
-              <T>The art of</T> <em className="text-gold">Arabic</em>,
-              <br />
-              <T>taught with reverence.</T>
+            <h1 className="mt-5 font-serif text-5xl leading-[1.1] md:text-7xl">
+              <T>home.hero.h1a</T>
+              <em className="text-gold">
+                <T>home.hero.h1b</T>
+              </em>
+              <T>home.hero.h1c</T>
             </h1>
 
             <p className="mt-6 max-w-lg text-lg text-muted-foreground">
-              <T>
-                An elite academy for those who seek mastery of the Arabic
-                language — classical, modern, and Quranic — through live
-                mentorship and timeless curriculum.
-              </T>
+              <T>home.hero.sub</T>
             </p>
 
 {/* An early-bird form here promised a launch discount and confirmed it to the visitor while
@@ -120,23 +111,28 @@ export default function HomePage() {
     href="/academy"
     className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-elegant transition hover:scale-[1.02]"
   >
-    <T>See the courses</T> <ChevronRight className="h-4 w-4" />
+    <T>home.hero.cta</T> <ChevronRight className="h-4 w-4" />
   </Link>
 </div>
 
 
 
+{/* Two figures the codebase itself can vouch for: the trilingual product and
+    the locked one-local-week Lesson Sheet release rule. The earlier "30+" and
+    "100%" figures await the owner's substantiation and are recorded as pending. */}
 <div className="mt-10 grid grid-cols-2 gap-6 border-t pt-6">
   <div>
-    <div className="font-serif text-2xl text-gold">{stats.experience}</div>
+    <div className="font-serif text-2xl text-gold">3</div>
     <div className="text-xs uppercase tracking-wider text-muted-foreground">
-      <T>Years Academic Experience</T>
+      <T>home.hero.stat1Label</T>
     </div>
   </div>
   <div>
-    <div className="font-serif text-2xl text-gold">100%</div>
+    <div className="font-serif text-2xl text-gold">
+      <T>home.hero.stat2</T>
+    </div>
     <div className="text-xs uppercase tracking-wider text-muted-foreground">
-      <T>Live Online Mentorship</T>
+      <T>home.hero.stat2Label</T>
     </div>
   </div>
 </div>
@@ -162,17 +158,24 @@ export default function HomePage() {
       <T>Read</T> · <T>The first command</T>
     </div>
 
-    <div className="mt-10 space-y-4">
+    {/* The three statements the owner chose for this card, worded to what the
+        product verifiably does today. The remedial engine is rule-based and
+        teacher-overseen, so the line claims no AI; the teachers line claims the
+        vetted approval the application pipeline enforces, not "expertise"; the
+        third slot keeps the standing curriculum statement while the certificate
+        wording awaits the owner (issuance is disabled by policy). */}
+    <div className="mt-6 h-px bg-primary-foreground/25 dark:bg-[#17352c]/20" />
+    <div className="mt-6 space-y-4">
       {[
-        { icon: <Award className="h-4 w-4" />, t: "Certified Teacher Program" },
-        { icon: <Users className="h-4 w-4" />, t: "Live Cohorts via Zoom" },
+        { icon: <Target className="h-4 w-4" />, t: "home.card.row1" },
+        { icon: <Video className="h-4 w-4" />, t: "home.card.row2" },
         { icon: <BookOpen className="h-4 w-4" />, t: "A1 — C2 Curriculum" },
       ].map((f) => (
         <div
           key={f.t}
           className="flex items-center gap-3 rounded-2xl bg-white/5 dark:bg-black/10 backdrop-blur p-3"
         >
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-gold text-gold-foreground">
+          <div className="grid h-9 w-9 place-items-center rounded-full bg-gold text-gold-foreground">
             {f.icon}
           </div>
           <span className="text-sm">
@@ -197,10 +200,13 @@ export default function HomePage() {
           </h2>
         </div>
         <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {/* The earlier bodies claimed "certified scholars" and "recognized
+              credentials" — neither is in the verified register. These state
+              only what the product's own pipeline supports. */}
           {[
-            { t: "Curriculum", d: "Built on classical pedagogy and modern linguistic science.", i: <BookOpen /> },
-            { t: "Mentorship", d: "Live guidance from certified scholars in intimate cohorts.", i: <Users /> },
-            { t: "Certification", d: "Earn recognized credentials to teach the Arabic language.", i: <Award /> },
+            { t: "Curriculum", d: "home.pillars.p1", i: <BookOpen /> },
+            { t: "Mentorship", d: "home.pillars.p2", i: <Users /> },
+            { t: "Certification", d: "home.pillars.p3", i: <Award /> },
           ].map((p, i) => (
             <motion.div
               key={p.t}
@@ -225,30 +231,98 @@ export default function HomePage() {
       </section>
 
 
-      {/* ─── Pre-launch Preview Video ────────────────────── */}
+      {/* ─── The learning journey ─────────────────────────
+          New content section (owner-approved V10): the week's fixed rhythm as
+          the platform actually enforces it — Lesson Sheet release one local
+          week ahead (locked rule), the scheduled live class, engine-graded
+          objective work with human review for the rest, and policy-governed
+          release with rule-based remedial assignment. Every sentence here is
+          backed by the shipped code, not by marketing. */}
+      <section className="mx-auto max-w-7xl px-4 py-16 md:px-8">
+        <motion.div {...fadeInUp} className="text-center">
+          <div className="text-xs uppercase tracking-[0.3em] text-gold ornament">
+            <T>home.journey.eyebrow</T>
+          </div>
+          <h2 className="mt-3 font-serif text-4xl">
+            <T>home.journey.h2</T>
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
+            <T>home.journey.intro</T>
+          </p>
+        </motion.div>
+
+        <div className="relative mt-12">
+          <div className="absolute inset-x-0 top-2 hidden h-px bg-border md:block" aria-hidden />
+          <div className="grid gap-8 md:grid-cols-4">
+            {[
+              { w: "home.journey.s1w", t: "home.journey.s1t", d: "home.journey.s1b" },
+              { w: "home.journey.s2w", t: "home.journey.s2t", d: "home.journey.s2b" },
+              { w: "home.journey.s3w", t: "home.journey.s3t", d: "home.journey.s3b" },
+              { w: "home.journey.s4w", t: "home.journey.s4t", d: "home.journey.s4b" },
+            ].map((s, i) => (
+              <motion.div
+                key={s.t}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.12 }}
+                className="relative md:pt-8"
+              >
+                <span
+                  className="absolute start-0 top-0 hidden h-4 w-4 rounded-full border border-gold bg-gold md:block"
+                  aria-hidden
+                />
+                <div className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-gold">
+                  <T>{s.w}</T>
+                </div>
+                <h3 className="mt-2 font-serif text-xl">
+                  <T>{s.t}</T>
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  <T>{s.d}</T>
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-12 text-center">
+          <Link
+            href="/academy"
+            className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground shadow-elegant hover:bg-accent/90 transition"
+          >
+            <T>home.journey.cta</T> <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+
+
+      {/* ─── Live classes ────────────────────── */}
       <section className="bg-accent/40 py-16">
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <div className="grid items-center gap-12 md:grid-cols-2">
             <motion.div {...fadeInUp}>
               <div className="text-xs uppercase tracking-[0.3em] text-gold ornament">
-                <T>Exclusive Sneak Peek</T>
+                <T>home.live.eyebrow</T>
               </div>
               <h2 className="mt-3 font-serif text-4xl">
-                <T>Behind the scenes of Ruh-Ul-Qudus</T>
+                <T>home.live.h2</T>
               </h2>
               <p className="mt-4 text-muted-foreground">
-                <T>
-                  See how our digital environment blends seamlessly with elite traditional scholarship. Watch a short preview of our live Zoom structure, dynamic dashboard, and interactive vocabulary engine.
-                </T>
+                <T>home.live.body</T>
               </p>
+              {/* The earlier bullets promised an early-access list and a launch
+                  notification that no mechanism behind this page provides. These
+                  two state what the teacher-application pipeline and the class
+                  group model actually enforce. */}
               <div className="mt-6 space-y-3">
                 <div className="flex items-center gap-3">
                   <Shield className="text-gold h-5 w-5 shrink-0" />
-                  <span className="text-sm font-medium"><T>No credit card required for early access</T></span>
+                  <span className="text-sm font-medium"><T>home.live.b1</T></span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Calendar className="text-gold h-5 w-5 shrink-0" />
-                  <span className="text-sm font-medium"><T>Get notified 24 hours before public opening</T></span>
+                  <Users className="text-gold h-5 w-5 shrink-0" />
+                  <span className="text-sm font-medium"><T>home.live.b2</T></span>
                 </div>
               </div>
             </motion.div>
@@ -263,7 +337,7 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="absolute bottom-4 left-4 text-xs font-semibold uppercase tracking-wider text-white bg-black/30 backdrop-blur px-3 py-1.5 rounded-full">
-                <T>Preview Course Dashboard (1:20)</T>
+                <T>home.live.player</T>
               </div>
             </motion.div>
           </div>
@@ -281,7 +355,7 @@ export default function HomePage() {
                 <T>Academy courses</T>
               </div>
               <h2 className="mt-3 font-serif text-4xl md:text-5xl">
-                <T>Start your Arabic journey</T>
+                <T>home.catalog.h2</T>
               </h2>
             </motion.div>
 
@@ -355,7 +429,7 @@ export default function HomePage() {
               <T>Certification</T>
             </div>
             <h2 className="mt-3 font-serif text-4xl md:text-5xl">
-              <T>Become a certified Arabic teacher</T>
+              <T>home.cert.h2</T>
             </h2>
           </motion.div>
 
@@ -367,12 +441,18 @@ export default function HomePage() {
               transition={{ duration: 0.5 }}
               className="flex-1"
             >
+              {/* The four earlier badges asserted external recognition the
+                  register does not support ("Internationally Recognized",
+                  "Trusted by Institutions", "Prestigious Credential"). These
+                  four describe the certificate system the code actually
+                  implements: academy-issued, requirement-based, verifiable by
+                  a unique code, taught by vetted teachers. */}
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { icon: <ScrollText className="h-6 w-6" />, text: "Internationally Recognized" },
-                  { icon: <Shield className="h-6 w-6" />, text: "Trusted by Institutions" },
-                  { icon: <Globe className="h-6 w-6" />, text: "Global Community" },
-                  { icon: <Award className="h-6 w-6" />, text: "Prestigious Credential" },
+                  { icon: <Award className="h-6 w-6" />, text: "home.cert.c1" },
+                  { icon: <BookOpen className="h-6 w-6" />, text: "home.cert.c2" },
+                  { icon: <ScrollText className="h-6 w-6" />, text: "home.cert.c3" },
+                  { icon: <Shield className="h-6 w-6" />, text: "home.cert.c4" },
                 ].map((item, idx) => (
                   <div
                     key={idx}
@@ -402,12 +482,10 @@ export default function HomePage() {
                   <T>Your Path to Certification</T>
                 </h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  {certification?.description || (
-                    <T>
-                      Complete our program and earn a certificate to teach
-                      Arabic anywhere in the world.
-                    </T>
-                  )}
+                  {/* "…to teach Arabic anywhere in the world" implied a
+                      portability no register supports; the certificate is the
+                      academy's own. */}
+                  {certification?.description || <T>home.cert.body</T>}
                 </p>
                 <Link
                   href="/certification"
