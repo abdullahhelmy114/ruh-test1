@@ -35,7 +35,7 @@ export default function RecordingPage() {
                 items={[
                   ...(recording.publishedAt ? [{ label: t.common.details, value: date(recording.publishedAt) }] : []),
                   ...(recording.durationSeconds ? [{ label: t.common.ends, value: fmt(t.recordings.duration, { count: Math.round(recording.durationSeconds / 60) }) }] : []),
-                  ...(recording.state ? [{ label: t.common.status, value: <Badge>{recording.state}</Badge> }] : []),
+                  ...(recording.state ? [{ label: t.common.status, value: <Badge>{t.recordings.state[recording.state as keyof typeof t.recordings.state] ?? recording.state}</Badge> }] : []),
                   ...(recording.availableUntil ? [{ label: t.common.ends, value: fmt(t.classGroup.availableUntil, { date: date(recording.availableUntil) }) }] : []),
                 ]}
               />

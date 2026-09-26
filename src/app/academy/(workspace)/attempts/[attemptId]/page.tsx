@@ -85,19 +85,20 @@ function LearnerResult({ attempt }: { readonly attempt: LearnerAttempt }) {
       ) : (
         <Section title={t.attempt.result}>
           {result.scorePercent !== null && result.earnedPoints !== null && (
-            <p className="mb-3 text-xl font-semibold">{fmt(t.attempt.score, { earned: result.earnedPoints, max: result.maxPoints, percent: result.scorePercent })}</p>
+            <p className="mb-3 font-serif text-2xl">{fmt(t.attempt.score, { earned: result.earnedPoints, max: result.maxPoints, percent: result.scorePercent })}</p>
           )}
           {result.feedback && (
-            <Card className="mb-4">
+            <Card className="mb-4 border-s-4 border-s-gold">
               <h3 className="font-medium">{t.attempt.feedback}</h3>
               <p className="mt-1 whitespace-pre-line">{result.feedback}</p>
             </Card>
           )}
           {result.itemResults && (
             <ul className="space-y-2">
-              {result.itemResults.map((item) => (
-                <li key={item.itemId} className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-2 text-sm">
-                  <span>{fmt(t.attempt.item, { id: item.itemId })}</span>
+              {result.itemResults.map((item, index) => (
+                <li key={item.itemId} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border p-3 text-sm">
+                  {/* Numbered for the reader; the raw item id stays an internal key. */}
+                  <span>{fmt(t.attempt.item, { id: index + 1 })}</span>
                   <span className="flex items-center gap-2">
                     {item.correct === true && <Badge tone="strong">{t.attempt.correct}</Badge>}
                     {item.correct === false && <Badge tone="warning">{t.attempt.incorrect}</Badge>}
@@ -173,10 +174,13 @@ function Grading({ attempt, onChanged }: { readonly attempt: AttemptRecord; read
 
       <Section title={t.attempt.response}>
         <ul className="space-y-2">
-          {(attempt.itemResults ?? []).map((item) => (
+          {(attempt.itemResults ?? []).map((item, index) => (
             <li key={item.itemId} className="rounded-md border p-3 text-sm">
               <p className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-medium">{fmt(t.attempt.item, { id: item.itemId })}</span>
+                <span className="font-medium">
+                  {fmt(t.attempt.item, { id: index + 1 })}{" "}
+                  <bdi dir="ltr" className="font-mono text-xs text-muted-foreground">{item.itemId}</bdi>
+                </span>
                 <span className="flex items-center gap-2">
                   {item.correct === true && <Badge tone="strong">{t.attempt.correct}</Badge>}
                   {item.correct === false && <Badge tone="warning">{t.attempt.incorrect}</Badge>}
@@ -195,7 +199,7 @@ function Grading({ attempt, onChanged }: { readonly attempt: AttemptRecord; read
         <Section title={t.attempt.grade}>
           <form onSubmit={grade} className="space-y-3 rounded-md border p-4">
             {pending.map((item) => (
-              <Field key={item.itemId} label={fmt(t.attempt.pointsFor, { id: item.itemId, max: item.maxPoints })} htmlFor={`score-${item.itemId}`}>
+              <Field key={item.itemId} label={fmt(t.attempt.pointsFor, { id: (attempt.itemResults ?? []).findIndex((row) => row.itemId === item.itemId) + 1, max: item.maxPoints })} htmlFor={`score-${item.itemId}`}>
                 <TextInput
                   id={`score-${item.itemId}`}
                   type="number"

@@ -10,6 +10,8 @@ import {
   formatNumber,
   formatPercent,
   formatSessionTime,
+  formatSessionTimeRange,
+  localizedFmt,
 } from "@/lib/academy/workspace/format";
 
 interface WorkspaceValue {
@@ -22,6 +24,7 @@ interface WorkspaceValue {
   readonly date: (value: string | null | undefined) => string;
   readonly dateTime: (value: string | null | undefined) => string;
   readonly sessionTime: (value: string | null | undefined) => string;
+  readonly sessionTimeRange: (start: string | null | undefined, end: string | null | undefined) => string;
   readonly percent: (ratio: number | null | undefined) => string;
   readonly number: (value: number | null | undefined) => string;
 }
@@ -56,10 +59,12 @@ export function WorkspaceProvider({
       dir: locale === "ar" ? "rtl" : "ltr",
       t: messages,
       timeZone,
-      fmt,
+      // Numeric placeholder values render in the locale's own digits.
+      fmt: (template, values) => localizedFmt(locale, template, values),
       date: (v) => formatDate(v, locale, timeZone),
       dateTime: (v) => formatDateTime(v, locale, timeZone),
       sessionTime: (v) => formatSessionTime(v, locale, timeZone),
+      sessionTimeRange: (start, end) => formatSessionTimeRange(start, end, locale, timeZone),
       percent: (v) => formatPercent(v, locale),
       number: (v) => formatNumber(v, locale),
     }),

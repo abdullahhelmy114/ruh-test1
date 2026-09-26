@@ -2,12 +2,19 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, type ReactNode } from "react";
+import { createContext, useContext, useEffect, type ReactNode } from "react";
 import { useAuth } from "@/lib/firebase/AuthProvider";
 import { cn } from "@/lib/utils";
-import { useApi } from "./api";
+import { useApi, type ApiState } from "./api";
 import { useWorkspace } from "./context";
-import { academyHome, pages } from "./paths";
+import { academyHome, api, pages } from "./paths";
+
+/** The shell's unread-notifications request, shared so pages never repeat it. */
+const UnreadContext = createContext<{ readonly state: ApiState<{ unreadCount: number }>; readonly reload: () => void } | null>(null);
+
+export function useUnreadNotifications() {
+  return useContext(UnreadContext);
+}
 
 interface NavItem {
   readonly href: string;
@@ -20,7 +27,7 @@ interface NavItem {
  * enforces access on the server.
  */
 export function WorkspaceShell({ children }: { readonly children: ReactNode }) {
-  const { t, fmt } = useWorkspace();
+  const { t, fmt, number } = useWorkspace();
   const { role, status, user, isLoading } = useAuth();
   const pathname = usePathname() ?? "";
   const router = useRouter();
@@ -45,7 +52,7 @@ export function WorkspaceShell({ children }: { readonly children: ReactNode }) {
         ...(role === "student" ? [{ href: "/academy/certificates", label: t.nav.certificates }] : []),
       ];
 
-  const unread = useApi<{ unreadCount: number }>(user && !applicant ? "/api/academy/notifications?unreadOnly=true" : null);
+  const unread = useApi<{ unreadCount: number }>(user && !applicant ? api.notifications(true) : null);
   const unreadCount = unread.state.status === "ready" ? unread.state.data.unreadCount : 0;
 
   return (
@@ -74,7 +81,7 @@ export function WorkspaceShell({ children }: { readonly children: ReactNode }) {
                   {item.label}
                   {showBadge && (
                     <span className="rounded-full bg-primary px-1.5 text-xs text-primary-foreground">
-                      <span aria-hidden="true">{unreadCount}</span>
+                      <span aria-hidden="true">{number(unreadCount)}</span>
                       <span className="sr-only">{fmt(t.nav.unread, { count: unreadCount })}</span>
                     </span>
                   )}
@@ -85,7 +92,7 @@ export function WorkspaceShell({ children }: { readonly children: ReactNode }) {
         </ul>
       </nav>
       <div id="workspace-main" tabIndex={-1} className="outline-none">
-        {elsewhere ? null : children}
+        <UnreadContext.Provider value={unread}>{elsewhere ? null : children}</UnreadContext.Provider>
       </div>
     </div>
   );

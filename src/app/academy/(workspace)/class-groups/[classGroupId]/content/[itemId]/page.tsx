@@ -43,7 +43,7 @@ export default function ContentPage() {
     <ApiView state={state} onRetry={reload}>
       {(opened) => (
         <>
-          <PageHeader back={{ href: pages.classGroup(classGroupId, "practice"), label: t.lesson.back }} title={opened.item.title} intro={<Badge>{opened.item.kind}</Badge>} />
+          <PageHeader back={{ href: pages.classGroup(classGroupId, "practice"), label: t.lesson.back }} title={opened.item.title} intro={<Badge>{t.classGroup.contentKind[opened.item.kind as keyof typeof t.classGroup.contentKind] ?? opened.item.kind}</Badge>} />
           <Player opened={opened} classGroupId={classGroupId} />
         </>
       )}

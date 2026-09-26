@@ -55,13 +55,13 @@ export function ProgressFor({ url }: { readonly url: string }) {
           <div className="space-y-6">
             <div className="grid gap-3 sm:grid-cols-2">
               <Card>
-                <h3 className="text-sm text-muted-foreground">{t.classGroup.progressLessons}</h3>
+                <p className="text-sm text-muted-foreground">{t.classGroup.progressLessons}</p>
                 <p className="text-2xl font-semibold">
                   {progress.lessons.completed} / {progress.lessons.total}
                 </p>
               </Card>
               <Card>
-                <h3 className="text-sm text-muted-foreground">{t.classGroup.progressAttendance}</h3>
+                <p className="text-sm text-muted-foreground">{t.classGroup.progressAttendance}</p>
                 <p className="text-2xl font-semibold">{progress.attendance.attendedRatio === null ? "—" : percent(progress.attendance.attendedRatio)}</p>
                 <p className="text-sm text-muted-foreground">
                   {fmt(t.classGroup.attendanceSummary, { attended: progress.attendance.attendedSessions, recorded: progress.attendance.recordedSessions })}
@@ -70,7 +70,7 @@ export function ProgressFor({ url }: { readonly url: string }) {
             </div>
 
             <div>
-              <h3 className="mb-2 font-semibold">{t.classGroup.progressAssessments}</h3>
+              <h2 className="mb-2 font-serif text-xl">{t.classGroup.progressAssessments}</h2>
               <DataTable
                 caption={t.classGroup.progressAssessments}
                 rows={progress.assessments}
@@ -79,13 +79,13 @@ export function ProgressFor({ url }: { readonly url: string }) {
                 columns={[
                   { key: "title", header: t.common.title, cell: (row) => row.title },
                   { key: "status", header: t.common.status, cell: (row) => <Badge>{t.classGroup.assessmentStatus[row.status]}</Badge> },
-                  { key: "best", header: t.classGroup.bestScore, cell: (row) => (row.bestScorePercent === null ? "—" : `${row.bestScorePercent}%`) },
+                  { key: "best", header: t.classGroup.bestScore, cell: (row) => (row.bestScorePercent === null ? "—" : percent(row.bestScorePercent / 100)) },
                 ]}
               />
             </div>
 
             <div>
-              <h3 className="mb-2 font-semibold">{t.classGroup.completion}</h3>
+              <h2 className="mb-2 font-serif text-xl">{t.classGroup.completion}</h2>
               {!completion.configured ? (
                 <Notice>{t.classGroup.completionUnconfigured}</Notice>
               ) : (

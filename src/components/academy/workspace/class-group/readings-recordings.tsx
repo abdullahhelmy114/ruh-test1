@@ -52,7 +52,7 @@ export function RecordingsTab({ classGroupId }: { readonly classGroupId: string 
           empty={t.classGroup.recordingsEmpty}
           columns={[
             { key: "title", header: t.common.title, cell: (row) => row.title },
-            { key: "published", header: t.common.status, cell: (row) => (row.state ? <Badge>{row.state}</Badge> : row.publishedAt ? date(row.publishedAt) : "—") },
+            { key: "published", header: t.common.status, cell: (row) => (row.state ? <Badge>{t.recordings.state[row.state as keyof typeof t.recordings.state] ?? row.state}</Badge> : row.publishedAt ? date(row.publishedAt) : "—") },
             {
               key: "availability",
               header: t.common.details,

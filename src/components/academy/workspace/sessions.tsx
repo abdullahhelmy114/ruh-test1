@@ -29,7 +29,7 @@ export function SessionList({
   /** When every session belongs to one class group. */
   readonly classGroupId?: string;
 }) {
-  const { t, sessionTime } = useWorkspace();
+  const { t, fmt, sessionTime } = useWorkspace();
   if (sessions.length === 0) return <EmptyState>{empty}</EmptyState>;
   return (
     <ul className="space-y-3">
@@ -37,19 +37,19 @@ export function SessionList({
         const groupId = session.classGroupId ?? classGroupId ?? "";
         const state = t.classGroup.sessionState[session.state as keyof typeof t.classGroup.sessionState] ?? session.state;
         return (
-          <li key={session.id} className="rounded-md border p-3">
+          <li key={session.id} className="rounded-xl border bg-card p-3">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
                 <p className="text-sm text-muted-foreground">
                   <time dateTime={session.startsAt}>{sessionTime(session.startsAt)}</time>
-                  {classGroupNames && groupId && classGroupNames.get(groupId) ? ` · ${classGroupNames.get(groupId)}` : ""}
+                  {classGroupNames && groupId && classGroupNames.get(groupId) ? <> {"· "}<bdi>{classGroupNames.get(groupId)}</bdi></> : null}
                 </p>
                 <p className="font-medium">{session.lessonTitle}</p>
                 <p className="mt-1 flex flex-wrap gap-2">
                   <Badge tone={session.state === "live" ? "strong" : "neutral"}>{state}</Badge>
                   {session.preparationStatus && (
                     <Badge tone={session.preparationStatus === "ready" ? "strong" : "warning"}>
-                      {t.teach.preparation}: {t.session.prepStatus[session.preparationStatus as keyof typeof t.session.prepStatus] ?? session.preparationStatus}
+                      {fmt(t.session.prepOf, { state: t.session.prepStatus[session.preparationStatus as keyof typeof t.session.prepStatus] ?? session.preparationStatus })}
                     </Badge>
                   )}
                 </p>

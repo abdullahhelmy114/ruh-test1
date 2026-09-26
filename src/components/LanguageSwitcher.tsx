@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Globe, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,15 +17,19 @@ function writeLocaleCookie(locale: string) {
   document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}; samesite=lax${secure}`;
 }
 
+// Each language names itself, so every reader can find their own.
 const localeOptions = [
   { code: "en", label: "English", flag: "en" },
-  { code: "ar", label: "Arabic", flag: "ar" },
-  { code: "tr", label: "Turkish", flag: "tr" },
+  { code: "ar", label: "العربية", flag: "ar" },
+  { code: "tr", label: "Türkçe", flag: "tr" },
 ];
+
+const SWITCH_LABEL: Record<string, string> = { en: "Change language", ar: "تغيير اللغة", tr: "Dili değiştir" };
 
 const defaultLocale = "en";
 
 export function LanguageSwitcher() {
+  const router = useRouter();
   const [locale, setLocale] = useState(defaultLocale);
   const [open, setOpen] = useState(false);
 
@@ -60,6 +65,11 @@ export function LanguageSwitcher() {
     setLocale(newLocale);
     window.dispatchEvent(new CustomEvent("locale-change", { detail: newLocale }));
     setOpen(false);
+    // Server components (the academy workspace layout among them) resolved
+    // their dictionary from the cookie of the LAST server render, and Next
+    // keeps layouts alive across client navigation — without this refresh the
+    // workspace keeps speaking the old language until a hard reload.
+    router.refresh();
   };
 
   const current = localeOptions.find((l) => l.code === locale);
@@ -68,7 +78,7 @@ export function LanguageSwitcher() {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        aria-label="Change language"
+        aria-label={SWITCH_LABEL[locale] ?? SWITCH_LABEL.en}
         className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 text-sm font-medium transition-colors hover:bg-accent"
       >
         <span className="text-base">{current?.flag}</span>

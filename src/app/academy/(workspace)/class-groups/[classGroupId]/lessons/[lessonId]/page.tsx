@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useAction, useApi } from "@/components/academy/workspace/api";
 import { useWorkspace } from "@/components/academy/workspace/context";
+import { cn } from "@/lib/utils";
 import { api, pages } from "@/components/academy/workspace/paths";
 import type { Annotation, LessonSheet, SheetAvailabilityList } from "@/components/academy/workspace/types";
 import { ApiView, Badge, Button, FailureNotice, Field, Notice, PageHeader, TextArea } from "@/components/academy/workspace/ui";
@@ -51,7 +52,7 @@ function Sheet({ sheet, classGroupId, lessonId, onChanged }: { readonly sheet: L
   const orphaned = sheet.annotations.filter((annotation) => annotation.orphaned);
 
   return (
-    <article>
+    <article className="mx-auto max-w-3xl">
       <p className="mb-4 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
         <Badge>{fmt(t.lesson.version, { number: sheet.version.versionNumber })}</Badge>
         {sheet.version.publishedAt && <span>{date(sheet.version.publishedAt)}</span>}
@@ -170,13 +171,15 @@ function BlockWithNotes({
   }
 
   return (
-    <div className={wholeBlockHighlighted ? "rounded-md border-s-4 border-primary bg-muted/40 ps-3" : undefined}>
+    <div className={cn("group", wholeBlockHighlighted && "rounded-md border-s-4 border-primary bg-muted/40 ps-3")}>
       <div ref={textRef}>
         <BlockView block={block} annotations={annotations} />
       </div>
       {block.type !== "divider" && (
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <Button type="button" size="sm" variant="ghost" busy={action.busy} onClick={() => void create("highlight")} aria-label={`${t.lesson.highlight}`}>
+        /* The reading surface stays a reader: tools appear on hover or focus
+           on fine pointers, and stay always-visible on touch screens. */
+        <div className="mt-1.5 flex flex-wrap items-center gap-2 transition-opacity motion-reduce:transition-none sm:opacity-0 sm:focus-within:opacity-100 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
+          <Button type="button" size="sm" variant="ghost" busy={action.busy} onClick={() => void create("highlight")}>
             {t.lesson.highlight}
           </Button>
           <Button type="button" size="sm" variant="ghost" onClick={() => setAdding((v) => !v)} aria-expanded={adding}>
@@ -261,12 +264,12 @@ function NoteItem({ annotation, onChanged }: { readonly annotation: Annotation; 
 }
 
 function BlockView({ block, annotations }: { readonly block: LessonBlock; readonly annotations: readonly Annotation[] }) {
-  const { t } = useWorkspace();
+  const { t, fmt } = useWorkspace();
   switch (block.type) {
     case "heading": {
       const Tag = block.level === 1 ? "h2" : block.level === 2 ? "h3" : "h4";
       return (
-        <Tag className={block.level === 1 ? "text-2xl font-semibold" : block.level === 2 ? "text-xl font-semibold" : "text-lg font-medium"}>
+        <Tag className={block.level === 1 ? "font-serif text-3xl" : block.level === 2 ? "font-serif text-2xl" : "text-lg font-medium"}>
           <MarkedText text={block.text} annotations={annotations} />
         </Tag>
       );
@@ -280,7 +283,7 @@ function BlockView({ block, annotations }: { readonly block: LessonBlock; readon
     case "arabic_text":
       return (
         <div>
-          <p lang="ar" dir="rtl" className="whitespace-pre-line text-2xl leading-loose">
+          <p lang="ar" dir="rtl" className="whitespace-pre-line font-arabic text-3xl leading-loose">
             <MarkedText text={block.text} annotations={annotations} />
           </p>
           {block.translation && (
@@ -293,7 +296,7 @@ function BlockView({ block, annotations }: { readonly block: LessonBlock; readon
       );
     case "example":
       return (
-        <blockquote className="border-s-4 ps-3">
+        <blockquote className="border-s-4 border-s-gold/60 py-1 ps-4">
           <p className="whitespace-pre-line">
             <MarkedText text={block.text} annotations={annotations} />
           </p>
@@ -306,27 +309,29 @@ function BlockView({ block, annotations }: { readonly block: LessonBlock; readon
     }
     case "vocabulary":
       return (
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-xl border">
+          <table className="w-full text-sm">
           <tbody>
             {block.entries.map((entry, index) => (
               <tr key={index} className="border-t">
-                <th scope="row" className="py-1 pe-3 text-start font-medium" lang="ar" dir="auto">
+                <th scope="row" className="px-3 py-2 pe-3 text-start font-arabic text-base" lang="ar" dir="auto">
                   {entry.term}
                 </th>
-                <td className="py-1">
+                <td className="px-3 py-2">
                   {entry.meaning}
                   {entry.note && <span className="block text-muted-foreground">{entry.note}</span>}
                 </td>
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       );
     case "exercise":
       return (
-        <div className="rounded-md border p-3">
+        <div className="rounded-xl border bg-muted/20 p-4">
           <p className="font-medium">
-            {t.lesson.exercise}: {block.prompt}
+            {fmt(t.lesson.exerciseOf, { prompt: block.prompt })}
           </p>
           <ol className="mt-2 list-decimal space-y-2 ps-6">
             {block.questions.map((question) => (
@@ -343,7 +348,7 @@ function BlockView({ block, annotations }: { readonly block: LessonBlock; readon
                 </ul>
                 {question.explanation && (
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {t.lesson.explanation}: {question.explanation}
+                    {fmt(t.lesson.explanationOf, { text: question.explanation })}
                   </p>
                 )}
               </li>

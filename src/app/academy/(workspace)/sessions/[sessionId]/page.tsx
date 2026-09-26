@@ -30,14 +30,34 @@ import { displayName } from "@/lib/academy/workspace/format";
 // attendance for the staff the server permits.
 export default function SessionPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
-  const { t } = useWorkspace();
+  const { t, sessionTimeRange } = useWorkspace();
   const { state, reload } = useApi<SessionDetail>(api.session(sessionId));
 
   return (
     <ApiView state={state} onRetry={reload}>
       {(detail) => (
         <>
-          <PageHeader back={{ href: pages.classGroup(detail.classGroup.id), label: detail.classGroup.name }} title={detail.session.lessonTitle ?? t.session.title} />
+          {/* A learner arriving a minute early sees title, time and Join without scanning the details card. */}
+          <PageHeader
+            back={{ href: pages.classGroup(detail.classGroup.id), label: detail.classGroup.name }}
+            title={detail.session.lessonTitle ?? t.session.title}
+            intro={
+              <span className="flex flex-wrap items-center gap-2">
+                <time dateTime={detail.session.startsAt}>{sessionTimeRange(detail.session.startsAt, detail.session.endsAt)}</time>
+                <Badge tone={detail.session.state === "live" ? "strong" : "neutral"}>{t.classGroup.sessionState[detail.session.state]}</Badge>
+              </span>
+            }
+            actions={
+              <>
+                {detail.session.meetingUrl && (
+                  <LinkButton href={detail.session.meetingUrl} variant="primary" external>
+                    {t.session.join}
+                  </LinkButton>
+                )}
+                <LinkButton href={pages.lessonSheet(detail.classGroup.id, detail.session.lessonId)}>{t.session.lessonSheet}</LinkButton>
+              </>
+            }
+          />
           <SessionSummary detail={detail} onChanged={reload} />
           {detail.permissions.prepare && <PreparationPanel sessionId={sessionId} />}
           <AttendancePanel sessionId={sessionId} staff={detail.permissions.recordAttendance} />
@@ -48,7 +68,7 @@ export default function SessionPage() {
 }
 
 function SessionSummary({ detail, onChanged }: { readonly detail: SessionDetail; readonly onChanged: () => void }) {
-  const { t, sessionTime } = useWorkspace();
+  const { t, sessionTimeRange } = useWorkspace();
   const action = useAction();
   const { session } = detail;
 
@@ -62,18 +82,11 @@ function SessionSummary({ detail, onChanged }: { readonly detail: SessionDetail;
       <Card>
         <KeyValues
           items={[
-            { label: t.session.when, value: `${sessionTime(session.startsAt)} – ${sessionTime(session.endsAt)}` },
-            { label: t.common.status, value: <Badge tone={session.state === "live" ? "strong" : "neutral"}>{t.classGroup.sessionState[session.state]}</Badge> },
+            { label: t.session.when, value: <time dateTime={session.startsAt}>{sessionTimeRange(session.startsAt, session.endsAt)}</time> },
             { label: t.common.classGroup, value: <TextLink href={pages.classGroup(detail.classGroup.id)}>{detail.classGroup.name}</TextLink> },
           ]}
         />
         <div className="mt-4 flex flex-wrap gap-2">
-          {session.meetingUrl && (
-            <LinkButton href={session.meetingUrl} variant="primary" external>
-              {t.session.join}
-            </LinkButton>
-          )}
-          <LinkButton href={pages.lessonSheet(detail.classGroup.id, session.lessonId)}>{t.session.lessonSheet}</LinkButton>
           {detail.permissions.conduct && session.state === "scheduled" && (
             <Button type="button" busy={action.busy} onClick={() => void conduct("start")}>
               {t.session.start}

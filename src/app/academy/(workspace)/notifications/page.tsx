@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useAction, useApi } from "@/components/academy/workspace/api";
 import { useWorkspace } from "@/components/academy/workspace/context";
 import { api } from "@/components/academy/workspace/paths";
 import type { Notifications } from "@/components/academy/workspace/types";
-import { ApiView, Badge, Button, EmptyState, FailureNotice, LinkButton, PageHeader } from "@/components/academy/workspace/ui";
+import { ApiView, Button, EmptyState, FailureNotice, Loading, PageHeader } from "@/components/academy/workspace/ui";
+import { cn } from "@/lib/utils";
 
 // The caller's notifications. They name what happened; details stay behind
 // the normal access checks of the page they link to.
@@ -31,10 +33,9 @@ export default function NotificationsPage() {
         title={t.notifications.title}
         actions={
           <>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={unreadOnly} onChange={(e) => setUnreadOnly(e.target.checked)} />
+            <Button type="button" variant={unreadOnly ? "primary" : "outline"} size="sm" aria-pressed={unreadOnly} onClick={() => setUnreadOnly((v) => !v)}>
               {t.notifications.unreadOnly}
-            </label>
+            </Button>
             <Button type="button" variant="outline" size="sm" busy={action.busy} onClick={() => void markAll()}>
               {t.notifications.markAll}
             </Button>
@@ -42,34 +43,50 @@ export default function NotificationsPage() {
         }
       />
       {action.failure && <FailureNotice failure={action.failure} onRetry={reload} />}
-      <ApiView state={state} onRetry={reload}>
+      <ApiView state={state} onRetry={reload} loading={<Loading shape="list" />}>
         {(data) =>
           data.items.length === 0 ? (
             <EmptyState>{t.notifications.empty}</EmptyState>
           ) : (
-            <ul className="divide-y rounded-md border">
-              {data.items.map((item) => (
-                <li key={item.id} className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="min-w-0">
-                    <p className={item.readAt ? "" : "font-semibold"}>
-                      {!item.readAt && <span className="sr-only">{t.nav.unread.replace("{count}", "1")}: </span>}
-                      {item.title}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      <time dateTime={item.createdAt}>{dateTime(item.createdAt)}</time>
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {!item.readAt && <Badge tone="strong">•</Badge>}
-                    {item.link && <LinkButton href={item.link}>{t.notifications.open}</LinkButton>}
-                    {!item.readAt && (
-                      <Button type="button" size="sm" variant="ghost" onClick={() => void markOne(item.id)}>
-                        {t.notifications.markRead}
-                      </Button>
+            <ul className="divide-y rounded-2xl border">
+              {data.items.map((item) => {
+                const unread = !item.readAt;
+                return (
+                  <li
+                    key={item.id}
+                    className={cn(
+                      "flex flex-col gap-2 p-3 first:rounded-t-2xl last:rounded-b-2xl sm:flex-row sm:items-center sm:justify-between",
+                      unread && "bg-primary/5",
                     )}
-                  </div>
-                </li>
-              ))}
+                  >
+                    <div className="flex min-w-0 items-start gap-3">
+                      <span aria-hidden="true" className={cn("mt-2 size-2 shrink-0 rounded-full", unread ? "bg-primary" : "bg-transparent")} />
+                      <div className="min-w-0">
+                        <p className={unread ? "font-semibold" : ""}>
+                          {unread && <span className="sr-only">{t.notifications.unreadItem}: </span>}
+                          {item.link ? (
+                            <Link href={item.link} className="rounded-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                              {item.title}
+                            </Link>
+                          ) : (
+                            item.title
+                          )}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          <time dateTime={item.createdAt}>{dateTime(item.createdAt)}</time>
+                        </p>
+                      </div>
+                    </div>
+                    {unread && (
+                      <div className="shrink-0 ps-5 sm:ps-0">
+                        <Button type="button" size="sm" variant="ghost" onClick={() => void markOne(item.id)}>
+                          {t.notifications.markRead}
+                        </Button>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )
         }

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/firebase/AuthProvider";
 import { displayName } from "@/lib/academy/workspace/format";
@@ -8,21 +9,38 @@ import { useWorkspace } from "@/components/academy/workspace/context";
 import { useOpenConversation } from "@/components/academy/workspace/messaging";
 import { api, pages } from "@/components/academy/workspace/paths";
 import type { ClassGroupDetail, MyLearning, MyTeaching, Roster, Threads } from "@/components/academy/workspace/types";
-import { ApiView, Badge, Button, EmptyState, FailureNotice, Field, Notice, PageHeader, Section, SelectInput, TextLink } from "@/components/academy/workspace/ui";
+import { ApiView, Button, EmptyState, FailureNotice, Field, Loading, Notice, PageHeader, SelectInput } from "@/components/academy/workspace/ui";
+import { cn } from "@/lib/utils";
 
 // The caller's conversations and starting a new one with someone they may message.
 export default function MessagesPage() {
   const { t } = useWorkspace();
   const { state, reload } = useApi<Threads>(api.threads);
+  const [composing, setComposing] = useState(false);
+  const empty = state.status === "ready" && state.data.length === 0;
   return (
     <>
-      <PageHeader title={t.messages.title} intro={t.messages.privacy} />
-      <NewConversation />
-      <Section title={t.messages.title}>
-        <ApiView state={state} onRetry={reload}>
-          {(threads) => (threads.length === 0 ? <EmptyState>{t.messages.empty}</EmptyState> : <ThreadList threads={threads} />)}
-        </ApiView>
-      </Section>
+      <PageHeader
+        title={t.messages.title}
+        intro={t.messages.privacy}
+        actions={
+          !empty && (
+            <Button type="button" onClick={() => setComposing((v) => !v)} aria-expanded={composing}>
+              {t.messages.start}
+            </Button>
+          )
+        }
+      />
+      {(composing || empty) && <NewConversation />}
+      <ApiView state={state} onRetry={reload} loading={<Loading shape="list" />}>
+        {(threads) =>
+          threads.length === 0 ? (
+            <EmptyState>{t.messages.empty}</EmptyState>
+          ) : (
+            <ThreadList threads={threads} />
+          )
+        }
+      </ApiView>
     </>
   );
 }
@@ -30,20 +48,45 @@ export default function MessagesPage() {
 function ThreadList({ threads }: { readonly threads: Threads }) {
   const { t, fmt, dateTime } = useWorkspace();
   return (
-    <ul className="divide-y rounded-md border">
-      {threads.map((thread) => (
-        <li key={thread.id} className="p-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <TextLink href={pages.thread(thread.id)}>{displayName(thread.otherParticipant.displayName, t.common.unnamed)}</TextLink>
-            <span className="flex items-center gap-2 text-sm text-muted-foreground">
-              {thread.classGroupName && <span>{thread.classGroupName}</span>}
-              {thread.lastMessageAt && <time dateTime={thread.lastMessageAt}>{dateTime(thread.lastMessageAt)}</time>}
-              {thread.unread > 0 && <Badge tone="strong">{fmt(t.messages.unread, { count: thread.unread })}</Badge>}
-            </span>
-          </div>
-          {thread.lastMessagePreview && <p className="mt-1 truncate text-sm text-muted-foreground" dir="auto">{thread.lastMessagePreview}</p>}
-        </li>
-      ))}
+    <ul className="divide-y rounded-2xl border">
+      {threads.map((thread) => {
+        const unread = thread.unread > 0;
+        return (
+          <li key={thread.id}>
+            <Link
+              href={pages.thread(thread.id)}
+              className={cn(
+                "flex items-start gap-3 p-3 transition-colors first:rounded-t-2xl last:rounded-b-2xl hover:bg-muted/40",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                unread && "bg-primary/5",
+              )}
+            >
+              <span
+                aria-hidden="true"
+                className={cn("mt-2 size-2 shrink-0 rounded-full", unread ? "bg-primary" : "bg-transparent")}
+              />
+              <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span className={cn("truncate", unread ? "font-semibold" : "font-medium")}>
+                    {displayName(thread.otherParticipant.displayName, t.common.unnamed)}
+                  </span>
+                  <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                    {thread.classGroupName && <bdi>{thread.classGroupName}</bdi>}
+                    {thread.lastMessageAt && <time dateTime={thread.lastMessageAt}>{dateTime(thread.lastMessageAt)}</time>}
+                  </span>
+                </span>
+                {thread.lastMessagePreview && (
+                  <span className={cn("mt-0.5 block truncate text-sm", unread ? "font-medium" : "text-muted-foreground")} dir="auto">
+                    {thread.lastMessagePreview}
+                  </span>
+                )}
+                {unread && <span className="sr-only">{fmt(t.messages.unread, { count: thread.unread })}</span>}
+              </span>
+              <span aria-hidden="true" className="self-center text-muted-foreground rtl:rotate-180">›</span>
+            </Link>
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -59,6 +102,7 @@ function NewConversation() {
   const conversation = useOpenConversation();
 
   if (role !== "student" && role !== "teacher") return null;
+  // The api-level read-through cache keeps class toggling instant here.
   const groups =
     role === "student"
       ? learning.state.status === "ready"
@@ -75,8 +119,9 @@ function NewConversation() {
   }
 
   return (
-    <Section title={t.messages.start}>
-      <form onSubmit={submit} className="grid gap-3 rounded-md border p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+    <section aria-label={t.messages.start} className="mb-8">
+      <h2 className="mb-3 font-serif text-xl">{t.messages.start}</h2>
+      <form onSubmit={submit} className="grid gap-3 rounded-2xl border bg-card p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
         <Field label={t.messages.chooseClass} htmlFor="conversation-class">
           <SelectInput
             id="conversation-class"
@@ -105,7 +150,7 @@ function NewConversation() {
           </div>
         )}
       </form>
-    </Section>
+    </section>
   );
 }
 

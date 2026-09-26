@@ -20,6 +20,19 @@ export type ApiState<T> =
 
 const UNAUTHENTICATED: ApiFailure = Object.freeze({ kind: "unauthenticated", status: 401, message: null });
 
+/**
+ * Read-through cache for GET screens: a recent response paints immediately
+ * (no skeleton, no layout jump) while the request still runs and replaces it.
+ * Purely a presentation optimization — every navigation still revalidates
+ * against the same API, and entries are scoped to the signed-in user.
+ */
+const FRESH_MS = 30_000;
+const readCache = new Map<string, { readonly data: unknown; readonly at: number }>();
+
+function cacheKey(uid: string, url: string): string {
+  return `${uid}|${url}`;
+}
+
 export async function requestJson<T>(
   url: string,
   init: { readonly method?: string; readonly body?: unknown; readonly select?: (body: unknown) => T } = {},
@@ -61,8 +74,17 @@ export function useApi<T>(url: string | null, select?: (body: unknown) => T): { 
     if (url === null) return;
     let cancelled = false;
     // Keep showing loaded data while refreshing; show loading only the first time.
-    setState((previous) => (previous.status === "ready" ? previous : { status: "loading" }));
+    const cached = readCache.get(cacheKey(user.uid, url));
+    if (cached && Date.now() - cached.at < FRESH_MS && nonce === 0) {
+      setState({ status: "ready", data: cached.data as T });
+    } else {
+      setState((previous) => (previous.status === "ready" ? previous : { status: "loading" }));
+    }
     requestJson<T>(url, { select }).then((result) => {
+      if (result.ok) {
+        if (readCache.size > 200) readCache.clear();
+        readCache.set(cacheKey(user.uid, url), { data: result.data, at: Date.now() });
+      }
       if (cancelled) return;
       setState(result.ok ? { status: "ready", data: result.data } : { status: "failed", failure: result.failure });
     });

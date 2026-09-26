@@ -51,7 +51,7 @@ export default function AssignmentPage() {
 }
 
 function LearnerAssessment({ view, onChanged }: { readonly view: LearnerView; readonly onChanged: () => void }) {
-  const { t, fmt, sessionTime } = useWorkspace();
+  const { t, fmt, percent, sessionTime } = useWorkspace();
   const router = useRouter();
   const inProgress = view.attempts.find((attempt) => attempt.state === "in_progress") ?? null;
   const [current, setCurrent] = useState<{ id: string; revision: number } | null>(inProgress ? { id: inProgress.id, revision: inProgress.revision } : null);
@@ -144,9 +144,9 @@ function LearnerAssessment({ view, onChanged }: { readonly view: LearnerView; re
           rowKey={(row) => row.id}
           empty={t.assessment.noAttempts}
           columns={[
-            { key: "number", header: "#", cell: (row) => (row.kind === "revision" ? `${fmt(t.assessment.attempt, { number: row.attemptNumber })} (${t.assessment.revision})` : fmt(t.assessment.attempt, { number: row.attemptNumber })) },
+            { key: "number", header: t.assessment.numberColumn, cell: (row) => (row.kind === "revision" ? `${fmt(t.assessment.attempt, { number: row.attemptNumber })} (${t.assessment.revision})` : fmt(t.assessment.attempt, { number: row.attemptNumber })) },
             { key: "state", header: t.common.status, cell: (row) => <Badge tone={row.result ? "strong" : "neutral"}>{t.assessment.state[row.state as keyof typeof t.assessment.state] ?? row.state}</Badge> },
-            { key: "result", header: t.attempt.result, cell: (row) => (row.result && row.result.scorePercent !== null ? `${row.result.scorePercent}%` : "—") },
+            { key: "result", header: t.attempt.result, cell: (row) => (row.result && row.result.scorePercent !== null ? percent(row.result.scorePercent / 100) : "—") },
             { key: "view", header: <span className="sr-only">{t.assessment.viewAttempt}</span>, cell: (row) => <TextLink href={pages.attempt(row.id)}>{t.assessment.viewAttempt}</TextLink> },
           ]}
         />
@@ -181,7 +181,7 @@ function StaffPreview({ view }: { readonly view: StaffView }) {
 }
 
 function StaffItemKey({ item }: { readonly item: AssessmentItem }) {
-  const { t } = useWorkspace();
+  const { t, fmt } = useWorkspace();
   switch (item.type) {
     case "choice":
     case "listening":
@@ -197,17 +197,20 @@ function StaffItemKey({ item }: { readonly item: AssessmentItem }) {
     case "true_false":
       return <p className="mt-2">{item.correct ? t.assessment.true : t.assessment.false}</p>;
     case "fill_blank":
-      return <p className="mt-2">{t.assessment.accepted}: {item.acceptedAnswers.join(" · ")}</p>;
+      return <p className="mt-2">{fmt(t.assessment.acceptedOf, { answers: item.acceptedAnswers.join(" · ") })}</p>;
     case "short_text":
-      return item.acceptedAnswers ? <p className="mt-2">{t.assessment.accepted}: {item.acceptedAnswers.join(" · ")}</p> : null;
+      return item.acceptedAnswers ? <p className="mt-2">{fmt(t.assessment.acceptedOf, { answers: item.acceptedAnswers.join(" · ") })}</p> : null;
     case "word_order":
-      return <p className="mt-2" dir="auto">{t.assessment.correctOrder}: {item.correctOrder.join(" ")}</p>;
+      return <p className="mt-2" dir="auto">{fmt(t.assessment.correctOrderOf, { order: item.correctOrder.join(" ") })}</p>;
     case "matching":
       return (
         <ul className="mt-2 space-y-1 ps-4">
           {item.pairs.map((pair) => (
             <li key={pair.left} dir="auto">
-              {pair.left} → {pair.right}
+              <bdi>{pair.left}</bdi>{" "}
+              <span aria-hidden="true" className="rtl:hidden">→</span>
+              <span aria-hidden="true" className="ltr:hidden">←</span>{" "}
+              <bdi>{pair.right}</bdi>
             </li>
           ))}
         </ul>

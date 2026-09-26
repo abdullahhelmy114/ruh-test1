@@ -6,7 +6,7 @@ import { useAction, useApi } from "./api";
 import { useWorkspace } from "./context";
 import { api } from "./paths";
 import type { Announcements } from "./types";
-import { ApiView, Badge, Button, Card, EmptyState, FailureNotice, Field, Notice, ReasonField, Section, TextArea, TextInput } from "./ui";
+import { ApiView, Badge, Button, Card, EmptyState, FailureNotice, Field, Loading, Notice, ReasonField, Section, TextArea, TextInput } from "./ui";
 
 /** Announcements feed; when `postTo` is set, staff can post to that class group. */
 export function AnnouncementFeed({ url, postTo }: { readonly url: string; readonly postTo?: string }) {
@@ -17,7 +17,7 @@ export function AnnouncementFeed({ url, postTo }: { readonly url: string; readon
   return (
     <>
       {postTo && staff && <PostAnnouncement classGroupId={postTo} onPosted={reload} />}
-      <ApiView state={state} onRetry={reload}>
+      <ApiView state={state} onRetry={reload} loading={<Loading shape="cards" />}>
         {(items) =>
           items.length === 0 ? (
             <EmptyState>{t.classGroup.announcementsEmpty}</EmptyState>
@@ -41,6 +41,9 @@ function AnnouncementCard({ item, onChanged }: { readonly item: Announcements[nu
   const { user, role } = useAuth();
   const [withdrawing, setWithdrawing] = useState(false);
   const [reason, setReason] = useState("");
+  // One very long notice must not bury the feed (bodies may reach 20000 chars).
+  const [expanded, setExpanded] = useState(false);
+  const clampable = item.body.length > 600;
   const action = useAction();
   // The server decides; the control is offered to the author and administrators only.
   const mayWithdraw = role === "admin" || (user !== null && user.uid === item.authorUid);
@@ -58,7 +61,12 @@ function AnnouncementCard({ item, onChanged }: { readonly item: Announcements[nu
         <time dateTime={item.publishedAt}>{dateTime(item.publishedAt)}</time>
       </p>
       <h3 className="mt-1 font-semibold">{item.title}</h3>
-      <p className="mt-2 whitespace-pre-line break-words">{item.body}</p>
+      <p className={`mt-2 whitespace-pre-line break-words${clampable && !expanded ? " line-clamp-6" : ""}`}>{item.body}</p>
+      {clampable && (
+        <Button type="button" size="sm" variant="ghost" className="mt-1" aria-expanded={expanded} onClick={() => setExpanded((v) => !v)}>
+          {expanded ? t.announcements.readLess : t.announcements.readMore}
+        </Button>
+      )}
       {mayWithdraw && (
         <div className="mt-3">
           {!withdrawing ? (

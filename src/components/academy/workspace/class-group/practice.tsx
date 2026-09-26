@@ -31,17 +31,25 @@ export function PracticeTab({ classGroupId, staff }: { readonly classGroupId: st
         return (
           <>
             <Section title={t.classGroup.tabs.practice}>
-              <DataTable
-                caption={t.classGroup.tabs.practice}
-                rows={items}
-                rowKey={(row) => row.linkId}
-                empty={t.classGroup.practiceEmpty}
-                columns={[
-                  { key: "title", header: t.common.title, cell: (row) => <TextLink href={pages.content(classGroupId, row.itemId)}>{row.title}</TextLink> },
-                  { key: "kind", header: t.common.details, cell: (row) => <Badge>{row.kind}</Badge> },
-                  { key: "purpose", header: t.common.status, cell: (row) => row.purpose },
-                ]}
-              />
+              {items.length === 0 ? (
+                <EmptyState>{t.classGroup.practiceEmpty}</EmptyState>
+              ) : (
+                <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label={t.classGroup.tabs.practice}>
+                  {items.map((row) => (
+                    <li key={row.linkId} className="rounded-2xl border bg-card p-4 transition-colors hover:bg-accent/50">
+                      <p className="flex flex-wrap items-center gap-2">
+                        <Badge>{t.classGroup.contentKind[row.kind as keyof typeof t.classGroup.contentKind] ?? row.kind}</Badge>
+                        {row.purpose !== "practice" && (
+                          <Badge tone="warning">{t.classGroup.contentPurpose[row.purpose as keyof typeof t.classGroup.contentPurpose] ?? row.purpose}</Badge>
+                        )}
+                      </p>
+                      <p className="mt-2">
+                        <TextLink href={pages.content(classGroupId, row.itemId)}>{row.title}</TextLink>
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </Section>
             {staff ? (
               <StaffPractice classGroupId={classGroupId} titles={titles} remediationItems={items.filter((item) => item.purpose === "remediation")} />
@@ -143,7 +151,7 @@ function AssignRemediation({
   }
 
   return (
-    <form onSubmit={submit} className="grid gap-3 rounded-md border p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+    <form onSubmit={submit} className="grid gap-3 rounded-xl border bg-card p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
       <Field label={t.classGroup.remediationItem} htmlFor="remediation-item">
         <SelectInput id="remediation-item" required value={itemId} onChange={(event) => setItemId(event.target.value)}>
           <option value="">{t.common.choose}</option>
@@ -190,7 +198,7 @@ function RemediationList({
         ) : (
           <ul className="space-y-3">
             {rows.map((row) => (
-              <li key={row.id} className="rounded-md border p-3">
+              <li key={row.id} className="rounded-xl border bg-card p-3">
                 <p className="flex flex-wrap items-center gap-2">
                   <TextLink href={pages.content(classGroupId, row.itemId)}>{titles.get(row.itemId) ?? t.classGroup.remediationItem}</TextLink>
                   <Badge tone={row.state === "assigned" ? "warning" : "neutral"}>{t.classGroup.remediationState[row.state]}</Badge>

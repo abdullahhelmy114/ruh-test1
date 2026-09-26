@@ -20,7 +20,10 @@ import { ApiView, Badge, Loading, PageHeader, TabPanel, Tabs, type TabItem } fro
 
 type TabKey = "overview" | "lessons" | "work" | "attendance" | "progress" | "readings" | "recordings" | "announcements" | "practice" | "roster" | "review" | "report";
 
-const LEARNER_TABS: readonly TabKey[] = ["overview", "lessons", "work", "attendance", "progress", "readings", "recordings", "announcements", "practice"];
+// Study material first (lessons, readings, recordings, practice), then the
+// standing record (work, attendance, progress, announcements). Keys and
+// routes are unchanged; only the order is presentation.
+const LEARNER_TABS: readonly TabKey[] = ["overview", "lessons", "readings", "recordings", "practice", "work", "attendance", "progress", "announcements"];
 const STAFF_TABS: readonly TabKey[] = ["overview", "lessons", "work", "roster", "review", "progress", "practice", "readings", "recordings", "announcements", "report"];
 
 export default function ClassGroupPage() {
@@ -49,7 +52,17 @@ function ClassGroupWorkspace() {
   const back = role === "admin" ? pages.manage : staff ? pages.teach : pages.learn;
 
   return (
-    <ApiView state={state} onRetry={reload}>
+    <ApiView
+      state={state}
+      onRetry={reload}
+      loading={
+        <div aria-hidden="true" className="space-y-6">
+          <div className="h-16 w-2/3 animate-pulse rounded-xl bg-muted motion-reduce:animate-none" />
+          <div className="h-10 animate-pulse rounded border-b bg-muted/60 motion-reduce:animate-none" />
+          <div className="min-h-64 animate-pulse rounded-2xl border bg-muted/40 motion-reduce:animate-none" />
+        </div>
+      }
+    >
       {(detail) => (
         <>
           <PageHeader
