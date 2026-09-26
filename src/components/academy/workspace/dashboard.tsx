@@ -42,6 +42,53 @@ export function SectionHeader({
   );
 }
 
+
+/** Gold uppercase card eyebrow, from the owner's reference composition. */
+export function Eyebrow({ children }: { readonly children: ReactNode }) {
+  return (
+    <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] rtl:tracking-normal text-gold">
+      {children}
+    </p>
+  );
+}
+
+/** One reference-style stat card: uppercase label, trailing icon, big serif figure. */
+export function StatCard({
+  label,
+  value,
+  icon,
+  href,
+}: {
+  readonly label: string;
+  readonly value: ReactNode;
+  readonly icon: ReactNode;
+  readonly href?: string;
+}) {
+  const body = (
+    <>
+      <p className="flex items-center justify-between gap-2 text-xs font-medium uppercase tracking-wider rtl:tracking-normal text-muted-foreground">
+        {label}
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-gold/15 text-gold">{icon}</span>
+      </p>
+      <p className="mt-2 font-serif text-3xl tabular-nums">{value}</p>
+    </>
+  );
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className={cn(
+          "block rounded-2xl border bg-card p-5 text-card-foreground transition-colors hover:bg-accent/40",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        )}
+      >
+        {body}
+      </Link>
+    );
+  }
+  return <div className="rounded-2xl border bg-card p-5 text-card-foreground">{body}</div>;
+}
+
 /** The dashboard surface: a softly elevated card. `accent` adds a start-side rule. */
 export function DashboardCard({
   children,
@@ -212,6 +259,11 @@ export function UpcomingSessionsCard({
                   value={session.state}
                   tone={session.state === "live" ? "strong" : "neutral"}
                 />
+                {session.preparationStatus && (
+                  <Badge tone={session.preparationStatus === "ready" ? "strong" : "warning"}>
+                    {t.session.prepStatus[session.preparationStatus as keyof typeof t.session.prepStatus] ?? session.preparationStatus}
+                  </Badge>
+                )}
               </p>
               <p className="mt-2 flex flex-wrap items-center gap-2">
                 {session.meetingUrl && (

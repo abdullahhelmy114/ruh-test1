@@ -24,7 +24,15 @@ export default function ApprovalPage() {
             <KeyValues
               items={[
                 { label: t.common.status, value: <Badge tone={gate.state === "open" ? "warning" : "strong"}>{t.approvals.gateState[gate.state]}</Badge> },
-                { label: t.approvals.subject, value: <code dir="ltr">{`${gate.subject.kind}:${gate.subject.id}`}</code> },
+                {
+                  label: t.approvals.subject,
+                  value: (
+                    <span className="flex flex-wrap items-center gap-2">
+                      {t.approvals.kind[gate.subject.kind as keyof typeof t.approvals.kind] ?? gate.subject.kind}
+                      <bdi dir="ltr"><code className="font-mono text-xs text-muted-foreground">{gate.subject.id}</code></bdi>
+                    </span>
+                  ),
+                },
                 ...(gate.subjectVersionId ? [{ label: t.common.details, value: <code dir="ltr">{gate.subjectVersionId}</code> }] : []),
                 { label: t.approvals.requested, value: dateTime(gate.requestedAt) },
                 { label: t.common.status, value: fmt(t.approvals.needed, { count: gate.requiredApprovals }) },
@@ -39,7 +47,7 @@ export default function ApprovalPage() {
               empty={t.approvals.noDecisions}
               columns={[
                 { key: "decision", header: t.approvals.decide, cell: (d) => <Badge>{t.approvals.decision[d.decision]}</Badge> },
-                { key: "role", header: t.common.details, cell: (d) => d.decidedRole },
+                { key: "role", header: t.common.details, cell: (d) => t.approvals.role[d.decidedRole as keyof typeof t.approvals.role] ?? d.decidedRole },
                 { key: "reason", header: t.common.reason, cell: (d) => d.reason ?? "—" },
                 { key: "when", header: t.approvals.requested, cell: (d) => dateTime(d.decidedAt) },
               ]}

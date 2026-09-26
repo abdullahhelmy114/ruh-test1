@@ -22,7 +22,7 @@ export default function ApprovalsPage() {
             empty={t.approvals.empty}
             columns={[
               { key: "type", header: t.common.title, cell: (gate) => <TextLink href={pages.approval(gate.id)}>{t.approvals.type[gate.type]}</TextLink> },
-              { key: "subject", header: t.approvals.subject, cell: (gate) => `${gate.subject.kind}` },
+              { key: "subject", header: t.approvals.subject, cell: (gate) => t.approvals.kind[gate.subject.kind as keyof typeof t.approvals.kind] ?? gate.subject.kind },
               { key: "requested", header: t.approvals.requested, cell: (gate) => dateTime(gate.requestedAt) },
               { key: "needed", header: t.common.status, cell: (gate) => fmt(t.approvals.needed, { count: gate.requiredApprovals }) },
             ]}

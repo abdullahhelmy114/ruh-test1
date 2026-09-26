@@ -19,6 +19,7 @@ const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 
 const page = read("src/app/academy/(workspace)/learn/page.tsx");
 const kit = read("src/components/academy/workspace/dashboard.tsx");
+const referral = read("src/components/academy/workspace/referral.tsx");
 /** The student-facing surfaces this redesign touched; every t.* path they use must resolve everywhere. */
 const SUBPAGES = [
   "src/components/academy/workspace/class-group/practice.tsx",
@@ -28,7 +29,7 @@ const SUBPAGES = [
   "src/app/academy/(workspace)/recordings/[recordingId]/page.tsx",
   "src/app/academy/(workspace)/attempts/[attemptId]/page.tsx",
 ].map(read);
-const source = [page, kit, ...SUBPAGES].join("\n");
+const source = [page, kit, referral, ...SUBPAGES].join("\n");
 const locales = ["en", "ar", "tr"] as const;
 
 /** Every dictionary path the dashboard actually reads, straight from the source. */
@@ -78,19 +79,22 @@ describe("learner dashboard translation completeness", () => {
 
 describe("learner dashboard truthfulness", () => {
   test("the placement card states its unavailable status and offers no start action", () => {
-    const section = page.slice(page.indexOf("t.dashboard.placement}"), page.indexOf("</DashboardCard>", page.indexOf("t.dashboard.placement}")));
+    const start = page.indexOf("t.dashboard.placement}");
+    const section = page.slice(start, page.indexOf("</section>", start));
     assert.ok(section.includes("placementUnavailable"), "the truthful status is rendered");
     assert.ok(!/LinkButton|<Button|href=/.test(section), "no start button or link inside the placement card");
   });
 
   test("no hardcoded progress value reaches the progress bar", () => {
-    // The only ProgressBar value is computed from the live progress API.
-    assert.match(page, /ProgressBar\s*\n?\s*value=\{lessons\.completed \/ lessons\.total\}/);
+    // The only ProgressBar value is the live lessons ratio.
+    assert.match(page, /const ratio = lessons && lessons\.total > 0 \? lessons\.completed \/ lessons\.total : null/);
+    assert.match(page, /ProgressBar value=\{ratio\}/);
     assert.doesNotMatch(source, /value=\{0\.\d+\}/, "no literal ratio is rendered");
   });
 
-  test("the referral card links to the real referral center", () => {
-    assert.match(page, /href="\/affiliate"/);
+  test("the referral module links to the real referral center", () => {
+    assert.match(referral, /href="\/affiliate"/);
+    assert.match(page, /ReferralModule/);
   });
 
   test("student surfaces localize enum values instead of leaking them", () => {

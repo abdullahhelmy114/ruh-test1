@@ -125,7 +125,9 @@ describe("profile screens", () => {
       assert.doesNotMatch(src, /localStorage|sessionStorage/, name);
       assert.match(src, /const result = await loadOwnProfile\(\);/, name);
       assert.match(src, /const result = await saveOwnProfile\(\{/, name);
-      assert.match(src, /if \(!result\.ok\) \{\s*setSave\("idle"\);\s*toast\.error\(result\.message\);\s*return;\s*\}\s*setSave\("success"\);/, name);
+      // The message may pass through the localization helper; the guarded
+      // structure — error shown, then return, success only after storage — stays.
+      assert.match(src, /if \(!result\.ok\) \{\s*setSave\("idle"\);\s*toast\.error\((?:tt\()?result\.message\)?\);\s*return;\s*\}\s*setSave\("success"\);/, name);
       assert.doesNotMatch(src, /onAvatar=/, `${name}: the picture cannot be saved, so no upload is offered`);
     }
     const api = read("src", "components", "profile", "profile-api.ts");

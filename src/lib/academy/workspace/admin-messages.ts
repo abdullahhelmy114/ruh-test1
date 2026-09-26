@@ -19,6 +19,11 @@ const en = {
     production: "2C production",
     teachers: "Teachers",
   },
+  header: {
+    suite: "Management Suite",
+    title: "Admin Control Panel",
+    subtitle: "Oversee the entire Ruh-Ul-Qudus Academy ecosystem.",
+  },
   overview: {
     title: "Administration",
     intro: "Operational counts and settings that still need a value.",
@@ -500,6 +505,11 @@ const ar: AdminText = {
     production: "إنتاج المحتوى 2C",
     teachers: "المعلمون",
   },
+  header: {
+    suite: "جناح الإدارة",
+    title: "لوحة تحكم الإدارة",
+    subtitle: "أشرفي على منظومة أكاديمية روح القدس كاملة.",
+  },
   overview: {
     title: "الإدارة",
     intro: "الأعداد التشغيلية والإعدادات التي ما زالت تحتاج إلى قيمة.",
@@ -976,6 +986,11 @@ const tr: AdminText = {
     announcements: "Duyurular",
     production: "2C üretim",
     teachers: "Öğretmenler",
+  },
+  header: {
+    suite: "Yönetim Paketi",
+    title: "Yönetici Kontrol Paneli",
+    subtitle: "Ruh-Ul-Qudus Akademisi ekosisteminin tamamını yönetin.",
   },
   overview: {
     title: "Yönetim",

@@ -1,17 +1,20 @@
 "use client";
 
+import { useT } from "@/components/TranslatedText";
+
 import * as React from "react";
 import { motion } from "framer-motion";
 import { Check, Loader2, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function SaveButton({
-  onClick, state, label = "Save Changes",
+  onClick, state, label,
 }: {
   onClick: () => void;
   state: "idle" | "loading" | "success";
   label?: string;
 }) {
+  const tt = useT();
   const ref = React.useRef<HTMLButtonElement>(null);
   const [t, setT] = React.useState({ x: 0, y: 0 });
 
@@ -37,7 +40,7 @@ export function SaveButton({
       {state === "loading" ? <Loader2 size={16} className="animate-spin" /> :
         state === "success" ? <Check size={16} /> : <Save size={16} />}
       <span className="relative">
-        {state === "loading" ? "Saving..." : state === "success" ? "Saved" : label}
+        {state === "loading" ? tt("Saving...") : state === "success" ? tt("Saved") : (label ?? tt("Save Changes"))}
       </span>
     </motion.button>
   );

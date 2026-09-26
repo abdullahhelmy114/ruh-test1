@@ -2,6 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  BookOpen,
+  ClipboardCheck,
+  Crown,
+  FileSearch,
+  FileText,
+  Layers,
+  Megaphone,
+  Settings2,
+  ShieldCheck,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 import { createContext, useContext, useId, useState, type FormEvent, type ReactNode } from "react";
 import type { AdminText } from "@/lib/academy/workspace/admin-messages";
 import { commandsFor, REASON_REQUIRED, type ReviewCommand } from "@/lib/academy/workspace/review-commands";
@@ -49,44 +62,66 @@ export const managePages = {
   teacherApplication: (id: string) => `/academy/manage/teachers/applications/${encodeURIComponent(id)}`,
 };
 
-/** Administration section navigation. Every page and API enforces administrator access on the server. */
+/**
+ * Administration frame in the control-panel design: a crowned header card and
+ * an icon tab strip. The tabs are real route links — every page and API keeps
+ * enforcing administrator access on the server, and no route changed.
+ */
 export function ManageNav() {
   const text = useAdminText();
   const pathname = usePathname() ?? "";
   const items = [
-    { href: managePages.overview, label: text.nav.overview, exact: true },
-    { href: managePages.catalog, label: text.nav.catalog },
-    { href: managePages.classGroups, label: text.nav.classGroups },
-    { href: managePages.teachers, label: text.nav.teachers },
-    { href: managePages.policies, label: text.nav.policies },
-    { href: managePages.gates, label: text.nav.gates },
-    { href: managePages.reviewQueue, label: text.nav.reviewQueue },
-    { href: managePages.audit, label: text.nav.audit },
-    { href: managePages.announcements, label: text.nav.announcements },
-    { href: managePages.production, label: text.nav.production },
+    { href: managePages.overview, label: text.nav.overview, icon: TrendingUp, exact: true },
+    { href: managePages.catalog, label: text.nav.catalog, icon: BookOpen },
+    { href: managePages.classGroups, label: text.nav.classGroups, icon: Users },
+    { href: managePages.teachers, label: text.nav.teachers, icon: ShieldCheck },
+    { href: managePages.policies, label: text.nav.policies, icon: Settings2 },
+    { href: managePages.gates, label: text.nav.gates, icon: ClipboardCheck },
+    { href: managePages.reviewQueue, label: text.nav.reviewQueue, icon: FileSearch },
+    { href: managePages.audit, label: text.nav.audit, icon: FileText },
+    { href: managePages.announcements, label: text.nav.announcements, icon: Megaphone },
+    { href: managePages.production, label: text.nav.production, icon: Layers },
   ];
   return (
-    <nav aria-label={text.nav.label} className="mb-6">
-      <ul className="flex flex-wrap gap-1 rounded-md border p-1">
-        {items.map((item) => {
-          const current = item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
-          return (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                aria-current={current ? "page" : undefined}
-                className={cn(
-                  "inline-block rounded px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  current ? "bg-primary text-primary-foreground" : "hover:bg-muted",
-                )}
-              >
-                {item.label}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+    <div className="mb-8">
+      <header className="flex flex-col items-start justify-between gap-4 rounded-3xl border bg-card p-6 shadow-elegant md:flex-row md:items-center">
+        <div className="flex items-center gap-4">
+          <div aria-hidden="true" className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-linear-to-r from-primary to-primary/80 ring-4 ring-accent/30">
+            <Crown className="h-6 w-6 text-primary-foreground" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-widest rtl:tracking-normal text-gold">{text.header.suite}</p>
+            <h1 className="break-words font-serif text-3xl">{text.header.title}</h1>
+            <p className="text-sm text-muted-foreground">{text.header.subtitle}</p>
+          </div>
+        </div>
+      </header>
+      <nav aria-label={text.nav.label} className="mt-6">
+        <ul className="flex gap-1 overflow-x-auto rounded-2xl border bg-card p-1.5">
+          {items.map((item) => {
+            const Icon = item.icon;
+            const current = item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
+            return (
+              <li key={item.href} className="shrink-0">
+                <Link
+                  href={item.href}
+                  aria-current={current ? "page" : undefined}
+                  className={cn(
+                    "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    current
+                      ? "bg-linear-to-r from-primary to-primary/80 text-primary-foreground shadow-elegant"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                  )}
+                >
+                  <Icon aria-hidden="true" className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </div>
   );
 }
 

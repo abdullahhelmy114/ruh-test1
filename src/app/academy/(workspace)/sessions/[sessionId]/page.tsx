@@ -138,7 +138,7 @@ function PreparationForm({ preparation, sessionId, onSaved }: { readonly prepara
   }
 
   return (
-    <form onSubmit={save} className="space-y-3 rounded-md border p-4">
+    <form onSubmit={save} className="space-y-3 rounded-2xl border bg-card p-4">
       <Field label={t.common.status} htmlFor="prep-status">
         <SelectInput id="prep-status" value={status} onChange={(e) => setStatus(e.target.value)}>
           {(["not_started", "in_progress", "ready"] as const).map((value) => (
@@ -219,7 +219,7 @@ function AttendanceSheet({ data, sessionId, onSaved }: { readonly data: StaffAtt
 
   return (
     <form onSubmit={save} className="space-y-3">
-      <ul className="divide-y rounded-md border">
+      <ul className="divide-y rounded-2xl border">
         {data.learners.map((learner) => {
           const previous = existing.get(learner.uid);
           const isCorrection = previous !== undefined && marks[learner.uid] !== previous.markCode;

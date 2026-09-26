@@ -1,20 +1,19 @@
 "use client";
 
-import { Award, BookOpen, ClipboardList, Gift, Library, Puzzle, Video } from "lucide-react";
+import { Award, CalendarDays, ClipboardList, GraduationCap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/firebase/AuthProvider";
 import { requestJson, useApi } from "@/components/academy/workspace/api";
 import { useWorkspace } from "@/components/academy/workspace/context";
 import {
-  DashboardCard,
+  Eyebrow,
   ProgressBar,
-  QuickAction,
   SectionHeader,
   StatusBadge,
-  UpcomingSessionsCard,
-  WelcomeStat,
 } from "@/components/academy/workspace/dashboard";
+import { INTL_LOCALE } from "@/lib/academy/workspace/format";
 import { api, pages } from "@/components/academy/workspace/paths";
+import { ReferralModule } from "@/components/academy/workspace/referral";
 import { useUnreadNotifications } from "@/components/academy/workspace/shell";
 import type {
   Announcements,
@@ -36,13 +35,15 @@ import {
 import { cn } from "@/lib/utils";
 
 /*
- * Learner dashboard, in the owner-approved Gate 2B composition: a premium
- * welcome panel, Courses in Progress beside a clearly separate Upcoming
- * Sessions calendar, then progress and due work, then communication and
- * quick continuation, then the quiet lower row. Under the surface it keeps
- * the Gate 2C engineering: incremental per-class loading, the shared unread
- * request, cached formatters, localized digits and a geometry-matched
- * skeleton. Presentation only — every value comes from the live APIs.
+ * Learner home in the owner's reference composition, on Academy identity and
+ * real data only: a welcome strip (the reference's streak chip has no live
+ * counterpart, so the real active-classes chip takes its place), the classes
+ * in progress with their live completion, the earned certificates as the
+ * achievements row, then live sessions beside the truthful placement state
+ * (the reference's Launch button would start a test that does not exist) and
+ * the referral module (the live program counts joins and offers no rewards).
+ * Below the reference's fold, the learner's real work stays: due work,
+ * remediation nudges, announcements and the inbox. Presentation only.
  */
 export default function LearnPage() {
   const { state, reload } = useApi<MyLearning>(api.myLearning);
@@ -53,27 +54,22 @@ export default function LearnPage() {
   );
 }
 
-/** A skeleton shaped like the real zones, so first paint reserves the layout. */
 function PageSkeleton() {
   const pulse = "animate-pulse rounded-2xl border bg-muted/40 motion-reduce:animate-none";
   return (
-    <div aria-hidden="true" className="space-y-10">
-      <div className={cn(pulse, "min-h-40 rounded-3xl")} />
-      <div className="grid gap-8 lg:grid-cols-[3fr_2fr]">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className={cn(pulse, "min-h-48")} />
-          <div className={cn(pulse, "min-h-48")} />
+    <div aria-hidden="true" className="space-y-8">
+      <div className={cn(pulse, "min-h-28 rounded-3xl")} />
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className={cn(pulse, "min-h-36")} />
+        <div className={cn(pulse, "min-h-36")} />
+      </div>
+      <div className={cn(pulse, "min-h-24")} />
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <div className={cn(pulse, "min-h-72")} />
+        <div className="space-y-6">
+          <div className={cn(pulse, "min-h-40")} />
+          <div className={cn(pulse, "min-h-56")} />
         </div>
-        <div className={cn(pulse, "min-h-52")} />
-      </div>
-      <div className="grid gap-8 md:grid-cols-2">
-        <div className={cn(pulse, "min-h-36")} />
-        <div className={cn(pulse, "min-h-36")} />
-      </div>
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className={cn(pulse, "min-h-32")} />
-        <div className={cn(pulse, "min-h-32")} />
-        <div className={cn(pulse, "min-h-32")} />
       </div>
     </div>
   );
@@ -104,7 +100,6 @@ function usePerGroup<T>(classGroupIds: readonly string[], url: (id: string) => s
     return () => {
       cancelled = true;
     };
-    // url/select are stable module-level helpers per call site.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, user, isLoading]);
   return map;
@@ -124,75 +119,32 @@ const selectOpenWork = (data: unknown): readonly OpenWork[] => {
 };
 
 function Dashboard({ data }: { readonly data: MyLearning }) {
-  const { t, fmt, number, sessionTime } = useWorkspace();
+  const { t, fmt, number, percent } = useWorkspace();
   const { user } = useAuth();
   const displayName = user?.displayName?.trim() || "";
   const active = data.classGroups.filter((entry) => entry.enrollmentState === "active");
   const activeIds = active.map((entry) => entry.classGroup.id);
   const names = new Map(data.classGroups.map((entry) => [entry.classGroup.id, entry.classGroup.name]));
-  const next = data.upcomingSessions[0];
   const progressMap = usePerGroup(activeIds, api.progress, selectProgress);
   const workMap = usePerGroup(activeIds, api.assignments, selectOpenWork);
   const remediationMap = usePerGroup(activeIds, (id) => api.remediation(id), selectRemediation);
 
   return (
-    <div className="space-y-10">
-      {/* Welcome panel: greeting and real facts on the left, the next session on the right. */}
-      <header>
-        <div className="rounded-3xl border bg-card p-6 text-card-foreground sm:p-8">
-          <div className="grid gap-6 lg:grid-cols-[1fr_minmax(260px,340px)] lg:items-center">
-            <div className="min-w-0">
-              <p className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] rtl:tracking-normal text-muted-foreground">
-                <span aria-hidden="true" className="h-px w-4 bg-gold" />
-                {t.learn.title}
-              </p>
-              <h1 className="mt-1.5 break-words font-serif text-3xl sm:text-4xl">
-                {displayName ? fmt(t.dashboard.greetingName, { name: displayName }) : t.dashboard.greeting}
-              </h1>
-              <p className="mt-2 text-muted-foreground">{t.dashboard.intro}</p>
-              <dl className="mt-5 flex flex-wrap gap-x-10 gap-y-3">
-                <WelcomeStat label={t.dashboard.activeClasses} value={number(active.length)} />
-              </dl>
-              <p className="mt-5">
-                {active.length > 0 ? (
-                  <LinkButton href={pages.classGroup(active[0].classGroup.id)} variant="primary">
-                    {t.learn.openClass}
-                  </LinkButton>
-                ) : (
-                  <LinkButton href="/academy" variant="primary">
-                    {t.nav.catalog}
-                  </LinkButton>
-                )}
-              </p>
-            </div>
-            <div className="rounded-2xl border bg-background/60 p-4">
-              <p className="text-xs uppercase tracking-wider rtl:tracking-normal text-muted-foreground">{t.dashboard.nextSession}</p>
-              {next ? (
-                <>
-                  <p className="mt-1.5 break-words font-medium">{next.lessonTitle}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    <time dateTime={next.startsAt}>{sessionTime(next.startsAt)}</time>
-                    {next.classGroupId && names.get(next.classGroupId) ? (
-                      <>
-                        {" · "}
-                        <bdi>{names.get(next.classGroupId)}</bdi>
-                      </>
-                    ) : null}
-                  </p>
-                  <p className="mt-3 flex flex-wrap gap-2">
-                    {next.meetingUrl && (
-                      <LinkButton href={next.meetingUrl} variant="primary" external>
-                        {t.learn.join}
-                      </LinkButton>
-                    )}
-                    <LinkButton href={pages.session(next.id)}>{t.classGroup.openSession}</LinkButton>
-                  </p>
-                </>
-              ) : (
-                <p className="mt-1.5 text-sm text-muted-foreground">{t.dashboard.noNextSession}</p>
-              )}
-            </div>
+    <div className="space-y-8">
+      {/* 1 — Welcome strip: greeting, one line, and a real chip where the reference showed a streak. */}
+      <header className="rounded-3xl border bg-card p-5 text-card-foreground sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="min-w-0">
+            <Eyebrow>{t.dashboard.greetingEyebrow}</Eyebrow>
+            <h1 className="mt-1 break-words font-serif text-2xl sm:text-3xl">
+              {displayName ? fmt(t.dashboard.greetingName, { name: displayName }) : t.dashboard.greeting}
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">{t.dashboard.intro}</p>
           </div>
+          <p className="inline-flex items-center gap-2 rounded-full bg-gold/15 px-4 py-2 text-sm font-medium">
+            <GraduationCap aria-hidden="true" className="h-4 w-4 text-gold" />
+            <span className="tabular-nums">{number(active.length)}</span> {t.dashboard.activeClasses}
+          </p>
         </div>
         {active.map((entry) => (
           <RemediationNudge
@@ -204,210 +156,193 @@ function Dashboard({ data }: { readonly data: MyLearning }) {
         ))}
       </header>
 
-      {/* Primary zone: courses in progress and the clearly separate upcoming-session calendar. */}
-      <div className="grid items-start gap-8 lg:grid-cols-[3fr_2fr]">
-        <section aria-label={t.dashboard.courses}>
-          <SectionHeader eyebrow={t.dashboard.coursesEyebrow} title={t.dashboard.courses} />
-          {data.classGroups.length === 0 ? (
-            <EmptyState action={<LinkButton href="/academy" variant="primary">{t.nav.catalog}</LinkButton>}>
-              {t.learn.noClasses}
-            </EmptyState>
-          ) : (
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-              {data.classGroups.map((entry) => (
-                <li key={entry.enrollmentId}>
-                  <CourseCard
-                    entry={entry}
-                    progress={progressMap.get(entry.classGroup.id) ?? null}
-                    nextSession={data.upcomingSessions.find((session) => session.classGroupId === entry.classGroup.id) ?? null}
-                  />
+      {/* 2 — Continue your studies: real classes with their live completion. */}
+      <section aria-label={t.dashboard.courses}>
+        <SectionHeader eyebrow={t.dashboard.continueEyebrow} title={t.dashboard.inProgress} />
+        {data.classGroups.length === 0 ? (
+          <EmptyState action={<LinkButton href="/academy" variant="primary">{t.nav.catalog}</LinkButton>}>
+            {t.learn.noClasses}
+          </EmptyState>
+        ) : (
+          <ul className="grid gap-4 md:grid-cols-2">
+            {data.classGroups.map((entry) => {
+              const activeHere = entry.enrollmentState === "active";
+              const lessons = progressMap.get(entry.classGroup.id)?.progress.lessons ?? null;
+              const ratio = lessons && lessons.total > 0 ? lessons.completed / lessons.total : null;
+              return (
+                <li key={entry.enrollmentId} className="rounded-2xl border bg-card p-5 text-card-foreground">
+                  <p className="break-words font-serif text-lg">{entry.course.title}</p>
+                  <p className="mt-0.5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                    <bdi>{entry.classGroup.name}</bdi>
+                    <StatusBadge map={t.learn.enrollment} value={entry.enrollmentState} tone={activeHere ? "strong" : "neutral"} />
+                  </p>
+                  {activeHere && ratio !== null && (
+                    <div className="mt-4">
+                      <ProgressBar value={ratio} label={fmt(t.classGroup.lessonsOf, { completed: lessons!.completed, total: lessons!.total })} />
+                    </div>
+                  )}
+                  <p className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+                    <span className="text-muted-foreground">
+                      {activeHere && ratio !== null ? fmt(t.dashboard.percentComplete, { percent: percent(ratio) }) : ""}
+                    </span>
+                    {activeHere && <TextLink href={pages.classGroup(entry.classGroup.id)}>{t.learn.openClass}</TextLink>}
+                  </p>
                 </li>
-              ))}
-            </ul>
-          )}
-        </section>
-        <section aria-label={t.learn.upcoming}>
-          <SectionHeader eyebrow={t.dashboard.calendarEyebrow} title={t.learn.upcoming} />
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      {/* 3 — Achievements: the learner's real certificates. */}
+      <AchievementsSection />
+
+      {/* 4 — Live sessions beside the truthful placement state and the referral module. */}
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <section aria-label={t.learn.upcoming} className="rounded-2xl border bg-card p-5 text-card-foreground">
+          <Eyebrow>
+            <CalendarDays aria-hidden="true" className="h-3.5 w-3.5" />
+            {t.dashboard.calendarEyebrow}
+          </Eyebrow>
+          <h2 className="mt-1 font-serif text-2xl">{t.learn.upcoming}</h2>
           {data.upcomingSessions.length === 0 ? (
-            <div className="grid min-h-52 place-items-center rounded-2xl border border-dashed p-6 text-center">
-              <div>
-                <p className="font-medium">{t.learn.noUpcoming}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{t.dashboard.noUpcomingBody}</p>
-              </div>
+            <div className="mt-4">
+              <EmptyState>
+                <span className="font-medium text-foreground">{t.learn.noUpcoming}</span>
+                <span className="mt-1 block">{t.dashboard.noUpcomingBody}</span>
+              </EmptyState>
             </div>
           ) : (
-            <UpcomingSessionsCard sessions={data.upcomingSessions} classGroupNames={names} empty={t.learn.noUpcoming} />
+            <ol className="mt-4 space-y-3">
+              {data.upcomingSessions.map((session) => (
+                <SessionRow key={session.id} session={session} groupName={session.classGroupId ? names.get(session.classGroupId) : undefined} />
+              ))}
+            </ol>
           )}
         </section>
-      </div>
 
-      {/* Secondary zone: one aggregated progress card and the work that is due. */}
-      <div className="grid items-start gap-8 md:grid-cols-2">
-        <section aria-label={t.dashboard.overview}>
-          <SectionHeader eyebrow={t.classGroup.tabs.progress} title={t.dashboard.overview} />
-          <ProgressOverview active={active} progressMap={progressMap} />
-        </section>
-        <section aria-label={t.learn.work}>
-          <SectionHeader eyebrow={t.dashboard.workEyebrow} title={t.learn.work} />
-          {active.length === 0 ? (
-            <EmptyState>{t.learn.noWork}</EmptyState>
-          ) : (
-            <DueWorkSection active={active} workMap={workMap} />
-          )}
-        </section>
-      </div>
-
-      {/* Activity zone: continue-learning leads; announcements and the inbox accompany it. */}
-      <div className="grid items-start gap-8 lg:grid-cols-[2fr_1fr]">
-        <section aria-label={t.dashboard.continueLearning}>
-          <SectionHeader eyebrow={t.dashboard.continueEyebrow} title={t.dashboard.continueLearning} />
-          {active.length === 0 ? (
-            <EmptyState>{t.learn.noClasses}</EmptyState>
-          ) : (
-            <ContinueLearning classGroupId={active[0].classGroup.id} />
-          )}
-        </section>
-        <div className="space-y-8">
-          <section aria-label={t.dashboard.announcements}>
-            <SectionHeader title={t.dashboard.announcements} action={<TextLink href={pages.announcements}>{t.dashboard.viewAll}</TextLink>} />
-            <LatestAnnouncements />
+        <div className="space-y-6">
+          {/* The reference's dark placement card, kept truthful: the test is not open, so no launch action exists. */}
+          <section aria-label={t.dashboard.placement} className="rounded-2xl bg-primary p-5 text-primary-foreground">
+            <GraduationCap aria-hidden="true" className="h-6 w-6 text-gold" />
+            <h2 className="mt-2 font-serif text-2xl">{t.dashboard.placement}</h2>
+            <p className="mt-1 text-sm text-primary-foreground/80">{t.dashboard.placementUnavailable}</p>
           </section>
-          <section aria-label={t.dashboard.inbox}>
-            <SectionHeader title={t.dashboard.inbox} />
-            <InboxCard />
-          </section>
+          <ReferralModule />
         </div>
       </div>
 
-      {/* Lower row: certificates, referral and the truthful placement state. */}
-      <div className="grid items-start gap-8 md:grid-cols-3">
-        <section aria-label={t.nav.certificates}>
-          <SectionHeader title={t.nav.certificates} />
-          <CertificatesCard />
+      {/* Below the reference's fold: the learner's real work and communication. */}
+      <section aria-label={t.learn.work}>
+        <SectionHeader eyebrow={t.dashboard.workEyebrow} title={t.learn.work} />
+        {active.length === 0 ? (
+          <EmptyState>{t.learn.noWork}</EmptyState>
+        ) : (
+          <DueWorkSection active={active} workMap={workMap} />
+        )}
+      </section>
+
+      <div className="grid items-start gap-6 md:grid-cols-2">
+        <section aria-label={t.dashboard.announcements}>
+          <SectionHeader title={t.dashboard.announcements} action={<TextLink href={pages.announcements}>{t.dashboard.viewAll}</TextLink>} />
+          <LatestAnnouncements />
         </section>
-        <section aria-label={t.dashboard.referral}>
-          <SectionHeader title={t.dashboard.referral} />
-          <DashboardCard>
-            <p className="flex items-start gap-3">
-              <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
-                <Gift className="h-4 w-4" />
-              </span>
-              <span className="text-sm text-muted-foreground">{t.dashboard.referralBody}</span>
-            </p>
-            <p className="mt-3">
-              <LinkButton href="/affiliate">{t.dashboard.openReferral}</LinkButton>
-            </p>
-          </DashboardCard>
-        </section>
-        <section aria-label={t.dashboard.placement}>
-          <SectionHeader title={t.dashboard.placement} />
-          <DashboardCard className="border-dashed bg-muted/20">
-            <p className="flex items-start gap-3">
-              <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground">
-                <ClipboardList className="h-4 w-4" />
-              </span>
-              {/* Truthful state only: not implemented, so no start action exists. */}
-              <span className="text-sm text-muted-foreground">{t.dashboard.placementUnavailable}</span>
-            </p>
-          </DashboardCard>
+        <section aria-label={t.dashboard.inbox}>
+          <SectionHeader title={t.dashboard.inbox} />
+          <InboxCard />
         </section>
       </div>
     </div>
   );
 }
 
-/** One enrolled class: course, group, states, live progress and the next real session. */
-function CourseCard({
-  entry,
-  progress,
-  nextSession,
-}: {
-  readonly entry: MyLearning["classGroups"][number];
-  readonly progress: ProgressView | null;
-  readonly nextSession: MyLearning["upcomingSessions"][number] | null;
-}) {
-  const { t, fmt, percent, sessionTime } = useWorkspace();
-  const activeHere = entry.enrollmentState === "active";
-  const lessons = progress?.progress.lessons ?? null;
-  const attendance = progress?.progress.attendance.attendedRatio ?? null;
+/** The learner's certificates as the achievements row; a truthful empty state otherwise. */
+function AchievementsSection() {
+  const { t, date, fmt } = useWorkspace();
+  const { state, reload } = useApi<MyCertificates>(api.myCertificates);
   return (
-    <DashboardCard className="flex h-full flex-col">
-      <p className="text-sm text-muted-foreground">{entry.course.title}</p>
-      <h3 className="mt-0.5 break-words font-serif text-lg">{entry.classGroup.name}</h3>
-      <p className="mt-2 flex flex-wrap gap-2">
-        <StatusBadge map={t.classGroup.status} value={entry.classGroup.status} />
-        <StatusBadge map={t.learn.enrollment} value={entry.enrollmentState} tone={activeHere ? "strong" : "neutral"} />
-      </p>
-      {activeHere && lessons !== null && lessons.total > 0 && (
-        <div className="mt-4">
-          <ProgressBar value={lessons.completed / lessons.total} label={fmt(t.classGroup.lessonsOf, { completed: lessons.completed, total: lessons.total })} />
-        </div>
-      )}
-      {activeHere && (attendance !== null || nextSession) && (
-        <dl className="mt-3 grid gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
-          {attendance !== null && (
-            <div className="flex items-center justify-between gap-2 sm:block">
-              <dt className="text-muted-foreground">{t.classGroup.progressAttendance}</dt>
-              <dd className="font-medium tabular-nums">{percent(attendance)}</dd>
-            </div>
-          )}
-          {nextSession && (
-            <div className="min-w-0">
-              <dt className="text-muted-foreground">{t.dashboard.nextSession}</dt>
-              <dd className="truncate font-medium">
-                <time dateTime={nextSession.startsAt}>{sessionTime(nextSession.startsAt)}</time>
-              </dd>
-            </div>
-          )}
-        </dl>
-      )}
-      {activeHere && (
-        <p className="mt-4 border-t pt-4">
-          <LinkButton href={pages.classGroup(entry.classGroup.id)} variant="primary">
-            {t.learn.openClass}
-          </LinkButton>
-        </p>
-      )}
-    </DashboardCard>
+    <section aria-label={t.nav.certificates}>
+      <SectionHeader eyebrow={t.dashboard.achievementsEyebrow} title={t.nav.certificates} action={<TextLink href={pages.certificates}>{t.dashboard.viewAll}</TextLink>} />
+      <ApiView state={state} onRetry={reload}>
+        {(rows) =>
+          rows.length === 0 ? (
+            <EmptyState icon={<Award aria-hidden="true" className="h-5 w-5" />}>{t.dashboard.noCertificates}</EmptyState>
+          ) : (
+            <ul className="grid gap-4 md:grid-cols-2">
+              {rows.map((row) => (
+                <li key={row.id} className="flex items-center gap-4 rounded-2xl border bg-card p-4 text-card-foreground">
+                  <span aria-hidden="true" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gold/15 text-gold">
+                    <Award className="h-5 w-5" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block break-words font-medium">{row.courseTitle}</span>
+                    <span className="block text-sm text-muted-foreground">{fmt(t.dashboard.issuedOn, { date: date(row.issuedAt) })}</span>
+                    <TextLink href={pages.verifyCertificate(row.code)}>{t.certificates.verify}</TextLink>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      </ApiView>
+    </section>
   );
 }
 
-/** Aggregated lessons, attendance and released results across the active classes — live values only. */
-function ProgressOverview({
-  active,
-  progressMap,
+/** One session row: dark date tile, context, state, actions (no preparation for learners). */
+function SessionRow({
+  session,
+  groupName,
 }: {
-  readonly active: MyLearning["classGroups"];
-  readonly progressMap: ReadonlyMap<string, ProgressView>;
+  readonly session: MyLearning["upcomingSessions"][number];
+  readonly groupName: string | undefined;
 }) {
-  const { t, fmt, percent } = useWorkspace();
-  const loaded = active
-    .map((entry) => progressMap.get(entry.classGroup.id))
-    .filter((view): view is ProgressView => view !== undefined);
-  if (loaded.length === 0) return <EmptyState>{t.common.empty}</EmptyState>;
-  const lessons = loaded.reduce(
-    (sum, view) => ({ completed: sum.completed + view.progress.lessons.completed, total: sum.total + view.progress.lessons.total }),
-    { completed: 0, total: 0 },
-  );
-  const attended = loaded.reduce((sum, view) => sum + view.progress.attendance.attendedSessions, 0);
-  const recorded = loaded.reduce((sum, view) => sum + view.progress.attendance.recordedSessions, 0);
-  const assessments = loaded.flatMap((view) => view.progress.assessments);
-  const released = assessments.filter((row) => row.bestScorePercent !== null).length;
+  const { t, locale, timeZone, sessionTime } = useWorkspace();
+  const date = new Date(session.startsAt);
+  const valid = timeZone !== null && !Number.isNaN(date.getTime());
+  const weekday = valid ? new Intl.DateTimeFormat(INTL_LOCALE[locale], { weekday: "short", timeZone: timeZone! }).format(date) : null;
+  const day = valid ? new Intl.DateTimeFormat(INTL_LOCALE[locale], { day: "numeric", timeZone: timeZone! }).format(date) : null;
   return (
-    <DashboardCard className="space-y-4">
-      {lessons.total > 0 && (
-        <ProgressBar value={lessons.completed / lessons.total} label={fmt(t.classGroup.lessonsOf, { completed: lessons.completed, total: lessons.total })} />
-      )}
-      {recorded > 0 && (
-        <ProgressBar value={attended / recorded} label={fmt(t.classGroup.attendanceOf, { percent: percent(attended / recorded) })} />
-      )}
-      <p className="flex items-center justify-between gap-2 text-sm">
-        <span className="text-muted-foreground">{t.classGroup.progressAssessments}</span>
-        <span className="font-medium tabular-nums">
-          {fmt("{released} / {total}", { released, total: assessments.length })}
-        </span>
-      </p>
-    </DashboardCard>
+    <li className="rounded-xl bg-muted/40 p-3.5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div aria-hidden="true" className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-primary text-center text-primary-foreground">
+          {day ? (
+            <span className="leading-tight">
+              <span className="block text-[0.6rem] uppercase tracking-wide rtl:tracking-normal opacity-80">{weekday}</span>
+              <span className="block font-serif text-xl tabular-nums">{day}</span>
+            </span>
+          ) : (
+            <span className="text-xl">·</span>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="break-words font-medium">{session.lessonTitle}</p>
+          <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+            <time dateTime={session.startsAt}>{sessionTime(session.startsAt)}</time>
+            {groupName && <bdi>{groupName}</bdi>}
+            <StatusBadge map={t.classGroup.sessionState} value={session.state} tone={session.state === "live" ? "strong" : "neutral"} />
+          </p>
+          <p className="mt-1 text-sm">
+            {session.classGroupId && (
+              <TextLink href={pages.lessonSheet(session.classGroupId, session.lessonId)}>{t.session.lessonSheet}</TextLink>
+            )}
+          </p>
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center gap-2 sm:flex-col sm:items-stretch">
+          {session.meetingUrl ? (
+            <LinkButton href={session.meetingUrl} variant="primary" external>
+              {t.learn.join}
+            </LinkButton>
+          ) : (
+            /* An intentional, truthful disabled state: no link exists yet. */
+            <span className="inline-flex min-h-9 cursor-not-allowed items-center justify-center rounded-lg border border-dashed px-3 py-1.5 text-sm text-muted-foreground">
+              {t.teach.joinUnavailable}
+            </span>
+          )}
+          <LinkButton href={pages.session(session.id)}>{t.classGroup.openSession}</LinkButton>
+        </div>
+      </div>
+    </li>
   );
 }
 
@@ -457,7 +392,7 @@ function DueWorkSection({
   return (
     <div className="space-y-4">
       {withWork.map(({ entry, open }) => (
-        <DashboardCard key={entry.classGroup.id}>
+        <div key={entry.classGroup.id} className="rounded-2xl border bg-card p-5 text-card-foreground">
           <h3 className="mb-3 font-serif text-lg">{entry.classGroup.name}</h3>
           <ul className="space-y-3">
             {open.map((item) => {
@@ -480,7 +415,7 @@ function DueWorkSection({
               );
             })}
           </ul>
-        </DashboardCard>
+        </div>
       ))}
     </div>
   );
@@ -498,14 +433,12 @@ function LatestAnnouncements() {
         ) : (
           <ul className="space-y-3">
             {items.slice(0, 2).map((item) => (
-              <li key={item.id}>
-                <DashboardCard className="p-4">
-                  <p className="text-xs text-muted-foreground">
-                    <time dateTime={item.publishedAt}>{dateTime(item.publishedAt)}</time>
-                  </p>
-                  <h3 className="mt-0.5 break-words font-medium">{item.title}</h3>
-                  <p className="mt-1 line-clamp-2 break-words text-sm text-muted-foreground">{item.body}</p>
-                </DashboardCard>
+              <li key={item.id} className="rounded-2xl border bg-card p-4 text-card-foreground">
+                <p className="text-xs text-muted-foreground">
+                  <time dateTime={item.publishedAt}>{dateTime(item.publishedAt)}</time>
+                </p>
+                <h3 className="mt-0.5 break-words font-medium">{item.title}</h3>
+                <p className="mt-1 line-clamp-2 break-words text-sm text-muted-foreground">{item.body}</p>
               </li>
             ))}
           </ul>
@@ -526,7 +459,7 @@ function InboxCard() {
   const settled = unreadNotifications !== null && unreadMessages !== null;
   const caughtUp = unreadNotifications === 0 && unreadMessages === 0;
   return (
-    <DashboardCard>
+    <div className="rounded-2xl border bg-card p-5 text-card-foreground">
       <ul className="space-y-1 text-sm">
         {!settled && (
           <li aria-hidden="true" className="h-4 w-40 animate-pulse rounded bg-muted motion-reduce:animate-none" />
@@ -543,65 +476,6 @@ function InboxCard() {
         <LinkButton href={pages.messages}>{t.dashboard.openMessages}</LinkButton>
         <LinkButton href={pages.notifications}>{t.dashboard.openNotifications}</LinkButton>
       </p>
-    </DashboardCard>
-  );
-}
-
-/** Quick actions into the live tabs of the learner's first active class. */
-function ContinueLearning({ classGroupId }: { readonly classGroupId: string }) {
-  const { t } = useWorkspace();
-  return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      <QuickAction
-        href={pages.classGroup(classGroupId, "lessons")}
-        label={t.classGroup.tabs.lessons}
-        hint={t.dashboard.lessonsHint}
-        icon={<BookOpen className="h-4 w-4" />}
-      />
-      <QuickAction
-        href={pages.classGroup(classGroupId, "readings")}
-        label={t.classGroup.tabs.readings}
-        hint={t.dashboard.readingsHint}
-        icon={<Library className="h-4 w-4" />}
-      />
-      <QuickAction
-        href={pages.classGroup(classGroupId, "practice")}
-        label={t.classGroup.tabs.practice}
-        hint={t.dashboard.practiceHint}
-        icon={<Puzzle className="h-4 w-4" />}
-      />
-      <QuickAction
-        href={pages.classGroup(classGroupId, "recordings")}
-        label={t.classGroup.tabs.recordings}
-        hint={t.dashboard.recordingsHint}
-        icon={<Video className="h-4 w-4" />}
-      />
     </div>
-  );
-}
-
-/** The learner's real certificates, summarized. */
-function CertificatesCard() {
-  const { t, fmt, number } = useWorkspace();
-  const { state, reload } = useApi<MyCertificates>(api.myCertificates);
-  return (
-    <DashboardCard>
-      <p className="flex items-start gap-3">
-        <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
-          <Award className="h-4 w-4" />
-        </span>
-        <span className="text-sm text-muted-foreground">{t.dashboard.certificatesBody}</span>
-      </p>
-      <ApiView state={state} onRetry={reload}>
-        {(rows) => (
-          <p className="mt-3 text-sm font-medium">
-            {rows.length === 0 ? t.dashboard.noCertificates : fmt(t.dashboard.certificatesCount, { count: number(rows.length) })}
-          </p>
-        )}
-      </ApiView>
-      <p className="mt-3">
-        <LinkButton href={pages.certificates}>{t.dashboard.openCertificates}</LinkButton>
-      </p>
-    </DashboardCard>
   );
 }

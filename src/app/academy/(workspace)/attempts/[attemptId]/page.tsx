@@ -175,7 +175,7 @@ function Grading({ attempt, onChanged }: { readonly attempt: AttemptRecord; read
       <Section title={t.attempt.response}>
         <ul className="space-y-2">
           {(attempt.itemResults ?? []).map((item, index) => (
-            <li key={item.itemId} className="rounded-md border p-3 text-sm">
+            <li key={item.itemId} className="rounded-xl border bg-card p-3 text-sm">
               <p className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-medium">
                   {fmt(t.attempt.item, { id: index + 1 })}{" "}
@@ -197,7 +197,7 @@ function Grading({ attempt, onChanged }: { readonly attempt: AttemptRecord; read
 
       {attempt.state === "needs_review" && (
         <Section title={t.attempt.grade}>
-          <form onSubmit={grade} className="space-y-3 rounded-md border p-4">
+          <form onSubmit={grade} className="space-y-3 rounded-2xl border bg-card p-4">
             {pending.map((item) => (
               <Field key={item.itemId} label={fmt(t.attempt.pointsFor, { id: (attempt.itemResults ?? []).findIndex((row) => row.itemId === item.itemId) + 1, max: item.maxPoints })} htmlFor={`score-${item.itemId}`}>
                 <TextInput
@@ -223,37 +223,40 @@ function Grading({ attempt, onChanged }: { readonly attempt: AttemptRecord; read
         </Section>
       )}
 
-      {attempt.state === "graded" && attempt.releasedAt === null && (
-        <Section title={t.attempt.release}>
-          <Button type="button" busy={action.busy} onClick={() => void release()}>
-            {t.attempt.release}
-          </Button>
-        </Section>
-      )}
-
-      {attempt.state === "graded" && (
-        <Section title={t.attempt.returnForRevision}>
-          <form onSubmit={returnForRevision} className="space-y-3 rounded-md border p-4">
-            <Field label={t.attempt.revisionFeedback} htmlFor="revision-feedback">
-              <TextArea id="revision-feedback" required value={revisionFeedback} maxLength={10000} onChange={(e) => setRevisionFeedback(e.target.value)} />
-            </Field>
-            <Button type="submit" variant="outline" busy={action.busy}>
-              {t.attempt.returnForRevision}
-            </Button>
-          </form>
-        </Section>
-      )}
-
-      {attempt.releasedAt !== null && (role === "teacher" || role === "admin") && (
-        <Section title={t.attempt.applyRemediation}>
-          <Button type="button" variant="outline" busy={action.busy} onClick={() => void applyRemediation()}>
-            {t.attempt.applyRemediation}
-          </Button>
-          {remediationCount !== null && (
-            <div className="mt-2">
-              <Notice tone="success">{fmt(t.attempt.remediationApplied, { count: remediationCount })}</Notice>
-            </div>
-          )}
+      {(attempt.state === "graded" || (attempt.releasedAt !== null && (role === "teacher" || role === "admin"))) && (
+        <Section title={t.attempt.actions}>
+          <div className="space-y-4 rounded-2xl border bg-card p-4">
+            {attempt.state === "graded" && attempt.releasedAt === null && (
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Releasing is the decisive, irreversible step: the one primary action here. */}
+                <Button type="button" busy={action.busy} onClick={() => void release()}>
+                  {t.attempt.release}
+                </Button>
+              </div>
+            )}
+            {attempt.state === "graded" && (
+              <form onSubmit={returnForRevision} className="space-y-3 border-t pt-4 first:border-t-0 first:pt-0">
+                <Field label={t.attempt.revisionFeedback} htmlFor="revision-feedback">
+                  <TextArea id="revision-feedback" required value={revisionFeedback} maxLength={10000} onChange={(e) => setRevisionFeedback(e.target.value)} />
+                </Field>
+                <Button type="submit" variant="outline" busy={action.busy}>
+                  {t.attempt.returnForRevision}
+                </Button>
+              </form>
+            )}
+            {attempt.releasedAt !== null && (role === "teacher" || role === "admin") && (
+              <div className="border-t pt-4 first:border-t-0 first:pt-0">
+                <Button type="button" variant="outline" busy={action.busy} onClick={() => void applyRemediation()}>
+                  {t.attempt.applyRemediation}
+                </Button>
+                {remediationCount !== null && (
+                  <div className="mt-2">
+                    <Notice tone="success">{fmt(t.attempt.remediationApplied, { count: remediationCount })}</Notice>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </Section>
       )}
     </>

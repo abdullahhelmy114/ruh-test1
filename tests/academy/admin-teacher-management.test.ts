@@ -409,7 +409,9 @@ describe("teacher management screens and their routes", () => {
   test("teacher management is in the administration navigation", () => {
     const kit = read("src", "components", "academy", "workspace", "admin", "kit.tsx");
     assert.match(kit, /teachers: "\/academy\/manage\/teachers",/);
-    assert.match(kit, /\{ href: managePages\.teachers, label: text\.nav\.teachers \}/);
+    // The nav item may carry presentation extras (an icon); the guarded truth
+    // is that the teachers route sits in the administration navigation.
+    assert.match(kit, /\{ href: managePages\.teachers, label: text\.nav\.teachers[^}]*\}/);
   });
 });
 

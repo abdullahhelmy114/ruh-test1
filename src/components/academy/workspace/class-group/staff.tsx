@@ -98,7 +98,7 @@ export function ReportTab({ classGroupId }: { readonly classGroupId: string }) {
           columns={[
             { key: "name", header: t.common.learner, cell: (row) => displayName(row.displayName, t.common.unnamed) },
             { key: "attendance", header: t.classGroup.progressAttendance, cell: (row) => (row.attendance.attendedRatio === null ? "—" : percent(row.attendance.attendedRatio)) },
-            { key: "average", header: t.classGroup.averageScore, cell: (row) => (row.assessmentAveragePercent === null ? "—" : `${Math.round(row.assessmentAveragePercent)}%`) },
+            { key: "average", header: t.classGroup.averageScore, cell: (row) => (row.assessmentAveragePercent === null ? "—" : percent(row.assessmentAveragePercent / 100)) },
             { key: "practice", header: t.classGroup.practiceItems, cell: (row) => row.practiceItemsCompleted },
             { key: "remediation", header: t.classGroup.openRemediation, cell: (row) => row.openRemediation },
           ]}

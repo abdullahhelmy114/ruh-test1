@@ -97,6 +97,36 @@ export function useApi<T>(url: string | null, select?: (body: unknown) => T): { 
   return { state, reload };
 }
 
+/**
+ * Loads one resource per class group incrementally: each group's slot fills
+ * as its own request settles, so one slow group never blanks the others.
+ * `url` and `select` must be stable (module-level) helpers.
+ */
+export function usePerGroup<T>(
+  classGroupIds: readonly string[],
+  url: (id: string) => string,
+  select: (data: unknown) => T,
+): ReadonlyMap<string, T> {
+  const { user, isLoading } = useAuth();
+  const [map, setMap] = useState<ReadonlyMap<string, T>>(new Map());
+  const key = classGroupIds.join("|");
+  useEffect(() => {
+    if (isLoading || !user || key === "") return;
+    let cancelled = false;
+    for (const id of key.split("|")) {
+      requestJson<unknown>(url(id)).then((result) => {
+        if (cancelled || !result.ok) return;
+        setMap((previous) => new Map(previous).set(id, select(result.data)));
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, user, isLoading]);
+  return map;
+}
+
 /** A write with a busy flag and the last failure, for forms and command buttons. */
 export function useAction() {
   const [busy, setBusy] = useState(false);

@@ -1,5 +1,7 @@
 "use client";
 
+import { useT } from "@/components/TranslatedText";
+
 import * as React from "react";
 import { Camera, Mail, Shield, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
@@ -14,6 +16,7 @@ export function AvatarCard({
   onAvatar?: (url: string) => void;
   stats?: { label: string; value: string }[];
 }) {
+  const tt = useT();
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const handle = (f?: File | null) => {
@@ -47,7 +50,7 @@ export function AvatarCard({
               type="button"
               onClick={() => inputRef.current?.click()}
               className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-gold text-gold-foreground shadow-elegant transition hover:scale-110"
-              aria-label="Upload avatar"
+              aria-label={tt("Upload avatar")}
             >
               <Camera size={15} />
             </button>
